@@ -1,12 +1,18 @@
 package game;
 
+import packets.ClientBoundGamePacketBuilder;
+import packets.ClientBoundHandshakePacketBuilder;
+import packets.ClientBoundLoginPacketBuilder;
 import packets.ClientBoundStatusPacketBuilder;
 import packets.DataReader;
+import packets.ServerBoundGamePackterBuilder;
+import packets.ServerBoundLoginPacketBuilder;
+import packets.ServerBoundHandshakePacketBuilder;
 import packets.ServerBoundStatusPacketBuilder;
 import proxy.ProxyServer;
 
 public abstract class Game {
-    private static int mode = 1;
+    private static NetworkMode mode = NetworkMode.STATUS;
 
     private static DataReader serverBoundDataReader;
     private static DataReader clientBoundDataReader;
@@ -19,21 +25,37 @@ public abstract class Game {
         serverBoundDataReader = new DataReader();
         clientBoundDataReader = new DataReader();
 
+        setMode(NetworkMode.HANDSHAKE);
+
         ProxyServer proxy = new ProxyServer(portRemote, portLocal, host);
         proxy.runServer(serverBoundDataReader, clientBoundDataReader);
     }
 
-    public static int getMode() {
+    public static NetworkMode getMode() {
         return mode;
     }
 
-    public static void setMode(int mode) {
+    public static void setMode(NetworkMode mode) {
+        System.out.println(mode);
         Game.mode = mode;
 
         switch (mode) {
-            case 1:
+            case STATUS:
                 serverBoundDataReader.setBuilder(new ServerBoundStatusPacketBuilder());
                 clientBoundDataReader.setBuilder(new ClientBoundStatusPacketBuilder());
+                break;
+            case LOGIN:
+                serverBoundDataReader.setBuilder(new ServerBoundLoginPacketBuilder());
+                clientBoundDataReader.setBuilder(new ClientBoundLoginPacketBuilder());
+                break;
+            case GAME:
+                serverBoundDataReader.setBuilder(new ServerBoundGamePackterBuilder());
+                clientBoundDataReader.setBuilder(new ClientBoundGamePacketBuilder());
+                break;
+            case HANDSHAKE:
+                serverBoundDataReader.setBuilder(new ServerBoundHandshakePacketBuilder());
+                clientBoundDataReader.setBuilder(new ClientBoundStatusPacketBuilder());
+                break;
         }
     }
 

@@ -32,28 +32,25 @@ public class DataReader {
         System.arraycopy(b, 0, toAdd, 0, amount);
         queue.add(toAdd);
 
-        System.out.println(queue.stream().map(el -> el.length).collect(Collectors.toList()));
 
-        if (nextPacketSize == -1) {
-            try {
+        do {
+            //System.out.println(queue.stream().map(el -> el.length).collect(Collectors.toList()));
+            if (nextPacketSize == -1 && hasBytes(1)) {
                 nextPacketSize = readVarInt();
-            } catch(RuntimeException ex) {
-                System.out.println("Not enough bytes to build packet yet");
-            }
-        }
-
-
-        readCalledSince = 0;
-        if (nextPacketSize > -1 && hasBytes(nextPacketSize)) {
-            System.out.println("Bytes: " + nextPacketSize + " :: enough for " + nextPacketSize);
-            getBuilder().build(nextPacketSize);
-
-            if (readCalledSince != nextPacketSize) {
-                System.out.println("WARNING: packet parsing may have been incorrect! Expected length: " + nextPacketSize + ". Used bytes: " + readCalledSince);
             }
 
-            nextPacketSize = -1;
-        }
+            readCalledSince = 0;
+            if (nextPacketSize > -1 && hasBytes(nextPacketSize)) {
+                System.out.println("(" + pos + ") Bytes: " + (nextPacketSize) + " :: enough for " + nextPacketSize);
+                getBuilder().build(nextPacketSize);
+
+                if (readCalledSince != nextPacketSize) {
+                    System.out.println("WARNING: packet parsing may have been incorrect! Expected length: " + nextPacketSize + ". Used bytes: " + readCalledSince);
+                }
+
+                nextPacketSize = -1;
+            }
+        } while(hasBytes(5) && nextPacketSize == -1);
     }
 
    private byte readNext() {
@@ -84,6 +81,7 @@ public class DataReader {
         }
         return false;
    }
+
 
 
     // From https://wiki.vg/Protocol#Packet_format
@@ -124,6 +122,27 @@ public class DataReader {
         byte low = readNext();
         byte high = readNext();
         return (((low & 0xFF) << 8) | (high & 0xFF));
+    }
+
+    public long readVarLong() {
+        int numRead = 0;
+        long result = 0;
+        byte read;
+        do {
+            if (!hasNext()) {
+                throw new RuntimeException("VarLong lacks bytes! We may be out of sync now.");
+            }
+            read = readNext();
+            int value = (read & 0b01111111);
+            result |= (value << (7 * numRead));
+
+            numRead++;
+            if (numRead > 10) {
+                throw new RuntimeException("VarLong is too big");
+            }
+        } while ((read & 0b10000000) != 0);
+
+        return result;
     }
 
 

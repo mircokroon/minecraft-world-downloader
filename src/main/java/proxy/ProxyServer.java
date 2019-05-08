@@ -23,7 +23,7 @@ public class ProxyServer {
      * runs a single-threaded proxy server on
      * the specified local port. It never returns.
      */
-    public void runServer(DataReader onServerPacket, DataReader onClientPacket) {
+    public void runServer(DataReader onServerBoundPacket, DataReader onClientBoundPacket) {
         System.out.println("Starting proxy for " + host + ":" + portRemote + " on port " + portLocal);
 
         // Create a ServerSocket to listen for connections with
@@ -64,7 +64,7 @@ public class ProxyServer {
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
                             streamToServer.write(request, 0, bytesRead);
                             streamToServer.flush();
-                            onClientPacket.pushData(request, bytesRead);
+                            onServerBoundPacket.pushData(request, bytesRead);
                         }
                     });
                     // the client closed the connection to us, so close our connection to the server.
@@ -76,7 +76,7 @@ public class ProxyServer {
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
                         streamToClient.write(reply, 0, bytesRead);
                         streamToClient.flush();
-                        //onServerPacket.pushData(request, bytesRead);
+                        onClientBoundPacket.pushData(request, bytesRead);
                     }
                 }, (ex) -> System.out.println("Client probably disconnected. Waiting for new connection..."));
 

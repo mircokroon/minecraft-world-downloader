@@ -14,7 +14,7 @@ public class PacketHandler implements IPacketHandler {
     public void handle(byte[] packet) {
 
 
-        //ByteArrayReader reader = new ByteArrayReader(packet);
+        //old.ByteArrayReader reader = new old.ByteArrayReader(packet);
 
         if (limit > 0) {
             limit++;
@@ -39,21 +39,21 @@ public class PacketHandler implements IPacketHandler {
         System.out.println(sb.toString());
     }
 
-    private void handleCompressedPacket(ByteArrayReader packet) {
-        //ByteArrayReader compressed = new ByteArrayReader(packet);
+    private void handleCompressedPacket(old.ByteArrayReader packet) {
+        //old.ByteArrayReader compressed = new old.ByteArrayReader(packet);
         //System.out.println("Packet length: " + readVarInt(compressed) + " Data length: " + readVarInt(compressed));
         int dataLength = readVarInt(packet);
 
         if (dataLength == 0) {
             System.out.println("Packet is NOT compressed! ID: " + Integer.toHexString(readVarInt(packet)));
         } else {
-            ByteArrayReader decompressed = decompress(packet.getRemaining());
+            old.ByteArrayReader decompressed = decompress(packet.getRemaining());
             System.out.println("UNCOMPRESSED! ID: " + Integer.toHexString(readVarInt(decompressed)));
         }
 
     }
 
-    private void handleUncompressedPakcet(ByteArrayReader packet) {
+    private void handleUncompressedPakcet(old.ByteArrayReader packet) {
         int packetID = readVarInt(packet);
         //System.out.println("Uncompressd packet found! ID: " + Integer.toHexString(packetID));
         if (type == "client" && packetID == 0x00) {
@@ -75,9 +75,9 @@ public class PacketHandler implements IPacketHandler {
     }
 
 
-    private ByteArrayReader decompress(byte[] compressed) {
+    private old.ByteArrayReader decompress(byte[] compressed) {
         try {
-            return new ByteArrayReader(IOUtils.toByteArray(new InflaterInputStream(new ByteArrayInputStream(compressed))));
+            return new old.ByteArrayReader(IOUtils.toByteArray(new InflaterInputStream(new ByteArrayInputStream(compressed))));
         } catch (IOException e) {
             e.printStackTrace();
             return null;
