@@ -1,5 +1,7 @@
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+package proxy;
+
+import packets.DataReader;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -21,7 +23,7 @@ public class ProxyServer {
      * runs a single-threaded proxy server on
      * the specified local port. It never returns.
      */
-    void runServer(IPacketHandler onServerPacket, IPacketHandler onClientPacket) {
+    public void runServer(DataReader onServerPacket, DataReader onClientPacket) {
         System.out.println("Starting proxy for " + host + ":" + portRemote + " on port " + portLocal);
 
         // Create a ServerSocket to listen for connections with
@@ -62,7 +64,7 @@ public class ProxyServer {
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
                             streamToServer.write(request, 0, bytesRead);
                             streamToServer.flush();
-                            attempt(() -> onClientPacket.handle(request));
+                            onClientPacket.pushData(request, bytesRead);
                         }
                     });
                     // the client closed the connection to us, so close our connection to the server.
@@ -74,7 +76,7 @@ public class ProxyServer {
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
                         streamToClient.write(reply, 0, bytesRead);
                         streamToClient.flush();
-                        attempt(() -> onServerPacket.handle(request));
+                        //onServerPacket.pushData(request, bytesRead);
                     }
                 }, (ex) -> System.out.println("Client probably disconnected. Waiting for new connection..."));
 
@@ -87,11 +89,11 @@ public class ProxyServer {
         }
     }
 
-    private static void attempt(IExceptionHandler r) {
+    public static void attempt(IExceptionHandler r) {
         attempt(r, Throwable::printStackTrace);
     }
 
-    private static void attempt(IExceptionHandler r, IExceptionConsumer failure) {
+    public static void attempt(IExceptionHandler r, IExceptionConsumer failure) {
         try {
             r.run();
         } catch (Exception ex) {

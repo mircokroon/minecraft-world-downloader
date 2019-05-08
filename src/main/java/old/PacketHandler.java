@@ -1,9 +1,4 @@
-import org.apache.commons.io.IOUtils;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Arrays;
-import java.util.zip.InflaterInputStream;
+package old;
 
 public class PacketHandler implements IPacketHandler {
     boolean compressionEnabled = false;
@@ -19,8 +14,8 @@ public class PacketHandler implements IPacketHandler {
     public void handle(byte[] packet) {
 
 
-        ByteArrayReader reader = new ByteArrayReader(packet);
-        int length = readVarInt(reader);;
+        //ByteArrayReader reader = new ByteArrayReader(packet);
+
         if (limit > 0) {
             limit++;
             //System.out.print(type + " (" + length + "):");
@@ -28,14 +23,14 @@ public class PacketHandler implements IPacketHandler {
         }
 
         if (compressionEnabled) {
-            handleCompressedPacket(reader);
+     //       handleCompressedPacket(reader);
         } else {
-            handleUncompressedPakcet(reader);
+      //      handleUncompressedPakcet(reader);
         }
 
 
     }
-
+/*
     private static void printArr(byte[] arr) {
         StringBuilder sb = new StringBuilder();
         for (byte b : arr) {
@@ -79,24 +74,6 @@ public class PacketHandler implements IPacketHandler {
         }
     }
 
-    // From https://wiki.vg/Protocol#Packet_format
-    public static int readVarInt(ByteArrayReader decompressed) {
-        int numRead = 0;
-        int result = 0;
-        byte read;
-        do {
-            read = decompressed.read();
-            int value = (read & 0b01111111);
-            result |= (value << (7 * numRead));
-
-            numRead++;
-            if (numRead > 5) {
-                throw new RuntimeException("VarInt is too big");
-            }
-        } while ((read & 0b10000000) != 0);
-
-        return result;
-    }
 
     private ByteArrayReader decompress(byte[] compressed) {
         try {
@@ -106,7 +83,7 @@ public class PacketHandler implements IPacketHandler {
             return null;
         }
     }
-
+*/
     /*public byte[] decompress(byte[] bytesToDecompress) {
         byte[] returnValues = null;
 
