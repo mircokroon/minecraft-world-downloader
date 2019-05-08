@@ -31,7 +31,7 @@ public class ProxyServer {
             System.exit(1);
         });
 
-        final byte[] request = new byte[1024];
+        final byte[] request = new byte[4096];
         byte[] reply = new byte[4096];
 
         while (true) {
@@ -42,7 +42,6 @@ public class ProxyServer {
                 // Wait for a connection on the local port
                 client.set(ss.get().accept());
 
-                final ByteArrayOutputStream clientHandlerOutput = new ByteArrayOutputStream();
                 final InputStream streamFromClient = client.get().getInputStream();
                 final OutputStream streamToClient = client.get().getOutputStream();
 
@@ -54,7 +53,6 @@ public class ProxyServer {
                     attempt(client.get()::close);
                 });
 
-                final ByteArrayOutputStream serverHandlerOutput = new ByteArrayOutputStream();
                 final InputStream streamFromServer = server.get().getInputStream();
                 final OutputStream streamToServer = server.get().getOutputStream();
 
@@ -62,13 +60,11 @@ public class ProxyServer {
                     attempt(() -> {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
-                            onClientPacket.handle(request);
                             streamToServer.write(request, 0, bytesRead);
                             streamToServer.flush();
+                            attempt(() -> onClientPacket.handle(request));
                         }
-
                     });
-
                     // the client closed the connection to us, so close our connection to the server.
                     attempt(streamToServer::close);
                 }).start();
@@ -76,9 +72,9 @@ public class ProxyServer {
                 attempt(() -> {
                     int bytesRead;
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
-                        onServerPacket.handle(request);
                         streamToClient.write(reply, 0, bytesRead);
                         streamToClient.flush();
+                        attempt(() -> onServerPacket.handle(request));
                     }
                 }, (ex) -> System.out.println("Client probably disconnected. Waiting for new connection..."));
 
