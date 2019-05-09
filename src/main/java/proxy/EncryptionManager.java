@@ -1,26 +1,24 @@
 package proxy;
 
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Object;
-import org.bouncycastle.asn1.DERObject;
-import org.bouncycastle.asn1.util.ASN1Dump;
 import packets.ClientBoundLoginPacketBuilder;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.interfaces.RSAPrivateKey;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.crypto.Cipher;
 
 public class EncryptionManager {
@@ -29,10 +27,11 @@ public class EncryptionManager {
     private OutputStream streamToClient;
     private OutputStream streamToServer;
 
+    String serverId;
     RSAPublicKey serverRealPublicKey;
     byte[] serverVerifyToken;
 
-    byte[] clientRealSharedSecret;
+    byte[] clientSharedSecret;
 
     private KeyPair serverKeyPair;
     {
@@ -43,11 +42,10 @@ public class EncryptionManager {
         });
     }
 
-    public void setServerEncryptionRequest(byte[] encoded, byte[] token) {
+    public void setServerEncryptionRequest(byte[] encoded, byte[] token, String serverId) {
         attempt(() -> {
-            //ASN1InputStream bIn = new ASN1InputStream(new ByteArrayInputStream(encoded));
-            //serverRealPublicKey = bIn.readObject();
             serverVerifyToken = token;
+            this.serverId = serverId;
 
             KeyFactory kf = KeyFactory.getInstance("RSA");
             serverRealPublicKey = (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(encoded));
@@ -84,8 +82,44 @@ public class EncryptionManager {
                 System.out.println("Token verified!");
             }
 
-            clientRealSharedSecret = cipher.doFinal(sharedSecret);
+            clientSharedSecret = cipher.doFinal(sharedSecret);
+            sendReplacementEncryptionConfirmation();
         });
+    }
+
+    private void sendReplacementEncryptionConfirmation() {
+        // authenticate the client
+        attempt(() -> new ClientAuthenticator().makeRequest(generateShaHash()));
+
+        // encryption confirmation
+        attempt(() -> {
+            List<Byte> bytes = new ArrayList<>();
+
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, serverRealPublicKey);
+            byte[] sharedSecret = cipher.doFinal(clientSharedSecret);
+            byte[] verifyToken = cipher.doFinal(serverVerifyToken);
+
+            writeVarInt(bytes, sharedSecret.length);
+            writeByteArray(bytes, sharedSecret);
+            writeVarInt(bytes, verifyToken.length);
+            writeByteArray(bytes, verifyToken);
+            prependPacketLength(bytes);
+
+            streamToServer(new LinkedList<>(bytes));
+            // TODO: enable encryption right after sending this
+        });
+    }
+
+    private String generateShaHash() {
+        AtomicReference<MessageDigest> sha1 = new AtomicReference<>();
+        attempt(() -> sha1.set(MessageDigest.getInstance("SHA1")));
+
+        sha1.get().update(serverId.getBytes(StandardCharsets.US_ASCII));
+        sha1.get().update(clientSharedSecret);
+        sha1.get().update(serverRealPublicKey.getEncoded());
+
+        return new BigInteger(sha1.get().digest()).toString(16);
     }
 
     public void setStreamToClient(OutputStream streamToClient) {

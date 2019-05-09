@@ -29,7 +29,7 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
                 System.out.println("Received encryption request! Key: (" + pubKeyLen + ") " + Arrays.toString(pubKey));
                 System.out.println("\tVerify token: (" + verifyTokenLen + ") " + Arrays.toString(verifyToken));
 
-                Game.getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken);
+                Game.getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken, serverId);
                 return false;
             case LOGIN_SUCCESS:
                 String uuid = getReader().readString();
