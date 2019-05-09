@@ -3,8 +3,9 @@ package packets;
 public class PacketBuilder {
     private DataReader reader;
 
-    public void build(int size) {
+    public boolean build(int size) {
         getReader().skip(size);
+        return true;
     }
 
     public DataReader getReader() {

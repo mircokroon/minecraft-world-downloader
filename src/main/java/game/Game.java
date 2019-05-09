@@ -9,6 +9,7 @@ import packets.ServerBoundGamePackterBuilder;
 import packets.ServerBoundLoginPacketBuilder;
 import packets.ServerBoundHandshakePacketBuilder;
 import packets.ServerBoundStatusPacketBuilder;
+import proxy.EncryptionManager;
 import proxy.ProxyServer;
 
 public abstract class Game {
@@ -17,6 +18,12 @@ public abstract class Game {
     private static DataReader serverBoundDataReader;
     private static DataReader clientBoundDataReader;
 
+    public static EncryptionManager getEncryptionManager() {
+        return encryptionManager;
+    }
+
+    private static EncryptionManager encryptionManager;
+
     public static void startProxy() {
         String host = "localhost";
         int portRemote = 25565;
@@ -24,11 +31,12 @@ public abstract class Game {
 
         serverBoundDataReader = new DataReader();
         clientBoundDataReader = new DataReader();
+        encryptionManager = new EncryptionManager();
 
         setMode(NetworkMode.HANDSHAKE);
 
         ProxyServer proxy = new ProxyServer(portRemote, portLocal, host);
-        proxy.runServer(serverBoundDataReader, clientBoundDataReader);
+        proxy.runServer(serverBoundDataReader, clientBoundDataReader, encryptionManager);
     }
 
     public static NetworkMode getMode() {

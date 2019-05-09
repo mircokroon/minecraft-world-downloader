@@ -1,18 +1,21 @@
 package packets;
 
+import proxy.ByteConsumer;
+
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class DataReader {
     Queue<Byte> queue;
-    int pos;
+    Queue<Byte> currentPacket;
     PacketBuilder builder;
     int nextPacketSize = -1;
     int readCalledSince = 0;
 
     public DataReader() {
         queue = new LinkedList<>();
-        pos = 0;
+        currentPacket = new LinkedList<>();
     }
 
     public void setBuilder(PacketBuilder builder) {
@@ -24,7 +27,7 @@ public class DataReader {
         return builder;
     }
 
-    public void pushData(byte[] b, int amount) {
+    public void pushData(byte[] b, int amount, ByteConsumer transmit) throws IOException  {
         if (amount == 0) { return; }
 
         for (int i = 0; i < amount; i++) {
@@ -32,27 +35,30 @@ public class DataReader {
         }
 
         do {
-            //System.out.println(queue.stream().map(el -> el.length).collect(Collectors.toList()));
             if (nextPacketSize == -1 && hasBytes(1)) {
                 nextPacketSize = readVarInt();
             }
 
-            readCalledSince = 0;
             if (nextPacketSize > -1 && hasBytes(nextPacketSize)) {
-                System.out.println("(" + pos + ") Bytes: " + (nextPacketSize) + " :: enough for " + nextPacketSize);
-                getBuilder().build(nextPacketSize);
+                System.out.println("Bytes: " + (nextPacketSize) + " :: enough for " + nextPacketSize);
 
-                if (readCalledSince != nextPacketSize) {
-                    System.out.println("WARNING: packet parsing may have been incorrect! Expected length: " + nextPacketSize + ". Used bytes: " + readCalledSince);
+                boolean forwardPacket = getBuilder().build(nextPacketSize);
+                if (forwardPacket) {
+                    transmit.consume(currentPacket);
                 }
+                if (currentPacket.size() != nextPacketSize) {
+                    System.out.println("WARNING: packet parsing may have been incorrect! Expected length: " + nextPacketSize + ". Used bytes: " + currentPacket.size());
+                }
+                currentPacket.clear();
+
 
                 nextPacketSize = -1;
             }
-        } while(hasBytes(5) && nextPacketSize == -1);
+        } while(hasBytes(1) && nextPacketSize == -1);
     }
 
    private byte readNext() {
-        readCalledSince++;
+        currentPacket.add(queue.peek());
 
         return queue.remove();
    }

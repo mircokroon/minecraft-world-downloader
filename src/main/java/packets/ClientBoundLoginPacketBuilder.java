@@ -1,22 +1,24 @@
 package packets;
 
+import game.Game;
+
 import java.util.Arrays;
 
 public class ClientBoundLoginPacketBuilder extends PacketBuilder {
-    private final static int DISCONNECT = 0x00;
-    private final static int ENCRYPTION_REQUEST = 0x01;
-    private final static int LOGIN_SUCCESS = 0x02;
-    private final static int SET_COMPRESSION = 0x03;
+    public final static int DISCONNECT = 0x00;
+    public final static int ENCRYPTION_REQUEST = 0x01;
+    public final static int LOGIN_SUCCESS = 0x02;
+    public final static int SET_COMPRESSION = 0x03;
 
     @Override
-    public void build(int size) {
+    public boolean build(int size) {
         int packetID = getReader().readVarInt();
 
         switch (packetID) {
             case DISCONNECT:
                 String reason = getReader().readString();
                 System.out.println("Disconnect: " + reason);
-                break;
+                return true;
             case ENCRYPTION_REQUEST:
                 String serverId = getReader().readString();
                 int pubKeyLen = getReader().readVarInt();
@@ -26,14 +28,16 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
 
                 System.out.println("Received encryption request! Key: (" + pubKeyLen + ") " + Arrays.toString(pubKey));
                 System.out.println("\tVerify token: (" + verifyTokenLen + ") " + Arrays.toString(verifyToken));
-                break;
+
+                Game.getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken);
+                return false;
             case LOGIN_SUCCESS:
                 String uuid = getReader().readString();
                 String username = getReader().readString();
                 System.out.println("Login success: " + username + " logged in with uuid " + uuid);
-                break;
+                return true;
             default:
-                super.build(size);
+                return super.build(size);
         }
     }
 }

@@ -4,7 +4,7 @@ import game.Game;
 import game.NetworkMode;
 
 public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
-    public void build(int size) {
+    public boolean build(int size) {
         int packetId = getReader().readVarInt();
 
         switch (packetId) {
@@ -22,9 +22,9 @@ public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
                     case 2: Game.setMode(NetworkMode.LOGIN); break;
                 }
 
-                break;
+                return true;
             default:
-                super.build(size);
+                return super.build(size);
         }
     }
 }

@@ -25,7 +25,7 @@ public class ProxyServer {
      * runs a single-threaded proxy server on
      * the specified local port. It never returns.
      */
-    public void runServer(DataReader onServerBoundPacket, DataReader onClientBoundPacket) {
+    public void runServer(DataReader onServerBoundPacket, DataReader onClientBoundPacket, EncryptionManager encryptionManager) {
         System.out.println("Starting proxy for " + host + ":" + portRemote + " on port " + portLocal);
 
         // Create a ServerSocket to listen for connections with
@@ -35,7 +35,7 @@ public class ProxyServer {
             System.exit(1);
         });
 
-        final byte[] request = new byte[10409624];
+        final byte[] request = new byte[4096];
         final byte[] reply = new byte[4096];
 
         while (true) {
@@ -48,6 +48,7 @@ public class ProxyServer {
 
                 final InputStream streamFromClient = client.get().getInputStream();
                 final OutputStream streamToClient = client.get().getOutputStream();
+                encryptionManager.setStreamToClient(streamToClient);
 
                 // If the server cannot connect, close client connection
                 attempt(() -> server.set(new Socket(host, portRemote)), (ex) -> {
@@ -59,15 +60,16 @@ public class ProxyServer {
 
                 final InputStream streamFromServer = server.get().getInputStream();
                 final OutputStream streamToServer = server.get().getOutputStream();
+                encryptionManager.setStreamToServer(streamToServer);
 
                 new Thread(() -> {
                     Game.setMode(NetworkMode.HANDSHAKE);
                     attempt(() -> {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
-                            onServerBoundPacket.pushData(request, bytesRead);
-                            streamToServer.write(request, 0, bytesRead);
-                            streamToServer.flush();
+                            onServerBoundPacket.pushData(request, bytesRead, encryptionManager::streamToServer);
+                            //streamToServer.write(request, 0, bytesRead);
+                            //streamToServer.flush();
                         }
                     });
                     // the client closed the connection to us, so close our connection to the server.
@@ -77,9 +79,9 @@ public class ProxyServer {
                 attempt(() -> {
                     int bytesRead;
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
-                        onClientBoundPacket.pushData(reply, bytesRead);
-                        streamToClient.write(reply, 0, bytesRead);
-                        streamToClient.flush();
+                        onClientBoundPacket.pushData(reply, bytesRead, encryptionManager::streamToClient);
+                        //streamToClient.write(reply, 0, bytesRead);
+                        //streamToClient.flush();
                     }
                 }, (ex) -> {
                     ex.printStackTrace();
