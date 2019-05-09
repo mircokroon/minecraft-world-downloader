@@ -65,9 +65,9 @@ public class ProxyServer {
                     attempt(() -> {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
+                            onServerBoundPacket.pushData(request, bytesRead);
                             streamToServer.write(request, 0, bytesRead);
                             streamToServer.flush();
-                            onServerBoundPacket.pushData(request, bytesRead);
                         }
                     });
                     // the client closed the connection to us, so close our connection to the server.
@@ -77,11 +77,14 @@ public class ProxyServer {
                 attempt(() -> {
                     int bytesRead;
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
+                        onClientBoundPacket.pushData(reply, bytesRead);
                         streamToClient.write(reply, 0, bytesRead);
                         streamToClient.flush();
-                        onClientBoundPacket.pushData(reply, bytesRead);
                     }
-                }, (ex) -> System.out.println("Client probably disconnected. Waiting for new connection..."));
+                }, (ex) -> {
+                    ex.printStackTrace();
+                    System.out.println("Client probably disconnected. Waiting for new connection...");
+                });
 
                 // The server closed its connection to us, so we close our connection to our client.
                 streamToClient.close();

@@ -4,7 +4,7 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class DataReader {
-    Queue<byte[]> queue;
+    Queue<Byte> queue;
     int pos;
     PacketBuilder builder;
     int nextPacketSize = -1;
@@ -27,10 +27,9 @@ public class DataReader {
     public void pushData(byte[] b, int amount) {
         if (amount == 0) { return; }
 
-        byte[] toAdd = new byte[amount];
-        System.arraycopy(b, 0, toAdd, 0, amount);
-        queue.add(toAdd);
-
+        for (int i = 0; i < amount; i++) {
+            queue.add(b[i]);
+        }
 
         do {
             //System.out.println(queue.stream().map(el -> el.length).collect(Collectors.toList()));
@@ -55,30 +54,15 @@ public class DataReader {
    private byte readNext() {
         readCalledSince++;
 
-        if (queue.peek().length == pos) {
-            System.out.println("REMOVING");
-           queue.remove();
-           pos = 0;
-       }
-
-        return queue.peek()[pos++];
+        return queue.remove();
    }
 
    private boolean hasNext() {
-       if (queue.isEmpty()) return false;
-
-       return queue.peek().length != pos || queue.size() > 1;
+       return !queue.isEmpty();
    }
 
    private boolean hasBytes(int amount) {
-        int sum = -pos;
-        for(byte[] bytes : queue) {
-            sum += bytes.length;
-            if (sum >= amount) {
-                return true;
-            }
-        }
-        return false;
+       return amount <= queue.size();
    }
 
 
