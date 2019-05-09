@@ -135,4 +135,12 @@ public class DataReader {
             readNext();
         }
     }
+
+    public byte[] readByteArray(int arrayLength) {
+        byte[] bytes = new byte[arrayLength];
+        for (int i = 0; i < arrayLength; i++) {
+            bytes[i] = readNext();
+        }
+        return bytes;
+    }
 }
