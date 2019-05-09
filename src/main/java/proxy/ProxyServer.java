@@ -1,5 +1,7 @@
 package proxy;
 
+import game.Game;
+import game.NetworkMode;
 import packets.DataReader;
 
 import java.io.InputStream;
@@ -33,8 +35,8 @@ public class ProxyServer {
             System.exit(1);
         });
 
-        final byte[] request = new byte[4096];
-        byte[] reply = new byte[4096];
+        final byte[] request = new byte[10409624];
+        final byte[] reply = new byte[4096];
 
         while (true) {
             AtomicReference<Socket> client = new AtomicReference<>();
@@ -59,6 +61,7 @@ public class ProxyServer {
                 final OutputStream streamToServer = server.get().getOutputStream();
 
                 new Thread(() -> {
+                    Game.setMode(NetworkMode.HANDSHAKE);
                     attempt(() -> {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
@@ -76,7 +79,7 @@ public class ProxyServer {
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
                         streamToClient.write(reply, 0, bytesRead);
                         streamToClient.flush();
-                        onClientBoundPacket.pushData(request, bytesRead);
+                        onClientBoundPacket.pushData(reply, bytesRead);
                     }
                 }, (ex) -> System.out.println("Client probably disconnected. Waiting for new connection..."));
 

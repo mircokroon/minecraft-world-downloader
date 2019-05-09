@@ -54,7 +54,7 @@ public abstract class Game {
                 break;
             case HANDSHAKE:
                 serverBoundDataReader.setBuilder(new ServerBoundHandshakePacketBuilder());
-                clientBoundDataReader.setBuilder(new ClientBoundStatusPacketBuilder());
+                clientBoundDataReader.setBuilder(new ClientBoundHandshakePacketBuilder());
                 break;
         }
     }

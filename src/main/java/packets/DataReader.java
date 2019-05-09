@@ -2,7 +2,6 @@ package packets;
 
 import java.util.LinkedList;
 import java.util.Queue;
-import java.util.stream.Collectors;
 
 public class DataReader {
     Queue<byte[]> queue;
