@@ -4,11 +4,13 @@ import proxy.ByteConsumer;
 import proxy.EncryptionManager;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
 
 public class DataReader {
     Queue<Byte> queue;
+    Queue<Byte> encryptedQueue;
     Queue<Byte> currentPacket;
     PacketBuilder builder;
     int nextPacketSize = -1;
@@ -17,6 +19,7 @@ public class DataReader {
     public DataReader() {
         queue = new LinkedList<>();
         currentPacket = new LinkedList<>();
+        encryptedQueue = new LinkedList<>();
     }
 
     public void setBuilder(PacketBuilder builder) {
@@ -31,10 +34,32 @@ public class DataReader {
     public void pushData(byte[] b, int amount, EncryptionManager encryptionManager, ByteConsumer transmit) throws IOException  {
         if (amount == 0) { return; }
 
-        // TODO: this does NOT work -- decrypt must be called with 8 bytes at a time
-        byte[] decrypted = encryptionManager.decrypt(b, amount);
-        for (int i = 0; i < decrypted.length; i++) {
-            queue.add(decrypted[i]);
+
+        if (encryptionManager.isEncryptionEnabled()) {
+            // add all bytes to the encrypted queue
+            for (int i = 0; i < amount; i++) {
+                encryptedQueue.add(b[i]);
+            }
+            System.out.println("Added " + amount + " to encryption queue : " + Arrays.toString(b));
+
+            if (encryptedQueue.size() >= encryptionManager.blockSize) {
+                int toEncrypt = encryptedQueue.size() - (encryptedQueue.size() % encryptionManager.blockSize);
+                byte[] encrypted = new byte[toEncrypt];
+                for (int i = 0; i < toEncrypt; i++) {
+                    encrypted[i] = encryptedQueue.remove();
+                }
+                System.out.println("Decrypting: " + encrypted.length + " / " + encryptedQueue.size() + " :: " + Arrays.toString(encrypted));
+                byte[] decrypted = encryptionManager.decrypt(encrypted);
+                System.out.println("Succesfully decrypted! : " + decrypted.length );
+                for (byte aDecrypted : decrypted) {
+                    queue.add(aDecrypted);
+                }
+            }
+        } else {
+            System.out.println("Not decrypting " + amount + " :: " + Arrays.toString(b));
+            for (int i = 0; i < amount; i++) {
+                queue.add(b[i]);
+            }
         }
 
         do {

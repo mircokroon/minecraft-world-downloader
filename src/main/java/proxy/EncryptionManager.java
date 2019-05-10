@@ -21,11 +21,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public class EncryptionManager {
+    public final int blockSize = 16;
+    public boolean isEncryptionEnabled() {
+        return encryptionEnabled;
+    }
+
     boolean encryptionEnabled = false;
 
     private Cipher decryptor;
@@ -90,6 +97,7 @@ public class EncryptionManager {
             }
 
             clientSharedSecret = cipher.doFinal(sharedSecret);
+            System.out.println("Shared secret: " + clientSharedSecret.length + " :: " + Arrays.toString(clientSharedSecret));
             sendReplacementEncryptionConfirmation();
         });
     }
@@ -115,6 +123,7 @@ public class EncryptionManager {
             prependPacketLength(bytes);
 
             streamToServer(new LinkedList<>(bytes));
+            System.out.println("Sent auth confirmation");
             enableEncryption();
         });
     }
@@ -130,6 +139,16 @@ public class EncryptionManager {
             decryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
             encryptionEnabled = true;
+            System.out.println("Enabled encryption");
+
+/*
+            byte[] testBytes = new byte[]{3, 3, 100};
+            byte[] enc = encryptor.doFinal(testBytes);
+            System.out.println("Test: " + enc.length + " :: " + Arrays.toString(enc));
+
+            byte[] dec = decryptor.update(enc);
+            System.out.println("Test DEC: " + dec.length + " :: " + Arrays.toString(dec));
+*/
         });
     }
 
@@ -152,34 +171,57 @@ public class EncryptionManager {
         this.streamToServer = streamToServer;
     }
 
-    public byte[] decrypt(byte[] bytes, int amount) {
-        byte[] actual = new byte[amount];
-        System.arraycopy(bytes, 0, actual, 0, amount);
-
-        if (!encryptionEnabled) { return actual; }
+    public byte[] decrypt(byte[] bytes) {
+        if (!encryptionEnabled) { return bytes; }
 
         try {
-            return decryptor.doFinal(bytes);
-        } catch(Exception ex) {
-            throw new RuntimeException("Could not decrypt stream!", ex);
+            return decryptor.update(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.exit(1);
         }
+        return null;
+
+        /*
+        LinkedList<byte[]> decrypted = new LinkedList<>();
+
+        byte[] toDecrypt = new byte[blockSize];
+        for (int i = 0; i < bytes.length; i += blockSize) {
+            System.arraycopy(bytes, i, toDecrypt, 0, blockSize);
+            try {
+                decrypted.add(decryptor.doFinal(toDecrypt));
+            } catch(Exception ex) {
+                throw new RuntimeException("Could not decrypt stream!", ex);
+            }
+        }
+
+        int size = decrypted.stream().mapToInt(el -> el.length).sum();
+        byte[] res = new byte[size];
+
+        int pos = 0;
+        for (byte[] toAdd : decrypted) {
+            System.arraycopy(toAdd, 0, res, pos += toAdd.length, toAdd.length);
+        }
+
+        return res;*/
     }
 
     private byte[] encrypt(byte[] bytes) {
         if (!encryptionEnabled) { return bytes; }
 
         try {
-            return encryptor.doFinal(bytes);
+            return encryptor.update(bytes);
         } catch(Exception ex) {
             throw new RuntimeException("Could not encrypt stream!", ex);
         }
     }
 
     public void streamToServer(Queue<Byte> bytes) throws IOException {
-        System.out.println(bytes);
+        System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
         streamTo(streamToServer, bytes);
     }
     public void streamToClient(Queue<Byte> bytes) throws IOException {
+        System.out.println("Writing bytes to client: " + bytes.size() + " :: " + bytes);
         streamTo(streamToClient, bytes);
     }
 
