@@ -1,18 +1,18 @@
 package packets;
 
 public class PacketBuilder {
-    private DataReader reader;
+    private DataProvider reader;
 
     public boolean build(int size) {
-        getReader().skip(size);
+        getReader().withSize(size);
         return true;
     }
 
-    public DataReader getReader() {
+    public DataProvider getReader() {
         return reader;
     }
 
-    public void setReader(DataReader reader) {
+    public void setReader(DataProvider reader) {
         this.reader = reader;
     }
 }

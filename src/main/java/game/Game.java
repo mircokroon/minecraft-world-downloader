@@ -9,6 +9,7 @@ import packets.ServerBoundGamePackterBuilder;
 import packets.ServerBoundLoginPacketBuilder;
 import packets.ServerBoundHandshakePacketBuilder;
 import packets.ServerBoundStatusPacketBuilder;
+import proxy.CompressionManager;
 import proxy.EncryptionManager;
 import proxy.ProxyServer;
 
@@ -22,7 +23,13 @@ public abstract class Game {
         return encryptionManager;
     }
 
+    public static CompressionManager getCompressionManager() {
+        return compressionManager;
+    }
+
     private static EncryptionManager encryptionManager;
+
+    private static CompressionManager compressionManager;
 
     public static void startProxy() {
         String host = "localhost";
@@ -32,6 +39,7 @@ public abstract class Game {
         serverBoundDataReader = new DataReader();
         clientBoundDataReader = new DataReader();
         encryptionManager = new EncryptionManager();
+        compressionManager = new CompressionManager();
 
         setMode(NetworkMode.HANDSHAKE);
 

@@ -40,6 +40,7 @@ public class EncryptionManager {
     }
 
     public void setCompressionLimit(int compressionLimit) {
+        // TODO: enable compression
         this.compressionLimit = compressionLimit;
     }
 

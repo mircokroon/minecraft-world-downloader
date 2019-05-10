@@ -13,19 +13,20 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
 
     @Override
     public boolean build(int size) {
-        int packetID = getReader().readVarInt();
+        DataTypeProvider typeProvider = getReader().withSize(size);
+        int packetID = typeProvider.readVarInt();
 
         switch (packetID) {
             case DISCONNECT:
-                String reason = getReader().readString();
+                String reason = typeProvider.readString();
                 System.out.println("Disconnect: " + reason);
                 return true;
             case ENCRYPTION_REQUEST:
-                String serverId = getReader().readString();
-                int pubKeyLen = getReader().readVarInt();
-                byte[] pubKey = getReader().readByteArray(pubKeyLen);
-                int verifyTokenLen = getReader().readVarInt();
-                byte[] verifyToken = getReader().readByteArray(verifyTokenLen);
+                String serverId = typeProvider.readString();
+                int pubKeyLen = typeProvider.readVarInt();
+                byte[] pubKey = typeProvider.readByteArray(pubKeyLen);
+                int verifyTokenLen = typeProvider.readVarInt();
+                byte[] verifyToken = typeProvider.readByteArray(verifyTokenLen);
 
                 System.out.println("Received encryption request! Key: (" + pubKeyLen + ") " + Arrays.toString(pubKey));
                 System.out.println("\tVerify token: (" + verifyTokenLen + ") " + Arrays.toString(verifyToken));
@@ -33,16 +34,16 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
                 Game.getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken, serverId);
                 return false;
             case LOGIN_SUCCESS:
-                String uuid = getReader().readString();
-                String username = getReader().readString();
+                String uuid = typeProvider.readString();
+                String username = typeProvider.readString();
                 System.out.println("Login success: " + username + " logged in with uuid " + uuid);
                 Game.setMode(NetworkMode.GAME);
                 return true;
 
             case SET_COMPRESSION:
-                int limit = getReader().readVarInt();
+                int limit = typeProvider.readVarInt();
                 System.out.println("Compression set with limit: " + limit);
-                Game.getEncryptionManager().setCompressionLimit(limit);
+                Game.getCompressionManager().enableCompression(limit);
                 return true;
             default:
                 return super.build(size);

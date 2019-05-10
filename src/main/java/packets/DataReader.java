@@ -3,10 +3,12 @@ package packets;
 import proxy.ByteConsumer;
 import proxy.EncryptionManager;
 
+import javax.xml.ws.Provider;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.Supplier;
 
 public class DataReader {
     Queue<Byte> queue;
@@ -24,7 +26,7 @@ public class DataReader {
 
     public void setBuilder(PacketBuilder builder) {
         this.builder = builder;
-        builder.setReader(this);
+        builder.setReader(new DataProvider(this));
     }
 
     public PacketBuilder getBuilder() {
@@ -72,7 +74,7 @@ public class DataReader {
 
 
                 boolean forwardPacket = getBuilder().build(nextPacketSize);
-                System.out.println(currentPacket.size() + " // " + currentPacket);
+                //System.out.println(currentPacket.size() + " // " + currentPacket);
                 if (forwardPacket) {
                     transmit.consume(currentPacket);
                 }
@@ -102,75 +104,34 @@ public class DataReader {
    }
 
 
+   public static int readVarInt(Supplier<Boolean> hasNext, Supplier<Byte> readNext) {
+       int numRead = 0;
+       int result = 0;
+       byte read;
+       do {
+           if (!hasNext.get()) {
+               throw new RuntimeException("VarInt lacks bytes! We may be out of sync now.");
+           }
+           read = readNext.get();
+           int value = (read & 0b01111111);
+           result |= (value << (7 * numRead));
+
+           numRead++;
+           if (numRead > 5) {
+               throw new RuntimeException("VarInt is too big");
+           }
+       }
+       while ((read & 0b10000000) != 0);
+
+       return result;
+
+   }
 
     // From https://wiki.vg/Protocol#Packet_format
     public int readVarInt() {
-        int numRead = 0;
-        int result = 0;
-        byte read;
-        do {
-            if (!hasNext()) {
-                throw new RuntimeException("VarInt lacks bytes! We may be out of sync now.");
-            }
-            read = readNext();
-            int value = (read & 0b01111111);
-            result |= (value << (7 * numRead));
-
-            numRead++;
-            if (numRead > 5) {
-                throw new RuntimeException("VarInt is too big");
-            }
-        }
-        while ((read & 0b10000000) != 0);
-
-        return result;
+        return readVarInt(this::hasNext, this::readNext);
     }
 
-
-    public String readString() {
-        int stringSize = readVarInt();
-
-         StringBuilder sb = new StringBuilder();
-         while (stringSize-- > 0) {
-             sb.appendCodePoint(readNext());
-         }
-         return sb.toString();
-    }
-
-    public int readShort() {
-        byte low = readNext();
-        byte high = readNext();
-        return (((low & 0xFF) << 8) | (high & 0xFF));
-    }
-
-    public long readVarLong() {
-        int numRead = 0;
-        long result = 0;
-        byte read;
-        do {
-            if (!hasNext()) {
-                throw new RuntimeException("VarLong lacks bytes! We may be out of sync now.");
-            }
-            read = readNext();
-            int value = (read & 0b01111111);
-            result |= (value << (7 * numRead));
-
-            numRead++;
-            if (numRead > 10) {
-                throw new RuntimeException("VarLong is too big");
-            }
-        } while ((read & 0b10000000) != 0);
-
-        return result;
-    }
-
-
-    // TODO: optimize this to not be stupid
-    public void skip(int size) {
-        while (size-->0) {
-            readNext();
-        }
-    }
 
     public byte[] readByteArray(int arrayLength) {
         byte[] bytes = new byte[arrayLength];

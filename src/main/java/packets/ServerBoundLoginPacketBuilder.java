@@ -1,5 +1,6 @@
 package packets;
 
+import com.sun.deploy.security.ValidationState;
 import game.Game;
 
 import java.util.Arrays;
@@ -11,19 +12,21 @@ public class ServerBoundLoginPacketBuilder extends PacketBuilder {
 
     @Override
     public boolean build(int size) {
-        int packetId = getReader().readVarInt();
+        DataTypeProvider typeProvider = getReader().withSize(size);
+
+        int packetId = typeProvider.readVarInt();
 
         switch (packetId) {
             case LOGIN_START:
-                String username = getReader().readString();
+                String username = typeProvider.readString();
                 System.out.println("Login by: " + username);
                 return true;
 
             case ENCRYPTION_RESPONSE:
-                int sharedSecretLength = getReader().readVarInt();
-                byte[] sharedSecret = getReader().readByteArray(sharedSecretLength);
-                int verifyTokenLength = getReader().readVarInt();
-                byte[] verifyToken = getReader().readByteArray(verifyTokenLength);
+                int sharedSecretLength = typeProvider.readVarInt();
+                byte[] sharedSecret = typeProvider.readByteArray(sharedSecretLength);
+                int verifyTokenLength = typeProvider.readVarInt();
+                byte[] verifyToken = typeProvider.readByteArray(verifyTokenLength);
                 System.out.println("Encryption confirmation: (" + sharedSecretLength + ") " + Arrays.toString(
                     sharedSecret));
                 System.out.println("\tVerify token: (" + verifyTokenLength + ") " + Arrays.toString(verifyToken));

@@ -5,14 +5,15 @@ import game.NetworkMode;
 
 public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
     public boolean build(int size) {
-        int packetId = getReader().readVarInt();
+        DataTypeProvider typeProvider = getReader().withSize(size);
+        int packetId = typeProvider.readVarInt();
 
         switch (packetId) {
             case 0x00:
-                int protocolVersion = getReader().readVarInt();
-                String host = getReader().readString();
-                int port = getReader().readShort();
-                int nextMode = getReader().readVarInt();
+                int protocolVersion = typeProvider.readVarInt();
+                String host = typeProvider.readString();
+                int port = typeProvider.readShort();
+                int nextMode = typeProvider.readVarInt();
 
                 System.out.format("HANDSHAKE: v%d (%s:%d) :: new mode = %d\n", protocolVersion, host, port, nextMode);
 
