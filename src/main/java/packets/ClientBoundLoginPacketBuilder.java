@@ -1,6 +1,7 @@
 package packets;
 
 import game.Game;
+import game.NetworkMode;
 
 import java.util.Arrays;
 
@@ -35,6 +36,13 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
                 String uuid = getReader().readString();
                 String username = getReader().readString();
                 System.out.println("Login success: " + username + " logged in with uuid " + uuid);
+                Game.setMode(NetworkMode.GAME);
+                return true;
+
+            case SET_COMPRESSION:
+                int limit = getReader().readVarInt();
+                System.out.println("Compression set with limit: " + limit);
+                Game.getEncryptionManager().setCompressionLimit(limit);
                 return true;
             default:
                 return super.build(size);

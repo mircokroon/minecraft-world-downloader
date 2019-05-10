@@ -40,7 +40,7 @@ public class DataReader {
             for (int i = 0; i < amount; i++) {
                 encryptedQueue.add(b[i]);
             }
-            System.out.println("Added " + amount + " to encryption queue : " + Arrays.toString(b));
+            //System.out.println("Added " + amount + " to encryption queue : " + Arrays.toString(b));
 
             if (encryptedQueue.size() >= encryptionManager.blockSize) {
                 int toEncrypt = encryptedQueue.size() - (encryptedQueue.size() % encryptionManager.blockSize);
@@ -48,15 +48,15 @@ public class DataReader {
                 for (int i = 0; i < toEncrypt; i++) {
                     encrypted[i] = encryptedQueue.remove();
                 }
-                System.out.println("Decrypting: " + encrypted.length + " / " + encryptedQueue.size() + " :: " + Arrays.toString(encrypted));
+                //System.out.println("Decrypting: " + encrypted.length + " / " + encryptedQueue.size() + " :: " + Arrays.toString(encrypted));
                 byte[] decrypted = encryptionManager.decrypt(encrypted);
-                System.out.println("Succesfully decrypted! : " + decrypted.length );
+                //System.out.println("Succesfully decrypted! : " + decrypted.length );
                 for (byte aDecrypted : decrypted) {
                     queue.add(aDecrypted);
                 }
             }
         } else {
-            System.out.println("Not decrypting " + amount + " :: " + Arrays.toString(b));
+            //System.out.println("Not decrypting " + amount + " :: " + Arrays.toString(b));
             for (int i = 0; i < amount; i++) {
                 queue.add(b[i]);
             }
@@ -68,7 +68,7 @@ public class DataReader {
             }
 
             if (nextPacketSize > -1 && hasBytes(nextPacketSize)) {
-                System.out.println("Bytes: " + (nextPacketSize) + " :: enough for " + nextPacketSize);
+                //System.out.println("Bytes: " + (nextPacketSize) + " :: enough for " + nextPacketSize);
 
 
                 boolean forwardPacket = getBuilder().build(nextPacketSize);

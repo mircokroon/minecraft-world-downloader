@@ -35,6 +35,16 @@ public class EncryptionManager {
 
     boolean encryptionEnabled = false;
 
+    public int getCompressionLimit() {
+        return compressionLimit;
+    }
+
+    public void setCompressionLimit(int compressionLimit) {
+        this.compressionLimit = compressionLimit;
+    }
+
+    int compressionLimit = -1;
+
     private Cipher decryptor;
     private Cipher encryptor;
 
@@ -217,11 +227,11 @@ public class EncryptionManager {
     }
 
     public void streamToServer(Queue<Byte> bytes) throws IOException {
-        System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
+        //System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
         streamTo(streamToServer, bytes);
     }
     public void streamToClient(Queue<Byte> bytes) throws IOException {
-        System.out.println("Writing bytes to client: " + bytes.size() + " :: " + bytes);
+        //System.out.println("Writing bytes to client: " + bytes.size() + " :: " + bytes);
         streamTo(streamToClient, bytes);
     }
 
