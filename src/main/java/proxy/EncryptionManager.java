@@ -1,6 +1,7 @@
 package proxy;
 
 import packets.ClientBoundLoginPacketBuilder;
+import packets.ServerBoundLoginPacketBuilder;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -106,6 +107,7 @@ public class EncryptionManager {
             byte[] sharedSecret = cipher.doFinal(clientSharedSecret);
             byte[] verifyToken = cipher.doFinal(serverVerifyToken);
 
+            writeVarInt(bytes, ServerBoundLoginPacketBuilder.ENCRYPTION_RESPONSE);
             writeVarInt(bytes, sharedSecret.length);
             writeByteArray(bytes, sharedSecret);
             writeVarInt(bytes, verifyToken.length);
@@ -129,7 +131,6 @@ public class EncryptionManager {
 
             encryptionEnabled = true;
         });
-
     }
 
     private String generateShaHash() {
@@ -175,6 +176,7 @@ public class EncryptionManager {
     }
 
     public void streamToServer(Queue<Byte> bytes) throws IOException {
+        System.out.println(bytes);
         streamTo(streamToServer, bytes);
     }
     public void streamToClient(Queue<Byte> bytes) throws IOException {

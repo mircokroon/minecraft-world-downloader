@@ -5,9 +5,9 @@ import game.Game;
 import java.util.Arrays;
 
 public class ServerBoundLoginPacketBuilder extends PacketBuilder {
-    private final static int LOGIN_START = 0x00;
-    private final static int ENCRYPTION_RESPONSE = 0x01;
-    private final static int LOGIN_PLUGIN_RESPONSE = 0x02;
+    public final static int LOGIN_START = 0x00;
+    public final static int ENCRYPTION_RESPONSE = 0x01;
+    public final static int LOGIN_PLUGIN_RESPONSE = 0x02;
 
     @Override
     public boolean build(int size) {

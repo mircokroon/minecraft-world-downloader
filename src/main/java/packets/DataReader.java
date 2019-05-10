@@ -31,6 +31,7 @@ public class DataReader {
     public void pushData(byte[] b, int amount, EncryptionManager encryptionManager, ByteConsumer transmit) throws IOException  {
         if (amount == 0) { return; }
 
+        // TODO: this does NOT work -- decrypt must be called with 8 bytes at a time
         byte[] decrypted = encryptionManager.decrypt(b, amount);
         for (int i = 0; i < decrypted.length; i++) {
             queue.add(decrypted[i]);
@@ -46,6 +47,7 @@ public class DataReader {
 
 
                 boolean forwardPacket = getBuilder().build(nextPacketSize);
+                System.out.println(currentPacket.size() + " // " + currentPacket);
                 if (forwardPacket) {
                     transmit.consume(currentPacket);
                 }
