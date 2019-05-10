@@ -37,9 +37,9 @@ public abstract class Game {
         int portRemote = 25565;
         int portLocal = 25570;
 
-        serverBoundDataReader = new DataReader();
-        clientBoundDataReader = new DataReader();
         encryptionManager = new EncryptionManager();
+        serverBoundDataReader = DataReader.serverBound(encryptionManager);
+        clientBoundDataReader = DataReader.clientBound(encryptionManager);
         compressionManager = new CompressionManager();
 
         setMode(NetworkMode.HANDSHAKE);

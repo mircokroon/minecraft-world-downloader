@@ -8,19 +8,36 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 public class DataReader {
-    Queue<Byte> queue;
-    Queue<Byte> encryptedQueue;
-    Queue<Byte> currentPacket;
-    PacketBuilder builder;
-    int nextPacketSize = -1;
-    int readCalledSince = 0;
+    private Queue<Byte> queue;
+    private Queue<Byte> encryptedQueue;
+    private Queue<Byte> currentPacket;
+    private PacketBuilder builder;
+    private int nextPacketSize = -1;
 
-    public DataReader() {
+    private EncryptionManager encryptionManager;
+    private UnaryOperator<byte[]> decrypt;
+    private ByteConsumer transmit;
+
+
+    public static DataReader clientBound(EncryptionManager manager) {
+        return new DataReader(manager, manager::clientBoundDecrypt, manager::streamToClient);
+    }
+
+    public static DataReader serverBound(EncryptionManager manager) {
+        return new DataReader(manager, manager::serverBoundDecrypt, manager::streamToServer);
+    }
+
+    private DataReader(EncryptionManager manager, UnaryOperator<byte[]> decrypt, ByteConsumer transmit) {
         queue = new LinkedList<>();
         currentPacket = new LinkedList<>();
         encryptedQueue = new LinkedList<>();
+
+        this.encryptionManager = manager;
+        this.decrypt = decrypt;
+        this.transmit = transmit;
     }
 
     public void setBuilder(PacketBuilder builder) {
@@ -32,16 +49,14 @@ public class DataReader {
         return builder;
     }
 
-    public void pushData(byte[] b, int amount, EncryptionManager encryptionManager, ByteConsumer transmit) throws IOException  {
+    public void pushData(byte[] b, int amount) throws IOException  {
         if (amount == 0) { return; }
 
 
         if (encryptionManager.isEncryptionEnabled()) {
-            // add all bytes to the encrypted queue
             for (int i = 0; i < amount; i++) {
                 encryptedQueue.add(b[i]);
             }
-            //System.out.println("Added " + amount + " to encryption queue : " + Arrays.toString(b));
 
             if (encryptedQueue.size() >= encryptionManager.blockSize) {
                 int toEncrypt = encryptedQueue.size() - (encryptedQueue.size() % encryptionManager.blockSize);
@@ -49,15 +64,13 @@ public class DataReader {
                 for (int i = 0; i < toEncrypt; i++) {
                     encrypted[i] = encryptedQueue.remove();
                 }
-                //System.out.println("Decrypting: " + encrypted.length + " / " + encryptedQueue.size() + " :: " + Arrays.toString(encrypted));
-                byte[] decrypted = encryptionManager.decrypt(encrypted);
-                //System.out.println("Succesfully decrypted! : " + decrypted.length );
+
+                byte[] decrypted = decrypt.apply(encrypted);
                 for (byte aDecrypted : decrypted) {
                     queue.add(aDecrypted);
                 }
             }
         } else {
-            //System.out.println("Not decrypting " + amount + " :: " + Arrays.toString(b));
             for (int i = 0; i < amount; i++) {
                 queue.add(b[i]);
             }
@@ -69,9 +82,6 @@ public class DataReader {
             }
 
             if (nextPacketSize > -1 && hasBytes(nextPacketSize)) {
-                //System.out.println("Bytes: " + (nextPacketSize) + " :: enough for " + nextPacketSize);
-
-
                 boolean forwardPacket = getBuilder().build(nextPacketSize);
 
                 int expectedLength = nextPacketSize + varIntLength(nextPacketSize);
@@ -82,10 +92,7 @@ public class DataReader {
                 if (forwardPacket) {
                     transmit.consume(currentPacket);
                 }
-
                 currentPacket.clear();
-
-
                 nextPacketSize = -1;
             }
         } while(hasBytes(1) && nextPacketSize == -1);

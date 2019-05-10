@@ -69,7 +69,7 @@ public class ProxyServer {
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
 
                             System.out.println("Read bytes from client: " + bytesRead);
-                            onServerBoundPacket.pushData(request, bytesRead, encryptionManager, encryptionManager::streamToServer);
+                            onServerBoundPacket.pushData(request, bytesRead);
                         }
                     });
                     // the client closed the connection to us, so close our connection to the server.
@@ -80,7 +80,7 @@ public class ProxyServer {
                     int bytesRead;
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
                         System.out.println("Read bytes from server: " + bytesRead);
-                        onClientBoundPacket.pushData(reply, bytesRead, encryptionManager, encryptionManager::streamToClient);
+                        onClientBoundPacket.pushData(reply, bytesRead);
                     }
                 }, (ex) -> {
                     ex.printStackTrace();

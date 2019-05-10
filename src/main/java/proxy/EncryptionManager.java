@@ -7,12 +7,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
@@ -21,9 +19,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.crypto.BadPaddingException;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
 import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -46,8 +45,7 @@ public class EncryptionManager {
 
     int compressionLimit = -1;
 
-    private Cipher decryptor;
-    private Cipher encryptor;
+    private Cipher clientBoundDecryptor, clientBoundEncryptor, serverBoundEncryptor, serverBoundDecryptor;
 
     private OutputStream streamToClient;
     private OutputStream streamToServer;
@@ -143,21 +141,27 @@ public class EncryptionManager {
         attempt(() -> {
             IvParameterSpec ivspec = new IvParameterSpec(clientSharedSecret);
             SecretKeySpec k = new SecretKeySpec(clientSharedSecret, "AES");
-            encryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
-            encryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
+            clientBoundEncryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            clientBoundEncryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
 
-            decryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
-            decryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
+            clientBoundDecryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            clientBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
+
+            serverBoundEncryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            serverBoundEncryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
+
+            serverBoundDecryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            serverBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
             encryptionEnabled = true;
             System.out.println("Enabled encryption");
 
 /*
             byte[] testBytes = new byte[]{3, 3, 100};
-            byte[] enc = encryptor.doFinal(testBytes);
+            byte[] enc = clientBoundEncryptor.doFinal(testBytes);
             System.out.println("Test: " + enc.length + " :: " + Arrays.toString(enc));
 
-            byte[] dec = decryptor.update(enc);
+            byte[] dec = clientBoundDecryptor.update(enc);
             System.out.println("Test DEC: " + dec.length + " :: " + Arrays.toString(dec));
 */
         });
@@ -182,7 +186,15 @@ public class EncryptionManager {
         this.streamToServer = streamToServer;
     }
 
-    public byte[] decrypt(byte[] bytes) {
+    public byte[] serverBoundDecrypt(byte[] bytes) {
+        return decrypt(bytes, serverBoundDecryptor);
+    }
+
+    public byte[] clientBoundDecrypt(byte[] bytes) {
+        return decrypt(bytes, clientBoundDecryptor);
+    }
+
+    private byte[] decrypt(byte[] bytes, Cipher decryptor) {
         if (!encryptionEnabled) { return bytes; }
 
         try {
@@ -192,32 +204,9 @@ public class EncryptionManager {
             System.exit(1);
         }
         return null;
-
-        /*
-        LinkedList<byte[]> decrypted = new LinkedList<>();
-
-        byte[] toDecrypt = new byte[blockSize];
-        for (int i = 0; i < bytes.length; i += blockSize) {
-            System.arraycopy(bytes, i, toDecrypt, 0, blockSize);
-            try {
-                decrypted.add(decryptor.doFinal(toDecrypt));
-            } catch(Exception ex) {
-                throw new RuntimeException("Could not decrypt stream!", ex);
-            }
-        }
-
-        int size = decrypted.stream().mapToInt(el -> el.length).sum();
-        byte[] res = new byte[size];
-
-        int pos = 0;
-        for (byte[] toAdd : decrypted) {
-            System.arraycopy(toAdd, 0, res, pos += toAdd.length, toAdd.length);
-        }
-
-        return res;*/
     }
 
-    private byte[] encrypt(byte[] bytes) {
+    private byte[] encrypt(byte[] bytes, Cipher encryptor) {
         if (!encryptionEnabled) { return bytes; }
 
         try {
@@ -227,22 +216,30 @@ public class EncryptionManager {
         }
     }
 
+    private byte[] serverBoundEncrypt(byte[] bytes) {
+        return encrypt(bytes, serverBoundEncryptor);
+    }
+
+    private byte[] clientBoundEncrypt(byte[] bytes) {
+        return encrypt(bytes, clientBoundEncryptor);
+    }
+
     public void streamToServer(Queue<Byte> bytes) throws IOException {
         //System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
-        streamTo(streamToServer, bytes);
+        streamTo(streamToServer, bytes, this::serverBoundEncrypt);
     }
     public void streamToClient(Queue<Byte> bytes) throws IOException {
         //System.out.println("Writing bytes to client: " + bytes.size() + " :: " + bytes);
-        streamTo(streamToClient, bytes);
+        streamTo(streamToClient, bytes, this::clientBoundEncrypt);
     }
 
-    private void streamTo(OutputStream stream, Queue<Byte> bytes) throws IOException {
+    private void streamTo(OutputStream stream, Queue<Byte> bytes, UnaryOperator<byte[]> encrypt) throws IOException {
         byte[] b = new byte[bytes.size()];
         for (int i = 0; i < b.length; i++) {
             b[i] = bytes.remove();
         }
 
-        byte[] encrypted = encrypt(b);
+        byte[] encrypted = encrypt.apply(b);
 
         stream.write(encrypted, 0, encrypted.length);
         stream.flush();
