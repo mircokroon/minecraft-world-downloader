@@ -27,21 +27,19 @@ public class CompressionManager {
             return res;
         }
         System.out.println("Decompressing " + input.length + " bytes to " + len + " bytes");
-        InflaterInputStream inflater = new InflaterInputStream(new ByteArrayInputStream(input, offset, input.length - offset));
-
-        int nRead = 0;
-        int readOffset = 0;
-        byte[] data = new byte[len];
+        InflaterInputStream inflater = new InflaterInputStream(new ByteArrayInputStream(
+            input,
+            offset,
+            input.length - offset
+        ));
 
         try {
-            while ((nRead = inflater.read(data, readOffset += nRead, data.length)) != -1) {
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("WARNING: could not decompress stream!");
+            return inflater.readAllBytes();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not decompress");
         }
-        System.out.println("Succesfully decompressed: " + data.length);
-        return data;
+        return new byte[0];
     }
 
     public boolean isCompressionEnabled() {

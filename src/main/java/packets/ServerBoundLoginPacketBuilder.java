@@ -1,6 +1,5 @@
 package packets;
 
-import com.sun.deploy.security.ValidationState;
 import game.Game;
 
 import java.util.Arrays;

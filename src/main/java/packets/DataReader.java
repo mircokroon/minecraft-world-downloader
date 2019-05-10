@@ -3,10 +3,9 @@ package packets;
 import proxy.ByteConsumer;
 import proxy.EncryptionManager;
 
-import javax.xml.ws.Provider;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.function.Supplier;
 
@@ -74,13 +73,16 @@ public class DataReader {
 
 
                 boolean forwardPacket = getBuilder().build(nextPacketSize);
-                //System.out.println(currentPacket.size() + " // " + currentPacket);
+
+                int expectedLength = nextPacketSize + varIntLength(nextPacketSize);
+                if (currentPacket.size() != expectedLength) {
+                    System.out.println("WARNING: packet parsing may have been incorrect! Expected length: " + expectedLength + ". Used bytes: " + currentPacket.size());
+                }
+
                 if (forwardPacket) {
                     transmit.consume(currentPacket);
                 }
-                if (currentPacket.size() != nextPacketSize) {
-                    System.out.println("WARNING: packet parsing may have been incorrect! Expected length: " + nextPacketSize + ". Used bytes: " + currentPacket.size());
-                }
+
                 currentPacket.clear();
 
 
@@ -126,6 +128,20 @@ public class DataReader {
        return result;
 
    }
+
+    public static int varIntLength(int value) {
+        int numButes = 0;
+        do {
+            byte temp = (byte)(value & 0b01111111);
+            // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
+            value >>>= 7;
+            if (value != 0) {
+                temp |= 0b10000000;
+            }
+            numButes++;
+        } while (value != 0);
+        return numButes;
+    }
 
     // From https://wiki.vg/Protocol#Packet_format
     public int readVarInt() {

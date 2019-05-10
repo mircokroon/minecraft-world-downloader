@@ -3,9 +3,6 @@ package packets;
 import game.Game;
 import proxy.CompressionManager;
 
-import javax.xml.crypto.Data;
-import javax.xml.ws.Provider;
-
 public class DataProvider {
     private DataReader reader;
     private CompressionManager compressionManager;
@@ -25,6 +22,7 @@ public class DataProvider {
                     () -> compressionPos[0] < compressed.length,
                     () -> compressed[compressionPos[0]++]
             );
+            System.out.println(compressed.length + " // " + size + " // " + uncompressedSize);
 
             fullPacket = compressionManager.decompress(compressed, compressionPos[0], uncompressedSize);
         } else {
