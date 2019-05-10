@@ -1,12 +1,23 @@
 package packets;
 
+import game.Coordinates;
+
 public class ServerBoundGamePacketBuilder extends PacketBuilder {
+    private final int BLOCK_PLACE = 0x1F;
+
     @Override
     public boolean build(int size) {
         DataTypeProvider typeProvider = getReader().withSize(size);
         int packetId = typeProvider.readVarInt();
 
-        System.out.println("Server bound packet 0x" + Integer.toHexString(packetId) + " of size " + size);
+        switch (packetId) {
+            case BLOCK_PLACE:
+                Coordinates coordinates = typeProvider.readCoordinates();
+                int face = typeProvider.readVarInt();
+                int hand = typeProvider.readVarInt();
+                System.out.println("Player placed a block at " + coordinates + " (face: " + face + ", hand: " + hand + ")");
+                break;
+        }
         return true;// super.build(size);
     }
 }

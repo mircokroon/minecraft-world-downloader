@@ -26,7 +26,7 @@ public class CompressionManager {
             System.arraycopy(input, offset, res, 0, res.length);
             return res;
         }
-        System.out.println("Decompressing " + input.length + " bytes to " + len + " bytes");
+
         InflaterInputStream inflater = new InflaterInputStream(new ByteArrayInputStream(
             input,
             offset,

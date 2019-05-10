@@ -1,7 +1,10 @@
 package packets;
 
+import game.Coordinates;
 import game.Game;
 import proxy.CompressionManager;
+
+import java.nio.ByteBuffer;
 
 public class DataProvider {
     private DataReader reader;
@@ -22,7 +25,6 @@ public class DataProvider {
                     () -> compressionPos[0] < compressed.length,
                     () -> compressed[compressionPos[0]++]
             );
-            System.out.println(compressed.length + " // " + size + " // " + uncompressedSize);
 
             fullPacket = compressionManager.decompress(compressed, compressionPos[0], uncompressedSize);
         } else {
@@ -66,6 +68,15 @@ public class DataProvider {
             }
 
             @Override
+            public long readLong() {
+                byte[] bytes = readByteArray(8);
+                ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+                buffer.put(bytes);
+                buffer.flip();
+                return buffer.getLong();
+            }
+
+            @Override
             public int readVarInt() {
                 return DataReader.readVarInt(this::hasNext, this::readNext);
             }
@@ -103,6 +114,15 @@ public class DataProvider {
             @Override
             public boolean hasNext() {
                 return pos[0] < finalFullPacket.length;
+            }
+
+            @Override
+            public Coordinates readCoordinates() {
+                long val = readLong();
+                int x = (int) (val >> 38);
+                int y = (int) (val >> 26) & 0xFFF;
+                int z = (int) (val << 38 >> 38);
+                return new Coordinates(x, y, z);
             }
         };
     }

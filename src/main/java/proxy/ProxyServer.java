@@ -68,7 +68,6 @@ public class ProxyServer {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
 
-                            System.out.println("Read bytes from client: " + bytesRead);
                             onServerBoundPacket.pushData(request, bytesRead);
                         }
                     });
@@ -79,7 +78,6 @@ public class ProxyServer {
                 attempt(() -> {
                     int bytesRead;
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
-                        System.out.println("Read bytes from server: " + bytesRead);
                         onClientBoundPacket.pushData(reply, bytesRead);
                     }
                 }, (ex) -> {
