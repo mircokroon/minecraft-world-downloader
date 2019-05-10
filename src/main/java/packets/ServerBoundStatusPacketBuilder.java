@@ -15,6 +15,6 @@ public class ServerBoundStatusPacketBuilder extends PacketBuilder {
                 System.out.println("Ping with value: " + typeProvider.readVarLong());
                 return true;
         }
-        return super.build(size);
+        return true;
     }
 }

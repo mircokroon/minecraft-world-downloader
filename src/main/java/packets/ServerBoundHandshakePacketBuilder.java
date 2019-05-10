@@ -25,7 +25,7 @@ public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
 
                 return true;
             default:
-                return super.build(size);
+                return true;
         }
     }
 }

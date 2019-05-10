@@ -5,7 +5,8 @@ import packets.ClientBoundHandshakePacketBuilder;
 import packets.ClientBoundLoginPacketBuilder;
 import packets.ClientBoundStatusPacketBuilder;
 import packets.DataReader;
-import packets.ServerBoundGamePackterBuilder;
+import packets.PacketBuilder;
+import packets.ServerBoundGamePacketBuilder;
 import packets.ServerBoundLoginPacketBuilder;
 import packets.ServerBoundHandshakePacketBuilder;
 import packets.ServerBoundStatusPacketBuilder;
@@ -65,7 +66,7 @@ public abstract class Game {
                 clientBoundDataReader.setBuilder(new ClientBoundLoginPacketBuilder());
                 break;
             case GAME:
-                serverBoundDataReader.setBuilder(new ServerBoundGamePackterBuilder());
+                serverBoundDataReader.setBuilder(new ServerBoundGamePacketBuilder());
                 clientBoundDataReader.setBuilder(new ClientBoundGamePacketBuilder());
                 break;
             case HANDSHAKE:

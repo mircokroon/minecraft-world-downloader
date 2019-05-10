@@ -46,7 +46,7 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
                 Game.getCompressionManager().enableCompression(limit);
                 return true;
             default:
-                return super.build(size);
+                return true;
         }
     }
 }

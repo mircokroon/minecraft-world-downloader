@@ -34,7 +34,7 @@ public class ServerBoundLoginPacketBuilder extends PacketBuilder {
                 Game.getEncryptionManager().setClientEncryptionConfirmation(sharedSecret, verifyToken);
                 return false;
             default:
-                return super.build(size);
+                return true;
         }
     }
 

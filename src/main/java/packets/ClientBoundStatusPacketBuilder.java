@@ -13,7 +13,10 @@ public class ClientBoundStatusPacketBuilder extends PacketBuilder {
             case 0x01:
                 System.out.println("Pong with value: " + typeProvider.readVarLong());
                 return true;
+            default:
+                System.out.println("Client bound status packet with ID: 0x" + Integer.toHexString(packetId));
+                return true;
         }
-        return super.build(size);
+        //return super.build(size);
     }
 }
