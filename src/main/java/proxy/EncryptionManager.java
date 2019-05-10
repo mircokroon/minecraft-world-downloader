@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -20,9 +21,14 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class EncryptionManager {
     boolean encryptionEnabled = false;
+
+    private Cipher decryptor;
+    private Cipher encryptor;
 
     private OutputStream streamToClient;
     private OutputStream streamToServer;
@@ -107,8 +113,23 @@ public class EncryptionManager {
             prependPacketLength(bytes);
 
             streamToServer(new LinkedList<>(bytes));
-            // TODO: enable encryption right after sending this
+            enableEncryption();
         });
+    }
+
+    private void enableEncryption() {
+        attempt(() -> {
+            IvParameterSpec ivspec = new IvParameterSpec(clientSharedSecret);
+            SecretKeySpec k = new SecretKeySpec(clientSharedSecret, "AES");
+            encryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            encryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
+
+            decryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            decryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
+
+            encryptionEnabled = true;
+        });
+
     }
 
     private String generateShaHash() {
@@ -130,17 +151,46 @@ public class EncryptionManager {
         this.streamToServer = streamToServer;
     }
 
-    public void streamToServer(Queue<Byte> bytes) throws IOException {
-        for (byte b : bytes) {
-            streamToServer.write(b);
+    public byte[] decrypt(byte[] bytes, int amount) {
+        byte[] actual = new byte[amount];
+        System.arraycopy(bytes, 0, actual, 0, amount);
+
+        if (!encryptionEnabled) { return actual; }
+
+        try {
+            return decryptor.doFinal(bytes);
+        } catch(Exception ex) {
+            throw new RuntimeException("Could not decrypt stream!", ex);
         }
-        streamToServer.flush();
+    }
+
+    private byte[] encrypt(byte[] bytes) {
+        if (!encryptionEnabled) { return bytes; }
+
+        try {
+            return encryptor.doFinal(bytes);
+        } catch(Exception ex) {
+            throw new RuntimeException("Could not encrypt stream!", ex);
+        }
+    }
+
+    public void streamToServer(Queue<Byte> bytes) throws IOException {
+        streamTo(streamToServer, bytes);
     }
     public void streamToClient(Queue<Byte> bytes) throws IOException {
-        for (byte b : bytes) {
-            streamToClient.write(b);
+        streamTo(streamToClient, bytes);
+    }
+
+    private void streamTo(OutputStream stream, Queue<Byte> bytes) throws IOException {
+        byte[] b = new byte[bytes.size()];
+        for (int i = 0; i < b.length; i++) {
+            b[i] = bytes.remove();
         }
-        streamToClient.flush();
+
+        byte[] encrypted = encrypt(b);
+
+        stream.write(encrypted, 0, encrypted.length);
+        stream.flush();
     }
 
     public static void attempt(IExceptionHandler r) {

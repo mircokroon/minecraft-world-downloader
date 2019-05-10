@@ -1,6 +1,7 @@
 package packets;
 
 import proxy.ByteConsumer;
+import proxy.EncryptionManager;
 
 import java.io.IOException;
 import java.util.LinkedList;
@@ -27,11 +28,12 @@ public class DataReader {
         return builder;
     }
 
-    public void pushData(byte[] b, int amount, ByteConsumer transmit) throws IOException  {
+    public void pushData(byte[] b, int amount, EncryptionManager encryptionManager, ByteConsumer transmit) throws IOException  {
         if (amount == 0) { return; }
 
-        for (int i = 0; i < amount; i++) {
-            queue.add(b[i]);
+        byte[] decrypted = encryptionManager.decrypt(b, amount);
+        for (int i = 0; i < decrypted.length; i++) {
+            queue.add(decrypted[i]);
         }
 
         do {
@@ -41,6 +43,7 @@ public class DataReader {
 
             if (nextPacketSize > -1 && hasBytes(nextPacketSize)) {
                 System.out.println("Bytes: " + (nextPacketSize) + " :: enough for " + nextPacketSize);
+
 
                 boolean forwardPacket = getBuilder().build(nextPacketSize);
                 if (forwardPacket) {
