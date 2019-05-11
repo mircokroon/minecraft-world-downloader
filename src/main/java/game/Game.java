@@ -51,7 +51,7 @@ public abstract class Game {
         portLocal = args.getInt("local-port");
         exportDir = args.getString("output");
 
-        File dir = Paths.get(exportDir).toFile();
+        File dir = Paths.get(exportDir, "region").toFile();
         if (!dir.isDirectory()) {
             dir.mkdirs();
         }

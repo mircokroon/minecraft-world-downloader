@@ -33,7 +33,16 @@ public class McaFile {
     public McaFile(Coordinate2D pos, Map<Integer, ChunkBinary> chunkMap) {
         Path filePath = Paths.get(Game.getExportDirectory(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
 
-        this.chunkMap = chunkMap;
+        this.chunkMap = new HashMap<>();
+        if (filePath.toFile().exists()) {
+            try {
+                this.chunkMap = readFile(filePath.toFile());
+            } catch (IOException e) {
+                // fail silently, we will just overwrite the file instead
+            }
+        }
+
+        chunkMap.forEach((key, value) -> this.chunkMap.put(key, value));
         this.filePath = filePath;
     }
 
