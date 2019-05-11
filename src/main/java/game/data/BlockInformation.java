@@ -1,5 +1,7 @@
 package game.data;
 
+import game.data.chunk.BlockState;
+
 public class BlockInformation {
     BlockState state;
     int lightSky;

@@ -1,4 +1,4 @@
-package game.data;
+package game.data.chunk;
 
 import packets.DataTypeProvider;
 

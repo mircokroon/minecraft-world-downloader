@@ -11,6 +11,18 @@ public class Coordinate2D {
         this.z = z;
     }
 
+    public Coordinate2D toRegion() {
+        return new Coordinate2D(x / 32, z / 32);
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getZ() {
+        return z;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) { return true; }

@@ -1,4 +1,4 @@
-package game.data;
+package game.data.chunk;
 
 import com.flowpowered.nbt.ByteArrayTag;
 import com.flowpowered.nbt.ByteTag;
@@ -7,11 +7,13 @@ import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.IntTag;
 import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.LongTag;
-import com.flowpowered.nbt.ShortTag;
 import com.flowpowered.nbt.StringTag;
-import com.flowpowered.nbt.Tag;
 
 import game.Game;
+import game.data.Coordinate2D;
+import game.data.Coordinate3D;
+import game.data.Dimension;
+import game.data.WorldManager;
 import packets.DataTypeProvider;
 
 import java.util.ArrayList;
@@ -19,14 +21,10 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
-import javax.xml.crypto.Data;
 
 public class Chunk {
-    public static HashMap<Coordinate2D, Chunk> existingChunks = new HashMap<>();
     private static final int CHUNK_HEIGHT = 256;
     private static final int SECTION_HEIGHT = 16;
     private static final int SECTION_WIDTH = 16;
@@ -47,7 +45,7 @@ public class Chunk {
         tileEntities = new ArrayList<>();
         this.biomes = new byte[256];
 
-        existingChunks.put(new Coordinate2D(x, z), this);
+        WorldManager.addChunk(new Coordinate2D(x, z), this);
     }
 
     public static Chunk readChunkDataPacket(DataTypeProvider dataProvider) {
@@ -59,7 +57,7 @@ public class Chunk {
         if (full) {
             chunk = new Chunk(x, z);
         } else {
-            chunk = existingChunks.get(new Coordinate2D(x, z));
+            chunk = WorldManager.getChunk(new Coordinate2D(x, z));
         }
         int mask = dataProvider.readVarInt();
         int size = dataProvider.readVarInt();
@@ -177,10 +175,6 @@ public class Chunk {
 
     private void setSection(int sectionY, ChunkSection section) {
         chunkSections[sectionY] = section;
-    }
-
-    public static Chunk getChunk(Coordinate3D coordinate) {
-        return existingChunks.get(coordinate.chunkPos());
     }
 
     public CompoundTag toNbt() {
