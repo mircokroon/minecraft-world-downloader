@@ -10,7 +10,7 @@ public class CompressionManager {
     boolean compressionEnabled = false;
 
     public void enableCompression(int limit) {
-        System.out.println("Compression active!");
+        System.out.println("Enabled compression");
         this.limit = limit;
         compressionEnabled = true;
     }
@@ -44,5 +44,9 @@ public class CompressionManager {
 
     public boolean isCompressionEnabled() {
         return compressionEnabled;
+    }
+
+    public void reset() {
+        compressionEnabled = false;
     }
 }

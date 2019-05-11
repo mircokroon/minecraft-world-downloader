@@ -50,7 +50,7 @@ public class ClientAuthenticator {
         if (str.getStatus() != STATUS_SUCCESS) {
             throw new RuntimeException("Client not authenticated! " + str.getBody());
         } else {
-            System.out.println("Successfully performed client authentication!");
+            System.out.println("Successfully authenticated with Mojang");
         }
     }
 }

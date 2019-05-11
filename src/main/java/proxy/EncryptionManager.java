@@ -101,12 +101,10 @@ public class EncryptionManager {
 
             if (!Arrays.equals(decryptedToken, serverVerifyToken)) {
                 throw new RuntimeException("Token could not be verified!");
-            } else {
-                System.out.println("Token verified!");
             }
 
             clientSharedSecret = cipher.doFinal(sharedSecret);
-            System.out.println("Shared secret: " + clientSharedSecret.length + " :: " + Arrays.toString(clientSharedSecret));
+
             sendReplacementEncryptionConfirmation();
         });
     }
@@ -132,7 +130,7 @@ public class EncryptionManager {
             prependPacketLength(bytes);
 
             streamToServer(new LinkedList<>(bytes));
-            System.out.println("Sent auth confirmation");
+
             enableEncryption();
         });
     }
@@ -155,15 +153,6 @@ public class EncryptionManager {
 
             encryptionEnabled = true;
             System.out.println("Enabled encryption");
-
-/*
-            byte[] testBytes = new byte[]{3, 3, 100};
-            byte[] enc = clientBoundEncryptor.doFinal(testBytes);
-            System.out.println("Test: " + enc.length + " :: " + Arrays.toString(enc));
-
-            byte[] dec = clientBoundDecryptor.update(enc);
-            System.out.println("Test DEC: " + dec.length + " :: " + Arrays.toString(dec));
-*/
         });
     }
 
@@ -286,5 +275,9 @@ public class EncryptionManager {
             }
             bytes.add(temp);
         } while (value != 0);
+    }
+
+    public void reset() {
+        encryptionEnabled = false;
     }
 }

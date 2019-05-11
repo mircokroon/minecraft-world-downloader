@@ -19,7 +19,7 @@ public class DataReader {
     private UnaryOperator<byte[]> decrypt;
     private ByteConsumer transmit;
 
-    private VarIntResult varIntPacketSize = new VarIntResult();
+    private VarIntResult varIntPacketSize;
 
 
     public static DataReader clientBound(EncryptionManager manager) {
@@ -31,13 +31,11 @@ public class DataReader {
     }
 
     private DataReader(EncryptionManager manager, UnaryOperator<byte[]> decrypt, ByteConsumer transmit) {
-        queue = new LinkedList<>();
-        currentPacket = new LinkedList<>();
-        encryptedQueue = new LinkedList<>();
-
         this.encryptionManager = manager;
         this.decrypt = decrypt;
         this.transmit = transmit;
+
+        reset();
     }
 
     public void setBuilder(PacketBuilder builder) {
@@ -104,7 +102,7 @@ public class DataReader {
             if (forwardPacket) {
                 transmit.consume(currentPacket);
             }
-            
+
             // clean up to prepare for next packet
             currentPacket.clear();
             varIntPacketSize.reset();
@@ -184,5 +182,12 @@ public class DataReader {
             bytes[i] = readNext();
         }
         return bytes;
+    }
+
+    public void reset() {
+        queue = new LinkedList<>();
+        currentPacket = new LinkedList<>();
+        encryptedQueue = new LinkedList<>();
+        varIntPacketSize = new VarIntResult();
     }
 }

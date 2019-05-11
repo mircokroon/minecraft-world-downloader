@@ -70,6 +70,9 @@ public class ProxyServer {
 
                             onServerBoundPacket.pushData(request, bytesRead);
                         }
+                    }, (ex) -> {
+                        System.out.println("Server probably disconnected. Waiting for new connection...");
+                        Game.reset();
                     });
                     // the client closed the connection to us, so close our connection to the server.
                     attempt(streamToServer::close);
@@ -81,8 +84,8 @@ public class ProxyServer {
                         onClientBoundPacket.pushData(reply, bytesRead);
                     }
                 }, (ex) -> {
-                    ex.printStackTrace();
                     System.out.println("Client probably disconnected. Waiting for new connection...");
+                    Game.reset();
                 });
 
                 // The server closed its connection to us, so we close our connection to our client.

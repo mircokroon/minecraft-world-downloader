@@ -28,9 +28,6 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
                 int verifyTokenLen = typeProvider.readVarInt();
                 byte[] verifyToken = typeProvider.readByteArray(verifyTokenLen);
 
-                System.out.println("Received encryption request! Key: (" + pubKeyLen + ") " + Arrays.toString(pubKey));
-                System.out.println("\tVerify token: (" + verifyTokenLen + ") " + Arrays.toString(verifyToken));
-
                 Game.getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken, serverId);
                 return false;
             case LOGIN_SUCCESS:
@@ -42,7 +39,6 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
 
             case SET_COMPRESSION:
                 int limit = typeProvider.readVarInt();
-                System.out.println("Compression set with limit: " + limit);
                 Game.getCompressionManager().enableCompression(limit);
                 return true;
             default:

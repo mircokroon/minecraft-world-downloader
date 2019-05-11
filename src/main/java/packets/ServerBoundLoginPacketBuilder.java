@@ -26,10 +26,6 @@ public class ServerBoundLoginPacketBuilder extends PacketBuilder {
                 byte[] sharedSecret = typeProvider.readByteArray(sharedSecretLength);
                 int verifyTokenLength = typeProvider.readVarInt();
                 byte[] verifyToken = typeProvider.readByteArray(verifyTokenLength);
-                System.out.println("Encryption confirmation: (" + sharedSecretLength + ") " + Arrays.toString(
-                    sharedSecret));
-                System.out.println("\tVerify token: (" + verifyTokenLength + ") " + Arrays.toString(verifyToken));
-
 
                 Game.getEncryptionManager().setClientEncryptionConfirmation(sharedSecret, verifyToken);
                 return false;

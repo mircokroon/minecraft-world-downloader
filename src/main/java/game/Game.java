@@ -62,8 +62,15 @@ public abstract class Game {
         return mode;
     }
 
+    public static void reset() {
+        encryptionManager.reset();
+        compressionManager.reset();
+        serverBoundDataReader.reset();
+        clientBoundDataReader.reset();
+        setMode(NetworkMode.HANDSHAKE);
+    }
+
     public static void setMode(NetworkMode mode) {
-        System.out.println(mode);
         Game.mode = mode;
 
         switch (mode) {

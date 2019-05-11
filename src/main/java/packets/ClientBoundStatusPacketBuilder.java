@@ -8,15 +8,9 @@ public class ClientBoundStatusPacketBuilder extends PacketBuilder {
 
         switch (packetId) {
             case 0x00:
-                System.out.println("Server response: " + typeProvider.readString());
-                return true;
-            case 0x01:
-                System.out.println("Pong with value: " + typeProvider.readVarLong());
-                return true;
-            default:
-                System.out.println("Client bound status packet with ID: 0x" + Integer.toHexString(packetId));
+                System.out.println("Server status: " + typeProvider.readString());
                 return true;
         }
-        //return super.build(size);
+        return true;
     }
 }

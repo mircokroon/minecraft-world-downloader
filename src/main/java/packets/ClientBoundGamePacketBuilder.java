@@ -26,9 +26,10 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
                 int type = blockId >> 4;
                 int meta = blockId & 15;
 
-                System.out.println("Changed block " + coords + " :: " + type + ":" + meta);
-                System.out.println("Chunk data: ");
-                Chunk.printBlockInfo(coords);
+                //System.out.println("Changed block " + coords + " :: " + type + ":" + meta);
+                //System.out.println("Chunk data: ");
+                //Chunk.printBlockInfo(coords);
+                System.out.println(Chunk.existingChunks);
 
         }
 

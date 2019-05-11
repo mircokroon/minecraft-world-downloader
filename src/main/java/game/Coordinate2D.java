@@ -24,4 +24,9 @@ public class Coordinate2D {
     public int hashCode() {
         return Objects.hash(x, z);
     }
+
+    @Override
+    public String toString() {
+        return "(" + x + ", " + z + ")";
+    }
 }

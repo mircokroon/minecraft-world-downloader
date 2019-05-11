@@ -9,7 +9,7 @@ public class Chunk {
     private static final int CHUNK_HEIGHT = 256;
     private static final int SECTION_HEIGHT = 16;
     private static final int SECTION_WIDTH = 16;
-    static HashMap<Coordinate2D, Chunk> existingChunks = new HashMap<>();
+    public static HashMap<Coordinate2D, Chunk> existingChunks = new HashMap<>();
 
     int x;
     int z;
