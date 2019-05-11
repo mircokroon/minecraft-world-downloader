@@ -2,6 +2,7 @@ package game;
 
 import packets.DataTypeProvider;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class Chunk {
@@ -53,12 +54,6 @@ public class Chunk {
         for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT); sectionY++) {
             if ((mask & (1 << sectionY)) != 0) {  // Is the given bit set in the mask?
                 byte bitsPerBlock = dataProvider.readNext();
-                System.out.println("Bits per block: " + bitsPerBlock);
-
-                if (bitsPerBlock > 4) {
-                    System.out.println("Too many bits per block!");
-                    return;
-                }
 
                 Palette palette = Palette.readPalette(bitsPerBlock, dataProvider);
 
@@ -80,10 +75,10 @@ public class Chunk {
 
                             int data;
                             if (startLong == endLong) {
-                                data = (int) (dataArray[startLong] >> startOffset);
+                                data = (int) (dataArray[startLong] >>> startOffset);
                             } else {
                                 int endOffset = 64 - startOffset;
-                                data = (int) (dataArray[startLong] >> startOffset | dataArray[endLong] << endOffset);
+                                data = (int) (dataArray[startLong] >>> startOffset | dataArray[endLong] << endOffset);
                             }
                             data &= individualValueMask;
 
@@ -126,8 +121,6 @@ public class Chunk {
 
                 // May replace an existing section or a null one
                 chunk.setSection(sectionY, section);
-
-
             }
         }
 
@@ -149,9 +142,6 @@ public class Chunk {
     }
 
     public static void printBlockInfo(Coordinate3D coordinate) {
-        int chunkX = (int) Math.floor(coordinate.getX() / 16);
-        int chunkZ = (int) Math.floor(coordinate.getZ() / 16);
-
         existingChunks.get(new Coordinate2D(chunkX, chunkZ)).printBlockInfoOfChunk(coordinate);
     }
 
