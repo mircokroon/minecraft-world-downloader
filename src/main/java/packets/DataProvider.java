@@ -28,7 +28,6 @@ public class DataProvider {
             fullPacket = compressed;
         }
 
-        byte[] finalFullPacket = fullPacket;
-        return new DataTypeProvider(finalFullPacket);
+        return new DataTypeProvider(fullPacket);
     }
 }

@@ -2,6 +2,7 @@ package packets;
 
 import game.data.Coordinate3D;
 import game.data.chunk.Chunk;
+import game.data.chunk.ChunkFactory;
 
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;
@@ -16,13 +17,11 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
         switch (packetId) {
             case CHUNK_DATA:
                 try {
-                    Chunk.readChunkDataPacket(typeProvider);
+                    ChunkFactory.addChunk(typeProvider);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
                 break;
-
-
 
             case BLOCK_CHANGE:
                 Coordinate3D coords = typeProvider.readCoordinates();

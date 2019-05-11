@@ -43,7 +43,6 @@ public class WorldManager extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Started saving service");
         while (true) {
             try {
                 Thread.sleep(SAVE_DELAY);

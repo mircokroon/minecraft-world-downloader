@@ -11,7 +11,6 @@ import com.flowpowered.nbt.StringTag;
 
 import game.Game;
 import game.data.Coordinate2D;
-import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import packets.DataTypeProvider;
@@ -19,7 +18,6 @@ import packets.DataTypeProvider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -49,30 +47,7 @@ public class Chunk {
         WorldManager.addChunk(new Coordinate2D(x, z), this);
     }
 
-    public static Chunk readChunkDataPacket(DataTypeProvider dataProvider) {
-        int x = dataProvider.readInt();
-        int z = dataProvider.readInt();
-
-        boolean full = dataProvider.readBoolean();
-        Chunk chunk;
-        if (full) {
-            chunk = new Chunk(x, z);
-        } else {
-            chunk = WorldManager.getChunk(new Coordinate2D(x, z));
-        }
-        int mask = dataProvider.readVarInt();
-        int size = dataProvider.readVarInt();
-        readChunkColumn(chunk, full, mask, dataProvider);
-
-        int tileEntityCount = dataProvider.readVarInt();
-        for (int i = 0; i < tileEntityCount; i++) {
-            chunk.addTileEntity(dataProvider.readCompoundTag());
-        }
-
-        return chunk;
-    }
-
-    private void addTileEntity(CompoundTag tag) {
+    public void addTileEntity(CompoundTag tag) {
         tileEntities.add(tag);
     }
 
@@ -87,7 +62,7 @@ public class Chunk {
         return intTag.getValue();
     }
 
-    private static void readChunkColumn(Chunk chunk, boolean full, int mask, DataTypeProvider dataProvider) {
+    public void readChunkColumn(boolean full, int mask, DataTypeProvider dataProvider) {
         for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT); sectionY++) {
             if ((mask & (1 << sectionY)) != 0) {  // Is the given bit set in the mask?
                 byte bitsPerBlock = dataProvider.readNext();
@@ -136,14 +111,14 @@ public class Chunk {
                 }
 
                 // May replace an existing section or a null one
-                chunk.setSection(sectionY, section);
+                setSection(sectionY, section);
             }
         }
 
         if (full) {
             for (int z = 0; z < SECTION_WIDTH; z++) {
                 for (int x = 0; x < SECTION_WIDTH; x++) {
-                    chunk.setBiome(x, z, dataProvider.readNext());
+                    setBiome(x, z, dataProvider.readNext());
                 }
             }
         }
