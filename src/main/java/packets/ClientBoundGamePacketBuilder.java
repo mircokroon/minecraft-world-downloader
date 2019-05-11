@@ -2,6 +2,9 @@ package packets;
 
 import game.data.Chunk;
 import game.data.Coordinate3D;
+import game.data.Writer;
+
+import java.io.IOException;
 
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;
@@ -15,7 +18,11 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
 
         switch (packetId) {
             case CHUNK_DATA:
-                Chunk.readChunkDataPacket(typeProvider);
+                try {
+                    Chunk.readChunkDataPacket(typeProvider);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
                 break;
 
 
@@ -29,8 +36,12 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
                 //System.out.println("Changed block " + coords + " :: " + type + ":" + meta);
                 //System.out.println("Chunk data: ");
                 //Chunk.printBlockInfo(coords);
-                System.out.println(Chunk.existingChunks);
-
+                try {
+                    System.out.println("Writing chunk");
+                    Writer.write(Chunk.getChunk(coords));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
         }
 
         return true;

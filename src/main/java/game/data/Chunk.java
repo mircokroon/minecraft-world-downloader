@@ -1,20 +1,29 @@
 package game.data;
 
+import com.flowpowered.nbt.ByteArrayTag;
+import com.flowpowered.nbt.ByteTag;
+import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.IntTag;
+import com.flowpowered.nbt.ListTag;
+import com.flowpowered.nbt.LongTag;
+import com.flowpowered.nbt.ShortTag;
 import com.flowpowered.nbt.StringTag;
 import com.flowpowered.nbt.Tag;
 
 import game.Game;
 import packets.DataTypeProvider;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.stream.Collectors;
+import javax.xml.crypto.Data;
 
 public class Chunk {
     public static HashMap<Coordinate2D, Chunk> existingChunks = new HashMap<>();
@@ -22,12 +31,13 @@ public class Chunk {
     private static final int SECTION_HEIGHT = 16;
     private static final int SECTION_WIDTH = 16;
 
+    private static final int DataVersion = 1631;
 
     private int x;
     private int z;
     private List<CompoundTag> tileEntities;
     private ChunkSection[] chunkSections;
-    private int[][] biomes;
+    private byte[] biomes;
 
     public Chunk(int x, int z) {
         this.x = x;
@@ -35,7 +45,7 @@ public class Chunk {
 
         chunkSections = new ChunkSection[16];
         tileEntities = new ArrayList<>();
-        this.biomes = new int[16][16];
+        this.biomes = new byte[256];
 
         existingChunks.put(new Coordinate2D(x, z), this);
     }
@@ -56,16 +66,9 @@ public class Chunk {
         readChunkColumn(chunk, full, mask, dataProvider);
 
         int tileEntityCount = dataProvider.readVarInt();
-        System.out.println("Reading " + tileEntityCount + " tile entities.");
-
         for (int i = 0; i < tileEntityCount; i++) {
-            CompoundTag e = dataProvider.readCompoundTag();
-            chunk.addTileEntity(e);
-
-            Coordinate3D loc = new Coordinate3D(getInt(e, "x"), getInt(e, "y"), getInt(e, "z"));
-            System.out.println("Entity at: " + loc + ". Type: " + getString(e, "id"));
+            chunk.addTileEntity(dataProvider.readCompoundTag());
         }
-
 
         return chunk;
     }
@@ -98,7 +101,7 @@ public class Chunk {
                 int dataArrayLength = dataProvider.readVarInt();
                 long[] dataArray = dataProvider.readLongArray(dataArrayLength);
 
-                ChunkSection section = new ChunkSection();
+                ChunkSection section = new ChunkSection(sectionY);
 
                 for (int y = 0; y < SECTION_HEIGHT; y++) {
                     for (int z = 0; z < SECTION_WIDTH; z++) {
@@ -134,8 +137,8 @@ public class Chunk {
                             // Note: x += 2 above; we read 2 values along x each time
                             byte value = dataProvider.readNext();
 
-                            section.setBlockLight(x, y, z, value & 0xF);
-                            section.setBlockLight(x + 1, y, z, (value >> 4) & 0xF);
+                            section.setBlockLight(x, y, z, (byte) (value & 0xF));
+                            section.setBlockLight(x + 1, y, z, (byte)((value >> 4) & 0xF));
                         }
                     }
                 }
@@ -147,8 +150,8 @@ public class Chunk {
                                 // Note: x += 2 above; we read 2 values along x each time
                                 byte value = dataProvider.readNext();
 
-                                section.setSkyLight(x, y, z, value & 0xF);
-                                section.setSkyLight(x + 1, y, z, (value >> 4) & 0xF);
+                                section.setSkyLight(x, y, z, (byte) (value & 0xF));
+                                section.setSkyLight(x + 1, y, z, (byte) ((value >> 4) & 0xF));
                             }
                         }
                     }
@@ -168,22 +171,48 @@ public class Chunk {
         }
     }
 
-    private void setBiome(int x, int z, int biomeId) {
-        biomes[x][z] = biomeId;
+    private void setBiome(int x, int z, byte biomeId) {
+        biomes[x * 16 + z] = biomeId;
     }
 
     private void setSection(int sectionY, ChunkSection section) {
         chunkSections[sectionY] = section;
     }
 
-    public static void printBlockInfo(Coordinate3D coordinate) {
-        existingChunks.get(coordinate.chunkPos()).printBlockInfoOfChunk(coordinate);
+    public static Chunk getChunk(Coordinate3D coordinate) {
+        return existingChunks.get(coordinate.chunkPos());
     }
 
-    public void printBlockInfoOfChunk(Coordinate3D coordinates) {
-        int sectionY = (int) Math.floor(coordinates.getY() / 16);
-        ChunkSection section = chunkSections[sectionY];
+    public CompoundTag toNbt() {
+        CompoundMap rootMap = new CompoundMap();
+        rootMap.put("Level", createNbtLevel());
+        rootMap.put("DataVersion", new IntTag("DataVersion", DataVersion));
 
-        System.out.println(section.getBlockInformation(coordinates));
+        return new CompoundTag("", rootMap);
+    }
+
+    private CompoundTag createNbtLevel() {
+        CompoundMap levelMap = new CompoundMap();
+        levelMap.put(new IntTag("xPos", x));
+        levelMap.put(new IntTag("zPos", z));
+        levelMap.put(new ByteTag("TerrainPopulated", (byte) 1));
+        levelMap.put(new ByteTag("LightPopulated", (byte) 1));
+        levelMap.put(new LongTag("InhabitedTime", 0));
+        levelMap.put(new LongTag("LastUpdate", 0));
+        levelMap.put(new ListTag<>("Entities", CompoundTag.class, new ArrayList<>()));
+
+        levelMap.put(new ByteArrayTag("Biomes", biomes));
+        levelMap.put(new ListTag<>("TileEntities", CompoundTag.class, tileEntities));
+        levelMap.put(new ListTag<>("Sections", CompoundTag.class, getSectionList()));
+
+        return new CompoundTag("Level", levelMap);
+    }
+
+    private List<CompoundTag> getSectionList() {
+        return Arrays.stream(chunkSections)
+            .filter(Objects::nonNull)
+            .sorted(Comparator.comparingInt(ChunkSection::getY))
+            .map(ChunkSection::toNbt)
+            .collect(Collectors.toList());
     }
 }
