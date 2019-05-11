@@ -12,7 +12,7 @@ public class Coordinate2D {
     }
 
     public Coordinate2D toRegion() {
-        return new Coordinate2D(x / 32, z / 32);
+        return new Coordinate2D(x >> 5, z >> 5);
     }
 
     public int getX() {
@@ -40,5 +40,17 @@ public class Coordinate2D {
     @Override
     public String toString() {
         return "(" + x + ", " + z + ")";
+    }
+
+    public Coordinate2D toRegionLocal() {
+        return new Coordinate2D(toLocal(x), toLocal(z));
+    }
+
+    private int toLocal(int pos) {
+        pos = pos % 32;
+        if (pos < 0) {
+            return pos + 32;
+        }
+        return pos;
     }
 }

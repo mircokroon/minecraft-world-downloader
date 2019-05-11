@@ -21,7 +21,7 @@ public class Region {
     }
 
     public void addChunk(Coordinate2D coordinate, Chunk chunk) {
-        chunks.put(coordinate, chunk);
+        chunks.put(coordinate.toRegionLocal(), chunk);
         updatedSinceLastWrite = true;
     }
 
