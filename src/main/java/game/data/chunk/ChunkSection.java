@@ -18,16 +18,16 @@ public class ChunkSection {
         this.skyLight = new byte[2048];
     }
 
+    public void setSkyLight(byte[] skyLight) {
+        this.skyLight = skyLight;
+    }
+
+    public void setBlockLight(byte[] blockLight) {
+        this.blockLight = blockLight;
+    }
+
     public void setState(int x, int y, int z, BlockState state) {
         this.blocks[x][y][z] = state;
-    }
-
-    public void setBlockLight(int x, int y, int z, byte lightValue) {
-        insertAtHalf(blockLight, x, y, z, lightValue);
-    }
-
-    public void setSkyLight(int x, int y, int z, byte lightValue) {
-        insertAtHalf(skyLight, x, y, z, lightValue);
     }
 
     public CompoundTag toNbt() {

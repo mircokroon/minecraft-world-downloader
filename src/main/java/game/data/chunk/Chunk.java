@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class Chunk {
+    private static final int LIGHT_SIZE = 2048;
     private static final int CHUNK_HEIGHT = 256;
     private static final int SECTION_HEIGHT = 16;
     private static final int SECTION_WIDTH = 16;
@@ -128,31 +129,10 @@ public class Chunk {
                     }
                 }
 
-
-                for (int y = 0; y < SECTION_HEIGHT; y++) {
-                    for (int z = 0; z < SECTION_WIDTH; z++) {
-                        for (int x = 0; x < SECTION_WIDTH; x += 2) {
-                            // Note: x += 2 above; we read 2 values along x each time
-                            byte value = dataProvider.readNext();
-
-                            section.setBlockLight(x, y, z, (byte) (value & 0xF));
-                            section.setBlockLight(x + 1, y, z, (byte)((value >> 4) & 0xF));
-                        }
-                    }
-                }
+                section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
 
                 if (Game.getDimension() == Dimension.OVERWORLD) {
-                    for (int y = 0; y < SECTION_HEIGHT; y++) {
-                        for (int z = 0; z < SECTION_WIDTH; z++) {
-                            for (int x = 0; x < SECTION_WIDTH; x += 2) {
-                                // Note: x += 2 above; we read 2 values along x each time
-                                byte value = dataProvider.readNext();
-
-                                section.setSkyLight(x, y, z, (byte) (value & 0xF));
-                                section.setSkyLight(x + 1, y, z, (byte) ((value >> 4) & 0xF));
-                            }
-                        }
-                    }
+                    section.setSkyLight(dataProvider.readByteArray(LIGHT_SIZE));
                 }
 
                 // May replace an existing section or a null one
