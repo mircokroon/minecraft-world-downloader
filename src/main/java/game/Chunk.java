@@ -27,7 +27,7 @@ public class Chunk {
     public static Chunk readChunkDataPacket(DataTypeProvider dataProvider) {
         int x = dataProvider.readInt();
         int z = dataProvider.readInt();
-        System.out.println("Parsing chunk at " + x + ", " + z);
+
         boolean full = dataProvider.readBoolean();
         Chunk chunk;
         if (full) {
@@ -142,7 +142,7 @@ public class Chunk {
     }
 
     public static void printBlockInfo(Coordinate3D coordinate) {
-        existingChunks.get(new Coordinate2D(chunkX, chunkZ)).printBlockInfoOfChunk(coordinate);
+        existingChunks.get(coordinate.chunkPos()).printBlockInfoOfChunk(coordinate);
     }
 
     public void printBlockInfoOfChunk(Coordinate3D coordinates) {

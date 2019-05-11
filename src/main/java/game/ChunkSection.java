@@ -24,9 +24,9 @@ public class ChunkSection {
     }
 
     public BlockInformation getBlockInformation(Coordinate3D coordinate) {
-        int x = coordinate.getX() % 16;
-        int y = coordinate.getY() % 16;
-        int z = coordinate.getZ() % 16;
+        int x = coordinate.localX();
+        int y = coordinate.localY();
+        int z = coordinate.localZ();
 
         return new BlockInformation(blocks[x][y][z], skyLight[x][y][z], blockLight[x][y][z]);
     }

@@ -13,12 +13,14 @@ public class Palette {
         this.bitsPerBlock = bitsPerBlock;
         this.palette = palette;
 
-        System.out.println("Palette parsed with " + bitsPerBlock + " :: " + Arrays.stream(palette).mapToObj(BlockState::new).collect(
-            Collectors.toList()));
+        if (bitsPerBlock > 8) {
+            System.out.println("WARNING: palette type not supported");
+        }
     }
 
     public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
         int size = dataTypeProvider.readVarInt();
+
         int[] palette = dataTypeProvider.readVarIntArray(size);
 
         return new Palette(bitsPerBlock, palette);
