@@ -1,11 +1,11 @@
 package game;
 
+import game.data.Dimension;
 import packets.ClientBoundGamePacketBuilder;
 import packets.ClientBoundHandshakePacketBuilder;
 import packets.ClientBoundLoginPacketBuilder;
 import packets.ClientBoundStatusPacketBuilder;
 import packets.DataReader;
-import packets.PacketBuilder;
 import packets.ServerBoundGamePacketBuilder;
 import packets.ServerBoundLoginPacketBuilder;
 import packets.ServerBoundHandshakePacketBuilder;

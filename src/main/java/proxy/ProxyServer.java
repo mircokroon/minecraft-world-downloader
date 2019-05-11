@@ -71,6 +71,10 @@ public class ProxyServer {
                             onServerBoundPacket.pushData(request, bytesRead);
                         }
                     }, (ex) -> {
+                        Throwable cause = ex.getCause();
+                        if (cause != null) {
+                            cause.printStackTrace();
+                        }
                         System.out.println("Server probably disconnected. Waiting for new connection...");
                         Game.reset();
                     });
@@ -84,6 +88,10 @@ public class ProxyServer {
                         onClientBoundPacket.pushData(reply, bytesRead);
                     }
                 }, (ex) -> {
+                    Throwable cause = ex.getCause();
+                    if (cause != null) {
+                        cause.printStackTrace();
+                    }
                     System.out.println("Client probably disconnected. Waiting for new connection...");
                     Game.reset();
                 });

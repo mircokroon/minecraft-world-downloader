@@ -1,8 +1,15 @@
 package packets;
 
-import game.Coordinate3D;
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.Tag;
+import com.flowpowered.nbt.stream.NBTInputStream;
 
+import game.data.Coordinate3D;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 public class DataTypeProvider {
     byte[] finalFullPacket;
@@ -93,6 +100,12 @@ public class DataTypeProvider {
         return finalFullPacket[pos++];
     }
 
+    public byte readNextVerbose() {
+        byte next = finalFullPacket[pos++];
+        System.out.println("Read: " + Integer.toHexString((int) next));
+        return next;
+    }
+
     public boolean hasNext() {
         return pos < finalFullPacket.length;
     }
@@ -120,20 +133,25 @@ public class DataTypeProvider {
         }
         return res;
     }
-    /*
-    byte[] readByteArray(int size);
-    long readVarLong();
-    long readLong();
-    int readVarInt();
-    String readString();
-    void skip(int amount);
-    int readShort();
-    int readInt();
-    boolean readBoolean();
-    byte readNext();
-    boolean hasNext();
-    Coordinate3D readCoordinates();
-    long[] readLongArray(int size);
 
-     */
+    public CompoundTag readCompoundTag() {
+        return (CompoundTag) readNbtTag();
+    }
+
+    public Tag readNbtTag() {
+        try {
+            NBTInputStream inputStream = new NBTInputStream(new InputStream() {
+                @Override
+                public int read() {
+                    return readNext() & 0xFF;
+                }
+            }, false);
+
+            return inputStream.readTag();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        }
+
+    }
 }

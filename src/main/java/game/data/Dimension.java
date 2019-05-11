@@ -1,4 +1,4 @@
-package game;
+package game.data;
 
 public enum Dimension {
     OVERWORLD,

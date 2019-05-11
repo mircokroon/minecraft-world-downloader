@@ -1,4 +1,4 @@
-package game;
+package game.data;
 
 public class Coordinate3D {
     int x;

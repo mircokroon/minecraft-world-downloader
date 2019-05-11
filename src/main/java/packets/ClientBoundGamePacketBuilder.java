@@ -1,7 +1,7 @@
 package packets;
 
-import game.Chunk;
-import game.Coordinate3D;
+import game.data.Chunk;
+import game.data.Coordinate3D;
 
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;

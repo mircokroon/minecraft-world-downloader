@@ -1,25 +1,41 @@
-package game;
+package game.data;
 
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.IntTag;
+import com.flowpowered.nbt.StringTag;
+import com.flowpowered.nbt.Tag;
+
+import game.Game;
 import packets.DataTypeProvider;
 
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Queue;
 
 public class Chunk {
+    public static HashMap<Coordinate2D, Chunk> existingChunks = new HashMap<>();
     private static final int CHUNK_HEIGHT = 256;
     private static final int SECTION_HEIGHT = 16;
     private static final int SECTION_WIDTH = 16;
-    public static HashMap<Coordinate2D, Chunk> existingChunks = new HashMap<>();
 
-    int x;
-    int z;
-    ChunkSection[] chunkSections = new ChunkSection[16];
 
-    int[][] biomes = new int[16][16];
+    private int x;
+    private int z;
+    private List<CompoundTag> tileEntities;
+    private ChunkSection[] chunkSections;
+    private int[][] biomes;
 
     public Chunk(int x, int z) {
         this.x = x;
         this.z = z;
+
+        chunkSections = new ChunkSection[16];
+        tileEntities = new ArrayList<>();
+        this.biomes = new int[16][16];
 
         existingChunks.put(new Coordinate2D(x, z), this);
     }
@@ -39,15 +55,34 @@ public class Chunk {
         int size = dataProvider.readVarInt();
         readChunkColumn(chunk, full, mask, dataProvider);
 
-        /*
-        // TODO: parse block entities
-        int blockEntityCount = dataProvider.readVarInt();
-        for (int i = 0; i < blockEntityCount; i++) {
-            CompoundTag tag = ReadCompoundTag(data);
-            chunk.AddBlockEntity(tag.GetInt("x"), tag.GetInt("y"), tag.GetInt("z"), tag);
+        int tileEntityCount = dataProvider.readVarInt();
+        System.out.println("Reading " + tileEntityCount + " tile entities.");
+
+        for (int i = 0; i < tileEntityCount; i++) {
+            CompoundTag e = dataProvider.readCompoundTag();
+            chunk.addTileEntity(e);
+
+            Coordinate3D loc = new Coordinate3D(getInt(e, "x"), getInt(e, "y"), getInt(e, "z"));
+            System.out.println("Entity at: " + loc + ". Type: " + getString(e, "id"));
         }
-        */
+
+
         return chunk;
+    }
+
+    private void addTileEntity(CompoundTag tag) {
+        tileEntities.add(tag);
+    }
+
+
+    private static int getInt(CompoundTag tag, String name) {
+        IntTag intTag = (IntTag) tag.getValue().get(name);
+        return intTag.getValue();
+    }
+
+    private static String getString(CompoundTag tag, String name) {
+        StringTag intTag = (StringTag) tag.getValue().get(name);
+        return intTag.getValue();
     }
 
     private static void readChunkColumn(Chunk chunk, boolean full, int mask, DataTypeProvider dataProvider) {
