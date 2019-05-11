@@ -32,7 +32,9 @@ public class ChunkBinary {
 
         System.arraycopy(data, 0, finalData, 5, data.length);
 
-        binary.size = finalData.length / McaFile.SECTOR_SIZE + (finalData.length % McaFile.SECTOR_SIZE == 0 ? 0 : 1);
+        int fullsize = finalData.length + 5;
+        binary.size = fullsize / McaFile.SECTOR_SIZE + (fullsize % McaFile.SECTOR_SIZE == 0 ? 0 : 1);
+        
         binary.chunkData = finalData;
 
         return binary;

@@ -73,8 +73,8 @@ public class ChunkSection {
     private static void insertAtHalf(byte[] arr, int x, int y, int z, int val) {
         int pos = getBlockIndex(x, y, z);
         boolean isUpperHalf = pos % 2 == 0;
-        if (isUpperHalf) {
-            arr[pos / 2] |= val << 4;
+        if (!isUpperHalf) {
+            arr[pos / 2] |= (val << 4) & 0xF0;
         } else {
             arr[pos / 2] |= val & 0x0F;
         }
