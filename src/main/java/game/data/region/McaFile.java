@@ -1,5 +1,6 @@
 package game.data.region;
 
+import game.Game;
 import game.data.Coordinate2D;
 import game.data.chunk.ChunkBinary;
 import org.apache.commons.io.IOUtils;
@@ -30,8 +31,10 @@ public class McaFile {
     }
 
     public McaFile(Coordinate2D pos, Map<Integer, ChunkBinary> chunkMap) {
+        Path filePath = Paths.get(Game.getExportDirectory(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
+
         this.chunkMap = chunkMap;
-        this.filePath = Paths.get("world/region/r." + pos.getX() + "." + pos.getZ() + ".mca");
+        this.filePath = filePath;
     }
 
     /**

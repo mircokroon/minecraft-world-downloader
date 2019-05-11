@@ -54,5 +54,12 @@
             <version>1.0.0</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/net.sourceforge.argparse4j/argparse4j -->
+        <dependency>
+            <groupId>net.sourceforge.argparse4j</groupId>
+            <artifactId>argparse4j</artifactId>
+            <version>0.8.1</version>
+        </dependency>
+
     </dependencies>
 </project>

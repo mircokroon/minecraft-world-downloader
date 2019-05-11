@@ -7,7 +7,7 @@ import game.data.chunk.ChunkFactory;
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;
 
-    private final int BLOCK_CHANGE = 0x0B;
+    private final int PLAYER_POSITION = 0x32;
 
     @Override
     public boolean build(int size) {
@@ -22,12 +22,9 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
                     ex.printStackTrace();
                 }
                 break;
-
-            case BLOCK_CHANGE:
-                Coordinate3D coords = typeProvider.readCoordinates();
-                int blockId = typeProvider.readVarInt();
-                int type = blockId >> 4;
-                int meta = blockId & 15;
+            case PLAYER_POSITION:
+                //double x = typeProvider.readDouble();
+                break;
 
         }
 

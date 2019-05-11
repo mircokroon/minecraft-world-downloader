@@ -14,37 +14,48 @@ import proxy.CompressionManager;
 import proxy.EncryptionManager;
 import proxy.ProxyServer;
 
+import net.sourceforge.argparse4j.inf.Namespace;
+
+import java.io.File;
+import java.nio.file.Paths;
+
 public abstract class Game {
     private static NetworkMode mode = NetworkMode.STATUS;
+    private static Dimension dimension = Dimension.OVERWORLD;
 
     private static DataReader serverBoundDataReader;
     private static DataReader clientBoundDataReader;
-
+    private static EncryptionManager encryptionManager;
+    private static CompressionManager compressionManager;
     public static EncryptionManager getEncryptionManager() {
         return encryptionManager;
     }
-
     public static CompressionManager getCompressionManager() {
         return compressionManager;
     }
-
-    private static EncryptionManager encryptionManager;
-
-    private static CompressionManager compressionManager;
-
-    private static Dimension dimension = Dimension.OVERWORLD;
-
     public static void setDimension(Dimension dimension) {
         Game.dimension = dimension;
     }
-
     public static Dimension getDimension() {
         return dimension;
     }
 
-    private static String host = "localhost";
-    private static int portRemote = 25565;
+    private static String host;
+    private static String exportDir;
+    private static int portRemote;
+    private static int portLocal;
 
+    public static void init(Namespace args) {
+        host = args.getString("server");
+        portRemote = args.getInt("port");
+        portLocal = args.getInt("local-port");
+        exportDir = args.getString("output");
+
+        File dir = Paths.get(exportDir).toFile();
+        if (!dir.isDirectory()) {
+            dir.mkdirs();
+        }
+    }
 
     public static String getHost() {
         return host;
@@ -55,8 +66,6 @@ public abstract class Game {
     }
 
     public static void startProxy() {
-        int portLocal = 25570;
-
         encryptionManager = new EncryptionManager();
         serverBoundDataReader = DataReader.serverBound(encryptionManager);
         clientBoundDataReader = DataReader.clientBound(encryptionManager);
@@ -104,4 +113,7 @@ public abstract class Game {
     }
 
 
+    public static String getExportDirectory() {
+        return exportDir;
+    }
 }

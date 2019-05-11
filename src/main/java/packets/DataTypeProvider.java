@@ -154,4 +154,12 @@ public class DataTypeProvider {
         }
 
     }
+
+    public double readDouble() {
+        byte[] bytes = readByteArray(8);
+        ByteBuffer buffer = ByteBuffer.allocate(Double.BYTES);
+        buffer.put(bytes);
+        buffer.flip();
+        return buffer.getDouble();
+    }
 }

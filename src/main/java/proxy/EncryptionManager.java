@@ -216,11 +216,11 @@ public class EncryptionManager {
     }
 
     public void streamToServer(Queue<Byte> bytes) throws IOException {
-        //System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
+        // System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
         streamTo(streamToServer, bytes, this::serverBoundEncrypt);
     }
     public void streamToClient(Queue<Byte> bytes) throws IOException {
-        //System.out.println("Writing bytes to client: " + bytes.size() + " :: " + bytes);
+        // System.out.println("Writing bytes to client: " + bytes.size() + " :: " + bytes);
         streamTo(streamToClient, bytes, this::clientBoundEncrypt);
     }
 
