@@ -32,6 +32,16 @@ public abstract class Game {
 
     private static CompressionManager compressionManager;
 
+    private static Dimension dimension = Dimension.OVERWORLD;
+
+    public static void setDimension(Dimension dimension) {
+        Game.dimension = dimension;
+    }
+
+    public static Dimension getDimension() {
+        return dimension;
+    }
+
     public static void startProxy() {
         String host = "localhost";
         int portRemote = 25565;

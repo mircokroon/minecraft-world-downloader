@@ -1,6 +1,6 @@
 package packets;
 
-import game.Coordinates;
+import game.Coordinate3D;
 
 public class ServerBoundGamePacketBuilder extends PacketBuilder {
     private final int BLOCK_PLACE = 0x1F;
@@ -12,7 +12,7 @@ public class ServerBoundGamePacketBuilder extends PacketBuilder {
 
         switch (packetId) {
             case BLOCK_PLACE:
-                Coordinates coordinates = typeProvider.readCoordinates();
+                Coordinate3D coordinates = typeProvider.readCoordinates();
                 int face = typeProvider.readVarInt();
                 int hand = typeProvider.readVarInt();
                 System.out.println("Player placed a block at " + coordinates + " (face: " + face + ", hand: " + hand + ")");

@@ -1,6 +1,7 @@
 package packets;
 
-import game.Coordinates;
+import game.Chunk;
+import game.Coordinate3D;
 
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;
@@ -14,17 +15,20 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
 
         switch (packetId) {
             case CHUNK_DATA:
-                System.out.println("Received chunk data!");
+                Chunk.readChunkDataPacket(typeProvider);
                 break;
 
 
 
             case BLOCK_CHANGE:
-                Coordinates coords = typeProvider.readCoordinates();
+                Coordinate3D coords = typeProvider.readCoordinates();
                 int blockId = typeProvider.readVarInt();
                 int type = blockId >> 4;
                 int meta = blockId & 15;
+
                 System.out.println("Changed block " + coords + " :: " + type + ":" + meta);
+                System.out.println("Chunk data: ");
+                Chunk.printBlockInfo(coords);
 
         }
 
