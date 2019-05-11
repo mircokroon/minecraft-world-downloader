@@ -77,6 +77,10 @@ public class Chunk {
 
                 ChunkSection section = new ChunkSection(sectionY);
 
+                if (dataArrayLength == 0) {
+                    return;
+                }
+
                 for (int y = 0; y < SECTION_HEIGHT; y++) {
                     for (int z = 0; z < SECTION_WIDTH; z++) {
                         for (int x = 0; x < SECTION_WIDTH; x++) {

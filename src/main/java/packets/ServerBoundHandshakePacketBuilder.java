@@ -15,14 +15,16 @@ public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
                 int port = typeProvider.readShort();
                 int nextMode = typeProvider.readVarInt();
 
-                System.out.format("Performanced handshake with %s:%d, protocol version %d :: next state: %d\n", host, port, protocolVersion, nextMode);
+                System.out.format("Attempted handshake with %s:%d, protocol version %d :: next state: %d\n", host, port, protocolVersion, nextMode);
 
                 switch (nextMode) {
                     case 1: Game.setMode(NetworkMode.STATUS); break;
                     case 2: Game.setMode(NetworkMode.LOGIN); break;
                 }
 
-                return true;
+                Game.getEncryptionManager().sendMaskedHandshake(protocolVersion, nextMode);
+
+                return false;
             default:
                 return true;
         }

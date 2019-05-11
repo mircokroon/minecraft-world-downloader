@@ -34,7 +34,7 @@ public class ChunkBinary {
 
         int fullsize = finalData.length + 5;
         binary.size = fullsize / McaFile.SECTOR_SIZE + (fullsize % McaFile.SECTOR_SIZE == 0 ? 0 : 1);
-        
+
         binary.chunkData = finalData;
 
         return binary;

@@ -42,9 +42,19 @@ public abstract class Game {
         return dimension;
     }
 
+    private static String host = "localhost";
+    private static int portRemote = 25565;
+
+
+    public static String getHost() {
+        return host;
+    }
+
+    public static int getPortRemote() {
+        return portRemote;
+    }
+
     public static void startProxy() {
-        String host = "localhost";
-        int portRemote = 25565;
         int portLocal = 25570;
 
         encryptionManager = new EncryptionManager();

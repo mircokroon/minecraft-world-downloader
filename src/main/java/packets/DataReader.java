@@ -136,7 +136,6 @@ public class DataReader {
         byte read;
         do {
             if (!hasNext.get()) {
-                System.out.println("Could not complete varInt! Returning partial result.");
                 return res;
             }
             read = readNext.get();

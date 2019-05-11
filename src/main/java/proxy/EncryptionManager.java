@@ -1,5 +1,6 @@
 package proxy;
 
+import game.Game;
 import packets.ClientBoundLoginPacketBuilder;
 import packets.ServerBoundLoginPacketBuilder;
 
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
@@ -280,4 +282,26 @@ public class EncryptionManager {
     public void reset() {
         encryptionEnabled = false;
     }
+
+    public void sendMaskedHandshake(int protocolVersion, int nextMode) {
+        attempt(() -> {
+            List<Byte> bytes = new ArrayList<>();
+
+            writeVarInt(bytes, 0);
+            writeVarInt(bytes, protocolVersion);
+            writeString(bytes, Game.getHost());
+            writeShort(bytes, Game.getPortRemote());
+            writeVarInt(bytes, nextMode);
+            prependPacketLength(bytes);
+
+            streamToServer(new LinkedList<>(bytes));
+            System.out.println("Sent masked handshake with " + Game.getHost() + ":" + Game.getPortRemote());
+        });
+    }
+
+    private static void writeShort(List<Byte> bytes, int portRemote) {
+        bytes.add((byte) ((portRemote >>> 8) & 0xFF));
+        bytes.add((byte) ((portRemote) & 0xFF));
+    }
+
 }
