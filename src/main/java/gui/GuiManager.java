@@ -44,7 +44,7 @@ public class GuiManager {
      * can draw those to the UI.
      */
     private static void createAndShowGUI() {
-        JFrame f = new JFrame();
+        JFrame f = new JFrame("World Downloader");
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setSize(WIDTH, HEIGHT);
         f.addComponentListener(new ComponentAdapter() {
