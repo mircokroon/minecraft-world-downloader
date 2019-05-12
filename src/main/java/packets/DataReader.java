@@ -164,7 +164,12 @@ public class DataReader {
                 return;
             }
             // parse the packet (including decompression)
-            boolean forwardPacket = getBuilder().build(nextPacketSize);
+            boolean forwardPacket = true;
+            try {
+                forwardPacket = getBuilder().build(nextPacketSize);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
 
             // check if the the packet length was correct
             int expectedLength = nextPacketSize + varIntPacketSize.numBytes();
