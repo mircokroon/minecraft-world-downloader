@@ -23,7 +23,10 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
                 }
                 break;
             case PLAYER_POSITION:
-                //double x = typeProvider.readDouble();
+                /*double x = typeProvider.readDouble();
+                double y = typeProvider.readDouble();
+                double z = typeProvider.readDouble();
+                System.out.println("Player pos: " + (int) x + ", " + (int) z);*/
                 break;
 
         }

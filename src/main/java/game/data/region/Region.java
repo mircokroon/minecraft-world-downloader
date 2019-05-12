@@ -3,6 +3,7 @@ package game.data.region;
 import game.data.Coordinate2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
+import gui.GuiManager;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -21,7 +22,8 @@ public class Region {
     }
 
     public void addChunk(Coordinate2D coordinate, Chunk chunk) {
-        chunks.put(coordinate.toRegionLocal(), chunk);
+        chunks.put(coordinate, chunk);
+        GuiManager.setChunkLoaded(coordinate);
         updatedSinceLastWrite = true;
     }
 
@@ -40,7 +42,10 @@ public class Region {
         chunks.keySet().forEach(coordinate -> {
             try {
                 ChunkBinary binary = ChunkBinary.fromChunk(chunks.get(coordinate));
-                int pos = 4 * ((coordinate.getX() & 31) + (coordinate.getZ() & 31) * 32);
+                GuiManager.setChunkSaved(coordinate);
+
+                Coordinate2D localCoordinate = coordinate.toRegionLocal();
+                int pos = 4 * ((localCoordinate.getX() & 31) + (localCoordinate.getZ() & 31) * 32);
                 chunkBinaryMap.put(pos, binary);
             } catch (IOException e) {
                 e.printStackTrace();

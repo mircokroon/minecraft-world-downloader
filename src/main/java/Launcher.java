@@ -1,6 +1,7 @@
 import game.Game;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
+import gui.GuiManager;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
@@ -13,10 +14,9 @@ public class Launcher {
 
         ChunkFactory.startChunkParserService();
         WorldManager.startSaveService();
+        GuiManager.showGui();
         Game.startProxy();
-
     }
-
 
     /**
      * Parse commandline arguments.
