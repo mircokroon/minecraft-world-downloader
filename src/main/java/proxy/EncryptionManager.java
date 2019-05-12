@@ -4,6 +4,7 @@ import game.Game;
 import packets.builder.ClientBoundLoginPacketBuilder;
 import packets.builder.ServerBoundLoginPacketBuilder;
 import proxy.json.ClientAuthenticator;
+import proxy.json.ServerAuthenticator;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -40,6 +41,7 @@ public class EncryptionManager {
     private OutputStream streamToClient;
     private OutputStream streamToServer;
     private KeyPair serverKeyPair;
+    private String username;
 
     {
         // generate the keypair for the fake server
@@ -84,6 +86,20 @@ public class EncryptionManager {
             System.out.println("Encryption failure! Terminating.");
             System.exit(1);
         }
+    }
+
+    /**
+     * Simple method to make exception handling cleaner.
+     */
+    private boolean disconnectOnError(IExceptionHandler r) {
+        try {
+            r.run();
+        } catch (Exception ex) {
+            attempt(() -> streamToServer.close());
+            attempt(() -> streamToClient.close());
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -233,8 +249,13 @@ public class EncryptionManager {
      * future traffic.
      */
     private void sendReplacementEncryptionConfirmation() {
-        // authenticate the client
-        attempt(() -> new ClientAuthenticator().makeRequest(generateServerHash()));
+        // authenticate the client so that the remote server will accept us
+        boolean client = disconnectOnError(() -> new ClientAuthenticator().makeRequest(generateServerHash()));
+        if (!client) { return; }
+
+        // verify the connecting client connection is who he claims to be
+        boolean server = disconnectOnError(() -> new ServerAuthenticator(username).makeRequest(generateServerHash()));
+        if (!server) { return; }
 
         // encryption confirmation
         attempt(() -> {
@@ -379,4 +400,9 @@ public class EncryptionManager {
         bytes.add((byte) ((shortVal >>> 8) & 0xFF));
         bytes.add((byte) ((shortVal) & 0xFF));
     }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
 }

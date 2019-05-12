@@ -18,6 +18,8 @@ public class ServerBoundLoginPacketBuilder extends PacketBuilder {
             case LOGIN_START:
                 String username = typeProvider.readString();
                 System.out.println("Login by: " + username);
+
+                Game.getEncryptionManager().setUsername(username);
                 return true;
 
             case ENCRYPTION_RESPONSE:

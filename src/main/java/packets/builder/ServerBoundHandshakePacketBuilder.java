@@ -26,7 +26,6 @@ public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
                 }
 
                 Game.getEncryptionManager().sendMaskedHandshake(protocolVersion, nextMode);
-
                 return false;
             default:
                 return true;

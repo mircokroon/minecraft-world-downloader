@@ -37,7 +37,7 @@ public class ClientAuthenticator {
     }
 
     /**
-     * Make the authentication request to the Mojang session server. We need to redo this as the one sent by the
+     * Make the authentication request to the Mojang session server. We need to do this as the one sent by the
      * real client will have had our 'fake' public key instead of the server's real one, and as such the server will
      * not accept the connection.
      * @param hash hash based on the server information.
@@ -59,7 +59,7 @@ public class ClientAuthenticator {
         if (str.getStatus() != STATUS_SUCCESS) {
             throw new RuntimeException("Client not authenticated! " + str.getBody());
         } else {
-            System.out.println("Successfully authenticated with Mojang session server.");
+            System.out.println("Successfully authenticated user with Mojang session server.");
         }
     }
 }
