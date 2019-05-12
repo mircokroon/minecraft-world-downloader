@@ -3,6 +3,10 @@ package game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
+import game.data.WorldManager;
+import game.data.chunk.ChunkFactory;
+import game.data.chunk.Palette;
+import gui.GuiManager;
 import packets.ClientBoundGamePacketBuilder;
 import packets.ClientBoundHandshakePacketBuilder;
 import packets.ClientBoundLoginPacketBuilder;
@@ -63,9 +67,20 @@ public abstract class Game {
         portLocal = args.getInt("local-port");
         exportDir = args.getString("output");
 
+        Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
+        Coordinate3D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
+
+        Palette.setMaskBedrock(args.getBoolean("mask-bedrock"));
+
         File dir = Paths.get(exportDir, "region").toFile();
         if (!dir.isDirectory()) {
             dir.mkdirs();
+        }
+
+        ChunkFactory.startChunkParserService();
+        WorldManager.startSaveService();
+        if (args.getBoolean("gui")) {
+            GuiManager.showGui();
         }
     }
 

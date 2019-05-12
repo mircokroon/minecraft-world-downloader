@@ -3,14 +3,17 @@ package gui;
 
 import game.Game;
 import game.data.Coordinate2D;
+import game.data.Coordinate3D;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -28,7 +31,9 @@ public class GuiManager {
     }
 
     public static void setChunkLoaded(Coordinate2D coord) {
-        graphicsHandler.setChunkLoaded(coord);
+        if (graphicsHandler != null) {
+            graphicsHandler.setChunkLoaded(coord);
+        }
     }
 
     private static void createAndShowGUI() {
@@ -44,7 +49,9 @@ public class GuiManager {
     }
 
     public static void setChunksSaved(List<Coordinate2D> saved) {
-        graphicsHandler.setChunksSaved(saved);
+        if (graphicsHandler != null) {
+            graphicsHandler.setChunksSaved(saved);
+        }
     }
 }
 
@@ -87,13 +94,13 @@ class GraphicsHandler extends JPanel implements ActionListener {
             maxX = coord.getX();
         }
         if (coord.getX() < minX) {
-            maxX = coord.getX();
+            minX = coord.getX();
         }
-        if (coord.getX() > maxX) {
-            maxX = coord.getX();
+        if (coord.getZ() > maxZ) {
+            maxZ = coord.getZ();
         }
-        if (coord.getX() < minX) {
-            maxX = coord.getX();
+        if (coord.getZ() < minZ) {
+            minZ = coord.getZ();
         }
     }
 
@@ -101,14 +108,10 @@ class GraphicsHandler extends JPanel implements ActionListener {
         boundsChanged = true;
 
         Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
-        chunkMap.keySet().forEach(el -> {
-            if (!playerChunk.isInRange(el, RENDER_RANGE)) {
-                // TODO: remove player
-            }
-        });
+        chunkMap.keySet().removeIf(el -> !playerChunk.isInRange(el, RENDER_RANGE));
 
-        int gridWidth = GuiManager.WIDTH / ((maxX - minX) + 1);
-        int gridHeight = GuiManager.HEIGHT / ((maxZ - minZ) + 1);
+        int gridWidth = GuiManager.WIDTH / (Math.abs(maxX - minX) + 1);
+        int gridHeight = GuiManager.HEIGHT / (Math.abs(maxZ - minZ) + 1);
         gridSize = Math.min(gridWidth, gridHeight);
     }
 
@@ -123,10 +126,23 @@ class GraphicsHandler extends JPanel implements ActionListener {
         super.paintComponent(g);
 
         g.clearRect(0, 0, GuiManager.WIDTH, GuiManager.HEIGHT);
-        chunkMap.forEach((key, value) -> {
-            g.setColor(value ? Color.green : Color.BLUE);
-            g.fillRect((key.getX() - minX) * gridSize, (key.getZ() - minZ) * gridSize, gridSize, gridSize);
-        });
+        for (Map.Entry<Coordinate2D, Boolean> e : chunkMap.entrySet()) {
+            g.setColor(e.getValue() ? Color.green : Color.BLUE);
+            g.fillRect((e.getKey().getX() - minX) * gridSize, (e.getKey().getZ() - minZ) * gridSize, gridSize, gridSize);
+        }
+
+        if (Game.getPlayerPosition() != null) {
+            g.setColor(Color.RED);
+            Coordinate3D playerPosition = Game.getPlayerPosition();
+
+
+            double playerX = ((playerPosition.getX() / 16.0 - minX) * maxX) * GuiManager.HEIGHT;
+            double playerZ = ((playerPosition.getZ() / 16.0 - minZ) * maxZ) * GuiManager.WIDTH;
+
+            System.out.println("[" + minX + ", " + maxX + "] :: " + playerPosition.getX() + " == " + playerX);
+            System.out.println("[" + minZ + ", " + maxZ + "] :: " + playerPosition.getZ() + " == " + playerZ);
+            g.fillOval((int) playerX, (int) playerZ, 10, 10);
+        }
     }
 
     @Override

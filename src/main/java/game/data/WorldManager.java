@@ -2,6 +2,7 @@ package game.data;
 
 import game.data.chunk.Chunk;
 import game.data.region.Region;
+import gui.GuiManager;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -9,7 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class WorldManager extends Thread {
-    private  final static int SAVE_DELAY = 30 * 1000;
+    private  final static int SAVE_DELAY = 20 * 1000;
     private static Map<Coordinate2D, Region> regions = new HashMap<>();
 
     private static WorldManager writer = null;
@@ -56,7 +57,7 @@ public class WorldManager extends Thread {
     }
 
     public synchronized static void addChunk(Coordinate2D coordinate, Chunk chunk) {
-        Coordinate2D regionCoordinates = coordinate.toRegion();
+        Coordinate2D regionCoordinates = coordinate.chunkToRegion();
 
         if (!regions.containsKey(regionCoordinates)) {
             regions.put(regionCoordinates, new Region(regionCoordinates));
@@ -66,7 +67,7 @@ public class WorldManager extends Thread {
     }
 
     public static Chunk getChunk(Coordinate2D coordinate) {
-        return regions.get(coordinate.toRegion()).getChunk(coordinate);
+        return regions.get(coordinate.chunkToRegion()).getChunk(coordinate);
     }
 
 }

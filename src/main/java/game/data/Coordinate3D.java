@@ -1,6 +1,9 @@
 package game.data;
 
 public class Coordinate3D {
+    private static int offsetX;
+    private static int offsetZ;
+
     int x;
     int y;
     int z;
@@ -14,6 +17,18 @@ public class Coordinate3D {
     public Coordinate3D(double x, double y, double z) {
         this((int) x, (int) y, (int) z);
     }
+
+    public static void setOffset(int x, int z) {
+        offsetX = x;
+        offsetZ = z;
+    }
+
+    public Coordinate3D offset() {
+        this.x += offsetX;
+        this.z += offsetZ;
+        return this;
+    }
+
 
     public int getX() {
         return x;

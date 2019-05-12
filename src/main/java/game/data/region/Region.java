@@ -27,7 +27,6 @@ public class Region {
 
     public void addChunk(Coordinate2D coordinate, Chunk chunk) {
         chunks.put(coordinate, chunk);
-        GuiManager.setChunkLoaded(coordinate);
         updatedSinceLastWrite = true;
     }
 

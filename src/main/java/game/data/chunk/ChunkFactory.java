@@ -2,6 +2,7 @@ package game.data.chunk;
 
 import game.data.Coordinate2D;
 import game.data.WorldManager;
+import gui.GuiManager;
 import packets.DataTypeProvider;
 
 import java.util.LinkedList;
@@ -54,15 +55,16 @@ public class ChunkFactory extends Thread {
     }
 
     private static Chunk readChunkDataPacket(DataTypeProvider dataProvider) {
-        int x = dataProvider.readInt();
-        int z = dataProvider.readInt();
+        Coordinate2D chunkPos = new Coordinate2D(dataProvider.readInt(), dataProvider.readInt());
+        chunkPos.offsetChunk();
+        GuiManager.setChunkLoaded(chunkPos);
 
         boolean full = dataProvider.readBoolean();
         Chunk chunk;
         if (full) {
-            chunk = new Chunk(x, z);
+            chunk = new Chunk(chunkPos.getX(), chunkPos.getZ());
         } else {
-            chunk = WorldManager.getChunk(new Coordinate2D(x, z));
+            chunk = WorldManager.getChunk(new Coordinate2D(chunkPos.getX(), chunkPos.getZ()));
             chunk.setSaved(false);
         }
         int mask = dataProvider.readVarInt();

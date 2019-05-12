@@ -3,6 +3,8 @@ package game.data;
 import java.util.Objects;
 
 public class Coordinate2D {
+    static int offsetX = 0;
+    static int offsetZ = 0;
     int x;
     int z;
 
@@ -16,11 +18,28 @@ public class Coordinate2D {
         this.z = (int) z;
     }
 
+    public static void setOffset(int x, int z) {
+        offsetX = x;
+        offsetZ = z;
+    }
+
+    public Coordinate2D offsetGlobal() {
+        this.x += offsetX;
+        this.z += offsetZ;
+        return this;
+    }
+
+    public Coordinate2D offsetChunk() {
+        this.x += offsetX / 16;
+        this.z += offsetZ / 16;
+        return this;
+    }
+
     public boolean isInRange(Coordinate2D other, int distance) {
         return Math.abs(this.x - other.x) + Math.abs(this.z - other.z) <= distance;
     }
 
-    public Coordinate2D toRegion() {
+    public Coordinate2D chunkToRegion() {
         return new Coordinate2D(x >> 5, z >> 5);
     }
 
