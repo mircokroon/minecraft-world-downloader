@@ -30,6 +30,7 @@ public class WorldManager extends Thread {
         });
         int timeTaken = (int) ((System.currentTimeMillis() - start) / 1e3);
         System.out.println("\rSaved " + saved[0] + " files in " + timeTaken + "s");
+        //System.gc();
     }
 
     public static void startSaveService() {

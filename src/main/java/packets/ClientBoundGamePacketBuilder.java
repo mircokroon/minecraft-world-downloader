@@ -1,5 +1,7 @@
 package packets;
 
+import game.Game;
+import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkFactory;
@@ -7,7 +9,7 @@ import game.data.chunk.ChunkFactory;
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;
 
-    private final int PLAYER_POSITION = 0x32;
+    private final int PLAYER_POSITION = 0x2F;
 
     @Override
     public boolean build(int size) {
@@ -23,12 +25,12 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
                 }
                 break;
             case PLAYER_POSITION:
-                /*double x = typeProvider.readDouble();
+                double x = typeProvider.readDouble();
                 double y = typeProvider.readDouble();
                 double z = typeProvider.readDouble();
-                System.out.println("Player pos: " + (int) x + ", " + (int) z);*/
-                break;
+                Game.setPlayerPosition(new Coordinate3D(x, y, z));
 
+                break;
         }
 
         return true;

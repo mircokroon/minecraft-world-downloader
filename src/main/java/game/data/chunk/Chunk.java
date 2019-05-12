@@ -36,7 +36,18 @@ public class Chunk {
     private ChunkSection[] chunkSections;
     private byte[] biomes;
 
+    private boolean saved;
+
+    public boolean isSaved() {
+        return saved;
+    }
+
+    public void setSaved(boolean saved) {
+        this.saved = saved;
+    }
+
     public Chunk(int x, int z) {
+        this.saved = false;
         this.x = x;
         this.z = z;
 

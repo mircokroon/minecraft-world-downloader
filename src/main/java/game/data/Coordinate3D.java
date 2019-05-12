@@ -11,6 +11,10 @@ public class Coordinate3D {
         this.z = z;
     }
 
+    public Coordinate3D(double x, double y, double z) {
+        this((int) x, (int) y, (int) z);
+    }
+
     public int getX() {
         return x;
     }

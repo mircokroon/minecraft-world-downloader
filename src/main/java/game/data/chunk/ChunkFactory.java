@@ -63,6 +63,7 @@ public class ChunkFactory extends Thread {
             chunk = new Chunk(x, z);
         } else {
             chunk = WorldManager.getChunk(new Coordinate2D(x, z));
+            chunk.setSaved(false);
         }
         int mask = dataProvider.readVarInt();
         int size = dataProvider.readVarInt();

@@ -1,5 +1,7 @@
 package game;
 
+import game.data.Coordinate2D;
+import game.data.Coordinate3D;
 import game.data.Dimension;
 import packets.ClientBoundGamePacketBuilder;
 import packets.ClientBoundHandshakePacketBuilder;
@@ -44,6 +46,16 @@ public abstract class Game {
     private static String exportDir;
     private static int portRemote;
     private static int portLocal;
+
+    private static Coordinate3D playerPosition;
+
+    public static Coordinate3D getPlayerPosition() {
+        return playerPosition;
+    }
+
+    public static void setPlayerPosition(Coordinate3D newPos) {
+        playerPosition = newPos;
+    }
 
     public static void init(Namespace args) {
         host = args.getString("server");

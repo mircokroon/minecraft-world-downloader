@@ -11,6 +11,15 @@ public class Coordinate2D {
         this.z = z;
     }
 
+    public Coordinate2D(double x, double z) {
+        this.x = (int) x;
+        this.z = (int) z;
+    }
+
+    public boolean isInRange(Coordinate2D other, int distance) {
+        return Math.abs(this.x - other.x) + Math.abs(this.z - other.z) <= distance;
+    }
+
     public Coordinate2D toRegion() {
         return new Coordinate2D(x >> 5, z >> 5);
     }
