@@ -4,9 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>mircokroon.proxy-map-downloader</groupId>
-    <artifactId>proxy-map-downloader</artifactId>
+    <groupId>mircokroon.proxy-world-downloader</groupId>
+    <artifactId>minecraft-world-downloader</artifactId>
     <version>1.0</version>
+    <packaging>jar</packaging>
     <build>
         <plugins>
             <plugin>
@@ -16,6 +17,22 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <finalName>world-downloader</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <archive>
+                        <manifest>
+                            <mainClass>Launcher</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+
             </plugin>
         </plugins>
     </build>

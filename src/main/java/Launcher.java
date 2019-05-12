@@ -14,11 +14,11 @@ public class Launcher {
      * Parse commandline arguments.
      */
     private static Namespace getArguments(String[] args) {
-        ArgumentParser parser = ArgumentParsers.newFor("Launcher").build()
+        ArgumentParser parser = ArgumentParsers.newFor("world-downloader.jar").build()
             .defaultHelp(true)
             .description("Download Minecraft worlds by reading chunk data from network traffic.");
         parser.addArgument("-s", "--server")
-            .setDefault("localhost")
+            .required(true)
             .help("The address of the remote server to connect to. Hostname or IP address (without port).");
         parser.addArgument("-p", "--port").type(Integer.class)
             .setDefault(25565)
@@ -32,22 +32,22 @@ public class Launcher {
             .setDefault("world")
             .help("The world output directory. If the world already exists, it will attempt to merge with it.");
         parser.addArgument("-b", "--mask-bedrock").dest("mask-bedrock")
-            .type(boolean.class)
             .setDefault(false)
+            .type(boolean.class)
             .help("Convert all bedrock to stone to make world locations harder to find.");
         parser.addArgument("-x", "--center-x")
-            .type(Integer.class)
             .setDefault(0)
+            .type(Integer.class)
             .dest("center-x")
             .help("Center for x-coordinate. World will be offset by this coordinate so that its centered around 0.");
         parser.addArgument("-z", "--center-z")
-            .type(Integer.class)
             .setDefault(0)
+            .type(Integer.class)
             .dest("center-z")
             .help("Center for z-coordinate. World will be offset by this coordinate so that its centered around 0.");
         parser.addArgument("-g", "--gui")
+            .setDefault(true)
             .type(boolean.class)
-            .setDefault(false)
             .help("Show GUI indicating which chunks have been saved.");
 
         Namespace ns = null;
