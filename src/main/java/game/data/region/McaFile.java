@@ -13,12 +13,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class McaFile {
     public final static int SECTOR_SIZE = 4096;
     Map<Integer, ChunkBinary> chunkMap;
     Path filePath;
     byte[] input;
+    Coordinate2D regionLocation;
 
     /**
      * Class to parse and write MCA files
@@ -28,9 +31,12 @@ public class McaFile {
     public McaFile(File file) throws IOException {
         chunkMap = readFile(file);
         filePath = Paths.get(file.getAbsolutePath());
+        String[] bits = file.getName().split("\\.");
+        regionLocation = new Coordinate2D(Integer.parseInt(bits[1]), Integer.parseInt(bits[2]));
     }
 
     public McaFile(Coordinate2D pos, Map<Integer, ChunkBinary> chunkMap) {
+        regionLocation = pos;
         Path filePath = Paths.get(Game.getExportDirectory(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
 
         this.chunkMap = new HashMap<>();
@@ -174,5 +180,16 @@ public class McaFile {
         } while(start++ < end);
 
         return res;
+    }
+
+    // 4 * ((x & 31) + (z & 31) * 32)
+    public List<Coordinate2D> getChunkPositions() {
+        return chunkMap.keySet().stream().map(el -> {
+            int offset = el / 4;
+            int localX = offset & 0x1F;
+            int localZ = offset >>> 5 ;
+
+            return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
+        }).collect(Collectors.toList());
     }
 }

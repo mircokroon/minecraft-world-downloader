@@ -1,13 +1,20 @@
 package game.data;
 
+import game.Game;
 import game.data.chunk.Chunk;
+import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class WorldManager extends Thread {
     private  final static int SAVE_DELAY = 20 * 1000;
@@ -17,8 +24,29 @@ public class WorldManager extends Thread {
 
     private WorldManager() {}
 
+    public static void loadExistingChunks() throws IOException {
+        Path exportDir = Paths.get(Game.getExportDirectory(), "region");
+
+        List<Coordinate2D> existing = Files.walk(exportDir)
+            .filter(el -> el.getFileName().toString().endsWith(".mca"))
+            .map(Path::toFile)
+            .filter(el -> el.length() > 0)
+            .map(el -> {
+                try {
+                    return new McaFile(el);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            })
+            .filter(Objects::nonNull)
+            .flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList());
+
+        GuiManager.setChunksSaved(existing);
+    }
+
     private synchronized static void save() {
-        System.out.print("Saving... ");
+        GuiManager.setSaving(true);
         long start = System.currentTimeMillis();
         final int[] saved = {0};
         regions.values().stream().map(Region::toFile).filter(Objects::nonNull).forEach(el -> {
@@ -30,8 +58,7 @@ public class WorldManager extends Thread {
             }
         });
         int timeTaken = (int) ((System.currentTimeMillis() - start) / 1e3);
-        System.out.println("\rSaved " + saved[0] + " files in " + timeTaken + "s");
-        //System.gc();
+        GuiManager.setSaving(false);
     }
 
     public static void startSaveService() {
@@ -42,6 +69,7 @@ public class WorldManager extends Thread {
         writer = new WorldManager();
         writer.start();
     }
+
 
     @Override
     public void run() {

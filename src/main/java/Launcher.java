@@ -1,12 +1,7 @@
 import game.Game;
-import game.data.WorldManager;
-import game.data.chunk.ChunkFactory;
-import gui.GuiManager;
 import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.inf.ArgumentAction;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
-import net.sourceforge.argparse4j.inf.ArgumentType;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 public class Launcher {

@@ -1,7 +1,6 @@
 package packets;
 
 import game.Game;
-import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 
 public class ServerBoundGamePacketBuilder extends PacketBuilder {
