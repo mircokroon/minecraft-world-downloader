@@ -8,7 +8,7 @@ A Minecraft world downloader that works by intercepting network traffic between 
 - Optional GUI to show which chunks have been saved
 
 ### Requirements
-- Java 9 or higher 
+- Java 8 or higher 
 - Minecraft 1.12.2 (currently untested on other versions)
 
 ### Basic usage

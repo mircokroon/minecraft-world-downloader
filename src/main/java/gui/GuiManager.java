@@ -7,10 +7,13 @@ import game.data.Coordinate3D;
 import game.data.WorldManager;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,6 +47,14 @@ public class GuiManager {
         JFrame f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         f.setSize(WIDTH, HEIGHT);
+        f.addComponentListener(new ComponentAdapter() {
+            public void componentResized(ComponentEvent evt) {
+                Component c = (Component) evt.getSource();
+                HEIGHT = c.getHeight();
+                WIDTH = c.getWidth();
+                graphicsHandler.computeBounds();
+            }
+        });
 
         graphicsHandler = new GraphicsHandler();
         f.add(graphicsHandler);
@@ -117,7 +128,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
      * Compute the bounds of the canvas based on the existing chunk data. Will also delete chunks that are out of the
      * set render distance. The computed bounds will be used to determine the scale and positions to draw the chunks to.
      */
-    private void computeBounds() {
+    void computeBounds() {
         Set<Coordinate2D> inRangeChunks = chunkMap.keySet();
         if (Game.getPlayerPosition() != null) {
             Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
