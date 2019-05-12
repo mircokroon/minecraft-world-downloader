@@ -1,5 +1,6 @@
 package game.data.chunk;
 
+import com.flowpowered.nbt.Tag;
 import com.flowpowered.nbt.stream.NBTOutputStream;
 
 import game.data.region.McaFile;
@@ -31,15 +32,22 @@ public class ChunkBinary {
 
     /**
      * Convert a chunk to a ChunkBinary object.
-     * @param c the chunk
+     * @param chunk the chunk
      * @return the binary version of the chunk
      */
-    public static ChunkBinary fromChunk(Chunk c) throws IOException {
+    public static ChunkBinary fromChunk(Chunk chunk) throws IOException {
+        Tag nbt = chunk.toNbt();
+
+        if (nbt == null) {
+            return null;
+        }
+
         ChunkBinary binary = new ChunkBinary();
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         NBTOutputStream outputStream = new NBTOutputStream(output, true);
-        outputStream.writeTag(c.toNbt());
+
+        outputStream.writeTag(nbt);
         outputStream.close();
         byte[] data = output.toByteArray();
 

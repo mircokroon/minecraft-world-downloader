@@ -16,14 +16,6 @@ public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
                 int port = typeProvider.readShort();
                 int nextMode = typeProvider.readVarInt();
 
-                System.out.format(
-                    "Attempted handshake with %s:%d, protocol version %d :: next state: %d\n",
-                    host,
-                    port,
-                    protocolVersion,
-                    nextMode
-                );
-
                 switch (nextMode) {
                     case 1:
                         Game.setMode(NetworkMode.STATUS);

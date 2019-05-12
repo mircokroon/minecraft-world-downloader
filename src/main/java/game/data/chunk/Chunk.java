@@ -153,11 +153,24 @@ public class Chunk {
      * @return the nbt root tag
      */
     public CompoundTag toNbt() {
+        if (!hasSections()) {
+            return null;
+        }
+
         CompoundMap rootMap = new CompoundMap();
         rootMap.put("Level", createNbtLevel());
         rootMap.put("DataVersion", new IntTag("DataVersion", DataVersion));
 
         return new CompoundTag("", rootMap);
+    }
+
+    private boolean hasSections() {
+        for (ChunkSection section : chunkSections) {
+            if (section != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

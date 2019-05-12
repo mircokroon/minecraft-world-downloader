@@ -358,6 +358,14 @@ public class EncryptionManager {
             writeVarInt(bytes, nextMode);
             prependPacketLength(bytes);
 
+            System.out.format(
+                "Performed handshake with %s:%d, protocol version %d :: next state: %s\n",
+                Game.getHost(),
+                Game.getPortRemote(),
+                protocolVersion,
+                nextMode == 1 ? "status" : "login"
+            );
+
             streamToServer(new LinkedList<>(bytes));
         });
     }

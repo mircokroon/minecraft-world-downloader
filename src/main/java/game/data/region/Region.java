@@ -79,6 +79,11 @@ public class Region {
                 // get the chunk in binary format and get its coordinates as an Mca compatible integer. Then add
                 // these to the map of chunk binaries.
                 ChunkBinary binary = ChunkBinary.fromChunk(chunk);
+
+                if (binary == null) {
+                    return;
+                }
+
                 Coordinate2D localCoordinate = coordinate.toRegionLocal();
                 int pos = 4 * ((localCoordinate.getX() & 31) + (localCoordinate.getZ() & 31) * 32);
                 chunkBinaryMap.put(pos, binary);
