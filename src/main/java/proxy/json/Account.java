@@ -2,6 +2,9 @@ package proxy.json;
 
 import java.util.HashMap;
 
+/**
+ * Deserialization class for the launcher config file.
+ */
 public class Account {
     public String accessToken;
     public String username;

@@ -38,14 +38,6 @@ public class Chunk {
 
     private boolean saved;
 
-    public boolean isSaved() {
-        return saved;
-    }
-
-    public void setSaved(boolean saved) {
-        this.saved = saved;
-    }
-
     public Chunk(int x, int z) {
         this.saved = false;
         this.x = x;
@@ -58,11 +50,6 @@ public class Chunk {
         WorldManager.addChunk(new Coordinate2D(x, z), this);
     }
 
-    public void addTileEntity(CompoundTag tag) {
-        tileEntities.add(tag);
-    }
-
-
     private static int getInt(CompoundTag tag, String name) {
         IntTag intTag = (IntTag) tag.getValue().get(name);
         return intTag.getValue();
@@ -73,6 +60,21 @@ public class Chunk {
         return intTag.getValue();
     }
 
+    public boolean isSaved() {
+        return saved;
+    }
+
+    public void setSaved(boolean saved) {
+        this.saved = saved;
+    }
+
+    public void addTileEntity(CompoundTag tag) {
+        tileEntities.add(tag);
+    }
+
+    /**
+     * Read a chunk column. Largely based on: https://wiki.vg/Protocol
+     */
     public void readChunkColumn(boolean full, int mask, DataTypeProvider dataProvider) {
         for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT); sectionY++) {
             if ((mask & (1 << sectionY)) != 0) {  // Is the given bit set in the mask?
@@ -88,10 +90,12 @@ public class Chunk {
 
                 ChunkSection section = new ChunkSection(sectionY);
 
+                // if the chunk has no blocks (happens in The End)
                 if (dataArrayLength == 0) {
                     return;
                 }
 
+                // parse blocks
                 for (int y = 0; y < SECTION_HEIGHT; y++) {
                     for (int z = 0; z < SECTION_WIDTH; z++) {
                         for (int x = 0; x < SECTION_WIDTH; x++) {
@@ -108,10 +112,6 @@ public class Chunk {
                                 data = (int) (dataArray[startLong] >>> startOffset | dataArray[endLong] << endOffset);
                             }
                             data &= individualValueMask;
-
-                            // data should always be valid for the palette
-                            // If you're reading a power of 2 minus one (15, 31, 63, 127, etc...) that's out of bounds,
-                            // you're probably reading light data instead
 
                             BlockState state = palette.StateForId(data);
                             section.setState(x, y, z, state);
@@ -130,6 +130,7 @@ public class Chunk {
             }
         }
 
+        // biome data is only present in full chunks
         if (full) {
             for (int z = 0; z < SECTION_WIDTH; z++) {
                 for (int x = 0; x < SECTION_WIDTH; x++) {
@@ -139,14 +140,18 @@ public class Chunk {
         }
     }
 
-    private void setBiome(int x, int z, byte biomeId) {
-        biomes[x * 16 + z] = biomeId;
-    }
-
     private void setSection(int sectionY, ChunkSection section) {
         chunkSections[sectionY] = section;
     }
 
+    private void setBiome(int x, int z, byte biomeId) {
+        biomes[x * 16 + z] = biomeId;
+    }
+
+    /**
+     * Convert this chunk to NBT tags.
+     * @return the nbt root tag
+     */
     public CompoundTag toNbt() {
         CompoundMap rootMap = new CompoundMap();
         rootMap.put("Level", createNbtLevel());
@@ -155,6 +160,10 @@ public class Chunk {
         return new CompoundTag("", rootMap);
     }
 
+    /**
+     * Create the level tag in the NBT.
+     * @return the level tag
+     */
     private CompoundTag createNbtLevel() {
         CompoundMap levelMap = new CompoundMap();
         levelMap.put(new IntTag("xPos", x));
@@ -172,6 +181,9 @@ public class Chunk {
         return new CompoundTag("Level", levelMap);
     }
 
+    /**
+     * Get a list of section tags for the NBT.
+     */
     private List<CompoundTag> getSectionList() {
         return Arrays.stream(chunkSections)
             .filter(Objects::nonNull)

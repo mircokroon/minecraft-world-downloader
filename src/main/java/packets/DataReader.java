@@ -1,5 +1,7 @@
 package packets;
 
+import game.Game;
+import packets.builder.PacketBuilder;
 import proxy.ByteConsumer;
 import proxy.EncryptionManager;
 
@@ -22,31 +24,87 @@ public class DataReader {
     private VarIntResult varIntPacketSize;
 
 
-    public static DataReader clientBound(EncryptionManager manager) {
-        return new DataReader(manager, manager::clientBoundDecrypt, manager::streamToClient);
-    }
-
-    public static DataReader serverBound(EncryptionManager manager) {
-        return new DataReader(manager, manager::serverBoundDecrypt, manager::streamToServer);
-    }
-
-    private DataReader(EncryptionManager manager, UnaryOperator<byte[]> decrypt, ByteConsumer transmit) {
-        this.encryptionManager = manager;
+    /**
+     * Initialise the reader. Gets a decryptor operator and transmitter method.
+     * @param decrypt  the decryptor operator
+     * @param transmit the transmit function
+     */
+    private DataReader(UnaryOperator<byte[]> decrypt, ByteConsumer transmit) {
+        this.encryptionManager = Game.getEncryptionManager();
         this.decrypt = decrypt;
         this.transmit = transmit;
 
         reset();
     }
 
-    public void setBuilder(PacketBuilder builder) {
-        this.builder = builder;
-        builder.setReader(new DataProvider(this));
+    /**
+     * Reset the reader in case the connection was lost.
+     */
+    public void reset() {
+        queue = new LinkedList<>();
+        currentPacket = new LinkedList<>();
+        encryptedQueue = new LinkedList<>();
+        varIntPacketSize = new VarIntResult();
     }
 
-    public PacketBuilder getBuilder() {
-        return builder;
+    /**
+     * Initialise a client-bound data reader.
+     */
+    public static DataReader clientBound(EncryptionManager manager) {
+        return new DataReader(manager::clientBoundDecrypt, manager::streamToClient);
     }
 
+    /**
+     * Initialise a server-bound data reader.
+     */
+    public static DataReader serverBound(EncryptionManager manager) {
+        return new DataReader(manager::serverBoundDecrypt, manager::streamToServer);
+    }
+
+    /**
+     * Read a var int, uses the given hasNext and readNext methods to get the required bytes.
+     */
+    public static int readVarInt(Supplier<Boolean> hasNext, Supplier<Byte> readNext) {
+        VarIntResult res = readVarInt(hasNext, readNext, new VarIntResult(false, 0, 0));
+        if (!res.isComplete()) {
+            throw new RuntimeException("VarInt lacks bytes! We may be out of sync now.");
+        }
+        return res.getResult();
+    }
+
+    /**
+     * Read a full or partial varInt from the given reader method. As the connection will sometimes give us partial
+     * varInts (with the rest having not yet arrived) we need to make sure we can handle partial results without the
+     * connection becoming desynchronised. Adjusted from: https://wiki.vg/Protocol#Packet_format
+     * @param res the object to the store the full or partial result in
+     * @return the same object that it was given
+     */
+    public static VarIntResult readVarInt(Supplier<Boolean> hasNext, Supplier<Byte> readNext, VarIntResult res) {
+        byte read;
+        do {
+            if (!hasNext.get()) {
+                return res;
+            }
+            read = readNext.get();
+            int value = (read & 0b01111111);
+            res.addValue(value << (7 * res.numBytes()));
+
+            res.addByteRead();
+            if (res.numBytes() > 5) {
+                throw new RuntimeException("VarInt is too big");
+            }
+        }
+        while ((read & 0b10000000) != 0);
+
+        res.setComplete(true);
+        return res;
+    }
+
+    /**
+     * Push data to this reader.
+     * @param b      the bytes array containing the new data
+     * @param amount the number of bytes to read from the array
+     */
     public void pushData(byte[] b, int amount) throws IOException {
         if (amount == 0) { return; }
 
@@ -61,11 +119,17 @@ public class DataReader {
         readPackets();
     }
 
+    /**
+     * If the packet is encrypted, decrypt it. Adds the decrypted bytes to the regular queue.
+     * @param b      the encrypted bytes
+     * @param amount the number of bytes to read from the given array
+     */
     private void decryptPacket(byte[] b, int amount) {
         for (int i = 0; i < amount; i++) {
             encryptedQueue.add(b[i]);
         }
 
+        // provide encryption in fixed size blocks, otherwise the decryptor will get angry.
         if (encryptedQueue.size() >= encryptionManager.blockSize) {
             int toEncrypt = encryptedQueue.size() - (encryptedQueue.size() % encryptionManager.blockSize);
             byte[] encrypted = new byte[toEncrypt];
@@ -80,6 +144,16 @@ public class DataReader {
         }
     }
 
+    /**
+     * Read packets from the byte queue. This method will first try to read a varInt indicating the upcoming packet's
+     * size. Then, when the varInt is complete (may take several data transmissions), it will check if there is enough
+     * bytes to complete the packet (this too may take several transmissions). After the packet is complete it will
+     * be passed to the packet builder which may decompress and read the data.
+     * <p>
+     * If the packet builder returns true, this means we will forward the packet. If the builder returns false, we will
+     * dump the packet and move on. This will happen for the encryption related packets as sending the real one to the
+     * server will prevent us from getting the encryption keys.
+     */
     private void readPackets() throws IOException {
         int nextPacketSize;
         while (hasNext() && readPacketSize().isComplete()) {
@@ -109,84 +183,61 @@ public class DataReader {
         }
     }
 
-    private byte readNext() {
-        currentPacket.add(queue.peek());
-
-        return queue.remove();
-    }
-
+    /**
+     * Check if we have more bytes in the queue right now.
+     */
     private boolean hasNext() {
         return !queue.isEmpty();
     }
 
-    private boolean hasBytes(int amount) {
-        return amount <= queue.size();
-    }
-
-    public static int readVarInt(Supplier<Boolean> hasNext, Supplier<Byte> readNext) {
-        VarIntResult res = readVarInt(hasNext, readNext, new VarIntResult(false, 0, 0));
-        if (!res.isComplete()) {
-            throw new RuntimeException("VarInt lacks bytes! We may be out of sync now.");
-        }
-        return res.getResult();
-    }
-
-    // From https://wiki.vg/Protocol#Packet_format
-    public static VarIntResult readVarInt(Supplier<Boolean> hasNext, Supplier<Byte> readNext, VarIntResult res) {
-        byte read;
-        do {
-            if (!hasNext.get()) {
-                return res;
-            }
-            read = readNext.get();
-            int value = (read & 0b01111111);
-            res.addValue(value << (7 * res.numBytes()));
-
-            res.addByteRead();
-            if (res.numBytes() > 5) {
-                throw new RuntimeException("VarInt is too big");
-            }
-        }
-        while ((read & 0b10000000) != 0);
-
-        res.setComplete(true);
-        return res;
-    }
-
-    public static int varIntLength(int value) {
-        int numButes = 0;
-        do {
-            byte temp = (byte) (value & 0b01111111);
-            // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
-            value >>>= 7;
-            if (value != 0) {
-                temp |= 0b10000000;
-            }
-            numButes++;
-        } while (value != 0);
-        return numButes;
-    }
-
-    public VarIntResult readPacketSize() {
+    /**
+     * Read the packet size. Will continue reading with a previous result if that was not yet complete.
+     */
+    private VarIntResult readPacketSize() {
         if (!varIntPacketSize.isComplete()) {
             readVarInt(this::hasNext, this::readNext, varIntPacketSize);
         }
         return varIntPacketSize;
     }
 
+    /**
+     * Check if we have the given number of bytes. Used to check if the next package is complete.
+     * @param amount the number of bytes required
+     * @return true if we have sufficient bytes, otherwise false
+     */
+    private boolean hasBytes(int amount) {
+        return amount <= queue.size();
+    }
 
-    public byte[] readByteArray(int arrayLength) {
+
+    private PacketBuilder getBuilder() {
+        return builder;
+    }
+
+    public void setBuilder(PacketBuilder builder) {
+        this.builder = builder;
+        builder.setReader(new DataProvider(this));
+    }
+
+    /**
+     * Read a byte, also add it the current packet.
+     */
+    private byte readNext() {
+        currentPacket.add(queue.peek());
+
+        return queue.remove();
+    }
+
+    /**
+     * Read an array of bytes from the queue. Used to get all the bytes for a packet.
+     * @param arrayLength the number of bytes to get
+     * @return the full array
+     */
+    byte[] readByteArray(int arrayLength) {
         byte[] bytes = new byte[arrayLength];
         for (int i = 0; i < arrayLength; i++) {
             bytes[i] = readNext();
         }
         return bytes;
-    }
-
-    public void reset() {
-        queue = new LinkedList<>();
-        currentPacket = new LinkedList<>();
-        encryptedQueue = new LinkedList<>();
-        varIntPacketSize = new VarIntResult();
     }
 }

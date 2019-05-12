@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
+ */
 public class Region {
     private final int UNLOAD_RANGE = 40;
     private Map<Coordinate2D, Chunk> chunks;
@@ -19,12 +22,21 @@ public class Region {
 
     private boolean updatedSinceLastWrite;
 
+    /**
+     * Initialise the region with the given coordinates.
+     * @param regionCoordinates coordinates of the region (so global coordinates / 16 / 32)
+     */
     public Region(Coordinate2D regionCoordinates) {
         this.regionCoordinates = regionCoordinates;
         this.chunks = new HashMap<>();
         this.updatedSinceLastWrite = false;
     }
 
+    /**
+     * Add a chunk to the region.
+     * @param coordinate the coordinate of the new chunk
+     * @param chunk      the chunk to add
+     */
     public void addChunk(Coordinate2D coordinate, Chunk chunk) {
         chunks.put(coordinate, chunk);
         updatedSinceLastWrite = true;
@@ -34,6 +46,11 @@ public class Region {
         return chunks.get(coordinate);
     }
 
+    /**
+     * Convert this region to an McaFile object. Will delete any chunks out of the render distance if they have already
+     * been saved. Will update the Gui with the chunk that's about to be saved.
+     * @return the McaFile corresponding to this region
+     */
     public McaFile toFile() {
         if (!updatedSinceLastWrite) {
             return null;
@@ -57,11 +74,11 @@ public class Region {
                 }
 
                 chunk.setSaved(true);
-                ChunkBinary binary = ChunkBinary.fromChunk(chunk);
                 saved.add(coordinate);
 
-
-
+                // get the chunk in binary format and get its coordinates as an Mca compatible integer. Then add
+                // these to the map of chunk binaries.
+                ChunkBinary binary = ChunkBinary.fromChunk(chunk);
                 Coordinate2D localCoordinate = coordinate.toRegionLocal();
                 int pos = 4 * ((localCoordinate.getX() & 31) + (localCoordinate.getZ() & 31) * 32);
                 chunkBinaryMap.put(pos, binary);
@@ -69,6 +86,7 @@ public class Region {
                 e.printStackTrace();
             }
         });
+
         GuiManager.setChunksSaved(saved);
 
         for (Coordinate2D c : toDelete) {

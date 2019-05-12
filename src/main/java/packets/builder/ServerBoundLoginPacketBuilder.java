@@ -1,8 +1,7 @@
-package packets;
+package packets.builder;
 
 import game.Game;
-
-import java.util.Arrays;
+import packets.DataTypeProvider;
 
 public class ServerBoundLoginPacketBuilder extends PacketBuilder {
     public final static int LOGIN_START = 0x00;
@@ -33,6 +32,4 @@ public class ServerBoundLoginPacketBuilder extends PacketBuilder {
                 return true;
         }
     }
-
-
 }

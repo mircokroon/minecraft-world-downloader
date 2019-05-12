@@ -11,22 +11,22 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class McaFile {
     public final static int SECTOR_SIZE = 4096;
-    Map<Integer, ChunkBinary> chunkMap;
-    Path filePath;
-    byte[] input;
-    Coordinate2D regionLocation;
+    private Map<Integer, ChunkBinary> chunkMap;
+    private Path filePath;
+    private Coordinate2D regionLocation;
 
     /**
-     * Class to parse and write MCA files
+     * Parse MCA from a given file location.
      * @param file the MCA file to be used
-     * @throws IOException
      */
     public McaFile(File file) throws IOException {
         chunkMap = readFile(file);
@@ -35,6 +35,61 @@ public class McaFile {
         regionLocation = new Coordinate2D(Integer.parseInt(bits[1]), Integer.parseInt(bits[2]));
     }
 
+    /**
+     * Convert the MCA file into individual chunk data.
+     * For details on the MCA file format: https://minecraft.gamepedia.com/Region_file_format
+     */
+    private Map<Integer, ChunkBinary> readFile(File mca) throws IOException {
+        byte[] bytes = IOUtils.toByteArray(new FileInputStream(mca));
+
+        byte[] locations = Arrays.copyOfRange(bytes, 0, SECTOR_SIZE);
+        byte[] timestamps = Arrays.copyOfRange(bytes, SECTOR_SIZE, SECTOR_SIZE * 2);
+        byte[] chunkDataArray = Arrays.copyOfRange(bytes, SECTOR_SIZE * 2, bytes.length);
+
+        HashMap<Integer, ChunkBinary> chunkMap = new HashMap<>();
+
+        for (int i = 0; i < locations.length; i += 4) {
+            int timestamp = bytesToInt(timestamps, i, i + 3);
+            int location = bytesToInt(locations, i, i + 2);
+            int size = locations[i + 3] & 0xFF;
+
+            if (size == 0) { continue; }
+
+            // chunk location includes first location/timestamp sections so we need to lower the addresses by 2 sectors
+            int chunkDataStart = (location - 2) * SECTOR_SIZE;
+            int chunkDataEnd = (location + size - 2) * SECTOR_SIZE;
+
+            byte[] chunkData = Arrays.copyOfRange(chunkDataArray, chunkDataStart, chunkDataEnd);
+
+            // i is the unique identifier of this chunk within the file, based on coordinates thus consistent
+            chunkMap.put(i, new ChunkBinary(timestamp, location, size, chunkData));
+        }
+
+        return chunkMap;
+    }
+
+    /**
+     * Converts a number of bytes to a big-endian int.
+     * @param arr   the total array of bytes
+     * @param start the first byte to use (inclusive)
+     * @param end   the last byte to use (INCLUSIVE)
+     * @return the integer created from the bytes
+     */
+    private static int bytesToInt(byte[] arr, int start, int end) {
+        int res = 0;
+        do {
+            res |= (arr[start] & 0xFF) << (end - start) * 8;
+        } while (start++ < end);
+
+        return res;
+    }
+
+    /**
+     * Generate an MCA file from a given map of chunk binaries. This method will try to read this MCA file to merge with
+     * it so that existing chunks are not deleted.
+     * @param pos      the positon of this file
+     * @param chunkMap the map of chunk binaries
+     */
     public McaFile(Coordinate2D pos, Map<Integer, ChunkBinary> chunkMap) {
         regionLocation = pos;
         Path filePath = Paths.get(Game.getExportDirectory(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
@@ -48,13 +103,13 @@ public class McaFile {
             }
         }
 
+        // merge new chunks into existing ones
         chunkMap.forEach((key, value) -> this.chunkMap.put(key, value));
         this.filePath = filePath;
     }
 
     /**
      * Write the MCA file to the given path. Should be called after merge.
-     * @throws IOException
      */
     public void write() throws IOException {
         byte[] locations = new byte[SECTOR_SIZE];
@@ -93,22 +148,22 @@ public class McaFile {
         });
     }
 
-    private void setChunkData(Map<Integer, byte[]> chunkDataList, ChunkBinary chunk) {
-        chunkDataList.put(chunk.getLocation(), chunk.getChunkData());
+    private void setLocation(byte[] locations, Integer pos, ChunkBinary chunk) {
+        locations[pos] = (byte) (chunk.getLocation() >>> 16);
+        locations[pos + 1] = (byte) (chunk.getLocation() >>> 8);
+        locations[pos + 2] = (byte) chunk.getLocation();
+        locations[pos + 3] = (byte) chunk.getSize();
     }
 
     private void setTimestamp(byte[] timestamp, int pos, ChunkBinary chunk) {
         timestamp[pos] = (byte) (chunk.getTimestamp() >>> 24);
-        timestamp[pos+1] = (byte) (chunk.getTimestamp() >>> 16);
-        timestamp[pos+2] = (byte) (chunk.getTimestamp() >>> 8);
-        timestamp[pos+3] = (byte) chunk.getTimestamp();
+        timestamp[pos + 1] = (byte) (chunk.getTimestamp() >>> 16);
+        timestamp[pos + 2] = (byte) (chunk.getTimestamp() >>> 8);
+        timestamp[pos + 3] = (byte) chunk.getTimestamp();
     }
 
-    private void setLocation(byte[] locations, Integer pos, ChunkBinary chunk) {
-        locations[pos] = (byte) (chunk.getLocation() >>> 16);
-        locations[pos+1] = (byte) (chunk.getLocation() >>> 8);
-        locations[pos+2] = (byte) chunk.getLocation();
-        locations[pos+3] = (byte) chunk.getSize();
+    private void setChunkData(Map<Integer, byte[]> chunkDataList, ChunkBinary chunk) {
+        chunkDataList.put(chunk.getLocation(), chunk.getChunkData());
     }
 
     /**
@@ -133,61 +188,14 @@ public class McaFile {
     }
 
     /**
-     * Convert the MCA file into individual chunk data.
-     * For details on the MCA file format: https://minecraft.gamepedia.com/Region_file_format
+     * Return a list of chunk positions of chunks that are present in this file.
+     * @return the list of positions.
      */
-    private Map<Integer, ChunkBinary> readFile(File mca) throws IOException {
-        byte[] bytes = IOUtils.toByteArray(new FileInputStream(mca));
-
-        byte[] locations = Arrays.copyOfRange(bytes, 0, SECTOR_SIZE);
-        byte[] timestamps = Arrays.copyOfRange(bytes, SECTOR_SIZE, SECTOR_SIZE *2);
-        byte[] chunkDataArray = Arrays.copyOfRange(bytes, SECTOR_SIZE *2, bytes.length);
-
-        HashMap<Integer, ChunkBinary> chunkMap = new HashMap<>();
-
-        for (int i = 0; i < locations.length; i += 4) {
-            int timestamp = bytesToInt(timestamps, i, i+3);
-            int location = bytesToInt(locations, i, i+2);
-            int size = locations[i+3] & 0xFF;
-
-            if (size == 0) { continue; }
-
-            // chunk location includes first location/timestamp sections so we need to lower the addresses by 2 sectors
-            int chunkDataStart = (location - 2) * SECTOR_SIZE;
-            int chunkDataEnd = (location + size - 2) * SECTOR_SIZE;
-
-            byte[] chunkData = Arrays.copyOfRange(chunkDataArray, chunkDataStart,  chunkDataEnd);
-
-            // i is the unique identifier of this chunk within the file, based on coordinates thus consistent
-            chunkMap.put(i, new ChunkBinary(timestamp, location, size, chunkData));
-        }
-
-        this.input = bytes;
-        return chunkMap;
-    }
-
-    /**
-     * Converts a number of bytes to a big-endian int.
-     * @param arr the total array of bytes
-     * @param start the first byte to use (inclusive)
-     * @param end the last byte to use (INCLUSIVE)
-     * @return the integer created from the bytes
-     */
-    private static int bytesToInt(byte[] arr, int start, int end) {
-        int res = 0;
-        do {
-            res |= (arr[start] & 0xFF) << (end - start) * 8;
-        } while(start++ < end);
-
-        return res;
-    }
-
-    // 4 * ((x & 31) + (z & 31) * 32)
     public List<Coordinate2D> getChunkPositions() {
         return chunkMap.keySet().stream().map(el -> {
             int offset = el / 4;
             int localX = offset & 0x1F;
-            int localZ = offset >>> 5 ;
+            int localZ = offset >>> 5;
 
             return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
         }).collect(Collectors.toList());

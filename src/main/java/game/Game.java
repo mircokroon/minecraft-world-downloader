@@ -7,24 +7,26 @@ import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.Palette;
 import gui.GuiManager;
-import packets.ClientBoundGamePacketBuilder;
-import packets.ClientBoundHandshakePacketBuilder;
-import packets.ClientBoundLoginPacketBuilder;
-import packets.ClientBoundStatusPacketBuilder;
+import net.sourceforge.argparse4j.inf.Namespace;
 import packets.DataReader;
-import packets.ServerBoundGamePacketBuilder;
-import packets.ServerBoundLoginPacketBuilder;
-import packets.ServerBoundHandshakePacketBuilder;
-import packets.ServerBoundStatusPacketBuilder;
+import packets.builder.ClientBoundGamePacketBuilder;
+import packets.builder.ClientBoundHandshakePacketBuilder;
+import packets.builder.ClientBoundLoginPacketBuilder;
+import packets.builder.ClientBoundStatusPacketBuilder;
+import packets.builder.ServerBoundGamePacketBuilder;
+import packets.builder.ServerBoundHandshakePacketBuilder;
+import packets.builder.ServerBoundLoginPacketBuilder;
+import packets.builder.ServerBoundStatusPacketBuilder;
 import proxy.CompressionManager;
 import proxy.EncryptionManager;
 import proxy.ProxyServer;
 
-import net.sourceforge.argparse4j.inf.Namespace;
-
 import java.io.File;
 import java.nio.file.Paths;
 
+/**
+ * Class the manage the central configuration and set up.
+ */
 public abstract class Game {
     private static NetworkMode mode = NetworkMode.STATUS;
     private static Dimension dimension = Dimension.OVERWORLD;
@@ -33,25 +35,27 @@ public abstract class Game {
     private static DataReader clientBoundDataReader;
     private static EncryptionManager encryptionManager;
     private static CompressionManager compressionManager;
-    public static EncryptionManager getEncryptionManager() {
-        return encryptionManager;
-    }
-    public static CompressionManager getCompressionManager() {
-        return compressionManager;
-    }
-    public static void setDimension(Dimension dimension) {
-        Game.dimension = dimension;
-    }
-    public static Dimension getDimension() {
-        return dimension;
-    }
-
     private static String host;
     private static String exportDir;
     private static int portRemote;
     private static int portLocal;
-
     private static Coordinate3D playerPosition;
+
+    public static EncryptionManager getEncryptionManager() {
+        return encryptionManager;
+    }
+
+    public static CompressionManager getCompressionManager() {
+        return compressionManager;
+    }
+
+    public static Dimension getDimension() {
+        return dimension;
+    }
+
+    public static void setDimension(Dimension dimension) {
+        Game.dimension = dimension;
+    }
 
     public static Coordinate3D getPlayerPosition() {
         return playerPosition;
@@ -61,6 +65,9 @@ public abstract class Game {
         playerPosition = newPos;
     }
 
+    /**
+     * Parse arguments from the commandline.
+     */
     public static void init(Namespace args) {
         host = args.getString("server");
         portRemote = args.getInt("port");
@@ -101,19 +108,11 @@ public abstract class Game {
         setMode(NetworkMode.HANDSHAKE);
 
         ProxyServer proxy = new ProxyServer(portRemote, portLocal, host);
-        proxy.runServer(serverBoundDataReader, clientBoundDataReader, encryptionManager);
+        proxy.runServer(serverBoundDataReader, clientBoundDataReader);
     }
 
     public static NetworkMode getMode() {
         return mode;
-    }
-
-    public static void reset() {
-        encryptionManager.reset();
-        compressionManager.reset();
-        serverBoundDataReader.reset();
-        clientBoundDataReader.reset();
-        setMode(NetworkMode.HANDSHAKE);
     }
 
     public static void setMode(NetworkMode mode) {
@@ -139,6 +138,16 @@ public abstract class Game {
         }
     }
 
+    /**
+     * Reset the connection when its lost.
+     */
+    public static void reset() {
+        encryptionManager.reset();
+        compressionManager.reset();
+        serverBoundDataReader.reset();
+        clientBoundDataReader.reset();
+        setMode(NetworkMode.HANDSHAKE);
+    }
 
     public static String getExportDirectory() {
         return exportDir;

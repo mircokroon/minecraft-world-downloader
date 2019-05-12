@@ -9,10 +9,14 @@ public enum NetworkMode {
     @Override
     public String toString() {
         switch (this) {
-            case HANDSHAKE: return "HANDSHAKE";
-            case STATUS: return "STATUS";
-            case LOGIN: return "LOGIN";
-            case GAME: return "GAME";
+            case HANDSHAKE:
+                return "HANDSHAKE";
+            case STATUS:
+                return "STATUS";
+            case LOGIN:
+                return "LOGIN";
+            case GAME:
+                return "GAME";
         }
         return "";
     }

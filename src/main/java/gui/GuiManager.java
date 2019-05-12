@@ -21,6 +21,9 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+/**
+ * Class to the handle the GUI.
+ */
 public class GuiManager {
     public static int WIDTH = 400;
     public static int HEIGHT = 400;
@@ -31,12 +34,10 @@ public class GuiManager {
         SwingUtilities.invokeLater(GuiManager::createAndShowGUI);
     }
 
-    public static void setChunkLoaded(Coordinate2D coord) {
-        if (graphicsHandler != null) {
-            graphicsHandler.setChunkLoaded(coord);
-        }
-    }
-
+    /**
+     * Initialised the GUI. Asks the world manager to provide provide the list of chunks that already exist so that we
+     * can draw those to the UI.
+     */
     private static void createAndShowGUI() {
         JFrame f = new JFrame();
         f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -54,45 +55,67 @@ public class GuiManager {
         }
     }
 
+    /**
+     * Set a chunk to being loaded.
+     * @param coord the chunk coordinates
+     */
+    public static void setChunkLoaded(Coordinate2D coord) {
+        if (graphicsHandler != null) {
+            graphicsHandler.setChunkLoaded(coord);
+        }
+    }
+
+    /**
+     * Set a list of chunks that have been saved.
+     * @param saved the list of saved chunk coordinates
+     */
     public static void setChunksSaved(List<Coordinate2D> saved) {
         if (graphicsHandler != null) {
             graphicsHandler.setChunksSaved(saved);
         }
     }
 
+    /**
+     * Indicate if the world is currently being saved.
+     * @param b true if the world is being saved
+     */
     public static void setSaving(boolean b) {
         graphicsHandler.setSaving(b);
     }
 }
 
+/**
+ * The panel with the canvas we can draw to.
+ */
 class GraphicsHandler extends JPanel implements ActionListener {
-    Graphics g;
-
     private final int RENDER_RANGE = 200;
+    Graphics g;
+    Timer timer;
     private int minX, maxX, minZ, maxZ, gridSize = 0;
     private HashMap<Coordinate2D, Boolean> chunkMap = new HashMap<>();
     private boolean isSaving = false;
 
-    Timer timer;
-
-    public GraphicsHandler() {
+    GraphicsHandler() {
         timer = new Timer(1000, this);
         timer.start();
     }
 
-    public void setSaving(boolean b) {
+    void setSaving(boolean b) {
         isSaving = b;
     }
 
-    public synchronized void setChunkLoaded(Coordinate2D coord) {
+    synchronized void setChunkLoaded(Coordinate2D coord) {
         if (!chunkMap.containsKey(coord)) {
             chunkMap.put(coord, false);
             computeBounds();
         }
     }
 
+    /**
+     * Compute the bounds of the canvas based on the existing chunk data. Will also delete chunks that are out of the
+     * set render distance. The computed bounds will be used to determine the scale and positions to draw the chunks to.
+     */
     private void computeBounds() {
-
         if (Game.getPlayerPosition() != null) {
             Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
             chunkMap.keySet().removeIf(el -> !playerChunk.isInRange(el, RENDER_RANGE));
@@ -112,15 +135,17 @@ class GraphicsHandler extends JPanel implements ActionListener {
         gridSize = Math.min(gridWidth, gridHeight);
     }
 
-    @Override
-    public Dimension getPreferredSize() {
-        return new Dimension(GuiManager.WIDTH, GuiManager.HEIGHT);
-    }
-
+    /**
+     * Called when the canvas needs to be re-painted. Will draw the player position, all of the chunks and potentially
+     * the text 'saving' if the world is being saved.
+     */
     @Override
     protected synchronized void paintComponent(Graphics g) {
-        this.g = g;
         super.paintComponent(g);
+        if (this.g == null) {
+            this.g = g;
+            g.setFont(g.getFont().deriveFont(16f));
+        }
 
         g.clearRect(0, 0, GuiManager.WIDTH, GuiManager.HEIGHT);
         for (Map.Entry<Coordinate2D, Boolean> e : chunkMap.entrySet()) {
@@ -144,8 +169,14 @@ class GraphicsHandler extends JPanel implements ActionListener {
         }
 
         if (isSaving) {
+            g.setColor(Color.black);
             g.drawString("Saving...", 10, 10);
         }
+    }
+
+    @Override
+    public Dimension getPreferredSize() {
+        return new Dimension(GuiManager.WIDTH, GuiManager.HEIGHT);
     }
 
     @Override
@@ -153,7 +184,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
         repaint();
     }
 
-    public synchronized void setChunksSaved(List<Coordinate2D> saved) {
+    synchronized void setChunksSaved(List<Coordinate2D> saved) {
         for (Coordinate2D coordinate : saved) {
             chunkMap.put(coordinate, true);
         }

@@ -1,7 +1,8 @@
-package packets;
+package packets.builder;
 
 import game.Game;
 import game.data.Coordinate3D;
+import packets.DataTypeProvider;
 
 public class ServerBoundGamePacketBuilder extends PacketBuilder {
     private final int BLOCK_PLACE = 0x1F;

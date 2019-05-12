@@ -1,5 +1,8 @@
 package proxy.json;
 
+/**
+ * Deserialization class for the launcher config file.
+ */
 public class AuthDetails {
     String uuid;
     String accessToken;

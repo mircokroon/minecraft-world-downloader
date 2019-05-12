@@ -1,9 +1,8 @@
-package packets;
+package packets.builder;
 
 import game.Game;
 import game.NetworkMode;
-
-import java.util.Arrays;
+import packets.DataTypeProvider;
 
 public class ClientBoundLoginPacketBuilder extends PacketBuilder {
     public final static int DISCONNECT = 0x00;

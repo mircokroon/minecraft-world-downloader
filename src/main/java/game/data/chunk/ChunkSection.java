@@ -5,6 +5,9 @@ import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.IntTag;
 
+/**
+ * Class to hold a 16 block tall chunk section.
+ */
 public class ChunkSection {
     BlockState[][][] blocks;
     byte[] blockLight;
@@ -30,6 +33,9 @@ public class ChunkSection {
         this.blocks[x][y][z] = state;
     }
 
+    /**
+     * Convert this section to NBT.
+     */
     public CompoundTag toNbt() {
         CompoundMap map = new CompoundMap();
         map.put(new IntTag("Y", y));
@@ -51,7 +57,6 @@ public class ChunkSection {
                     blockData[getBlockIndex(x, y, z)] = (byte) blocks[x][y][z].id;
                 }
             }
-
         }
         return blockData;
     }
@@ -65,11 +70,18 @@ public class ChunkSection {
                     insertAtHalf(blockData, x, y, z, blocks[x][y][z].meta);
                 }
             }
-
         }
         return blockData;
     }
 
+    public static int getBlockIndex(int x, int y, int z) {
+        return y * 16 * 16 + z * 16 + x;
+    }
+
+    /**
+     * Handle inserting of the four-bit values into the given array at the given coordinates. In this case, a value
+     * takes up 4 bits so inserting them is a bit more complicated.
+     */
     private static void insertAtHalf(byte[] arr, int x, int y, int z, int val) {
         int pos = getBlockIndex(x, y, z);
         boolean isUpperHalf = pos % 2 == 0;
@@ -78,11 +90,6 @@ public class ChunkSection {
         } else {
             arr[pos / 2] |= val & 0x0F;
         }
-    }
-
-
-    public static int getBlockIndex(int x, int y, int z) {
-        return y*16*16 + z*16 + x;
     }
 
     public int getY() {

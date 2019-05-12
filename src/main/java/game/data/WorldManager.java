@@ -16,14 +16,20 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Manage the world, including saving, parsing and updating the GUI.
+ */
 public class WorldManager extends Thread {
-    private  final static int SAVE_DELAY = 20 * 1000;
+    private final static int SAVE_DELAY = 20 * 1000;
     private static Map<Coordinate2D, Region> regions = new HashMap<>();
 
     private static WorldManager writer = null;
 
     private WorldManager() {}
 
+    /**
+     * Read from the save path to see which chunks have been saved already.
+     */
     public static void loadExistingChunks() throws IOException {
         Path exportDir = Paths.get(Game.getExportDirectory(), "region");
 
@@ -45,22 +51,9 @@ public class WorldManager extends Thread {
         GuiManager.setChunksSaved(existing);
     }
 
-    private synchronized static void save() {
-        GuiManager.setSaving(true);
-        long start = System.currentTimeMillis();
-        final int[] saved = {0};
-        regions.values().stream().map(Region::toFile).filter(Objects::nonNull).forEach(el -> {
-            try {
-                saved[0]++;
-                el.write();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-        int timeTaken = (int) ((System.currentTimeMillis() - start) / 1e3);
-        GuiManager.setSaving(false);
-    }
-
+    /**
+     * Start the periodic saving service.
+     */
     public static void startSaveService() {
         if (writer != null) {
             return;
@@ -70,7 +63,33 @@ public class WorldManager extends Thread {
         writer.start();
     }
 
+    /**
+     * Add a parsed chunk to the correct region.
+     * @param coordinate the chunk coordinates
+     * @param chunk      the chunk
+     */
+    public synchronized static void addChunk(Coordinate2D coordinate, Chunk chunk) {
+        Coordinate2D regionCoordinates = coordinate.chunkToRegion();
 
+        if (!regions.containsKey(regionCoordinates)) {
+            regions.put(regionCoordinates, new Region(regionCoordinates));
+        }
+
+        regions.get(regionCoordinates).addChunk(coordinate, chunk);
+    }
+
+    /**
+     * Get a chunk from the region its in.
+     * @param coordinate the global chunk coordinates
+     * @return the chunk
+     */
+    public static Chunk getChunk(Coordinate2D coordinate) {
+        return regions.get(coordinate.chunkToRegion()).getChunk(coordinate);
+    }
+
+    /**
+     * Loop to call save periodically.
+     */
     @Override
     public void run() {
         while (true) {
@@ -84,18 +103,20 @@ public class WorldManager extends Thread {
         }
     }
 
-    public synchronized static void addChunk(Coordinate2D coordinate, Chunk chunk) {
-        Coordinate2D regionCoordinates = coordinate.chunkToRegion();
-
-        if (!regions.containsKey(regionCoordinates)) {
-            regions.put(regionCoordinates, new Region(regionCoordinates));
-        }
-
-        regions.get(regionCoordinates).addChunk(coordinate, chunk);
+    /**
+     * Save the world. Will tell all regions to save their chunks.
+     */
+    private synchronized static void save() {
+        GuiManager.setSaving(true);
+        final int[] saved = {0};
+        regions.values().stream().map(Region::toFile).filter(Objects::nonNull).forEach(el -> {
+            try {
+                saved[0]++;
+                el.write();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
+        GuiManager.setSaving(false);
     }
-
-    public static Chunk getChunk(Coordinate2D coordinate) {
-        return regions.get(coordinate.chunkToRegion()).getChunk(coordinate);
-    }
-
 }

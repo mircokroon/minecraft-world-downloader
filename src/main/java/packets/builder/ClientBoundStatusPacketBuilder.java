@@ -1,15 +1,16 @@
-package packets;
+package packets.builder;
 
-public class ServerBoundStatusPacketBuilder extends PacketBuilder {
+import packets.DataTypeProvider;
+
+public class ClientBoundStatusPacketBuilder extends PacketBuilder {
     @Override
     public boolean build(int size) {
         DataTypeProvider typeProvider = getReader().withSize(size);
-
         int packetId = typeProvider.readVarInt();
 
         switch (packetId) {
             case 0x00:
-                System.out.println("Client requested server status");
+                System.out.println("Server status: " + typeProvider.readString());
                 return true;
         }
         return true;

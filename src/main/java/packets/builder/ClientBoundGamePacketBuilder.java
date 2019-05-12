@@ -1,10 +1,9 @@
-package packets;
+package packets.builder;
 
 import game.Game;
-import game.data.Coordinate2D;
 import game.data.Coordinate3D;
-import game.data.chunk.Chunk;
 import game.data.chunk.ChunkFactory;
+import packets.DataTypeProvider;
 
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;

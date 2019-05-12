@@ -2,15 +2,13 @@ package game.data.chunk;
 
 import packets.DataTypeProvider;
 
+/**
+ * Class to hold a palette of a chunk.
+ */
 public class Palette {
     private static boolean maskBedrock = false;
     int bitsPerBlock;
     int[] palette;
-
-    public static void setMaskBedrock(boolean maskBedrock) {
-        Palette.maskBedrock = maskBedrock;
-    }
-
 
     private Palette(int bitsPerBlock, int[] palette) {
         this.bitsPerBlock = bitsPerBlock;
@@ -19,6 +17,10 @@ public class Palette {
         if (bitsPerBlock > 8) {
             System.out.println("WARNING: palette type not supported");
         }
+    }
+
+    public static void setMaskBedrock(boolean maskBedrock) {
+        Palette.maskBedrock = maskBedrock;
     }
 
     public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {

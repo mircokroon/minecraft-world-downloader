@@ -1,4 +1,4 @@
-package packets;
+package packets.builder;
 
 public class ClientBoundHandshakePacketBuilder extends PacketBuilder {
     @Override

@@ -6,27 +6,20 @@ import com.flowpowered.nbt.stream.NBTInputStream;
 
 import game.data.Coordinate3D;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
+/**
+ * Class to provide an interface between the raw byte data and the various data types. Most methods are
+ * self-explanatory.
+ */
 public class DataTypeProvider {
-    byte[] finalFullPacket;
-    int pos;
+    private byte[] finalFullPacket;
+    private int pos;
 
     public DataTypeProvider(byte[] finalFullPacket) {
         this.finalFullPacket = finalFullPacket;
         this.pos = 0;
-    }
-
-    public byte[] readByteArray(int size) {
-        byte[] res = new byte[size];
-
-        System.arraycopy(finalFullPacket, pos, res, 0, size);
-        pos += size;
-
-        return res;
     }
 
     public long readVarLong() {
@@ -50,12 +43,12 @@ public class DataTypeProvider {
         return result;
     }
 
-    public long readLong() {
-        byte[] bytes = readByteArray(8);
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.put(bytes);
-        buffer.flip();
-        return buffer.getLong();
+    public boolean hasNext() {
+        return pos < finalFullPacket.length;
+    }
+
+    public byte readNext() {
+        return finalFullPacket[pos++];
     }
 
     public int readInt() {
@@ -66,12 +59,17 @@ public class DataTypeProvider {
         return buffer.getInt();
     }
 
-    public boolean readBoolean() {
-        return readNext() == (byte) 0x01;
+    public byte[] readByteArray(int size) {
+        byte[] res = new byte[size];
+
+        System.arraycopy(finalFullPacket, pos, res, 0, size);
+        pos += size;
+
+        return res;
     }
 
-    public int readVarInt() {
-        return DataReader.readVarInt(this::hasNext, this::readNext);
+    public boolean readBoolean() {
+        return readNext() == (byte) 0x01;
     }
 
     public String readString() {
@@ -82,6 +80,10 @@ public class DataTypeProvider {
             sb.appendCodePoint(readNext());
         }
         return sb.toString();
+    }
+
+    public int readVarInt() {
+        return DataReader.readVarInt(this::hasNext, this::readNext);
     }
 
     public void skip(int amount) {
@@ -96,26 +98,20 @@ public class DataTypeProvider {
         return (((low & 0xFF) << 8) | (high & 0xFF));
     }
 
-    public byte readNext() {
-        return finalFullPacket[pos++];
-    }
-
-    public byte readNextVerbose() {
-        byte next = finalFullPacket[pos++];
-        System.out.println("Read: " + Integer.toHexString((int) next));
-        return next;
-    }
-
-    public boolean hasNext() {
-        return pos < finalFullPacket.length;
-    }
-
     public Coordinate3D readCoordinates() {
         long val = readLong();
         int x = (int) (val >> 38);
         int y = (int) (val >> 26) & 0xFFF;
         int z = (int) (val << 38 >> 38);
         return new Coordinate3D(x, y, z);
+    }
+
+    public long readLong() {
+        byte[] bytes = readByteArray(8);
+        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+        buffer.put(bytes);
+        buffer.flip();
+        return buffer.getLong();
     }
 
     public long[] readLongArray(int size) {
@@ -152,7 +148,6 @@ public class DataTypeProvider {
             ex.printStackTrace();
             return null;
         }
-
     }
 
     public double readDouble() {

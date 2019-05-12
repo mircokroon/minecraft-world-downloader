@@ -16,14 +16,14 @@ public class Launcher {
     private static Namespace getArguments(String[] args) {
         ArgumentParser parser = ArgumentParsers.newFor("Launcher").build()
             .defaultHelp(true)
-            .description("Download Minecraft worlds by acting as a proxy and intercepting traffic.");
+            .description("Download Minecraft worlds by reading chunk data from network traffic.");
         parser.addArgument("-s", "--server")
             .setDefault("localhost")
             .help("The address of the remote server to connect to. Hostname or IP address (without port).");
         parser.addArgument("-p", "--port").type(Integer.class)
             .setDefault(25565)
             .help("The port of the remote server.")
-         .textualName();
+            .textualName();
         parser.addArgument("-l", "--local-port").type(Integer.class)
             .setDefault(25565)
             .help("The local port which the client has to connect to.")
@@ -53,7 +53,7 @@ public class Launcher {
         Namespace ns = null;
         try {
             ns = parser.parseArgs(args);
-        } catch(ArgumentParserException ex) {
+        } catch (ArgumentParserException ex) {
             parser.handleError(ex);
             System.exit(1);
         }

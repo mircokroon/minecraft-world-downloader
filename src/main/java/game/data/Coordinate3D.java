@@ -8,14 +8,14 @@ public class Coordinate3D {
     int y;
     int z;
 
+    public Coordinate3D(double x, double y, double z) {
+        this((int) x, (int) y, (int) z);
+    }
+
     public Coordinate3D(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
-    }
-
-    public Coordinate3D(double x, double y, double z) {
-        this((int) x, (int) y, (int) z);
     }
 
     public static void setOffset(int x, int z) {
@@ -46,12 +46,24 @@ public class Coordinate3D {
         return toLocal(x);
     }
 
+    private int toLocal(int pos) {
+        pos = pos % 16;
+        if (pos < 0) {
+            return pos + 16;
+        }
+        return pos;
+    }
+
     public int localY() {
         return toLocal(y);
     }
 
     public int localZ() {
         return toLocal(z);
+    }
+
+    public Coordinate2D chunkPos() {
+        return new Coordinate2D(chunkPosX(), chunkPosZ());
     }
 
     public int chunkPosX() {
@@ -62,20 +74,8 @@ public class Coordinate3D {
         return getChunk(z);
     }
 
-    public Coordinate2D chunkPos() {
-        return new Coordinate2D(chunkPosX(), chunkPosZ());
-    }
-
     private int getChunk(int pos) {
         return (int) Math.floor(pos / 16);
-    }
-
-    private int toLocal(int pos) {
-        pos = pos % 16;
-        if (pos < 0) {
-            return pos + 16;
-        }
-        return pos;
     }
 
     @Override

@@ -22,6 +22,10 @@ public class ChunkFactory extends Thread {
         factory.unparsedChunks.add(provider);
     }
 
+    /**
+     * Start service to periodically parse chunks in the queue. This is to prevent the other threads from being blocked
+     * by chunk parsing.
+     */
     public static void startChunkParserService() {
         if (factory != null) {
             return;
@@ -31,11 +35,14 @@ public class ChunkFactory extends Thread {
         factory.start();
     }
 
+    /**
+     * Periodically check if there are unparsed chunks, and if so, parse them.
+     */
     @Override
     public void run() {
         DataTypeProvider provider;
         while (true) {
-            while ((provider = getUnparsedChunk()) != null ) {
+            while ((provider = getUnparsedChunk()) != null) {
                 readChunkDataPacket(provider);
             }
 
@@ -49,11 +56,14 @@ public class ChunkFactory extends Thread {
 
     private synchronized DataTypeProvider getUnparsedChunk() {
         if (unparsedChunks.isEmpty()) {
-             return null;
+            return null;
         }
         return unparsedChunks.remove();
     }
 
+    /**
+     * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
+     */
     private static Chunk readChunkDataPacket(DataTypeProvider dataProvider) {
         Coordinate2D chunkPos = new Coordinate2D(dataProvider.readInt(), dataProvider.readInt());
         chunkPos.offsetChunk();
