@@ -9,7 +9,8 @@ import game.data.chunk.ChunkFactory;
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private final int CHUNK_DATA = 0x20;
 
-    private final int PLAYER_POSITION = 0x2F;
+    private final int PLAYER_POSITION_LOOK = 0x2F;
+    private final int VEHICLE_MOVE = 0x29;
 
     @Override
     public boolean build(int size) {
@@ -24,7 +25,8 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
                     ex.printStackTrace();
                 }
                 break;
-            case PLAYER_POSITION:
+            case PLAYER_POSITION_LOOK:
+            case VEHICLE_MOVE:
                 double x = typeProvider.readDouble();
                 double y = typeProvider.readDouble();
                 double z = typeProvider.readDouble();

@@ -6,8 +6,10 @@ import game.data.Coordinate3D;
 
 public class ServerBoundGamePacketBuilder extends PacketBuilder {
     private final int BLOCK_PLACE = 0x1F;
+
     private final int PLAYER_POSITION = 0x0D;
     private final int PLAYER_POSITION_LOOK = 0x0E;
+    private final int VEHICLE_MOVE = 0x10;
 
     @Override
     public boolean build(int size) {
@@ -23,6 +25,7 @@ public class ServerBoundGamePacketBuilder extends PacketBuilder {
                 break;
             case PLAYER_POSITION:
             case PLAYER_POSITION_LOOK:
+            case VEHICLE_MOVE:
                 double x = typeProvider.readDouble();
                 double y = typeProvider.readDouble();
                 double z = typeProvider.readDouble();

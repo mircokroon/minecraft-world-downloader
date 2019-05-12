@@ -73,7 +73,6 @@ public class Region {
 
         for (Coordinate2D c : toDelete) {
             chunks.remove(c);
-            System.out.println("Removing chunk " + c);
         }
 
         return new McaFile(regionCoordinates, chunkBinaryMap);
