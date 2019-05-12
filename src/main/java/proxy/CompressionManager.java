@@ -1,5 +1,7 @@
 package proxy;
 
+import org.apache.commons.io.IOUtils;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.zip.InflaterInputStream;
@@ -49,7 +51,7 @@ public class CompressionManager {
         ));
 
         try {
-            return inflater.readAllBytes();
+            return IOUtils.toByteArray(inflater);
         } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Could not decompress");
