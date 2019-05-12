@@ -98,6 +98,9 @@ public class Region {
             chunks.remove(c);
         }
 
+        if (chunkBinaryMap.isEmpty()) {
+            return null;
+        }
         return new McaFile(regionCoordinates, chunkBinaryMap);
     }
 }

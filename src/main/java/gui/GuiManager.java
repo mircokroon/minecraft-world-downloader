@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -116,19 +118,21 @@ class GraphicsHandler extends JPanel implements ActionListener {
      * set render distance. The computed bounds will be used to determine the scale and positions to draw the chunks to.
      */
     private void computeBounds() {
+        Set<Coordinate2D> inRangeChunks = chunkMap.keySet();
         if (Game.getPlayerPosition() != null) {
             Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
-            chunkMap.keySet().removeIf(el -> !playerChunk.isInRange(el, RENDER_RANGE));
+            inRangeChunks = chunkMap.keySet().stream()
+                .filter(el -> playerChunk.isInRange(el, RENDER_RANGE))
+                .collect(Collectors.toSet());
         }
 
-        int[] xCoords = chunkMap.keySet().stream().mapToInt(Coordinate2D::getX).toArray();
+        int[] xCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getX).toArray();
         maxX = Arrays.stream(xCoords).max().orElse(0) + 1;
         minX = Arrays.stream(xCoords).min().orElse(0) - 1;
 
-        int[] zCoords = chunkMap.keySet().stream().mapToInt(Coordinate2D::getZ).toArray();
+        int[] zCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getZ).toArray();
         maxZ = Arrays.stream(zCoords).max().orElse(0) + 1;
         minZ = Arrays.stream(zCoords).min().orElse(0) - 1;
-
 
         int gridWidth = GuiManager.WIDTH / (Math.abs(maxX - minX) + 1);
         int gridHeight = GuiManager.HEIGHT / (Math.abs(maxZ - minZ) + 1);

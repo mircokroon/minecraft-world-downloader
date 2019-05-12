@@ -90,7 +90,7 @@ public class Chunk {
 
                 ChunkSection section = new ChunkSection(sectionY);
 
-                // if the chunk has no blocks (happens in The End)
+                // if the chunk has no blocks
                 if (dataArrayLength == 0) {
                     return;
                 }
@@ -125,8 +125,12 @@ public class Chunk {
                     section.setSkyLight(dataProvider.readByteArray(LIGHT_SIZE));
                 }
 
-                // May replace an existing section or a null one
-                setSection(sectionY, section);
+
+                // dont set section if it only has air or nothing at all
+                if (!palette.isEmpty() ) {
+                    // May replace an existing section or a null one
+                    setSection(sectionY, section);
+                }
             }
         }
 

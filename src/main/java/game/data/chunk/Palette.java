@@ -42,4 +42,8 @@ public class Palette {
     public BlockState StateForId(int data) {
         return new BlockState(palette[data]);
     }
+
+    public boolean isEmpty() {
+        return palette.length == 0 || (palette.length == 1 && palette[0] == 0);
+    }
 }
