@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class ChunkFactory extends Thread {
-    private static int CHUNK_PARSER_SLEEP = 1000;
     private static ChunkFactory factory;
 
     private Queue<DataTypeProvider> unparsedChunks;
@@ -19,7 +18,15 @@ public class ChunkFactory extends Thread {
     }
 
     public static synchronized void addChunk(DataTypeProvider provider) {
-        factory.unparsedChunks.add(provider);
+        factory.addChunkToQueue(provider);
+    }
+
+    /**
+     * Need a non-static method to do this as we cannot otherwise call notify
+     */
+    public synchronized void addChunkToQueue(DataTypeProvider provider) {
+        unparsedChunks.add(provider);
+        notify();
     }
 
     /**
@@ -39,7 +46,7 @@ public class ChunkFactory extends Thread {
      * Periodically check if there are unparsed chunks, and if so, parse them.
      */
     @Override
-    public void run() {
+    public synchronized void run() {
         DataTypeProvider provider;
         while (true) {
             while ((provider = getUnparsedChunk()) != null) {
@@ -51,12 +58,14 @@ public class ChunkFactory extends Thread {
             }
 
             try {
-                Thread.sleep(CHUNK_PARSER_SLEEP);
+                wait();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
     }
+
+
 
     private synchronized DataTypeProvider getUnparsedChunk() {
         if (unparsedChunks.isEmpty()) {
