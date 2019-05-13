@@ -6,6 +6,7 @@ import com.flowpowered.nbt.DoubleTag;
 import com.flowpowered.nbt.IntTag;
 import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.LongTag;
+import com.flowpowered.nbt.Tag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.flowpowered.nbt.stream.NBTOutputStream;
 
@@ -88,7 +89,8 @@ public class WorldManager extends Thread {
         // add the player's position
         Coordinate3D playerPosition = Game.getPlayerPosition();
         if (playerPosition != null) {
-            CompoundMap playerMap = (CompoundMap) data.get("Player").getValue();
+            CompoundTag player = new CompoundTag("Player", new CompoundMap());
+            CompoundMap playerMap = (CompoundMap) data.getOrDefault("Player",  player).getValue();
 
             playerMap.put(new ListTag<>("Pos", DoubleTag.class, Arrays.asList(
                 new DoubleTag("X", playerPosition.getX() * 1.0),
@@ -169,20 +171,23 @@ public class WorldManager extends Thread {
      */
     private synchronized static void save() {
         GuiManager.setSaving(true);
-        final int[] saved = {0};
         regions.values().stream().map(Region::toFile).filter(Objects::nonNull).forEach(el -> {
             try {
-                saved[0]++;
                 el.write();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
+
+        // save level.dat
         try {
             saveLevelData();
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        // remove empty regions
+        regions.entrySet().removeIf(el -> el.getValue().isEmpty());
         GuiManager.setSaving(false);
     }
 }

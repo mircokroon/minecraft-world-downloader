@@ -16,7 +16,7 @@ import java.util.Map;
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
  */
 public class Region {
-    private final int UNLOAD_RANGE = 40;
+    private final int UNLOAD_RANGE = 12;
     private Map<Coordinate2D, Chunk> chunks;
     private Coordinate2D regionCoordinates;
 
@@ -40,6 +40,13 @@ public class Region {
     public void addChunk(Coordinate2D coordinate, Chunk chunk) {
         chunks.put(coordinate, chunk);
         updatedSinceLastWrite = true;
+    }
+
+    /**
+     * Returns true if the region has no chunks in it (e.g. they have all been deleted)
+     */
+    public boolean isEmpty() {
+        return chunks.isEmpty();
     }
 
     public Chunk getChunk(Coordinate2D coordinate) {

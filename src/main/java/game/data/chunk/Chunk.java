@@ -113,7 +113,7 @@ public class Chunk {
                             }
                             data &= individualValueMask;
 
-                            BlockState state = palette.StateForId(data);
+                            int state = palette.StateForId(data);
                             section.setState(x, y, z, state);
                         }
                     }

@@ -39,8 +39,8 @@ public class Palette {
         return new Palette(bitsPerBlock, palette);
     }
 
-    public BlockState StateForId(int data) {
-        return new BlockState(palette[data]);
+    public int StateForId(int data) {
+        return palette[data];
     }
 
     public boolean isEmpty() {

@@ -50,7 +50,7 @@ public class Launcher {
             .type(boolean.class)
             .help("Show GUI indicating which chunks have been saved.");
         parser.addArgument("-e", "--seed")
-            .setDefault(0)
+            .setDefault(0L)
             .type(Long.class)
             .help("Level seed for output file, as a long.");
 

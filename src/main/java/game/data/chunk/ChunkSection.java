@@ -9,14 +9,14 @@ import com.flowpowered.nbt.IntTag;
  * Class to hold a 16 block tall chunk section.
  */
 public class ChunkSection {
-    BlockState[][][] blocks;
+    int[][][] blocks;
     byte[] blockLight;
     byte[] skyLight;
     int y;
 
     public ChunkSection(int y) {
         this.y = y;
-        this.blocks = new BlockState[16][16][16];
+        this.blocks = new int[16][16][16];
         this.blockLight = new byte[2048];
         this.skyLight = new byte[2048];
     }
@@ -29,7 +29,7 @@ public class ChunkSection {
         this.blockLight = blockLight;
     }
 
-    public void setState(int x, int y, int z, BlockState state) {
+    public void setState(int x, int y, int z, int state) {
         this.blocks[x][y][z] = state;
     }
 
@@ -54,7 +54,7 @@ public class ChunkSection {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    blockData[getBlockIndex(x, y, z)] = (byte) blocks[x][y][z].id;
+                    blockData[getBlockIndex(x, y, z)] = (byte) (blocks[x][y][z] >>> 4);
                 }
             }
         }
@@ -67,7 +67,7 @@ public class ChunkSection {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    insertAtHalf(blockData, x, y, z, blocks[x][y][z].meta);
+                    insertAtHalf(blockData, x, y, z, blocks[x][y][z] & 0x0F);
                 }
             }
         }
