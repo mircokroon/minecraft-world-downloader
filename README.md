@@ -15,7 +15,7 @@ A Minecraft world downloader that works by intercepting network traffic between 
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using:
 ```java -jar world-downloader.jar -s address.to.server.com```
 
-Then connect to ```localhost``` in Minecraft to start downloading the world. The world will be saved to the ```world/``` folder (in the same folder as the ```world-downloader.jar``` by default. Currently, no ```level.dat``` is included, but you can copy one from an existing world to view the world.
+Then connect to ```localhost``` in Minecraft to start downloading the world. The world will be saved to the ```world/``` by default.
 
 
 ### Options
