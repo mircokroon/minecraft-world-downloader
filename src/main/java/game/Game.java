@@ -37,6 +37,7 @@ public abstract class Game {
     private static CompressionManager compressionManager;
     private static String host;
     private static String exportDir;
+    private static long seed;
     private static int portRemote;
     private static int portLocal;
     private static Coordinate3D playerPosition;
@@ -65,6 +66,10 @@ public abstract class Game {
         playerPosition = newPos;
     }
 
+    public static long getSeed() {
+        return seed;
+    }
+
     /**
      * Parse arguments from the commandline.
      */
@@ -73,6 +78,7 @@ public abstract class Game {
         portRemote = args.getInt("port");
         portLocal = args.getInt("local-port");
         exportDir = args.getString("output");
+        seed = args.getLong("seed");
 
         Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
         Coordinate3D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));

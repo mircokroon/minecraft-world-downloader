@@ -1,15 +1,30 @@
 package game.data;
 
+import com.flowpowered.nbt.CompoundMap;
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.DoubleTag;
+import com.flowpowered.nbt.IntTag;
+import com.flowpowered.nbt.ListTag;
+import com.flowpowered.nbt.LongTag;
+import com.flowpowered.nbt.stream.NBTInputStream;
+import com.flowpowered.nbt.stream.NBTOutputStream;
+
 import game.Game;
 import game.data.chunk.Chunk;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
+import jdk.internal.util.xml.impl.Input;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +64,52 @@ public class WorldManager extends Thread {
             .flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList());
 
         GuiManager.setChunksSaved(existing);
+    }
+
+    /**
+     * Save the level.dat file so the world can be easily opened. If one doesn't exist, use the default one from
+     * the resource folder.
+     */
+    private static void saveLevelData() throws IOException {
+        File levelDat = Paths.get(Game.getExportDirectory(), "level.dat").toFile();
+
+        // if there is no level.dat yet, make one from the default
+        InputStream fileInput;
+        if (levelDat.isFile()) {
+            fileInput = new FileInputStream(levelDat);
+        } else {
+            fileInput = WorldManager.class.getClassLoader().getResourceAsStream("level.dat");
+        }
+
+        // get default level.dat
+        CompoundTag level = (CompoundTag) new NBTInputStream(fileInput, true).readTag();
+        CompoundMap data = (CompoundMap) level.getValue().get("Data").getValue();
+
+        // add the player's position
+        Coordinate3D playerPosition = Game.getPlayerPosition();
+        if (playerPosition != null) {
+            CompoundMap playerMap = (CompoundMap) data.get("Player").getValue();
+
+            playerMap.put(new ListTag<>("Pos", DoubleTag.class, Arrays.asList(
+                new DoubleTag("X", playerPosition.getX() * 1.0),
+                new DoubleTag("Y", playerPosition.getY() * 1.0),
+                new DoubleTag("Z", playerPosition.getZ() * 1.0)
+            )));
+
+            // set the world spawn to match the last known player location
+            data.put(new IntTag("SpawnX", playerPosition.getX()));
+            data.put(new IntTag("SpawnY", playerPosition.getY()));
+            data.put(new IntTag("SpawnZ", playerPosition.getZ()));
+        }
+
+        // add the seed & last played time
+        data.put(new LongTag("RandomSeed", Game.getSeed()));
+        data.put(new LongTag("LastPlayed", System.currentTimeMillis()));
+
+        // write the file
+        NBTOutputStream output = new NBTOutputStream(new FileOutputStream(levelDat), true);
+        output.writeTag(level);
+        output.close();
     }
 
     /**
@@ -117,6 +178,11 @@ public class WorldManager extends Thread {
                 e.printStackTrace();
             }
         });
+        try {
+            saveLevelData();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         GuiManager.setSaving(false);
     }
 }

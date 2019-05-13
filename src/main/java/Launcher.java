@@ -49,6 +49,10 @@ public class Launcher {
             .setDefault(true)
             .type(boolean.class)
             .help("Show GUI indicating which chunks have been saved.");
+        parser.addArgument("-e", "--seed")
+            .setDefault(0)
+            .type(Long.class)
+            .help("Level seed for output file, as a long.");
 
         Namespace ns = null;
         try {
