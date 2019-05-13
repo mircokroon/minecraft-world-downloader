@@ -47,7 +47,7 @@ public class Chunk {
         tileEntities = new ArrayList<>();
         this.biomes = new byte[256];
 
-        WorldManager.addChunk(new Coordinate2D(x, z), this);
+        WorldManager.loadChunk(new Coordinate2D(x, z), this);
     }
 
     private static int getInt(CompoundTag tag, String name) {

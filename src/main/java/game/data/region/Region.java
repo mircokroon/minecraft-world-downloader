@@ -9,8 +9,10 @@ import gui.GuiManager;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
@@ -21,6 +23,7 @@ public class Region {
     private Coordinate2D regionCoordinates;
 
     private boolean updatedSinceLastWrite;
+    private Set<Coordinate2D> toDelete;
 
     /**
      * Initialise the region with the given coordinates.
@@ -30,6 +33,7 @@ public class Region {
         this.regionCoordinates = regionCoordinates;
         this.chunks = new HashMap<>();
         this.updatedSinceLastWrite = false;
+        this.toDelete = new HashSet<>();
     }
 
     /**
@@ -41,6 +45,25 @@ public class Region {
         chunks.put(coordinate, chunk);
         updatedSinceLastWrite = true;
     }
+
+
+    /**
+     * Delete chunk when the server tells us to unload it.
+     * @param coordinate chunk coordinate to unload
+     */
+    public void removeChunk(Coordinate2D coordinate) {
+        Chunk chunk = chunks.get(coordinate);
+
+        if (chunk == null) {
+            return; }
+
+        if (chunk.isSaved()) {
+            chunks.remove(coordinate);
+        } else {
+            toDelete.add(coordinate);
+        }
+    }
+
 
     /**
      * Returns true if the region has no chunks in it (e.g. they have all been deleted)
@@ -68,7 +91,6 @@ public class Region {
 
         Map<Integer, ChunkBinary> chunkBinaryMap = new HashMap<>();
         List<Coordinate2D> saved = new ArrayList<>();
-        List<Coordinate2D> toDelete = new ArrayList<>();
         chunks.keySet().forEach(coordinate -> {
             try {
                 Chunk chunk = chunks.get(coordinate);
@@ -104,10 +126,12 @@ public class Region {
         for (Coordinate2D c : toDelete) {
             chunks.remove(c);
         }
+        toDelete.clear();
 
         if (chunkBinaryMap.isEmpty()) {
             return null;
         }
         return new McaFile(regionCoordinates, chunkBinaryMap);
     }
+
 }

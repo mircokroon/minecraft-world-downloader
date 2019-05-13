@@ -43,7 +43,11 @@ public class ChunkFactory extends Thread {
         DataTypeProvider provider;
         while (true) {
             while ((provider = getUnparsedChunk()) != null) {
-                readChunkDataPacket(provider);
+                try {
+                    readChunkDataPacket(provider);
+                } catch (Exception ex) {
+                    System.out.println("Chunk could not be parsed!");
+                }
             }
 
             try {
@@ -64,7 +68,7 @@ public class ChunkFactory extends Thread {
     /**
      * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
      */
-    private static Chunk readChunkDataPacket(DataTypeProvider dataProvider) {
+    private static void readChunkDataPacket(DataTypeProvider dataProvider) {
         Coordinate2D chunkPos = new Coordinate2D(dataProvider.readInt(), dataProvider.readInt());
         chunkPos.offsetChunk();
         GuiManager.setChunkLoaded(chunkPos);
@@ -85,7 +89,5 @@ public class ChunkFactory extends Thread {
         for (int i = 0; i < tileEntityCount; i++) {
             chunk.addTileEntity(dataProvider.readCompoundTag());
         }
-
-        return chunk;
     }
 }

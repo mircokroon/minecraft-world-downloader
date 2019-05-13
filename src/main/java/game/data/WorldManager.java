@@ -6,7 +6,6 @@ import com.flowpowered.nbt.DoubleTag;
 import com.flowpowered.nbt.IntTag;
 import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.LongTag;
-import com.flowpowered.nbt.Tag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.flowpowered.nbt.stream.NBTOutputStream;
 
@@ -15,7 +14,6 @@ import game.data.chunk.Chunk;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
-import jdk.internal.util.xml.impl.Input;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -131,7 +129,7 @@ public class WorldManager extends Thread {
      * @param coordinate the chunk coordinates
      * @param chunk      the chunk
      */
-    public synchronized static void addChunk(Coordinate2D coordinate, Chunk chunk) {
+    public synchronized static void loadChunk(Coordinate2D coordinate, Chunk chunk) {
         Coordinate2D regionCoordinates = coordinate.chunkToRegion();
 
         if (!regions.containsKey(regionCoordinates)) {
@@ -148,6 +146,10 @@ public class WorldManager extends Thread {
      */
     public static Chunk getChunk(Coordinate2D coordinate) {
         return regions.get(coordinate.chunkToRegion()).getChunk(coordinate);
+    }
+
+    public synchronized static void unloadChunk(Coordinate2D coordinate) {
+        regions.get(coordinate.chunkToRegion()).removeChunk(coordinate);
     }
 
     /**
@@ -188,6 +190,7 @@ public class WorldManager extends Thread {
 
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
+
         GuiManager.setSaving(false);
     }
 }
