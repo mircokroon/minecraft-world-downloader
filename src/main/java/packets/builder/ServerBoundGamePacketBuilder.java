@@ -5,8 +5,6 @@ import game.data.Coordinate3D;
 import packets.DataTypeProvider;
 
 public class ServerBoundGamePacketBuilder extends PacketBuilder {
-    private final int BLOCK_PLACE = 0x1F;
-
     private final int PLAYER_POSITION = 0x0D;
     private final int PLAYER_POSITION_LOOK = 0x0E;
     private final int VEHICLE_MOVE = 0x10;
@@ -17,12 +15,6 @@ public class ServerBoundGamePacketBuilder extends PacketBuilder {
         int packetId = typeProvider.readVarInt();
 
         switch (packetId) {
-            case BLOCK_PLACE:
-                Coordinate3D coordinates = typeProvider.readCoordinates();
-                int face = typeProvider.readVarInt();
-                int hand = typeProvider.readVarInt();
-                System.out.println("Player placed a block at " + coordinates + " (face: " + face + ", hand: " + hand + ")");
-                break;
             case PLAYER_POSITION:
             case PLAYER_POSITION_LOOK:
             case VEHICLE_MOVE:
