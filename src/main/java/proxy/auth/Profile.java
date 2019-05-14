@@ -1,4 +1,4 @@
-package proxy.json;
+package proxy.auth;
 
 public class Profile {
     String displayName;

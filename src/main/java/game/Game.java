@@ -41,6 +41,7 @@ public abstract class Game {
     private static int portRemote;
     private static int portLocal;
     private static Coordinate3D playerPosition;
+    private static String gamePath;
 
     public static EncryptionManager getEncryptionManager() {
         return encryptionManager;
@@ -79,6 +80,7 @@ public abstract class Game {
         portLocal = args.getInt("local-port");
         exportDir = args.getString("output");
         seed = args.getLong("seed");
+        gamePath = args.getString("minecraft");
 
         Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
         Coordinate3D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
@@ -157,5 +159,9 @@ public abstract class Game {
 
     public static String getExportDirectory() {
         return exportDir;
+    }
+
+    public static String getGamePath() {
+        return gamePath;
     }
 }

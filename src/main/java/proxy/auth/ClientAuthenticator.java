@@ -1,12 +1,14 @@
-package proxy.json;
+package proxy.auth;
 
 import com.google.gson.Gson;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
+import game.Game;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
@@ -20,20 +22,27 @@ public class ClientAuthenticator {
 
     /**
      * Initialise the authenticator class by reading from the JSON file.
-     * Currently only supports to the default location.
      */
     public ClientAuthenticator() {
-        Path p = Paths.get(System.getenv("APPDATA"), ".minecraft", "launcher_profiles.json");
-        String file = "";
-        try {
-            file = String.join("\n", Files.readAllLines(p));
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Cannot read launcher_profiles.json");
-        }
-
         Gson g = new Gson();
-        profiles = g.fromJson(file, LauncherProfiles.class);
+        profiles = g.fromJson(getFile(), LauncherProfiles.class);
+    }
+
+    /**
+     * Get the contents of the Minecraft launcher_profiles.json from the given installation path.
+     * @return the contents of the file
+     */
+    private String getFile() {
+        String appdataPath = System.getenv("appdata").replace("\\", "\\\\");
+        Path p = Paths.get(Game.getGamePath().replaceAll("(?i)%APPDATA%", appdataPath), "launcher_profiles.json");
+        try {
+            return String.join("\n", Files.readAllLines(p));
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Cannot read or find '" + p.toString() + "'!\nUse launch option: \"-m /path/to/.minecraft/\" to indicate the location of your Minecraft installation.");
+            System.exit(0);
+        }
+        return null;
     }
 
     /**

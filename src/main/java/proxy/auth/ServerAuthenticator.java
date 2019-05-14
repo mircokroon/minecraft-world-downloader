@@ -1,4 +1,4 @@
-package proxy.json;
+package proxy.auth;
 
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;

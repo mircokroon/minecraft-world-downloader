@@ -3,8 +3,8 @@ package proxy;
 import game.Game;
 import packets.builder.ClientBoundLoginPacketBuilder;
 import packets.builder.ServerBoundLoginPacketBuilder;
-import proxy.json.ClientAuthenticator;
-import proxy.json.ServerAuthenticator;
+import proxy.auth.ClientAuthenticator;
+import proxy.auth.ServerAuthenticator;
 
 import java.io.IOException;
 import java.io.OutputStream;

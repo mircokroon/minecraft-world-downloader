@@ -3,6 +3,10 @@ import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import proxy.auth.ClientAuthenticator;
+
+import java.nio.file.Paths;
+import java.util.regex.Pattern;
 
 public class Launcher {
     public static void main(String[] args) {
@@ -53,6 +57,9 @@ public class Launcher {
             .setDefault(0L)
             .type(Long.class)
             .help("Level seed for output file, as a long.");
+        parser.addArgument("-m", "--minecraft")
+            .setDefault(Paths.get("%appdata%", ".minecraft").toString())
+            .help("Path to your Minecraft installation, used to authenticate with Mojang servers.");
 
         Namespace ns = null;
         try {

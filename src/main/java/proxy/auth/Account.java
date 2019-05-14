@@ -1,4 +1,4 @@
-package proxy.json;
+package proxy.auth;
 
 import java.util.HashMap;
 

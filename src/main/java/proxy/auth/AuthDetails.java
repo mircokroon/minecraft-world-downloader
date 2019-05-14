@@ -1,4 +1,4 @@
-package proxy.json;
+package proxy.auth;
 
 /**
  * Deserialization class for the launcher config file.
