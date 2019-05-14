@@ -1,6 +1,7 @@
 package game.data.chunk;
 
 import com.flowpowered.nbt.ByteArrayTag;
+import com.flowpowered.nbt.ByteTag;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.IntTag;
@@ -12,9 +13,9 @@ public class ChunkSection {
     int[][][] blocks;
     byte[] blockLight;
     byte[] skyLight;
-    int y;
+    byte y;
 
-    public ChunkSection(int y) {
+    public ChunkSection(byte y) {
         this.y = y;
         this.blocks = new int[16][16][16];
         this.blockLight = new byte[2048];
@@ -38,7 +39,7 @@ public class ChunkSection {
      */
     public CompoundTag toNbt() {
         CompoundMap map = new CompoundMap();
-        map.put(new IntTag("Y", y));
+        map.put(new ByteTag("Y", y));
 
         map.put(new ByteArrayTag("Blocks", getBlockIds()));
         map.put(new ByteArrayTag("Data", getBlockStates()));
@@ -92,7 +93,7 @@ public class ChunkSection {
         }
     }
 
-    public int getY() {
+    public byte getY() {
         return y;
     }
 }

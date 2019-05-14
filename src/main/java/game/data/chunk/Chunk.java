@@ -88,7 +88,7 @@ public class Chunk {
                 int dataArrayLength = dataProvider.readVarInt();
                 long[] dataArray = dataProvider.readLongArray(dataArrayLength);
 
-                ChunkSection section = new ChunkSection(sectionY);
+                ChunkSection section = new ChunkSection((byte) (sectionY & 0x0F));
 
                 // if the chunk has no blocks
                 if (dataArrayLength == 0) {
