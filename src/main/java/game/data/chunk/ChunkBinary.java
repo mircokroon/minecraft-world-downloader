@@ -65,6 +65,7 @@ public class ChunkBinary {
         binary.size = fullsize / McaFile.SECTOR_SIZE + (fullsize % McaFile.SECTOR_SIZE == 0 ? 0 : 1);
 
         binary.chunkData = finalData;
+        binary.setTimestamp((int) (System.currentTimeMillis() / 1000));
 
         return binary;
     }

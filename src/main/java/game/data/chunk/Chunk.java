@@ -149,7 +149,7 @@ public class Chunk {
     }
 
     private void setBiome(int x, int z, byte biomeId) {
-        biomes[x * 16 + z] = biomeId;
+        biomes[z * 16 + x] = biomeId;
     }
 
     /**
