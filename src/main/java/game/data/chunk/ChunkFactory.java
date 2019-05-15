@@ -5,19 +5,18 @@ import game.data.WorldManager;
 import gui.GuiManager;
 import packets.DataTypeProvider;
 
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ChunkFactory extends Thread {
     private static ChunkFactory factory;
 
-    private Queue<DataTypeProvider> unparsedChunks;
+    private ConcurrentLinkedQueue<DataTypeProvider> unparsedChunks;
 
     private ChunkFactory() {
-        this.unparsedChunks = new LinkedList<>();
+        this.unparsedChunks = new ConcurrentLinkedQueue<>();
     }
 
-    public static synchronized void addChunk(DataTypeProvider provider) {
+    public static void addChunk(DataTypeProvider provider) {
         factory.addChunkToQueue(provider);
     }
 
@@ -65,8 +64,9 @@ public class ChunkFactory extends Thread {
         }
     }
 
-
-
+    /**
+     * Gets an unparsed chunk from the list, or null if the list is empty.
+     */
     private synchronized DataTypeProvider getUnparsedChunk() {
         if (unparsedChunks.isEmpty()) {
             return null;

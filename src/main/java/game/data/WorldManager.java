@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
  */
 public class WorldManager extends Thread {
     private final static int SAVE_DELAY = 20 * 1000;
-    private static Map<Coordinate2D, Region> regions = new HashMap<>();
+    private static Map<Coordinate2D, Region> regions = new ConcurrentHashMap<>();
 
     private static WorldManager writer = null;
 
@@ -129,7 +130,7 @@ public class WorldManager extends Thread {
      * @param coordinate the chunk coordinates
      * @param chunk      the chunk
      */
-    public synchronized static void loadChunk(Coordinate2D coordinate, Chunk chunk) {
+    public static void loadChunk(Coordinate2D coordinate, Chunk chunk) {
         Coordinate2D regionCoordinates = coordinate.chunkToRegion();
 
         if (!regions.containsKey(regionCoordinates)) {
@@ -148,7 +149,7 @@ public class WorldManager extends Thread {
         return regions.get(coordinate.chunkToRegion()).getChunk(coordinate);
     }
 
-    public synchronized static void unloadChunk(Coordinate2D coordinate) {
+    public static void unloadChunk(Coordinate2D coordinate) {
         Region r = regions.get(coordinate.chunkToRegion());
         if (r != null) {
             r.removeChunk(coordinate);
@@ -160,6 +161,7 @@ public class WorldManager extends Thread {
      */
     @Override
     public void run() {
+        setPriority(1);
         while (true) {
             try {
                 Thread.sleep(SAVE_DELAY);
@@ -174,15 +176,22 @@ public class WorldManager extends Thread {
     /**
      * Save the world. Will tell all regions to save their chunks.
      */
-    private synchronized static void save() {
+    private static void save() {
         GuiManager.setSaving(true);
-        regions.values().stream().map(Region::toFile).filter(Objects::nonNull).forEach(el -> {
-            try {
-                el.write();
-            } catch (IOException e) {
-                e.printStackTrace();
+        if (!regions.isEmpty()) {
+            // convert the values to an array first to prevent blocking any threads
+            Region[] r = regions.values().toArray(new Region[regions.size()]);
+            for (Region region : r) {
+                McaFile file = region.toFile();
+                if (file == null) { continue; }
+
+                try {
+                    file.write();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        });
+        }
 
         // save level.dat
         try {

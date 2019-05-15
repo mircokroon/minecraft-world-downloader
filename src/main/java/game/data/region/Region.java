@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
@@ -31,7 +32,7 @@ public class Region {
      */
     public Region(Coordinate2D regionCoordinates) {
         this.regionCoordinates = regionCoordinates;
-        this.chunks = new HashMap<>();
+        this.chunks = new ConcurrentHashMap<>();
         this.updatedSinceLastWrite = false;
         this.toDelete = new HashSet<>();
     }
