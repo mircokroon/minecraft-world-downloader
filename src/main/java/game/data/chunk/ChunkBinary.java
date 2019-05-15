@@ -52,10 +52,11 @@ public class ChunkBinary {
         byte[] data = output.toByteArray();
 
         byte[] finalData = new byte[data.length + 5];
-        finalData[0] = (byte) (data.length >>> 24);
-        finalData[1] = (byte) (data.length >>> 16);
-        finalData[2] = (byte) (data.length >>> 8);
-        finalData[3] = (byte) (data.length);
+        int lengthToWrite = data.length + 1;
+        finalData[0] = (byte) (lengthToWrite >>> 24);
+        finalData[1] = (byte) (lengthToWrite >>> 16);
+        finalData[2] = (byte) (lengthToWrite >>> 8);
+        finalData[3] = (byte) (lengthToWrite);
         finalData[4] = COMPRESSION_TYPE;
 
         System.arraycopy(data, 0, finalData, 5, data.length);
