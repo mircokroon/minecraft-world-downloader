@@ -149,7 +149,10 @@ public class WorldManager extends Thread {
     }
 
     public synchronized static void unloadChunk(Coordinate2D coordinate) {
-        regions.get(coordinate.chunkToRegion()).removeChunk(coordinate);
+        Region r = regions.get(coordinate.chunkToRegion());
+        if (r != null) {
+            r.removeChunk(coordinate);
+        }
     }
 
     /**
