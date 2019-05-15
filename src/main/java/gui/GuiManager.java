@@ -45,7 +45,7 @@ public class GuiManager {
      */
     private static void createAndShowGUI() {
         JFrame f = new JFrame("World Downloader");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        f.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
         f.setSize(WIDTH, HEIGHT);
         f.addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent evt) {
