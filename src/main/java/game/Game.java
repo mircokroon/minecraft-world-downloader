@@ -1,7 +1,5 @@
 package game;
 
-import com.sun.xml.internal.ws.api.message.Packet;
-
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
@@ -52,6 +50,16 @@ public abstract class Game {
     private static String gamePath;
     private static VersionHandler versionHandler;
     private static int protocolVersion = DEFAULT_VERSION;
+    private static int dataVersion;
+    private static String gameVersion;
+
+    public static int getDataVersion() {
+        return dataVersion;
+    }
+
+    public static String getGameVersion() {
+        return gameVersion;
+    }
 
     public static EncryptionManager getEncryptionManager() {
         return encryptionManager;
@@ -182,12 +190,19 @@ public abstract class Game {
         return gamePath;
     }
 
+    public static int getProtocolVersion() {
+        return protocolVersion;
+    }
+
     public static void setProtocolVersion(int protocolVersion) {
         Game.protocolVersion = protocolVersion;
     }
 
     public static Protocol getGameProtocol() {
         Protocol p = versionHandler.getProtocol(protocolVersion);
+        Game.dataVersion = p.getDataVersion();
+        Game.gameVersion = p.getVersion();
+        WorldManager.setGlobalPalette(p.getVersion());
         System.out.println("Using protocol of game version " + p.getVersion() + " ("  + protocolVersion + ")");
         return p;
     }

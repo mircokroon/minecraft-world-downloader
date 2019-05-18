@@ -2,6 +2,7 @@
 	"protocols": {
 		"340": {
 			"version": "1.12.2",
+			"dataVersion": 1343,
 			"clientbound": {
 				"0x20": "chunk_data",
 				"0x1D": "chunk_unload",
@@ -16,6 +17,7 @@
 		},		
 		"404": {
 			"version": "1.13.2",
+			"dataVersion": 1631,
 			"clientbound": {
 				"0x22": "chunk_data",
 				"0x1F": "chunk_unload",
@@ -30,11 +32,13 @@
 		},
 		"480": {
 			"version": "1.14.1",
+			"dataVersion": 1957,
 			"clientbound": {
 				"0x21": "chunk_data",
 				"0x1D": "chunk_unload",
 				"0x35": "player_position_look",
-				"0x2C": "player_vehicle_move" 
+				"0x2C": "player_vehicle_move",
+				"0x24": "chunk_update_light"
 			},
 			"serverbound": {
 				"0x11": "player_position",

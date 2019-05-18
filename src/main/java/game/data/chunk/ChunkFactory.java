@@ -1,7 +1,11 @@
 package game.data.chunk;
 
+import game.Game;
 import game.data.Coordinate2D;
 import game.data.WorldManager;
+import game.data.chunk.version.Chunk_1_12;
+import game.data.chunk.version.Chunk_1_13;
+import game.data.chunk.version.Chunk_1_14;
 import gui.GuiManager;
 import packets.DataTypeProvider;
 
@@ -52,6 +56,7 @@ public class ChunkFactory extends Thread {
                 try {
                     readChunkDataPacket(provider);
                 } catch (Exception ex) {
+                    ex.printStackTrace();
                     System.out.println("Chunk could not be parsed!");
                 }
             }
@@ -85,11 +90,13 @@ public class ChunkFactory extends Thread {
         boolean full = dataProvider.readBoolean();
         Chunk chunk;
         if (full) {
-            chunk = new Chunk(chunkPos.getX(), chunkPos.getZ());
+            chunk = getVersionedChunk(chunkPos);
         } else {
             chunk = WorldManager.getChunk(new Coordinate2D(chunkPos.getX(), chunkPos.getZ()));
             chunk.setSaved(false);
         }
+
+        // TODO: move the below into the Chunk class
         int mask = dataProvider.readVarInt();
         int size = dataProvider.readVarInt();
         chunk.readChunkColumn(full, mask, dataProvider);
@@ -97,6 +104,21 @@ public class ChunkFactory extends Thread {
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
             chunk.addTileEntity(dataProvider.readCompoundTag());
+        }
+    }
+
+    /**
+     * Returns a chunk of the correct version.
+     * @param chunkPos the position of the chunk
+     * @return the chunk matching the given version
+     */
+    private static Chunk getVersionedChunk(Coordinate2D chunkPos) {
+        if (Game.getProtocolVersion() >= 440) {
+            return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
+        } else if (Game.getProtocolVersion() >= 341) {
+            return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());
+        } else {
+            return new Chunk_1_12(chunkPos.getX(), chunkPos.getZ());
         }
     }
 }

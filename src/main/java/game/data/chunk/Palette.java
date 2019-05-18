@@ -1,6 +1,15 @@
 package game.data.chunk;
 
+import com.flowpowered.nbt.CompoundTag;
+import com.flowpowered.nbt.Tag;
+
+import game.data.WorldManager;
+import game.data.chunk.palette.GlobalPalette;
 import packets.DataTypeProvider;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Class to hold a palette of a chunk.
@@ -39,11 +48,26 @@ public class Palette {
         return new Palette(bitsPerBlock, palette);
     }
 
-    public int StateForId(int data) {
+    public int stateFromId(int data) {
+        if (bitsPerBlock > 8) {
+            return data;
+        }
+        if (palette.length == data) {
+            System.out.println("Index oob! : " + data + " // " + bitsPerBlock);
+        }
         return palette[data];
     }
 
     public boolean isEmpty() {
         return palette.length == 0 || (palette.length == 1 && palette[0] == 0);
+    }
+
+    public List<CompoundTag> toNbt() {
+        List<CompoundTag> tags = new ArrayList<>();
+        GlobalPalette globalPalette = WorldManager.getGlobalPalette();
+        for (int i : palette) {
+            tags.add(globalPalette.getState(i).toNbt());
+        }
+        return tags;
     }
 }

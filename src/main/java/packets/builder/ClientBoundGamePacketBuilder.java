@@ -24,6 +24,11 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             WorldManager.unloadChunk(new Coordinate2D(provider.readInt(), provider.readInt()));
             return true;
         });
+        operations.put("chunk_update_light", provider -> {
+
+
+            return true;
+        });
         PacketOperator updatePlayerPosition = provider -> {
             double x = provider.readDouble();
             double y = provider.readDouble();

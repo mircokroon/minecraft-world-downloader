@@ -22,6 +22,10 @@ public class DataTypeProvider {
         this.pos = 0;
     }
 
+    public DataTypeProvider ofLength(int length) {
+        return new DataTypeProvider(this.readByteArray(length));
+    }
+
     public long readVarLong() {
         int numRead = 0;
         long result = 0;

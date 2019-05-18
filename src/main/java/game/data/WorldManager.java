@@ -1,16 +1,19 @@
 package game.data;
 
+import com.flowpowered.nbt.ByteTag;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
 import com.flowpowered.nbt.DoubleTag;
 import com.flowpowered.nbt.IntTag;
 import com.flowpowered.nbt.ListTag;
 import com.flowpowered.nbt.LongTag;
+import com.flowpowered.nbt.StringTag;
 import com.flowpowered.nbt.stream.NBTInputStream;
 import com.flowpowered.nbt.stream.NBTOutputStream;
 
 import game.Game;
 import game.data.chunk.Chunk;
+import game.data.chunk.palette.GlobalPalette;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
@@ -24,7 +27,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -36,9 +38,12 @@ import java.util.stream.Collectors;
  */
 public class WorldManager extends Thread {
     private final static int SAVE_DELAY = 20 * 1000;
+
     private static Map<Coordinate2D, Region> regions = new ConcurrentHashMap<>();
 
     private static WorldManager writer = null;
+
+    private static GlobalPalette globalPalette;
 
     private WorldManager() {}
 
@@ -107,6 +112,17 @@ public class WorldManager extends Thread {
         data.put(new LongTag("RandomSeed", Game.getSeed()));
         data.put(new LongTag("LastPlayed", System.currentTimeMillis()));
 
+        // add the version
+        if (Game.getDataVersion() > 0 && Game.getGameVersion() != null) {
+
+            CompoundMap versionMap = new CompoundMap();
+            versionMap.put(new IntTag("Id", Game.getDataVersion()));
+            versionMap.put(new StringTag("Name", Game.getGameVersion()));
+            versionMap.put(new ByteTag("Snapshot", (byte) 0));
+
+            data.put(new CompoundTag("Version", versionMap));
+        }
+
         // write the file
         NBTOutputStream output = new NBTOutputStream(new FileOutputStream(levelDat), true);
         output.writeTag(level);
@@ -154,6 +170,14 @@ public class WorldManager extends Thread {
         if (r != null) {
             r.removeChunk(coordinate);
         }
+    }
+
+    public static void setGlobalPalette(String version) {
+        globalPalette = new GlobalPalette(version);
+    }
+
+    public static GlobalPalette getGlobalPalette() {
+        return globalPalette;
     }
 
     /**

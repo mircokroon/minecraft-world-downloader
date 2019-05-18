@@ -4,22 +4,24 @@ import com.flowpowered.nbt.ByteArrayTag;
 import com.flowpowered.nbt.ByteTag;
 import com.flowpowered.nbt.CompoundMap;
 import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.IntTag;
+
+import packets.builder.PacketBuilder;
 
 /**
  * Class to hold a 16 block tall chunk section.
  */
-public class ChunkSection {
-    int[][][] blocks;
-    byte[] blockLight;
-    byte[] skyLight;
-    byte y;
+public abstract class ChunkSection {
+    protected long[] blocks;
+    protected byte[] blockLight;
+    protected byte[] skyLight;
+    protected byte y;
+    protected Palette palette;
 
-    public ChunkSection(byte y) {
+    public ChunkSection(byte y, Palette palette) {
         this.y = y;
-        this.blocks = new int[16][16][16];
         this.blockLight = new byte[2048];
         this.skyLight = new byte[2048];
+        this.palette = palette;
     }
 
     public void setSkyLight(byte[] skyLight) {
@@ -30,10 +32,9 @@ public class ChunkSection {
         this.blockLight = blockLight;
     }
 
-    public void setState(int x, int y, int z, int state) {
-        this.blocks[x][y][z] = state;
+    public void setBlocks(long[] blocks) {
+        this.blocks = blocks;
     }
-
     /**
      * Convert this section to NBT.
      */
@@ -41,56 +42,24 @@ public class ChunkSection {
         CompoundMap map = new CompoundMap();
         map.put(new ByteTag("Y", y));
 
-        map.put(new ByteArrayTag("Blocks", getBlockIds()));
-        map.put(new ByteArrayTag("Data", getBlockStates()));
-        map.put(new ByteArrayTag("SkyLight", skyLight));
-        map.put(new ByteArrayTag("BlockLight", blockLight));
+
+        if (blockLight != null && blockLight.length != 0) {
+            map.put(new ByteArrayTag("BlockLight", blockLight));
+        }
+
+        if (skyLight != null && skyLight.length != 0) {
+            map.put(new ByteArrayTag("SkyLight", skyLight));
+        }
+
+        addNbtTags(map);
 
         return new CompoundTag("", map);
     }
 
-    public byte[] getBlockIds() {
-        byte[] blockData = new byte[4096];
-
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
-                for (int z = 0; z < 16; z++) {
-                    blockData[getBlockIndex(x, y, z)] = (byte) (blocks[x][y][z] >>> 4);
-                }
-            }
-        }
-        return blockData;
-    }
-
-    public byte[] getBlockStates() {
-        byte[] blockData = new byte[2048];
-
-        for (int x = 0; x < 16; x++) {
-            for (int y = 0; y < 16; y++) {
-                for (int z = 0; z < 16; z++) {
-                    insertAtHalf(blockData, x, y, z, blocks[x][y][z] & 0x0F);
-                }
-            }
-        }
-        return blockData;
-    }
+    protected abstract void addNbtTags(CompoundMap map);
 
     public static int getBlockIndex(int x, int y, int z) {
         return y * 16 * 16 + z * 16 + x;
-    }
-
-    /**
-     * Handle inserting of the four-bit values into the given array at the given coordinates. In this case, a value
-     * takes up 4 bits so inserting them is a bit more complicated.
-     */
-    private static void insertAtHalf(byte[] arr, int x, int y, int z, int val) {
-        int pos = getBlockIndex(x, y, z);
-        boolean isUpperHalf = pos % 2 == 0;
-        if (!isUpperHalf) {
-            arr[pos / 2] |= (val << 4) & 0xF0;
-        } else {
-            arr[pos / 2] |= val & 0x0F;
-        }
     }
 
     public byte getY() {

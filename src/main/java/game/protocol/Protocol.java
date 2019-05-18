@@ -4,6 +4,7 @@ import java.util.HashMap;
 
 public class Protocol {
     String version;
+    int dataVersion;
     HashMap<Integer, String> clientbound;
     HashMap<Integer, String> serverbound;
 
@@ -36,5 +37,9 @@ public class Protocol {
             ", clientbound=" + clientbound +
             ", severbound=" + serverbound +
             '}';
+    }
+
+    public int getDataVersion() {
+        return dataVersion;
     }
 }
