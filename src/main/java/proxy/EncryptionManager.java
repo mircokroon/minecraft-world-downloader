@@ -109,7 +109,7 @@ public class EncryptionManager {
     private void sendReplacementEncryptionRequest() {
         List<Byte> bytes = new ArrayList<>();
         byte[] encoded = serverKeyPair.getPublic().getEncoded();
-        writeVarInt(bytes, ClientBoundLoginPacketBuilder.ENCRYPTION_REQUEST);   // packet ID
+        writeVarInt(bytes, 0x01);   // packet ID
         writeString(bytes, serverId);    // server ID
         writeVarInt(bytes, encoded.length); // pub key len
         writeByteArray(bytes, encoded); // pub key
@@ -266,7 +266,7 @@ public class EncryptionManager {
             byte[] sharedSecret = cipher.doFinal(clientSharedSecret);
             byte[] verifyToken = cipher.doFinal(serverVerifyToken);
 
-            writeVarInt(bytes, ServerBoundLoginPacketBuilder.ENCRYPTION_RESPONSE);
+            writeVarInt(bytes, 0x01);
             writeVarInt(bytes, sharedSecret.length);
             writeByteArray(bytes, sharedSecret);
             writeVarInt(bytes, verifyToken.length);

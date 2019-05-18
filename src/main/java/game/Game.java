@@ -1,11 +1,17 @@
 package game;
 
+import com.sun.xml.internal.ws.api.message.Packet;
+
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.Palette;
+import game.protocol.HandshakeProtocol;
+import game.protocol.LoginProtocol;
+import game.protocol.Protocol;
+import game.protocol.StatusProtocol;
 import gui.GuiManager;
 import net.sourceforge.argparse4j.inf.Namespace;
 import packets.DataReader;
@@ -13,6 +19,7 @@ import packets.builder.ClientBoundGamePacketBuilder;
 import packets.builder.ClientBoundHandshakePacketBuilder;
 import packets.builder.ClientBoundLoginPacketBuilder;
 import packets.builder.ClientBoundStatusPacketBuilder;
+import packets.builder.PacketBuilder;
 import packets.builder.ServerBoundGamePacketBuilder;
 import packets.builder.ServerBoundHandshakePacketBuilder;
 import packets.builder.ServerBoundLoginPacketBuilder;
@@ -28,6 +35,7 @@ import java.nio.file.Paths;
  * Class the manage the central configuration and set up.
  */
 public abstract class Game {
+    private static final int DEFAULT_VERSION = 340;
     private static NetworkMode mode = NetworkMode.STATUS;
     private static Dimension dimension = Dimension.OVERWORLD;
 
@@ -42,6 +50,8 @@ public abstract class Game {
     private static int portLocal;
     private static Coordinate3D playerPosition;
     private static String gamePath;
+    private static VersionHandler versionHandler;
+    private static int protocolVersion = DEFAULT_VERSION;
 
     public static EncryptionManager getEncryptionManager() {
         return encryptionManager;
@@ -66,6 +76,7 @@ public abstract class Game {
     public static void setPlayerPosition(Coordinate3D newPos) {
         playerPosition = newPos;
     }
+
 
     public static long getSeed() {
         return seed;
@@ -97,6 +108,8 @@ public abstract class Game {
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
         }
+
+        versionHandler = VersionHandler.createVersionHandler();
     }
 
     public static String getHost() {
@@ -128,18 +141,22 @@ public abstract class Game {
 
         switch (mode) {
             case STATUS:
+                PacketBuilder.setProtocol(new StatusProtocol());
                 serverBoundDataReader.setBuilder(new ServerBoundStatusPacketBuilder());
                 clientBoundDataReader.setBuilder(new ClientBoundStatusPacketBuilder());
                 break;
             case LOGIN:
+                PacketBuilder.setProtocol(new LoginProtocol());
                 serverBoundDataReader.setBuilder(new ServerBoundLoginPacketBuilder());
                 clientBoundDataReader.setBuilder(new ClientBoundLoginPacketBuilder());
                 break;
             case GAME:
+                PacketBuilder.setProtocol(getGameProtocol());
                 serverBoundDataReader.setBuilder(new ServerBoundGamePacketBuilder());
                 clientBoundDataReader.setBuilder(new ClientBoundGamePacketBuilder());
                 break;
             case HANDSHAKE:
+                PacketBuilder.setProtocol(new HandshakeProtocol());
                 serverBoundDataReader.setBuilder(new ServerBoundHandshakePacketBuilder());
                 clientBoundDataReader.setBuilder(new ClientBoundHandshakePacketBuilder());
                 break;
@@ -163,5 +180,15 @@ public abstract class Game {
 
     public static String getGamePath() {
         return gamePath;
+    }
+
+    public static void setProtocolVersion(int protocolVersion) {
+        Game.protocolVersion = protocolVersion;
+    }
+
+    public static Protocol getGameProtocol() {
+        Protocol p = versionHandler.getProtocol(protocolVersion);
+        System.out.println("Using protocol of game version " + p.getVersion() + " ("  + protocolVersion + ")");
+        return p;
     }
 }

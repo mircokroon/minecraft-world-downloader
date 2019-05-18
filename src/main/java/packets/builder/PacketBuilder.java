@@ -1,11 +1,22 @@
 package packets.builder;
 
+import game.protocol.HandshakeProtocol;
+import game.protocol.Protocol;
 import packets.DataProvider;
+import packets.DataTypeProvider;
+
+import java.util.Map;
 
 /**
  * Family of classes to handle incoming packets and perform appropriate actions based on the packet type and contents.
  */
-public class PacketBuilder {
+public abstract class PacketBuilder {
+    protected static Protocol protocol = new HandshakeProtocol();
+
+    public static void setProtocol(Protocol protocol) {
+        PacketBuilder.protocol = protocol;
+    }
+
     private DataProvider reader;
 
     /**
@@ -14,14 +25,21 @@ public class PacketBuilder {
      * @param size the size of the packet to build
      * @return true if the packet should be forwarded, otherwise false.
      */
-    public boolean build(int size) {
-        getReader().withSize(size);
-        return true;
+    public final boolean build(int size) {
+        DataTypeProvider typeProvider = reader.withSize(size);
+        int packetID = typeProvider.readVarInt();
+
+        String packetType = protocol.get(packetID, isClientBound());
+        PacketOperator operator = getOperators().getOrDefault(packetType, null);
+        if (operator == null) {
+            return true;
+        }
+
+        return operator.apply(typeProvider);
     }
 
-    public DataProvider getReader() {
-        return reader;
-    }
+    public abstract Map<String, PacketOperator> getOperators();
+    public abstract boolean isClientBound();
 
     public void setReader(DataProvider reader) {
         this.reader = reader;

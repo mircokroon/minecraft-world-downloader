@@ -3,10 +3,8 @@ import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
-import proxy.auth.ClientAuthenticator;
 
 import java.nio.file.Paths;
-import java.util.regex.Pattern;
 
 public class Launcher {
     public static void main(String[] args) {

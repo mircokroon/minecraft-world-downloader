@@ -1,30 +1,40 @@
 package packets.builder;
 
 import game.Game;
+import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.WorldManager;
+import game.data.chunk.ChunkFactory;
 import packets.DataTypeProvider;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ServerBoundGamePacketBuilder extends PacketBuilder {
-    private final int PLAYER_POSITION = 0x0D;
-    private final int PLAYER_POSITION_LOOK = 0x0E;
-    private final int VEHICLE_MOVE = 0x10;
+    private HashMap<String, PacketOperator> operations = new HashMap<>();
+    public ServerBoundGamePacketBuilder() {
+        PacketOperator updatePlayerPosition = provider -> {
+            double x = provider.readDouble();
+            double y = provider.readDouble();
+            double z = provider.readDouble();
+            Game.setPlayerPosition(new Coordinate3D(x, y, z).offset());
+
+            return true;
+        };
+
+        operations.put("player_position", updatePlayerPosition);
+        operations.put("player_position_look", updatePlayerPosition);
+        operations.put("player_vehicle_move", updatePlayerPosition);
+    }
 
     @Override
-    public boolean build(int size) {
-        DataTypeProvider typeProvider = getReader().withSize(size);
-        int packetId = typeProvider.readVarInt();
+    public Map<String, PacketOperator> getOperators() {
+        return operations;
+    }
 
-        switch (packetId) {
-            case PLAYER_POSITION:
-            case PLAYER_POSITION_LOOK:
-            case VEHICLE_MOVE:
-                double x = typeProvider.readDouble();
-                double y = typeProvider.readDouble();
-                double z = typeProvider.readDouble();
-                Game.setPlayerPosition(new Coordinate3D(x, y, z).offset());
-                break;
-        }
-        return true;// super.build(size);
+    @Override
+    public boolean isClientBound() {
+        return false;
     }
 }
 

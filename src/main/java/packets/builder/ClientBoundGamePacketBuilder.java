@@ -5,41 +5,45 @@ import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
-import packets.DataTypeProvider;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
-    private final int CHUNK_DATA = 0x20;
-    private final int UNLOAD_CHUNK = 0x1D;
+    private HashMap<String, PacketOperator> operations = new HashMap<>();
+    public ClientBoundGamePacketBuilder() {
+        operations.put("chunk_data", provider -> {
+            try {
+                ChunkFactory.addChunk(provider);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return true;
+        });
+        operations.put("chunk_unload", provider -> {
+            WorldManager.unloadChunk(new Coordinate2D(provider.readInt(), provider.readInt()));
+            return true;
+        });
+        PacketOperator updatePlayerPosition = provider -> {
+            double x = provider.readDouble();
+            double y = provider.readDouble();
+            double z = provider.readDouble();
+            Game.setPlayerPosition(new Coordinate3D(x, y, z).offset());
 
-    private final int PLAYER_POSITION_LOOK = 0x2F;
-    private final int VEHICLE_MOVE = 0x29;
+            return true;
+        };
+
+        operations.put("player_position_look", updatePlayerPosition);
+        operations.put("player_vehicle_move", updatePlayerPosition);
+    }
 
     @Override
-    public boolean build(int size) {
-        DataTypeProvider typeProvider = getReader().withSize(size);
-        int packetId = typeProvider.readVarInt();
+    public Map<String, PacketOperator> getOperators() {
+        return operations;
+    }
 
-        switch (packetId) {
-            case CHUNK_DATA:
-                try {
-                    ChunkFactory.addChunk(typeProvider);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-                break;
-            case UNLOAD_CHUNK:
-                WorldManager.unloadChunk(new Coordinate2D(typeProvider.readInt(), typeProvider.readInt()));
-                break;
-            case PLAYER_POSITION_LOOK:
-            case VEHICLE_MOVE:
-                double x = typeProvider.readDouble();
-                double y = typeProvider.readDouble();
-                double z = typeProvider.readDouble();
-                Game.setPlayerPosition(new Coordinate3D(x, y, z).offset());
-
-                break;
-        }
-
+    @Override
+    public boolean isClientBound() {
         return true;
     }
 }

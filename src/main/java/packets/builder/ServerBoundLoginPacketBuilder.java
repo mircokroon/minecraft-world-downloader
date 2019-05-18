@@ -1,37 +1,42 @@
 package packets.builder;
 
 import game.Game;
+import game.data.Coordinate3D;
 import packets.DataTypeProvider;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ServerBoundLoginPacketBuilder extends PacketBuilder {
-    public final static int LOGIN_START = 0x00;
-    public final static int ENCRYPTION_RESPONSE = 0x01;
-    public final static int LOGIN_PLUGIN_RESPONSE = 0x02;
+    private HashMap<String, PacketOperator> operations = new HashMap<>();
+    public ServerBoundLoginPacketBuilder() {
+
+        operations.put("login_start", provider -> {
+            String username = provider.readString();
+            System.out.println("Login by: " + username);
+
+            Game.getEncryptionManager().setUsername(username);
+            return true;
+        });
+
+        operations.put("encryption_response", provider -> {
+            int sharedSecretLength = provider.readVarInt();
+            byte[] sharedSecret = provider.readByteArray(sharedSecretLength);
+            int verifyTokenLength = provider.readVarInt();
+            byte[] verifyToken = provider.readByteArray(verifyTokenLength);
+
+            Game.getEncryptionManager().setClientEncryptionConfirmation(sharedSecret, verifyToken);
+            return false;
+        });
+    }
 
     @Override
-    public boolean build(int size) {
-        DataTypeProvider typeProvider = getReader().withSize(size);
+    public Map<String, PacketOperator> getOperators() {
+        return operations;
+    }
 
-        int packetId = typeProvider.readVarInt();
-
-        switch (packetId) {
-            case LOGIN_START:
-                String username = typeProvider.readString();
-                System.out.println("Login by: " + username);
-
-                Game.getEncryptionManager().setUsername(username);
-                return true;
-
-            case ENCRYPTION_RESPONSE:
-                int sharedSecretLength = typeProvider.readVarInt();
-                byte[] sharedSecret = typeProvider.readByteArray(sharedSecretLength);
-                int verifyTokenLength = typeProvider.readVarInt();
-                byte[] verifyToken = typeProvider.readByteArray(verifyTokenLength);
-
-                Game.getEncryptionManager().setClientEncryptionConfirmation(sharedSecret, verifyToken);
-                return false;
-            default:
-                return true;
-        }
+    @Override
+    public boolean isClientBound() {
+        return false;
     }
 }
