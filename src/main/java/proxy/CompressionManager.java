@@ -3,7 +3,11 @@ package proxy;
 import org.apache.commons.io.IOUtils;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.zip.Deflater;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public class CompressionManager {
@@ -21,9 +25,64 @@ public class CompressionManager {
      * @param input the input to compress
      * @return the compressed input
      */
-    public byte[] dompress(byte[] input) {
-        throw new UnsupportedOperationException("Compression has not yet been implemented :(");
+    public static byte[] zlibCompress(byte[] input) {
+        Deflater deflater = new Deflater();
+        deflater.setInput(input);
+        deflater.finish();
+
+        byte[] bytesCompressed = new byte[4096];
+        int compressedLength = deflater.deflate(bytesCompressed);
+
+        byte[] returnValues = new byte[compressedLength];
+        System.arraycopy(bytesCompressed, 0, returnValues, 0, compressedLength);
+
+        return returnValues;
     }
+
+    public static byte[] zlibDecompress(byte[] input) {
+        InflaterInputStream inflater = new InflaterInputStream(new ByteArrayInputStream(input));
+
+        try {
+            return IOUtils.toByteArray(inflater);
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not decompress");
+        }
+        return new byte[0];
+    }
+
+    // Source: https://stackoverflow.com/a/44922240
+    public static byte[] gzipCompress(byte[] uncompressedData) {
+        byte[] result = new byte[]{};
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream(uncompressedData.length);
+             GZIPOutputStream gzipOS = new GZIPOutputStream(bos)) {
+            gzipOS.write(uncompressedData);
+            gzipOS.close();
+            result = bos.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    // Source: https://stackoverflow.com/a/44922240
+    public static byte[] gzipDecompress(byte[] compressedData) {
+        byte[] result = new byte[]{};
+        try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedData);
+             ByteArrayOutputStream bos = new ByteArrayOutputStream();
+             GZIPInputStream gzipIS = new GZIPInputStream(bis)) {
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = gzipIS.read(buffer)) != -1) {
+                bos.write(buffer, 0, len);
+            }
+            result = bos.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
 
 
     /**
@@ -33,7 +92,7 @@ public class CompressionManager {
      * @param len    the length of the compressed data. When 0, no decompression will be done.
      * @return the decompressed data
      */
-    public byte[] decompress(byte[] input, int offset, int len) {
+    public byte[] decompressPacket(byte[] input, int offset, int len) {
         if (!compressionEnabled) {
             return input;
         }
@@ -44,20 +103,11 @@ public class CompressionManager {
             return res;
         }
 
-        InflaterInputStream inflater = new InflaterInputStream(new ByteArrayInputStream(
-            input,
-            offset,
-            input.length - offset
-        ));
-
-        try {
-            return IOUtils.toByteArray(inflater);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Could not decompress");
-        }
-        return new byte[0];
+        byte[] toDecompress = new byte[input.length - offset];
+        System.arraycopy(input, offset, toDecompress, 0, toDecompress.length);
+        return zlibDecompress(toDecompress);
     }
+
 
     public boolean isCompressionEnabled() {
         return compressionEnabled;
