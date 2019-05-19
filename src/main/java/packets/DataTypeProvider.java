@@ -1,7 +1,7 @@
 package packets;
 
 import game.data.Coordinate3D;
-import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
 import java.io.DataInputStream;
@@ -135,12 +135,12 @@ public class DataTypeProvider {
 
     public SpecificTag readNbtTag() {
         try {
-            return CompoundTag.read(new DataInputStream(new InputStream() {
+            return (SpecificTag) NamedTag.read(new DataInputStream(new InputStream() {
                 @Override
                 public int read() {
                     return readNext() & 0xFF;
                 }
-            }));
+            })).unpack();
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;

@@ -188,8 +188,6 @@ public class WorldManager extends Thread {
     }
 
     public static void setGlobalPalette(String version) {
-        System.out.println(version);
-        System.out.println(globalPalette);
         globalPalette = new GlobalPalette(version);
     }
 

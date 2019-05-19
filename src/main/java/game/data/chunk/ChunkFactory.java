@@ -96,15 +96,7 @@ public class ChunkFactory extends Thread {
             chunk.setSaved(false);
         }
 
-        // TODO: move the below into the Chunk class
-        int mask = dataProvider.readVarInt();
-        int size = dataProvider.readVarInt();
-        chunk.readChunkColumn(full, mask, dataProvider);
-
-        int tileEntityCount = dataProvider.readVarInt();
-        for (int i = 0; i < tileEntityCount; i++) {
-            chunk.addTileEntity(dataProvider.readNbtTag());
-        }
+        chunk.parse(dataProvider, full);
     }
 
     /**

@@ -110,6 +110,7 @@ public abstract class Chunk {
         }
     }
 
+    protected void parseHeightMaps(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
     protected abstract ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock);
     protected abstract void readBiomes(DataTypeProvider provider);
@@ -188,4 +189,18 @@ public abstract class Chunk {
             .collect(Collectors.toList());
     }
 
+    public void parse(DataTypeProvider dataProvider, boolean full) {
+        int mask = dataProvider.readVarInt();
+
+        parseHeightMaps(dataProvider);
+
+        int size = dataProvider.readVarInt();
+
+        readChunkColumn(full, mask, dataProvider);
+
+        int tileEntityCount = dataProvider.readVarInt();
+        for (int i = 0; i < tileEntityCount; i++) {
+            addTileEntity(dataProvider.readNbtTag());
+        }
+    }
 }

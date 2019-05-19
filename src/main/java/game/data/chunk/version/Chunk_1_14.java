@@ -3,11 +3,21 @@ package game.data.chunk.version;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.Palette;
 import packets.DataTypeProvider;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.SpecificTag;
 
 public class Chunk_1_14 extends Chunk_1_13 {
+
+    SpecificTag heightMap;
+
     public Chunk_1_14(int x, int z) {
         super(x, z);
-        throw new RuntimeException("1.14 chunk parsing is not currently supported :(");
+    }
+
+    @Override
+    protected void addLevelNbtTags(CompoundTag map) {
+        map.add("Heightmaps", heightMap);
+        super.addLevelNbtTags(map);
     }
 
     @Override
@@ -18,6 +28,11 @@ public class Chunk_1_14 extends Chunk_1_13 {
     @Override
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         // no lights here in 1.14+
+    }
+
+    @Override
+    protected void parseHeightMaps(DataTypeProvider dataProvider) {
+        heightMap = dataProvider.readNbtTag();
     }
 
     @Override
