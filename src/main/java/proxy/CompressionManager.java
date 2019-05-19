@@ -22,21 +22,20 @@ public class CompressionManager {
 
     /**
      * Compresses the stream if the size is greater than the compression limit.
-     * @param input the input to compress
-     * @return the compressed input
+     * Source: https://dzone.com/articles/how-compress-and-uncompress
      */
-    public static byte[] zlibCompress(byte[] input) {
+    public static byte[] zlibCompress(byte[] input) throws IOException {
         Deflater deflater = new Deflater();
         deflater.setInput(input);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream(input.length);
         deflater.finish();
-
-        byte[] bytesCompressed = new byte[4096];
-        int compressedLength = deflater.deflate(bytesCompressed);
-
-        byte[] returnValues = new byte[compressedLength];
-        System.arraycopy(bytesCompressed, 0, returnValues, 0, compressedLength);
-
-        return returnValues;
+        byte[] buffer = new byte[1024];
+        while (!deflater.finished()) {
+            int count = deflater.deflate(buffer); // returns the generated code... index
+            outputStream.write(buffer, 0, count);
+        }
+        outputStream.close();
+        return outputStream.toByteArray();
     }
 
     public static byte[] zlibDecompress(byte[] input) {
