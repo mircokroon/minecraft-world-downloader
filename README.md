@@ -1,9 +1,9 @@
 # minecraft-world-downloader
-A Minecraft world downloader that works by intercepting network traffic between the client and the server to read & save chunk data. 
+A Minecraft world downloader that works by intercepting & decrypting network traffic between the client and the server to read & save chunk data. 
 
 ### Features
-- Requires no client modifications and as such works with every non-vanilla game client
-- Offset world save coordinates to obscure the original location
+- Requires no client modifications and as such works with every game client, vanilla or not
+- Offset world save coordinates of the saved location
 - Automatically merge into existing downloads
 - Optional GUI to show which chunks have been saved
 
@@ -12,7 +12,7 @@ A Minecraft world downloader that works by intercepting network traffic between 
 - Minecraft version 1.12.2 // 1.13.2 // 1.14.1
 
 ### Basic usage
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using:
+[Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using the commandline by running:
 ```java -jar world-downloader.jar -s address.to.server.com```
 
 Then connect to ```localhost``` in Minecraft to start downloading the world. The world will be saved to the ```world/``` by default.
