@@ -39,7 +39,7 @@ public class Chunk_1_13 extends Chunk {
 
     @Override
     protected void addLevelNbtTags(CompoundTag map) {
-        map.add("Status", new StringTag("carved"));
+        map.add("Status", new StringTag("full"));
         super.addLevelNbtTags(map);
     }
 
