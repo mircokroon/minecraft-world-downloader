@@ -20,8 +20,8 @@ public class Coordinate3D {
 
     // set the offset and round it to chunks
     public static void setOffset(int x, int z) {
-        offsetX = (x / 16) * 16;
-        offsetZ = (z / 16) * 16;
+        offsetX = x >> 4 << 4;
+        offsetZ = x >> 4 << 4;
     }
 
     public Coordinate3D offset() {
@@ -76,7 +76,7 @@ public class Coordinate3D {
     }
 
     private int getChunk(int pos) {
-        return (int) Math.floor(pos / 16.0);
+        return pos >> 4;
     }
 
     @Override

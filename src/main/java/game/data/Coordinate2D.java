@@ -30,8 +30,8 @@ public class Coordinate2D {
     }
 
     public Coordinate2D offsetChunk() {
-        this.x += offsetX / 16;
-        this.z += offsetZ / 16;
+        this.x += offsetX >> 4;
+        this.z += offsetZ >> 4;
         return this;
     }
 
