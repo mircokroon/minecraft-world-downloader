@@ -13,6 +13,7 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 
 ### Basic usage
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using the commandline by running:
+
 ```java -jar world-downloader.jar -s address.to.server.com```
 
 Then connect to ```localhost``` in Minecraft to start downloading the world. The world will be saved to the ```world/``` by default.
