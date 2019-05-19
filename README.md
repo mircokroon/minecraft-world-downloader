@@ -8,8 +8,8 @@ A Minecraft world downloader that works by intercepting network traffic between 
 - Optional GUI to show which chunks have been saved
 
 ### Requirements
-- Java 8 or higher 
-- Minecraft 1.12.2 (currently untested on other versions)
+- Java 8 or higher
+- Minecraft version 1.12.2 // 1.13.2 // 1.14.1
 
 ### Basic usage
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using:
@@ -29,3 +29,4 @@ Then connect to ```localhost``` in Minecraft to start downloading the world. The
 |  --center-x | 0 | Offset the world so that the given coordinate is at 0 |
 |  --center-y | 0 | Offset the world so that the given coordinate is at 0 |
 |  --gui | true | If false, hides the saved chunks GUI |
+|  --minecraft | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
