@@ -198,14 +198,11 @@ public abstract class Chunk {
             Iterator<NamedTag>  it = entity.iterator();
             while (it.hasNext()) {
                 NamedTag t = it.next();
-                if (t.isNamed("x") || t.isNamed("z")) {
-                    System.out.println("removed tag: " + t.dumpTree());
-                    it.remove();
-                }
+                if (t.isNamed("x") || t.isNamed("z")) { it.remove(); }
             }
-
             entity.add("x", new IntTag(position.getX()));
             entity.add("z", new IntTag(position.getZ()));
+            
             addTileEntity(entity);
         }
 
