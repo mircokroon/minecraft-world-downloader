@@ -18,8 +18,10 @@ import se.llbit.nbt.Tag;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -33,7 +35,7 @@ public abstract class Chunk {
 
     public final int x;
     public final int z;
-    private List<SpecificTag> tileEntities;
+    private Map<Coordinate3D, SpecificTag> tileEntities;
     private ChunkSection[] chunkSections;
 
     private boolean saved;
@@ -44,7 +46,7 @@ public abstract class Chunk {
         this.z = z;
 
         chunkSections = new ChunkSection[16];
-        tileEntities = new ArrayList<>();
+        tileEntities = new HashMap<>();
 
         WorldManager.loadChunk(new Coordinate2D(x, z), this);
     }
@@ -57,8 +59,30 @@ public abstract class Chunk {
         this.saved = saved;
     }
 
-    public void addTileEntity(SpecificTag tag) {
-        tileEntities.add(tag);
+    public void addTileEntity(Coordinate3D location, SpecificTag tag) {
+        CompoundTag entity = (CompoundTag) tag;
+
+        // remove existing coordinates
+        Iterator<NamedTag> it = entity.iterator();
+        while (it.hasNext()) {
+            NamedTag t = it.next();
+            if (t.isNamed("x") || t.isNamed("y") || t.isNamed("z")) { it.remove(); }
+        }
+
+        // insert new coordinates (offset)
+        entity.add("x", new IntTag(location.getX()));
+        entity.add("y", new IntTag(location.getY()));
+        entity.add("z", new IntTag(location.getZ()));
+
+        tileEntities.put(location, tag);
+    }
+
+    private void addTileEntity(SpecificTag nbtTag) {
+        CompoundTag entity = (CompoundTag) nbtTag;
+        Coordinate3D position = new Coordinate3D(entity.get("x").intValue(), entity.get("y").intValue(), entity.get("z").intValue());
+        position.offset();
+
+        addTileEntity(position, nbtTag);
     }
 
     /**
@@ -100,12 +124,12 @@ public abstract class Chunk {
             readBiomes(dataProvider);
         }
     }
-
     protected void parseHeightMaps(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
     protected abstract ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock);
     protected abstract void readBiomes(DataTypeProvider provider);
     protected abstract SpecificTag getBiomes();
+
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
 
@@ -165,7 +189,7 @@ public abstract class Chunk {
         map.add("Entities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>()));
 
         map.add("Biomes", getBiomes());
-        map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, tileEntities));
+        map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
         map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
     }
 
@@ -191,19 +215,7 @@ public abstract class Chunk {
 
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
-            // read a tile entity and offset the coordinates
-            CompoundTag entity = (CompoundTag) dataProvider.readNbtTag();
-            Coordinate3D position = new Coordinate3D(entity.get("x").intValue(), entity.get("y").intValue(), entity.get("z").intValue());
-            position.offset();
-            Iterator<NamedTag>  it = entity.iterator();
-            while (it.hasNext()) {
-                NamedTag t = it.next();
-                if (t.isNamed("x") || t.isNamed("z")) { it.remove(); }
-            }
-            entity.add("x", new IntTag(position.getX()));
-            entity.add("z", new IntTag(position.getZ()));
-            
-            addTileEntity(entity);
+            addTileEntity(dataProvider.readNbtTag());
         }
 
         this.saved = false;

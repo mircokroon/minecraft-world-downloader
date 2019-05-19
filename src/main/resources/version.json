@@ -7,7 +7,8 @@
 				"0x20": "chunk_data",
 				"0x1D": "chunk_unload",
 				"0x2F": "player_position_look",
-				"0x29": "player_vehicle_move" 
+				"0x29": "player_vehicle_move",
+				"0x09": "update_block_entity"
 			},
 			"serverbound": {
 				"0x0D": "player_position",
@@ -22,7 +23,8 @@
 				"0x22": "chunk_data",
 				"0x1F": "chunk_unload",
 				"0x32": "player_position_look",
-				"0x2B": "player_vehicle_move" 
+				"0x2B": "player_vehicle_move",
+				"0x09": "update_block_entity"
 			},
 			"serverbound": {
 				"0x10": "player_position",
@@ -38,7 +40,8 @@
 				"0x1D": "chunk_unload",
 				"0x35": "player_position_look",
 				"0x2C": "player_vehicle_move",
-				"0x24": "chunk_update_light"
+				"0x24": "chunk_update_light",
+				"0x09": "update_block_entity"
 			},
 			"serverbound": {
 				"0x11": "player_position",

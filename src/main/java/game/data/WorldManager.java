@@ -177,6 +177,9 @@ public class WorldManager extends Thread {
      * @return the chunk
      */
     public static Chunk getChunk(Coordinate2D coordinate) {
+        if (!regions.containsKey(coordinate.chunkToRegion())) {
+            return null;
+        }
         return regions.get(coordinate.chunkToRegion()).getChunk(coordinate);
     }
 

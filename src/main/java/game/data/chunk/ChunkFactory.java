@@ -2,12 +2,14 @@ package game.data.chunk;
 
 import game.Game;
 import game.data.Coordinate2D;
+import game.data.Coordinate3D;
 import game.data.WorldManager;
 import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
 import gui.GuiManager;
 import packets.DataTypeProvider;
+import se.llbit.nbt.SpecificTag;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -16,18 +18,33 @@ public class ChunkFactory extends Thread {
 
     private ConcurrentLinkedQueue<DataTypeProvider> unparsedChunks;
 
+    public static ChunkFactory getInstance() {
+        if (factory == null) {
+            factory = new ChunkFactory();
+        }
+        return factory;
+    }
+
     private ChunkFactory() {
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
     }
 
-    public static void addChunk(DataTypeProvider provider) {
-        factory.addChunkToQueue(provider);
+    public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
+        position.offset();
+
+        Chunk chunk = WorldManager.getChunk(position.chunkPos());
+
+        // if the chunk doesn't exist yet, ignore it
+        if (chunk != null) {
+            chunk.addTileEntity(position, entityData);
+            chunk.setSaved(false);
+        }
     }
 
     /**
      * Need a non-static method to do this as we cannot otherwise call notify
      */
-    public synchronized void addChunkToQueue(DataTypeProvider provider) {
+    public synchronized void addChunk(DataTypeProvider provider) {
         unparsedChunks.add(provider);
         notify();
     }
@@ -41,7 +58,7 @@ public class ChunkFactory extends Thread {
             return;
         }
 
-        factory = new ChunkFactory();
+        factory = getInstance();
         factory.start();
     }
 
@@ -82,7 +99,7 @@ public class ChunkFactory extends Thread {
     /**
      * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
      */
-    private static void readChunkDataPacket(DataTypeProvider dataProvider) {
+    private void readChunkDataPacket(DataTypeProvider dataProvider) {
         Coordinate2D chunkPos = new Coordinate2D(dataProvider.readInt(), dataProvider.readInt());
         chunkPos.offsetChunk();
         GuiManager.setChunkLoaded(chunkPos);

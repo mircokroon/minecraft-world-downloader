@@ -35,6 +35,6 @@ public class DataProvider {
             fullPacket = compressed;
         }
 
-        return new DataTypeProvider(fullPacket);
+        return DataTypeProvider.ofPacket(fullPacket);
     }
 }

@@ -5,6 +5,7 @@ import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
+import se.llbit.nbt.SpecificTag;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,7 +15,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
     public ClientBoundGamePacketBuilder() {
         operations.put("chunk_data", provider -> {
             try {
-                ChunkFactory.addChunk(provider);
+                ChunkFactory.getInstance().addChunk(provider);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -25,8 +26,15 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             return true;
         });
         operations.put("chunk_update_light", provider -> {
+            // TODO: update chunk light for 1.14
+            return true;
+        });
+        operations.put("update_block_entity", provider -> {
+            Coordinate3D position = provider.readCoordinates();
+            byte action = provider.readNext();
+            SpecificTag entityData = provider.readNbtTag();
 
-
+            ChunkFactory.getInstance().updateTileEntity(position, entityData);
             return true;
         });
         PacketOperator updatePlayerPosition = provider -> {
