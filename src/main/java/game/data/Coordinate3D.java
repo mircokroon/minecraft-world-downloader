@@ -18,9 +18,10 @@ public class Coordinate3D {
         this.z = z;
     }
 
+    // set the offset and round it to chunks
     public static void setOffset(int x, int z) {
-        offsetX = x;
-        offsetZ = z;
+        offsetX = (x / 16) * 16;
+        offsetZ = (z / 16) * 16;
     }
 
     public Coordinate3D offset() {

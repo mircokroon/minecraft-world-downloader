@@ -7,12 +7,12 @@ import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.CompoundTag;
 
 public class ChunkSection_1_12 extends ChunkSection {
-    protected int[][][] blocks;
+    protected int[][][] blockStates;
     private int bitsPerBlock;
     public ChunkSection_1_12(byte y, Palette palette, int bitsPerBlock) {
         super(y, palette);
         this.bitsPerBlock = bitsPerBlock;
-        this.blocks = new int[16][16][16];
+        this.blockStates = new int[16][16][16];
     }
 
     @Override
@@ -36,7 +36,7 @@ public class ChunkSection_1_12 extends ChunkSection {
                     }
                     data &= individualValueMask;
 
-                    this.blocks[x][y][z] = data;
+                    this.blockStates[x][y][z] = palette.stateFromId(data);
                 }
             }
         }
@@ -54,7 +54,7 @@ public class ChunkSection_1_12 extends ChunkSection {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    blockData[getBlockIndex(x, y, z)] = (byte) (palette.stateFromId(blocks[x][y][z]) >>> 4);
+                    blockData[getBlockIndex(x, y, z)] = (byte) (blockStates[x][y][z] >>> 4);
                 }
             }
         }
@@ -67,7 +67,7 @@ public class ChunkSection_1_12 extends ChunkSection {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    insertAtHalf(blockData, x, y, z, palette.stateFromId(blocks[x][y][z]) & 0x0F);
+                    insertAtHalf(blockData, x, y, z, (blockStates[x][y][z]) & 0x0F);
                 }
             }
         }

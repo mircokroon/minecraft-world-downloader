@@ -2,6 +2,7 @@ package game.data.chunk;
 
 import game.Game;
 import game.data.Coordinate2D;
+import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import packets.DataTypeProvider;
@@ -12,12 +13,12 @@ import se.llbit.nbt.ListTag;
 import se.llbit.nbt.LongTag;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.StringTag;
 import se.llbit.nbt.Tag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -30,8 +31,8 @@ public abstract class Chunk {
 
     private static final int DataVersion = 1631;
 
-    private int x;
-    private int z;
+    public final int x;
+    public final int z;
     private List<SpecificTag> tileEntities;
     private ChunkSection[] chunkSections;
 
@@ -46,16 +47,6 @@ public abstract class Chunk {
         tileEntities = new ArrayList<>();
 
         WorldManager.loadChunk(new Coordinate2D(x, z), this);
-    }
-
-    private static int getInt(CompoundTag tag, String name) {
-        IntTag intTag = (IntTag) tag.get(name);
-        return intTag.getData();
-    }
-
-    private static String getString(CompoundTag tag, String name) {
-        StringTag intTag = (StringTag) tag.get(name);
-        return intTag.getData();
     }
 
     public boolean isSaved() {
@@ -200,7 +191,24 @@ public abstract class Chunk {
 
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
-            addTileEntity(dataProvider.readNbtTag());
+            // read a tile entity and offset the coordinates
+            CompoundTag entity = (CompoundTag) dataProvider.readNbtTag();
+            Coordinate3D position = new Coordinate3D(entity.get("x").intValue(), entity.get("y").intValue(), entity.get("z").intValue());
+            position.offset();
+            Iterator<NamedTag>  it = entity.iterator();
+            while (it.hasNext()) {
+                NamedTag t = it.next();
+                if (t.isNamed("x") || t.isNamed("z")) {
+                    System.out.println("removed tag: " + t.dumpTree());
+                    it.remove();
+                }
+            }
+
+            entity.add("x", new IntTag(position.getX()));
+            entity.add("z", new IntTag(position.getZ()));
+            addTileEntity(entity);
         }
+
+        this.saved = false;
     }
 }
