@@ -25,13 +25,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
+ */
 public abstract class Chunk {
     protected static final int LIGHT_SIZE = 2048;
     protected static final int CHUNK_HEIGHT = 256;
     public static final int SECTION_HEIGHT = 16;
     public static final int SECTION_WIDTH = 16;
-
-    private static final int DataVersion = 1631;
 
     public final int x;
     public final int z;
@@ -77,6 +78,10 @@ public abstract class Chunk {
         tileEntities.put(location, tag);
     }
 
+    /**
+     * Add a tile entity, if the position is not known yet. This method will also offset the position.
+     * @param nbtTag the NBT data of the tile entity, should include X, Y, Z of the entity
+     */
     private void addTileEntity(SpecificTag nbtTag) {
         CompoundTag entity = (CompoundTag) nbtTag;
         Coordinate3D position = new Coordinate3D(entity.get("x").intValue(), entity.get("y").intValue(), entity.get("z").intValue());
@@ -138,8 +143,6 @@ public abstract class Chunk {
         }
     }
 
-
-
     private void setSection(int sectionY, ChunkSection section) {
         chunkSections[sectionY] = section;
     }
@@ -179,6 +182,10 @@ public abstract class Chunk {
         return levelTag;
     }
 
+    /**
+     * Add NBT tags to the level tag. May be overriden by versioned chunks to add extra tags. Those should probably
+     * call this (super) method.
+     */
     protected void addLevelNbtTags(CompoundTag map) {
         map.add("xPos", new IntTag(x));
         map.add("zPos", new IntTag(z));
@@ -204,9 +211,15 @@ public abstract class Chunk {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Parse the chunk data.
+     * @param dataProvider network input
+     * @param full indicates if its the full chunk or a part of it
+     */
     public void parse(DataTypeProvider dataProvider, boolean full) {
         int mask = dataProvider.readVarInt();
 
+        // for 1.14+
         parseHeightMaps(dataProvider);
 
         int size = dataProvider.readVarInt();
@@ -218,6 +231,7 @@ public abstract class Chunk {
             addTileEntity(dataProvider.readNbtTag());
         }
 
+        // ensure the chunk is (re)saved
         this.saved = false;
     }
 }

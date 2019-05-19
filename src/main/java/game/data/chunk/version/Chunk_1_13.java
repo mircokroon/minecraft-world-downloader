@@ -9,6 +9,9 @@ import se.llbit.nbt.IntArrayTag;
 import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.StringTag;
 
+/**
+ * Chunk format for 1.13+. Now includes a status tag and the biomes are integers.
+ */
 public class Chunk_1_13 extends Chunk {
 
     private int[] biomes;

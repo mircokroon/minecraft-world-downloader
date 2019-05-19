@@ -36,7 +36,7 @@ public class Launcher {
         parser.addArgument("-b", "--mask-bedrock").dest("mask-bedrock")
             .setDefault(false)
             .type(boolean.class)
-            .help("Convert all bedrock to stone to make world locations harder to find.");
+            .help("Convert all bedrock to stone to make world locations harder to find. Currently only for 1.12.2.");
         parser.addArgument("-x", "--center-x")
             .setDefault(0)
             .type(Integer.class)

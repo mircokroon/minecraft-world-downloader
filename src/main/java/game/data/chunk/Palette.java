@@ -19,16 +19,17 @@ public class Palette {
     private Palette(int bitsPerBlock, int[] palette) {
         this.bitsPerBlock = bitsPerBlock;
         this.palette = palette;
-
-        if (bitsPerBlock > 8) {
-            System.out.println("WARNING: palette type not supported");
-        }
     }
 
     public static void setMaskBedrock(boolean maskBedrock) {
         Palette.maskBedrock = maskBedrock;
     }
 
+    /**
+     * Read the palette from the network stream.
+     * @param bitsPerBlock the number of bits per block that is used, indicates the palette type
+     * @param dataTypeProvider network stream reader
+     */
     public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
         int size = dataTypeProvider.readVarInt();
 
@@ -45,23 +46,32 @@ public class Palette {
         return new Palette(bitsPerBlock, palette);
     }
 
-    public int stateFromId(int data) {
+    /**
+     * Get the block state from the palette index.
+     */
+    public int stateFromId(int index) {
         if (bitsPerBlock > 8) {
-            return data;
+            return index;
         }
-        if (palette.length == data) {
-            System.out.println("Index oob! : " + data + " // " + bitsPerBlock);
-        }
-        return palette[data];
+
+        return palette[index];
     }
 
     public boolean isEmpty() {
         return palette.length == 0 || (palette.length == 1 && palette[0] == 0);
     }
 
+    /**
+     * Create an NBT version of this palette using the global palette.
+     */
     public List<SpecificTag> toNbt() {
         List<SpecificTag> tags = new ArrayList<>();
         GlobalPalette globalPalette = WorldManager.getGlobalPalette();
+
+        if (globalPalette == null) {
+            throw new UnsupportedOperationException("Cannot create palette NBT without a global palette.");
+        }
+
         for (int i : palette) {
             tags.add(globalPalette.getState(i).toNbt());
         }

@@ -6,6 +6,10 @@ import game.data.chunk.Palette;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.CompoundTag;
 
+/**
+ * Chunk sections in 1.12 require parsing of the full block data as the level format does not include a palette
+ * as the new versions do. As such this class is more lengthy than the new versions.
+ */
 public class ChunkSection_1_12 extends ChunkSection {
     protected int[][][] blockStates;
     private int bitsPerBlock;

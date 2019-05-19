@@ -14,12 +14,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Class to handle versions from version.json file.
+ */
 public class VersionHandler {
     private static final String VERSION_PATH = "version.json";
-    HashMap<Integer, Protocol> protocols;
+    private HashMap<Integer, Protocol> protocols;
 
+    // instantiated by Gson
     private VersionHandler() {}
 
+    /**
+     * Create a new version handler by reading from version.json file. This file contains the packet IDs for each
+     * of the supported protocol versions.
+     */
     public static VersionHandler createVersionHandler() {
         GsonBuilder g = new GsonBuilder();
         g.registerTypeAdapter(Integer.class, new TypeAdapter() {
@@ -28,6 +36,7 @@ public class VersionHandler {
 
             @Override
             public Object read(JsonReader jsonReader) throws IOException {
+                // use decode instead of parse so that we can use hex values to display the packet ID
                 return Integer.decode(jsonReader.nextString());
             }
         });
@@ -37,6 +46,13 @@ public class VersionHandler {
         return g.create().fromJson(file, VersionHandler.class);
     }
 
+    /**
+     * Get a protocol object, which contains the current game and protocol versions, as well as the packet IDs
+     * for the specific version. If the protocol version does not exist, it will pick the closest available one
+     * that is lower than the given version. If the given version is lower than all the existing ones, pick the lowest
+     * one.
+     * @param protocolVersion the protocol version (not game version)
+     */
     public Protocol getProtocol(int protocolVersion) {
         List<Integer> versions = protocols.keySet().stream().sorted().collect(Collectors.toList());
         int chosenVersion = versions.get(0);

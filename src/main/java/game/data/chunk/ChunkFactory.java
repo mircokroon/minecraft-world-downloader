@@ -13,6 +13,9 @@ import se.llbit.nbt.SpecificTag;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * Class responsible for creating chunks.
+ */
 public class ChunkFactory extends Thread {
     private static ChunkFactory factory;
 
@@ -29,13 +32,21 @@ public class ChunkFactory extends Thread {
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
     }
 
+    /**
+     * Update a tile entity that was given individually.
+     * @param position the uncorrected position of the tile entity
+     * @param entityData the NBT data of the entity
+     */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
         position.offset();
 
         Chunk chunk = WorldManager.getChunk(position.chunkPos());
 
         // if the chunk doesn't exist yet, ignore it
-        if (chunk != null) {
+        if (chunk == null) {
+            // TODO: support tile entities coming in before chunk packets have been parsed
+            System.out.println("Chunk does not exist yet! Skipping this tile entity.");
+        } else {
             chunk.addTileEntity(position, entityData);
             chunk.setSaved(false);
         }

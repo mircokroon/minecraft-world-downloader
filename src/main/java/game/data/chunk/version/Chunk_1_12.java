@@ -7,6 +7,9 @@ import packets.DataTypeProvider;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.SpecificTag;
 
+/**
+ * Chunks in the 1.12(.2) format. Biomes were a byte array in this version.
+ */
 public class Chunk_1_12 extends Chunk {
 
     private byte[] biomes;

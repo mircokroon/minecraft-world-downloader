@@ -6,6 +6,10 @@ import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.SpecificTag;
 
+/**
+ * In 1.14 the chunks are now given a heightmap in the packet. They also no longer contain light information, as
+ * this was moved to a different packet. Also, a block count?
+ */
 public class Chunk_1_14 extends Chunk_1_13 {
 
     SpecificTag heightMap;

@@ -32,6 +32,7 @@ public abstract class ChunkSection {
     public void setBlocks(long[] blocks) {
         this.blocks = blocks;
     }
+
     /**
      * Convert this section to NBT.
      */
