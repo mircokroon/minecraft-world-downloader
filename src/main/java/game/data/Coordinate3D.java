@@ -21,7 +21,7 @@ public class Coordinate3D {
     // set the offset and round it to chunks
     public static void setOffset(int x, int z) {
         offsetX = x >> 4 << 4;
-        offsetZ = x >> 4 << 4;
+        offsetZ = z >> 4 << 4;
     }
 
     public Coordinate3D offset() {
