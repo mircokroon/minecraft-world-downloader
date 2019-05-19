@@ -76,7 +76,7 @@ public class Coordinate3D {
     }
 
     private int getChunk(int pos) {
-        return (int) Math.floor(pos / 16);
+        return (int) Math.floor(pos / 16.0);
     }
 
     @Override
