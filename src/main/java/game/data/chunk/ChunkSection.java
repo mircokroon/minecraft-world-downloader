@@ -1,11 +1,8 @@
 package game.data.chunk;
 
-import com.flowpowered.nbt.ByteArrayTag;
-import com.flowpowered.nbt.ByteTag;
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-
-import packets.builder.PacketBuilder;
+import se.llbit.nbt.ByteArrayTag;
+import se.llbit.nbt.ByteTag;
+import se.llbit.nbt.CompoundTag;
 
 /**
  * Class to hold a 16 block tall chunk section.
@@ -39,24 +36,24 @@ public abstract class ChunkSection {
      * Convert this section to NBT.
      */
     public CompoundTag toNbt() {
-        CompoundMap map = new CompoundMap();
-        map.put(new ByteTag("Y", y));
+        CompoundTag tag = new CompoundTag();
+        tag.add("Y", new ByteTag(y));
 
 
         if (blockLight != null && blockLight.length != 0) {
-            map.put(new ByteArrayTag("BlockLight", blockLight));
+            tag.add("BlockLight", new ByteArrayTag(blockLight));
         }
 
         if (skyLight != null && skyLight.length != 0) {
-            map.put(new ByteArrayTag("SkyLight", skyLight));
+            tag.add("SkyLight", new ByteArrayTag(skyLight));
         }
 
-        addNbtTags(map);
+        addNbtTags(tag);
 
-        return new CompoundTag("", map);
+        return tag;
     }
 
-    protected abstract void addNbtTags(CompoundMap map);
+    protected abstract void addNbtTags(CompoundTag map);
 
     public static int getBlockIndex(int x, int y, int z) {
         return y * 16 * 16 + z * 16 + x;

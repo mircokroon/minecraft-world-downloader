@@ -1,14 +1,13 @@
 package game.data.chunk.version;
 
-import com.flowpowered.nbt.IntArrayTag;
-import com.flowpowered.nbt.Tag;
-
-import game.Game;
-import game.data.Dimension;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.Palette;
 import packets.DataTypeProvider;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.IntArrayTag;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
 
 public class Chunk_1_13 extends Chunk {
 
@@ -38,7 +37,13 @@ public class Chunk_1_13 extends Chunk {
         }
     }
 
-    protected Tag getBiomes() {
-        return new IntArrayTag("Biomes", biomes);
+    @Override
+    protected void addLevelNbtTags(CompoundTag map) {
+        map.add("Status", new StringTag("carved"));
+        super.addLevelNbtTags(map);
+    }
+
+    protected SpecificTag getBiomes() {
+        return new IntArrayTag(biomes);
     }
 }

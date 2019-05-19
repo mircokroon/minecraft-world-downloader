@@ -1,26 +1,30 @@
 package game.data;
 
-import com.flowpowered.nbt.ByteTag;
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.DoubleTag;
-import com.flowpowered.nbt.IntTag;
-import com.flowpowered.nbt.ListTag;
-import com.flowpowered.nbt.LongTag;
-import com.flowpowered.nbt.StringTag;
-import com.flowpowered.nbt.stream.NBTInputStream;
-import com.flowpowered.nbt.stream.NBTOutputStream;
-
 import game.Game;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.GlobalPalette;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
+import org.apache.commons.io.IOUtils;
+import proxy.CompressionManager;
+import se.llbit.nbt.ByteTag;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.DoubleTag;
+import se.llbit.nbt.ErrorTag;
+import se.llbit.nbt.IntTag;
+import se.llbit.nbt.ListTag;
+import se.llbit.nbt.LongTag;
+import se.llbit.nbt.NamedTag;
+import se.llbit.nbt.StringTag;
+import se.llbit.nbt.Tag;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -85,48 +89,59 @@ public class WorldManager extends Thread {
         } else {
             fileInput = WorldManager.class.getClassLoader().getResourceAsStream("level.dat");
         }
+        byte[] fileContent = IOUtils.toByteArray(fileInput);
 
         // get default level.dat
-        CompoundTag level = (CompoundTag) new NBTInputStream(fileInput, true).readTag();
-        CompoundMap data = (CompoundMap) level.getValue().get("Data").getValue();
+        Tag root = NamedTag.read(
+            new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
+        );
+
+        CompoundTag data = (CompoundTag) root.unpack().get("Data");
 
         // add the player's position
         Coordinate3D playerPosition = Game.getPlayerPosition();
         if (playerPosition != null) {
-            CompoundTag player = new CompoundTag("Player", new CompoundMap());
-            CompoundMap playerMap = (CompoundMap) data.getOrDefault("Player",  player).getValue();
+            Tag playerTag = data.get("Player");
+            CompoundTag player;
+            if (playerTag instanceof ErrorTag) {
+                player = new CompoundTag();
+            } else {
+                player = (CompoundTag) playerTag;
+                data.add("Player", player);
+            }
 
-            playerMap.put(new ListTag<>("Pos", DoubleTag.class, Arrays.asList(
-                new DoubleTag("X", playerPosition.getX() * 1.0),
-                new DoubleTag("Y", playerPosition.getY() * 1.0),
-                new DoubleTag("Z", playerPosition.getZ() * 1.0)
+            player.add("Pos", new ListTag(Tag.TAG_DOUBLE, Arrays.asList(
+                new DoubleTag(playerPosition.getX() * 1.0),
+                new DoubleTag(playerPosition.getY() * 1.0),
+                new DoubleTag(playerPosition.getZ() * 1.0)
             )));
 
             // set the world spawn to match the last known player location
-            data.put(new IntTag("SpawnX", playerPosition.getX()));
-            data.put(new IntTag("SpawnY", playerPosition.getY()));
-            data.put(new IntTag("SpawnZ", playerPosition.getZ()));
+            data.add("SpawnX", new IntTag(playerPosition.getX()));
+            data.add("SpawnY", new IntTag(playerPosition.getY()));
+            data.add("SpawnZ", new IntTag(playerPosition.getZ()));
         }
 
         // add the seed & last played time
-        data.put(new LongTag("RandomSeed", Game.getSeed()));
-        data.put(new LongTag("LastPlayed", System.currentTimeMillis()));
+        data.add("RandomSeed", new LongTag(Game.getSeed()));
+        data.add("LastPlayed", new LongTag(System.currentTimeMillis()));
 
         // add the version
         if (Game.getDataVersion() > 0 && Game.getGameVersion() != null) {
+            CompoundTag versionTag = new CompoundTag();
+            versionTag.add("Id", new IntTag(Game.getDataVersion()));
+            versionTag.add("Name", new StringTag(Game.getGameVersion()));
+            versionTag.add("Snapshot", new ByteTag((byte) 0));
 
-            CompoundMap versionMap = new CompoundMap();
-            versionMap.put(new IntTag("Id", Game.getDataVersion()));
-            versionMap.put(new StringTag("Name", Game.getGameVersion()));
-            versionMap.put(new ByteTag("Snapshot", (byte) 0));
-
-            data.put(new CompoundTag("Version", versionMap));
+            data.add("Version", versionTag);
         }
 
         // write the file
-        NBTOutputStream output = new NBTOutputStream(new FileOutputStream(levelDat), true);
-        output.writeTag(level);
-        output.close();
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        root.write(new DataOutputStream(output));
+
+        byte[] compressed = CompressionManager.gzipCompress(output.toByteArray());
+        Files.write(levelDat.toPath(), compressed);
     }
 
     /**
@@ -173,6 +188,8 @@ public class WorldManager extends Thread {
     }
 
     public static void setGlobalPalette(String version) {
+        System.out.println(version);
+        System.out.println(globalPalette);
         globalPalette = new GlobalPalette(version);
     }
 

@@ -1,23 +1,22 @@
 package game.data.chunk;
 
-import com.flowpowered.nbt.Tag;
-import com.flowpowered.nbt.stream.NBTOutputStream;
-
 import game.data.region.McaFile;
+import proxy.CompressionManager;
+import se.llbit.nbt.NamedTag;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
  * Binary (raw NBT) version of a chunk.
  */
 public class ChunkBinary {
-    private final static byte COMPRESSION_TYPE = 1;
+    private final static byte COMPRESSION_TYPE = 2;
     private int timestamp;
     private int location;
     private int size;
     private byte[] chunkData;
-
     private ChunkBinary() {
         this.timestamp = 0;
         this.location = -1;
@@ -36,7 +35,7 @@ public class ChunkBinary {
      * @return the binary version of the chunk
      */
     public static ChunkBinary fromChunk(Chunk chunk) throws IOException {
-        Tag nbt = chunk.toNbt();
+        NamedTag nbt = chunk.toNbt();
 
         if (nbt == null) {
             return null;
@@ -45,11 +44,9 @@ public class ChunkBinary {
         ChunkBinary binary = new ChunkBinary();
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        NBTOutputStream outputStream = new NBTOutputStream(output, true);
+        nbt.write(new DataOutputStream(output));
 
-        outputStream.writeTag(nbt);
-        outputStream.close();
-        byte[] data = output.toByteArray();
+        byte[] data = CompressionManager.zlibCompress(output.toByteArray());
 
         byte[] finalData = new byte[data.length + 5];
         int lengthToWrite = data.length + 1;

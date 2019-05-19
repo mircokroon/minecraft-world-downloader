@@ -1,11 +1,10 @@
 package game.data.chunk.version;
 
-import com.flowpowered.nbt.ByteArrayTag;
-import com.flowpowered.nbt.CompoundMap;
-
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.Palette;
+import se.llbit.nbt.ByteArrayTag;
+import se.llbit.nbt.CompoundTag;
 
 public class ChunkSection_1_12 extends ChunkSection {
     protected int[][][] blocks;
@@ -44,9 +43,9 @@ public class ChunkSection_1_12 extends ChunkSection {
     }
 
     @Override
-    protected void addNbtTags(CompoundMap map) {
-        map.put(new ByteArrayTag("Blocks", getBlockIds()));
-        map.put(new ByteArrayTag("Data", getBlockStates()));
+    protected void addNbtTags(CompoundTag map) {
+        map.add("Blocks", new ByteArrayTag(getBlockIds()));
+        map.add("Data", new ByteArrayTag(getBlockStates()));
     }
 
     private byte[] getBlockIds() {

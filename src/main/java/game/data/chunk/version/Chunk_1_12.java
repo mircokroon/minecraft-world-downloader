@@ -1,14 +1,11 @@
 package game.data.chunk.version;
 
-import com.flowpowered.nbt.ByteArrayTag;
-import com.flowpowered.nbt.Tag;
-
-import game.Game;
-import game.data.Dimension;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.Palette;
 import packets.DataTypeProvider;
+import se.llbit.nbt.ByteArrayTag;
+import se.llbit.nbt.SpecificTag;
 
 public class Chunk_1_12 extends Chunk {
 
@@ -37,7 +34,7 @@ public class Chunk_1_12 extends Chunk {
         }
     }
 
-    protected Tag getBiomes() {
-        return new ByteArrayTag("Biomes", biomes);
+    protected SpecificTag getBiomes() {
+        return new ByteArrayTag(biomes);
     }
 }

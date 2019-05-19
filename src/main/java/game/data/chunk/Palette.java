@@ -1,14 +1,11 @@
 package game.data.chunk;
 
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.Tag;
-
 import game.data.WorldManager;
 import game.data.chunk.palette.GlobalPalette;
 import packets.DataTypeProvider;
+import se.llbit.nbt.SpecificTag;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -62,8 +59,8 @@ public class Palette {
         return palette.length == 0 || (palette.length == 1 && palette[0] == 0);
     }
 
-    public List<CompoundTag> toNbt() {
-        List<CompoundTag> tags = new ArrayList<>();
+    public List<SpecificTag> toNbt() {
+        List<SpecificTag> tags = new ArrayList<>();
         GlobalPalette globalPalette = WorldManager.getGlobalPalette();
         for (int i : palette) {
             tags.add(globalPalette.getState(i).toNbt());

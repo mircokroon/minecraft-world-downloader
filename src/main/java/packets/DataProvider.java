@@ -30,7 +30,7 @@ public class DataProvider {
                 () -> compressed[compressionPos[0]++]
             );
 
-            fullPacket = compressionManager.decompress(compressed, compressionPos[0], uncompressedSize);
+            fullPacket = compressionManager.decompressPacket(compressed, compressionPos[0], uncompressedSize);
         } else {
             fullPacket = compressed;
         }

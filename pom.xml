@@ -66,10 +66,12 @@
         </dependency>
 
         <dependency>
-            <groupId>com.flowpowered</groupId>
-            <artifactId>flow-nbt</artifactId>
-            <version>1.0.0</version>
+            <groupId>se.llbit</groupId>
+            <artifactId>jo-nbt</artifactId>
+            <version>1.3.0</version>
         </dependency>
+
+
 
         <!-- https://mvnrepository.com/artifact/net.sourceforge.argparse4j/argparse4j -->
         <dependency>

@@ -103,7 +103,7 @@ public class ChunkFactory extends Thread {
 
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
-            chunk.addTileEntity(dataProvider.readCompoundTag());
+            chunk.addTileEntity(dataProvider.readNbtTag());
         }
     }
 

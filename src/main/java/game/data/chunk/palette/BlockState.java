@@ -1,10 +1,8 @@
 package game.data.chunk.palette;
 
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.StringTag;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.StringTag;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class BlockState {
@@ -17,18 +15,19 @@ public class BlockState {
     }
 
     public CompoundTag toNbt() {
-        CompoundMap rootMap = new CompoundMap();
-        rootMap.put(new StringTag("Name", name));
+        CompoundTag rootTag = new CompoundTag();
+        rootTag.add("Name", new StringTag(name));
 
-        CompoundMap propertyMap = new CompoundMap();
-        this.properties.forEach((propertyName, propertyValue) -> {
-            propertyMap.put(new StringTag(propertyName, propertyValue));
-        });
+        if (properties != null && !properties.isEmpty())  {
+            CompoundTag propertyTag = new CompoundTag();
+            this.properties.forEach((propertyName, propertyValue) -> {
+                propertyTag.add(propertyName, new StringTag(propertyValue));
+            });
 
-        if (!propertyMap.isEmpty()) {
-            rootMap.put(new CompoundTag("Properties", propertyMap));
+            rootTag.add("Properties", propertyTag);
         }
 
-        return new CompoundTag("", rootMap);
+
+        return rootTag;
     }
 }

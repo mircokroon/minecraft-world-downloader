@@ -1,19 +1,19 @@
 package game.data.chunk;
 
-import com.flowpowered.nbt.ByteTag;
-import com.flowpowered.nbt.CompoundMap;
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.IntTag;
-import com.flowpowered.nbt.ListTag;
-import com.flowpowered.nbt.LongTag;
-import com.flowpowered.nbt.StringTag;
-import com.flowpowered.nbt.Tag;
-
 import game.Game;
 import game.data.Coordinate2D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import packets.DataTypeProvider;
+import se.llbit.nbt.ByteTag;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.IntTag;
+import se.llbit.nbt.ListTag;
+import se.llbit.nbt.LongTag;
+import se.llbit.nbt.NamedTag;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
+import se.llbit.nbt.Tag;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +32,7 @@ public abstract class Chunk {
 
     private int x;
     private int z;
-    private List<CompoundTag> tileEntities;
+    private List<SpecificTag> tileEntities;
     private ChunkSection[] chunkSections;
 
     private boolean saved;
@@ -49,13 +49,13 @@ public abstract class Chunk {
     }
 
     private static int getInt(CompoundTag tag, String name) {
-        IntTag intTag = (IntTag) tag.getValue().get(name);
-        return intTag.getValue();
+        IntTag intTag = (IntTag) tag.get(name);
+        return intTag.getData();
     }
 
     private static String getString(CompoundTag tag, String name) {
-        StringTag intTag = (StringTag) tag.getValue().get(name);
-        return intTag.getValue();
+        StringTag intTag = (StringTag) tag.get(name);
+        return intTag.getData();
     }
 
     public boolean isSaved() {
@@ -66,7 +66,7 @@ public abstract class Chunk {
         this.saved = saved;
     }
 
-    public void addTileEntity(CompoundTag tag) {
+    public void addTileEntity(SpecificTag tag) {
         tileEntities.add(tag);
     }
 
@@ -113,7 +113,7 @@ public abstract class Chunk {
     protected void readBlockCount(DataTypeProvider provider) { }
     protected abstract ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock);
     protected abstract void readBiomes(DataTypeProvider provider);
-    protected abstract Tag getBiomes();
+    protected abstract SpecificTag getBiomes();
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
 
@@ -132,16 +132,16 @@ public abstract class Chunk {
      * Convert this chunk to NBT tags.
      * @return the nbt root tag
      */
-    public CompoundTag toNbt() {
+    public NamedTag toNbt() {
         if (!hasSections()) {
             return null;
         }
 
-        CompoundMap rootMap = new CompoundMap();
-        rootMap.put("Level", createNbtLevel());
-        rootMap.put("DataVersion", new IntTag("DataVersion", Game.getDataVersion()));
+        CompoundTag root = new CompoundTag();
+        root.add("Level", createNbtLevel());
+        root.add("DataVersion", new IntTag(Game.getDataVersion()));
 
-        return new CompoundTag("", rootMap);
+        return new NamedTag("", root);
     }
 
     private boolean hasSections() {
@@ -158,29 +158,29 @@ public abstract class Chunk {
      * @return the level tag
      */
     private CompoundTag createNbtLevel() {
-        CompoundMap levelMap = new CompoundMap();
-        addLevelNbtTags(levelMap);
-        return new CompoundTag("Level", levelMap);
+        CompoundTag levelTag = new CompoundTag();
+        addLevelNbtTags(levelTag);
+        return levelTag;
     }
 
-    protected void addLevelNbtTags(CompoundMap map) {
-        map.put(new IntTag("xPos", x));
-        map.put(new IntTag("zPos", z));
-        map.put(new ByteTag("TerrainPopulated", (byte) 1));
-        map.put(new ByteTag("LightPopulated", (byte) 1));
-        map.put(new LongTag("InhabitedTime", 0));
-        map.put(new LongTag("LastUpdate", 0));
-        map.put(new ListTag<>("Entities", CompoundTag.class, new ArrayList<>()));
+    protected void addLevelNbtTags(CompoundTag map) {
+        map.add("xPos", new IntTag(x));
+        map.add("zPos", new IntTag(z));
+        map.add("TerrainPopulated", new ByteTag((byte) 1));
+        map.add("LightPopulated", new ByteTag((byte) 1));
+        map.add("InhabitedTime", new LongTag(0));
+        map.add("LastUpdate", new LongTag(0));
+        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>()));
 
-        map.put(getBiomes());
-        map.put(new ListTag<>("TileEntities", CompoundTag.class, tileEntities));
-        map.put(new ListTag<>("Sections", CompoundTag.class, getSectionList()));
+        map.add("Biomes", getBiomes());
+        map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, tileEntities));
+        map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
     }
 
     /**
      * Get a list of section tags for the NBT.
      */
-    private List<CompoundTag> getSectionList() {
+    private List<SpecificTag> getSectionList() {
         return Arrays.stream(chunkSections)
             .filter(Objects::nonNull)
             .sorted(Comparator.comparingInt(ChunkSection::getY))

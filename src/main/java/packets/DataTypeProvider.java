@@ -1,11 +1,10 @@
 package packets;
 
-import com.flowpowered.nbt.CompoundTag;
-import com.flowpowered.nbt.Tag;
-import com.flowpowered.nbt.stream.NBTInputStream;
-
 import game.data.Coordinate3D;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.SpecificTag;
 
+import java.io.DataInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 
@@ -134,20 +133,14 @@ public class DataTypeProvider {
         return res;
     }
 
-    public CompoundTag readCompoundTag() {
-        return (CompoundTag) readNbtTag();
-    }
-
-    public Tag readNbtTag() {
+    public SpecificTag readNbtTag() {
         try {
-            NBTInputStream inputStream = new NBTInputStream(new InputStream() {
+            return CompoundTag.read(new DataInputStream(new InputStream() {
                 @Override
                 public int read() {
                     return readNext() & 0xFF;
                 }
-            }, false);
-
-            return inputStream.readTag();
+            }));
         } catch (Exception ex) {
             ex.printStackTrace();
             return null;
