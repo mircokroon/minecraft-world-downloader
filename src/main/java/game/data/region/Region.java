@@ -4,6 +4,7 @@ import game.Game;
 import game.data.Coordinate2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
+import game.data.chunk.ChunkFactory;
 import gui.GuiManager;
 
 import java.io.IOException;
@@ -19,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
  */
 public class Region {
-    private final int UNLOAD_RANGE = 12;
+    private final int UNLOAD_RANGE = 24;
     private Map<Coordinate2D, Chunk> chunks;
     private Coordinate2D regionCoordinates;
 
@@ -95,6 +96,9 @@ public class Region {
         chunks.keySet().forEach(coordinate -> {
             try {
                 Chunk chunk = chunks.get(coordinate);
+
+                // mark the chunk for deletion -- this is really only a back-up, the unload-chunk packet sent by the
+                // server is what should be used to unload chunks correctly.
                 if (!playerPos.isInRange(coordinate, UNLOAD_RANGE)) {
                     toDelete.add(coordinate);
                 }
@@ -124,7 +128,9 @@ public class Region {
 
         GuiManager.setChunksSaved(saved);
 
+        // delete chunks and their sent-later tile entities
         for (Coordinate2D c : toDelete) {
+            ChunkFactory.getInstance().deleteTileEntities(c);
             chunks.remove(c);
         }
         toDelete.clear();

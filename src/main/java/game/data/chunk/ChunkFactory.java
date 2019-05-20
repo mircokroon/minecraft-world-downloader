@@ -8,10 +8,14 @@ import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
 import gui.GuiManager;
+import javafx.util.Pair;
 import packets.DataTypeProvider;
 import se.llbit.nbt.SpecificTag;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Class responsible for creating chunks.
@@ -20,6 +24,7 @@ public class ChunkFactory extends Thread {
     private static ChunkFactory factory;
 
     private ConcurrentLinkedQueue<DataTypeProvider> unparsedChunks;
+    private ConcurrentMap<Coordinate2D,ConcurrentLinkedQueue<TileEntity>> tileEntities;
 
     public static ChunkFactory getInstance() {
         if (factory == null) {
@@ -29,6 +34,7 @@ public class ChunkFactory extends Thread {
     }
 
     private ChunkFactory() {
+        this.tileEntities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
     }
 
@@ -42,14 +48,25 @@ public class ChunkFactory extends Thread {
 
         Chunk chunk = WorldManager.getChunk(position.chunkPos());
 
-        // if the chunk doesn't exist yet, ignore it
+        // if the chunk doesn't exist yet, add it to the queue to process later
         if (chunk == null) {
-            // TODO: support tile entities coming in before chunk packets have been parsed
-            System.out.println("Chunk does not exist yet! Skipping this tile entity.");
+            Queue<TileEntity> queue = tileEntities
+                .computeIfAbsent(position.chunkPos(), (pos) -> new ConcurrentLinkedQueue<>());
+
+            queue.add(new TileEntity(position, entityData));
         } else {
             chunk.addTileEntity(position, entityData);
             chunk.setSaved(false);
         }
+    }
+
+    /**
+     * Delete all tile entities for a chunk, only done when the chunk is also unloaded. Note that this only related to
+     * tile entities sent in the update-tile-entity packets, ones sent with the chunk will only be stored in the chunk.
+     * @param location the position of the chunk for which we can delete tile entities.
+     */
+    public void deleteTileEntities(Coordinate2D location) {
+        tileEntities.remove(location);
     }
 
     /**
@@ -125,6 +142,15 @@ public class ChunkFactory extends Thread {
         }
 
         chunk.parse(dataProvider, full);
+
+        // Add any tile entities that were sent before the chunk was parsed. We cannot delete the tile entities yet
+        // (so we cannot remove them from the queue) as they are not always re-sent when the chunk is re-sent. (?)
+        if (tileEntities.containsKey(chunkPos)) {
+            Queue<TileEntity> queue = tileEntities.get(chunkPos);
+            for (TileEntity ent : queue) {
+                chunk.addTileEntity(ent.getKey(), ent.getValue());
+            }
+        }
     }
 
     /**
@@ -139,6 +165,12 @@ public class ChunkFactory extends Thread {
             return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());
         } else {
             return new Chunk_1_12(chunkPos.getX(), chunkPos.getZ());
+        }
+    }
+
+    private class TileEntity extends Pair<Coordinate3D, SpecificTag> {
+        public TileEntity(Coordinate3D key, SpecificTag value) {
+            super(key, value);
         }
     }
 }
