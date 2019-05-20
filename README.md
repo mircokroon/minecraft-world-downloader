@@ -3,9 +3,12 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 
 ### Features
 - Requires no client modifications and as such works with every game client, vanilla or not
-- Offset world save coordinates of the saved location
-- Automatically merge into existing downloads
-- Optional GUI to show which chunks have been saved
+- Automatically merge into previous downloads or existing worlds
+- Offset world coordinates of the saved location
+- Optional GUI to show which chunks have been loaded & saved:
+
+![https://imgur.com/kEHta0F](https://i.imgur.com/kEHta0F.jpg)
+
 
 ### Requirements
 - Java 8 or higher
