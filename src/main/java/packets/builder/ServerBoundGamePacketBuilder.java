@@ -1,11 +1,7 @@
 package packets.builder;
 
 import game.Game;
-import game.data.Coordinate2D;
 import game.data.Coordinate3D;
-import game.data.WorldManager;
-import game.data.chunk.ChunkFactory;
-import packets.DataTypeProvider;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +13,10 @@ public class ServerBoundGamePacketBuilder extends PacketBuilder {
             double x = provider.readDouble();
             double y = provider.readDouble();
             double z = provider.readDouble();
-            Game.setPlayerPosition(new Coordinate3D(x, y, z).offset());
+
+            Coordinate3D playerPos = new Coordinate3D(x, y, z);
+            playerPos.offsetGlobal();
+            Game.setPlayerPosition(playerPos);
 
             return true;
         };

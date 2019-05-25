@@ -85,7 +85,7 @@ public abstract class Chunk {
     private void addTileEntity(SpecificTag nbtTag) {
         CompoundTag entity = (CompoundTag) nbtTag;
         Coordinate3D position = new Coordinate3D(entity.get("x").intValue(), entity.get("y").intValue(), entity.get("z").intValue());
-        position.offset();
+        position.offsetGlobal();
 
         addTileEntity(position, nbtTag);
     }

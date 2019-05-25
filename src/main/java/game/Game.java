@@ -102,7 +102,6 @@ public abstract class Game {
         gamePath = args.getString("minecraft");
 
         Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
-        Coordinate3D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
 
         Palette.setMaskBedrock(args.getBoolean("mask-bedrock"));
 

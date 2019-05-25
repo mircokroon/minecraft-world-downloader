@@ -44,7 +44,7 @@ public class ChunkFactory extends Thread {
      * @param entityData the NBT data of the entity
      */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
-        position.offset();
+        position.offsetGlobal();
 
         Chunk chunk = WorldManager.getChunk(position.chunkPos());
 
