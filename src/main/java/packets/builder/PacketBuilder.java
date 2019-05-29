@@ -6,6 +6,7 @@ import packets.DataProvider;
 import packets.DataTypeProvider;
 
 import java.util.Map;
+import javax.naming.SizeLimitExceededException;
 
 /**
  * Family of classes to handle incoming packets and perform appropriate actions based on the packet type and contents.
@@ -26,7 +27,14 @@ public abstract class PacketBuilder {
      * @return true if the packet should be forwarded, otherwise false.
      */
     public final boolean build(int size) {
-        DataTypeProvider typeProvider = reader.withSize(size);
+        DataTypeProvider typeProvider;
+        try {
+            typeProvider = reader.withSize(size);
+        } catch (SizeLimitExceededException ex) {
+            System.out.println(ex.getMessage());
+            return false;
+        }
+
         int packetID = typeProvider.readVarInt();
 
         String packetType = protocol.get(packetID, isClientBound());

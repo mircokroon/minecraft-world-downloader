@@ -3,7 +3,10 @@ package packets;
 import game.Game;
 import proxy.CompressionManager;
 
+import javax.naming.SizeLimitExceededException;
+
 public class DataProvider {
+    private static final int MAX_SIZE = 2097152;
     private DataReader reader;
     private CompressionManager compressionManager;
 
@@ -19,7 +22,7 @@ public class DataProvider {
      * @param size the packet size
      * @return the data parser for the decompressed packet
      */
-    public DataTypeProvider withSize(int size) {
+    public DataTypeProvider withSize(int size) throws SizeLimitExceededException {
         byte[] compressed = reader.readByteArray(size);
 
         byte[] fullPacket;
@@ -29,6 +32,11 @@ public class DataProvider {
                 () -> compressionPos[0] < compressed.length,
                 () -> compressed[compressionPos[0]++]
             );
+
+            // packets over this size will crash the game client, so it may help to reject them here
+            if (uncompressedSize > MAX_SIZE) {
+                throw new SizeLimitExceededException("WARNING: discarding packet over maximum size (size: " + uncompressedSize + ")");
+            }
 
             fullPacket = compressionManager.decompressPacket(compressed, compressionPos[0], uncompressedSize);
         } else {
