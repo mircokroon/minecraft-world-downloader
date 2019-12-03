@@ -5,15 +5,19 @@ import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.WorldManager;
+import game.data.chunk.Chunk;
 
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,10 +75,11 @@ public class GuiManager {
     /**
      * Set a chunk to being loaded.
      * @param coord the chunk coordinates
+     * @param chunk
      */
-    public static void setChunkLoaded(Coordinate2D coord) {
+    public static void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
         if (graphicsHandler != null) {
-            graphicsHandler.setChunkLoaded(coord);
+            graphicsHandler.setChunkLoaded(coord, chunk);
         }
     }
 
@@ -105,7 +110,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
     Graphics g;
     Timer timer;
     private int minX, maxX, minZ, maxZ, gridSize = 0;
-    private HashMap<Coordinate2D, Boolean> chunkMap = new HashMap<>();
+    private HashMap<Coordinate2D, Image> chunkMap = new HashMap<>();
     private boolean isSaving = false;
 
     GraphicsHandler() {
@@ -117,9 +122,12 @@ class GraphicsHandler extends JPanel implements ActionListener {
         isSaving = b;
     }
 
-    synchronized void setChunkLoaded(Coordinate2D coord) {
+    synchronized void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
         if (!chunkMap.containsKey(coord)) {
-            chunkMap.put(coord, false);
+            Image image = chunk.getImage();
+            if (image == null) { new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY); }
+
+            chunkMap.put(coord, image);
             computeBounds();
         }
     }
@@ -163,14 +171,17 @@ class GraphicsHandler extends JPanel implements ActionListener {
         }
 
         g.clearRect(0, 0, GuiManager.WIDTH, GuiManager.HEIGHT);
-        for (Map.Entry<Coordinate2D, Boolean> e : chunkMap.entrySet()) {
-            g.setColor(e.getValue() ? Color.green : Color.BLUE);
-            g.fillRect(
+        for (Map.Entry<Coordinate2D, Image> e : chunkMap.entrySet()) {
+
+            g.drawImage(
+                e.getValue(),
                 (e.getKey().getX() - minX) * gridSize,
                 (e.getKey().getZ() - minZ) * gridSize,
                 gridSize,
-                gridSize
+                gridSize,
+                (img, infoflags, x, y, width, height) -> false
             );
+
         }
 
         if (Game.getPlayerPosition() != null) {
@@ -200,9 +211,6 @@ class GraphicsHandler extends JPanel implements ActionListener {
     }
 
     synchronized void setChunksSaved(List<Coordinate2D> saved) {
-        for (Coordinate2D coordinate : saved) {
-            chunkMap.put(coordinate, true);
-        }
         computeBounds();
     }
 }

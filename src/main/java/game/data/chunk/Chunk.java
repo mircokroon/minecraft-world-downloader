@@ -5,6 +5,8 @@ import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
+import game.data.chunk.palette.BlockState;
+import gui.GuiManager;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -15,6 +17,7 @@ import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.Tag;
 
+import java.awt.Image;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -39,6 +42,8 @@ public abstract class Chunk {
     private Map<Coordinate3D, SpecificTag> tileEntities;
     private ChunkSection[] chunkSections;
 
+    private Runnable afterParse;
+
     private boolean saved;
 
     public Chunk(int x, int z) {
@@ -58,6 +63,13 @@ public abstract class Chunk {
 
     public void setSaved(boolean saved) {
         this.saved = saved;
+    }
+
+    /**
+     * Allows a callback to be called when the chunk is done being parsed.
+     */
+    public void whenParsed(Runnable r) {
+        afterParse = r;
     }
 
     public void addTileEntity(Coordinate3D location, SpecificTag tag) {
@@ -216,7 +228,7 @@ public abstract class Chunk {
      * @param dataProvider network input
      * @param full indicates if its the full chunk or a part of it
      */
-    public void parse(DataTypeProvider dataProvider, boolean full) {
+    void parse(DataTypeProvider dataProvider, boolean full) {
         int mask = dataProvider.readVarInt();
 
         // for 1.14+
@@ -233,5 +245,25 @@ public abstract class Chunk {
 
         // ensure the chunk is (re)saved
         this.saved = false;
+
+        // run the callback if one exists
+        if (afterParse != null) {
+            afterParse.run();
+        }
+    }
+
+    public abstract Image getImage();
+
+    public BlockState topmostBlockStateAt(int x, int z) {
+        for (int chunkSection = 15; chunkSection >= 0; chunkSection--) {
+            if (chunkSections[chunkSection] == null) { continue; }
+
+            ChunkSection s = chunkSections[chunkSection];
+            BlockState block = s.topmostBlockStateAt(x, z);
+            if (block == null) { continue; }
+
+            return block;
+        }
+        return null;
     }
 }

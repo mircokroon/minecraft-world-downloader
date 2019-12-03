@@ -3,3 +3,5 @@ target/
 out/
 
 world/
+
+*.iml

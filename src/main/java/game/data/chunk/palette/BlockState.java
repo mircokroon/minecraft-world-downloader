@@ -1,5 +1,6 @@
 package game.data.chunk.palette;
 
+import game.data.WorldManager;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.StringTag;
 
@@ -36,5 +37,13 @@ public class BlockState {
 
 
         return rootTag;
+    }
+
+    /**
+     * Gets the color of this block using the BlockColors object from the world manager.
+     * @return the color of the block in integer format, one byte per color.
+     */
+    public int getColor() {
+        return WorldManager.getBlockColors().getColor(name);
     }
 }

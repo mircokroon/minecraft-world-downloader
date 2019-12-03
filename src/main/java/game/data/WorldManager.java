@@ -2,6 +2,7 @@ package game.data;
 
 import game.Game;
 import game.data.chunk.Chunk;
+import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.GlobalPalette;
 import game.data.region.McaFile;
 import game.data.region.Region;
@@ -49,7 +50,11 @@ public class WorldManager extends Thread {
 
     private static GlobalPalette globalPalette;
 
-    private WorldManager() {}
+    private static BlockColors blockColors;
+
+    private WorldManager() {
+
+    }
 
     /**
      * Read from the save path to see which chunks have been saved already.
@@ -152,6 +157,8 @@ public class WorldManager extends Thread {
             return;
         }
 
+        blockColors = BlockColors.create();
+
         writer = new WorldManager();
         writer.start();
     }
@@ -169,6 +176,9 @@ public class WorldManager extends Thread {
         }
 
         regions.get(regionCoordinates).addChunk(coordinate, chunk);
+
+        // draw the chunk once its been parsed
+        chunk.whenParsed(() -> GuiManager.setChunkLoaded(coordinate, chunk));
     }
 
     /**
@@ -196,6 +206,10 @@ public class WorldManager extends Thread {
 
     public static GlobalPalette getGlobalPalette() {
         return globalPalette;
+    }
+
+    public static BlockColors getBlockColors() {
+        return blockColors;
     }
 
     /**

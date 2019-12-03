@@ -22,23 +22,10 @@ public class ChunkSection_1_12 extends ChunkSection {
     @Override
     public void setBlocks(long[] blocks) {
         super.setBlocks(blocks);
-        int individualValueMask = (1 << bitsPerBlock) - 1;
         for (int y = 0; y < Chunk.SECTION_HEIGHT; y++) {
             for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
                 for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
-                    int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;
-                    int startLong = (blockNumber * bitsPerBlock) / 64;
-                    int startOffset = (blockNumber * bitsPerBlock) % 64;
-                    int endLong = ((blockNumber + 1) * bitsPerBlock - 1) / 64;
-
-                    int data;
-                    if (startLong == endLong) {
-                        data = (int) (blocks[startLong] >>> startOffset);
-                    } else {
-                        int endOffset = 64 - startOffset;
-                        data = (int) (blocks[startLong] >>> startOffset | blocks[endLong] << endOffset);
-                    }
-                    data &= individualValueMask;
+                    int data = getPaletteIndex(bitsPerBlock, x, y, z);
 
                     this.blockStates[x][y][z] = palette.stateFromId(data);
                 }

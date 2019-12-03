@@ -1,0 +1,549 @@
+{
+  "minecraft:air": {
+    "states": [
+      {
+        "id": 0,
+        "default": true
+      }
+    ]
+  },
+  "minecraft:stone": {
+    "states": [{
+      "id": 1,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:grass": {
+    "states": [{
+      "id": 2,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:dirt": {
+    "states": [{
+      "id": 3,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:cobblestone": {
+    "states": [{
+      "id": 4,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:planks": {
+    "states": [{
+      "id": 5,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:bedrock": {
+    "states": [{
+      "id": 7,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:water": {
+    "states": [{
+      "id": 9,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:sand": {
+    "states": [{
+      "id": 12,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:log": {
+    "states": [{
+      "id": 17,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:leaves": {
+    "states": [{
+      "id": 18,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:sponge": {
+    "states": [{
+      "id": 19,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:lapis_block": {
+    "states": [{
+      "id": 22,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:sandstone": {
+    "states": [{
+      "id": 24,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:web": {
+    "states": [{
+      "id": 30,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:wool": {
+    "states": [{
+      "id": 35,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:gold_block": {
+    "states": [{
+      "id": 41,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:iron_block": {
+    "states": [{
+      "id": 42,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:stone_slab": {
+    "states": [{
+      "id": 44,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:brick_block": {
+    "states": [{
+      "id": 45,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:tnt": {
+    "states": [{
+      "id": 46,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:obsidian": {
+    "states": [{
+      "id": 49,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:diamond_block": {
+    "states": [{
+      "id": 57,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:crafting_table": {
+    "states": [{
+      "id": 58,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:snow_layer": {
+    "states": [{
+      "id": 78,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:ice": {
+    "states": [{
+      "id": 79,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:snow": {
+    "states": [{
+      "id": 80,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:clay": {
+    "states": [{
+      "id": 82,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:jukebox": {
+    "states": [{
+      "id": 84,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:netherrack": {
+    "states": [{
+      "id": 87,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:soul_sand": {
+    "states": [{
+      "id": 88,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:glowstone": {
+    "states": [{
+      "id": 89,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:stained_glass": {
+    "states": [{
+      "id": 95,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:melon_block": {
+    "states": [{
+      "id": 103,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:mycelium": {
+    "states": [{
+      "id": 110,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:nether_brick": {
+    "states": [{
+      "id": 112,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:end_stone": {
+    "states": [{
+      "id": 121,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:wooden_slab": {
+    "states": [{
+      "id": 126,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:emerald_block": {
+    "states": [{
+      "id": 133,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:beacon": {
+    "states": [{
+      "id": 138,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:light_weighted_pressure_plate": {
+    "states": [{
+      "id": 147,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:heavy_weighted_pressure_plate": {
+    "states": [{
+      "id": 148,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:redstone_block": {
+    "states": [{
+      "id": 152,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:quartz_block": {
+    "states": [{
+      "id": 155,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:stained_hardened_clay": {
+    "states": [{
+      "id": 159,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:leaves2": {
+    "states": [{
+      "id": 161,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:log2": {
+    "states": [{
+      "id": 162,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:slime": {
+    "states": [{
+      "id": 165,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:iron_trapdoor": {
+    "states": [{
+      "id": 167,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:prismarine": {
+    "states": [{
+      "id": 168,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:sea_lantern": {
+    "states": [{
+      "id": 169,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:hay_block": {
+    "states": [{
+      "id": 170,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:carpet": {
+    "states": [{
+      "id": 171,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:hardened_clay": {
+    "states": [{
+      "id": 172,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:coal_block": {
+    "states": [{
+      "id": 173,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:packed_ice": {
+    "states": [{
+      "id": 174,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:red_sandstone": {
+    "states": [{
+      "id": 179,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:purpur_block": {
+    "states": [{
+      "id": 201,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:purpur_slab": {
+    "states": [{
+      "id": 205,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:magma": {
+    "states": [{
+      "id": 213,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:nether_wart_block": {
+    "states": [{
+      "id": 214,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:white_glazed_terracotta": {
+    "states": [{
+      "id": 235,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:orange_glazed_terracotta": {
+    "states": [{
+      "id": 236,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:magenta_glazed_terracotta": {
+    "states": [{
+      "id": 237,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:light_blue_glazed_terracotta": {
+    "states": [{
+      "id": 238,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:yellow_glazed_terracotta": {
+    "states": [{
+      "id": 239,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:lime_glazed_terracotta": {
+    "states": [{
+      "id": 240,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:pink_glazed_terracotta": {
+    "states": [{
+      "id": 241,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:gray_glazed_terracotta": {
+    "states": [{
+      "id": 242,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:cyan_glazed_terracotta": {
+    "states": [{
+      "id": 244,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:purple_glazed_terracotta": {
+    "states": [{
+      "id": 245,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:blue_glazed_terracotta": {
+    "states": [{
+      "id": 246,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:brown_glazed_terracotta": {
+    "states": [{
+      "id": 247,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:green_glazed_terracotta": {
+    "states": [{
+      "id": 248,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:red_glazed_terracotta": {
+    "states": [{
+      "id": 249,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:black_glazed_terracotta": {
+    "states": [{
+      "id": 250,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:concrete": {
+    "states": [{
+      "id": 251,
+      "default": true
+    }
+    ]
+  },
+  "minecraft:concrete_powder": {
+    "states": [{
+      "id": 252,
+      "default": true
+    }
+    ]
+  }
+}

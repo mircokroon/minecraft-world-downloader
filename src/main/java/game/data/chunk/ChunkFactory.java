@@ -130,7 +130,6 @@ public class ChunkFactory extends Thread {
     private void readChunkDataPacket(DataTypeProvider dataProvider) {
         Coordinate2D chunkPos = new Coordinate2D(dataProvider.readInt(), dataProvider.readInt());
         chunkPos.offsetChunk();
-        GuiManager.setChunkLoaded(chunkPos);
 
         boolean full = dataProvider.readBoolean();
         Chunk chunk;

@@ -9,6 +9,9 @@ import se.llbit.nbt.IntArrayTag;
 import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.StringTag;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+
 /**
  * Chunk format for 1.13+. Now includes a status tag and the biomes are integers.
  */
@@ -48,5 +51,10 @@ public class Chunk_1_13 extends Chunk {
 
     protected SpecificTag getBiomes() {
         return new IntArrayTag(biomes);
+    }
+
+    @Override
+    public Image getImage() {
+        return null;
     }
 }
