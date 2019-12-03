@@ -76,8 +76,6 @@ public class WorldManager extends Thread {
             })
             .filter(Objects::nonNull)
             .flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList());
-
-        GuiManager.setChunksSaved(existing);
     }
 
     /**
@@ -233,7 +231,6 @@ public class WorldManager extends Thread {
      * Save the world. Will tell all regions to save their chunks.
      */
     private static void save() {
-        GuiManager.setSaving(true);
         if (!regions.isEmpty()) {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[regions.size()]);
@@ -258,7 +255,5 @@ public class WorldManager extends Thread {
 
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
-
-        GuiManager.setSaving(false);
     }
 }

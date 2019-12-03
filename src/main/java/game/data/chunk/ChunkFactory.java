@@ -137,6 +137,13 @@ public class ChunkFactory extends Thread {
             chunk = getVersionedChunk(chunkPos);
         } else {
             chunk = WorldManager.getChunk(new Coordinate2D(chunkPos.getX(), chunkPos.getZ()));
+
+            // if we don't have the partial chunk (anymore?), just make one from scratch
+            if (chunk == null) {
+                chunk = getVersionedChunk(chunkPos);
+            }
+
+            chunk.markAsNew();
             chunk.setSaved(false);
         }
 

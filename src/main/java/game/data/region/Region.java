@@ -126,8 +126,6 @@ public class Region {
             }
         });
 
-        GuiManager.setChunksSaved(saved);
-
         // delete chunks and their sent-later tile entities
         for (Coordinate2D c : toDelete) {
             ChunkFactory.getInstance().deleteTileEntities(c);

@@ -46,6 +46,7 @@ public abstract class Game {
     private static long seed;
     private static int portRemote;
     private static int portLocal;
+    private static boolean markNewChunks;
     private static Coordinate3D playerPosition;
     private static String gamePath;
     private static VersionHandler versionHandler;
@@ -99,6 +100,7 @@ public abstract class Game {
         portLocal = args.getInt("local-port");
         exportDir = args.getString("output");
         seed = args.getLong("seed");
+        markNewChunks = true;//TODO: args.getLong("new-chunks");
         gamePath = args.getString("minecraft");
 
         Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
@@ -188,6 +190,8 @@ public abstract class Game {
     public static String getGamePath() {
         return gamePath;
     }
+
+    public static boolean markNewChunks() { return markNewChunks; }
 
     public static int getProtocolVersion() {
         return protocolVersion;

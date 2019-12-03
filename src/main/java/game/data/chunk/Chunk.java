@@ -43,6 +43,7 @@ public abstract class Chunk {
     private ChunkSection[] chunkSections;
 
     private Runnable afterParse;
+    private boolean isNewChunk;
 
     private boolean saved;
 
@@ -50,6 +51,7 @@ public abstract class Chunk {
         this.saved = false;
         this.x = x;
         this.z = z;
+        this.isNewChunk = false;
 
         chunkSections = new ChunkSection[16];
         tileEntities = new HashMap<>();
@@ -265,5 +267,18 @@ public abstract class Chunk {
             return block;
         }
         return null;
+    }
+
+    /**
+     * Mark this as a new chunk iff the
+     */
+    void markAsNew() {
+        if (Game.markNewChunks()) {
+            this.isNewChunk = true;
+        }
+    }
+
+    protected boolean isNewChunk() {
+        return isNewChunk;
     }
 }

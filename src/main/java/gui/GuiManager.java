@@ -17,11 +17,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -75,30 +73,12 @@ public class GuiManager {
     /**
      * Set a chunk to being loaded.
      * @param coord the chunk coordinates
-     * @param chunk
+     * @param chunk the chunk object
      */
     public static void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
         if (graphicsHandler != null) {
             graphicsHandler.setChunkLoaded(coord, chunk);
         }
-    }
-
-    /**
-     * Set a list of chunks that have been saved.
-     * @param saved the list of saved chunk coordinates
-     */
-    public static void setChunksSaved(List<Coordinate2D> saved) {
-        if (graphicsHandler != null) {
-            graphicsHandler.setChunksSaved(saved);
-        }
-    }
-
-    /**
-     * Indicate if the world is currently being saved.
-     * @param b true if the world is being saved
-     */
-    public static void setSaving(boolean b) {
-        graphicsHandler.setSaving(b);
     }
 }
 
@@ -106,30 +86,24 @@ public class GuiManager {
  * The panel with the canvas we can draw to.
  */
 class GraphicsHandler extends JPanel implements ActionListener {
-    private final int RENDER_RANGE = 200;
-    Graphics g;
-    Timer timer;
-    private int minX, maxX, minZ, maxZ, gridSize = 0;
+    private final int RENDER_RANGE = 80;
+    private Timer timer;
+    private int minX;
+    private int minZ;
+    private int gridSize = 0;
     private HashMap<Coordinate2D, Image> chunkMap = new HashMap<>();
-    private boolean isSaving = false;
 
     GraphicsHandler() {
         timer = new Timer(1000, this);
         timer.start();
     }
 
-    void setSaving(boolean b) {
-        isSaving = b;
-    }
-
     synchronized void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
-        if (!chunkMap.containsKey(coord)) {
-            Image image = chunk.getImage();
-            if (image == null) { new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY); }
+        Image image = chunk.getImage();
+        if (image == null) { new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY); }
 
-            chunkMap.put(coord, image);
-            computeBounds();
-        }
+        chunkMap.put(coord, image);
+        computeBounds();
     }
 
     /**
@@ -146,11 +120,11 @@ class GraphicsHandler extends JPanel implements ActionListener {
         }
 
         int[] xCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getX).toArray();
-        maxX = Arrays.stream(xCoords).max().orElse(0) + 1;
+        int maxX = Arrays.stream(xCoords).max().orElse(0) + 1;
         minX = Arrays.stream(xCoords).min().orElse(0) - 1;
 
         int[] zCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getZ).toArray();
-        maxZ = Arrays.stream(zCoords).max().orElse(0) + 1;
+        int maxZ = Arrays.stream(zCoords).max().orElse(0) + 1;
         minZ = Arrays.stream(zCoords).min().orElse(0) - 1;
 
         int gridWidth = GuiManager.WIDTH / (Math.abs(maxX - minX) + 1);
@@ -164,12 +138,6 @@ class GraphicsHandler extends JPanel implements ActionListener {
      */
     @Override
     protected synchronized void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        if (this.g == null) {
-            this.g = g;
-            g.setFont(g.getFont().deriveFont(16f));
-        }
-
         g.clearRect(0, 0, GuiManager.WIDTH, GuiManager.HEIGHT);
         for (Map.Entry<Coordinate2D, Image> e : chunkMap.entrySet()) {
 
@@ -193,11 +161,6 @@ class GraphicsHandler extends JPanel implements ActionListener {
 
             g.fillOval((int) playerX, (int) playerZ, 8, 8);
         }
-
-        if (isSaving) {
-            g.setColor(Color.black);
-            g.drawString("Saving...", 10, 10);
-        }
     }
 
     @Override
@@ -208,9 +171,5 @@ class GraphicsHandler extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         repaint();
-    }
-
-    synchronized void setChunksSaved(List<Coordinate2D> saved) {
-        computeBounds();
     }
 }

@@ -50,6 +50,8 @@ public class Chunk_1_12 extends Chunk {
     public Image getImage() {
         BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
 
+        int newChunkMarker = 210 << 16;
+
         int color;
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
@@ -61,6 +63,11 @@ public class Chunk_1_12 extends Chunk {
                 }
 
                 i.setRGB(x, z, color);
+
+                // mark new chunks in a red-ish outline
+                if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
+                    i.setRGB(x, z, i.getRGB(x, z) | newChunkMarker);
+                }
             }
         }
 
