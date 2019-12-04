@@ -13,10 +13,13 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Proxy server class, handles receiving of data and forwarding it to the right places.
  */
-public class ProxyServer {
+public class ProxyServer extends Thread {
     private int portRemote;
     private int portLocal;
     private String host;
+
+    private DataReader onServerBoundPacket;
+    private DataReader onClientBoundPacket;
 
     /**
      * Initialise the proxy server class.
@@ -36,6 +39,14 @@ public class ProxyServer {
      * @param onClientBoundPacket data reader for server -> client traffic
      */
     public void runServer(DataReader onServerBoundPacket, DataReader onClientBoundPacket) {
+        this.onClientBoundPacket = onClientBoundPacket;
+        this.onServerBoundPacket = onServerBoundPacket;
+        this.start();
+        this.setPriority(10);
+    }
+
+    @Override
+    public void run() {
         System.out.println("Starting proxy for " + host + ":" + portRemote + ". Make sure to connect to localhost:" + portLocal + " instead of the regular server address.");
 
         // Create a ServerSocket to listen for connections with
@@ -73,12 +84,11 @@ public class ProxyServer {
                 Game.getEncryptionManager().setStreamToServer(streamToServer);
 
                 // start client listener thread
-                new Thread(() -> {
+                Thread clientListener = new Thread(() -> {
                     Game.setMode(NetworkMode.HANDSHAKE);
                     attempt(() -> {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
-
                             onServerBoundPacket.pushData(request, bytesRead);
                         }
                     }, (ex) -> {
@@ -91,7 +101,9 @@ public class ProxyServer {
                     });
                     // the client closed the connection to us, so close our connection to the server.
                     attempt(streamToServer::close);
-                }).start();
+                });
+                clientListener.start();
+                clientListener.setPriority(10);
 
                 // listen to messages from server
                 attempt(() -> {

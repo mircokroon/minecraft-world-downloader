@@ -8,6 +8,7 @@ import proxy.EncryptionManager;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -41,9 +42,9 @@ public class DataReader {
      * Reset the reader in case the connection was lost.
      */
     public void reset() {
-        queue = new LinkedList<>();
-        currentPacket = new LinkedList<>();
-        encryptedQueue = new LinkedList<>();
+        queue = new ConcurrentLinkedQueue<>();
+        currentPacket = new ConcurrentLinkedQueue<>();
+        encryptedQueue = new ConcurrentLinkedQueue<>();
         varIntPacketSize = new VarIntResult();
     }
 
