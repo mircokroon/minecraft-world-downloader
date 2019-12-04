@@ -34,3 +34,4 @@ Then connect to ```localhost``` in Minecraft to start downloading the world. The
 |  --center-y | 0 | Offset the world so that the given coordinate is at 0 |
 |  --gui | true | If false, hides the saved chunks GUI |
 |  --minecraft | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
+| --render-distance | 75 | Render distance of (in chunks) of the overview map. |
