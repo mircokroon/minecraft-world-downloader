@@ -52,6 +52,8 @@ public class WorldManager extends Thread {
 
     private static BlockColors blockColors;
 
+    private static boolean markNewChunks;
+
     private WorldManager() {
 
     }
@@ -150,7 +152,9 @@ public class WorldManager extends Thread {
     /**
      * Start the periodic saving service.
      */
-    public static void startSaveService() {
+    public static void startSaveService(boolean markNewChunks) {
+        WorldManager.markNewChunks = markNewChunks;
+
         if (writer != null) {
             return;
         }
@@ -208,6 +212,10 @@ public class WorldManager extends Thread {
 
     public static BlockColors getBlockColors() {
         return blockColors;
+    }
+
+    public static boolean markNewChunks() {
+        return markNewChunks;
     }
 
     /**

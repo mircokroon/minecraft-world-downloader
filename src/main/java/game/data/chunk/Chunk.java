@@ -273,7 +273,7 @@ public abstract class Chunk {
      * Mark this as a new chunk iff the
      */
     void markAsNew() {
-        if (Game.markNewChunks()) {
+        if (WorldManager.markNewChunks()) {
             this.isNewChunk = true;
         }
     }

@@ -86,7 +86,7 @@ public class GuiManager {
  * The panel with the canvas we can draw to.
  */
 class GraphicsHandler extends JPanel implements ActionListener {
-    private final int RENDER_RANGE = 80;
+    private final int render_distance;
     private Timer timer;
     private int minX;
     private int minZ;
@@ -94,6 +94,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
     private HashMap<Coordinate2D, Image> chunkMap = new HashMap<>();
 
     GraphicsHandler() {
+        this.render_distance = Game.getRenderDistance();
         timer = new Timer(1000, this);
         timer.start();
     }
@@ -115,7 +116,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
         if (Game.getPlayerPosition() != null) {
             Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
             inRangeChunks = chunkMap.keySet().stream()
-                .filter(el -> playerChunk.isInRange(el, RENDER_RANGE))
+                .filter(el -> playerChunk.isInRange(el, render_distance))
                 .collect(Collectors.toSet());
         }
 

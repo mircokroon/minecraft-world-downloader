@@ -66,7 +66,7 @@ public class Chunk_1_12 extends Chunk {
 
                 // mark new chunks in a red-ish outline
                 if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
-                    i.setRGB(x, z, i.getRGB(x, z) | newChunkMarker);
+                    i.setRGB(x, z, i.getRGB(x, z) ^ newChunkMarker);
                 }
             }
         }
