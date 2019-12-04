@@ -154,13 +154,18 @@ class GraphicsHandler extends JPanel implements ActionListener {
         }
 
         if (Game.getPlayerPosition() != null) {
-            g.setColor(Color.RED);
             Coordinate3D playerPosition = Game.getPlayerPosition();
 
             double playerX = ((playerPosition.getX() / 16.0 - minX) * gridSize);
             double playerZ = ((playerPosition.getZ() / 16.0 - minZ) * gridSize);
 
-            g.fillOval((int) playerX, (int) playerZ, 8, 8);
+            g.setColor(Color.BLACK);
+            g.fillOval((int) playerX - 6, (int) playerZ - 6, 12, 12);
+            g.setColor(Color.WHITE);
+            g.fillOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
+
+            g.setColor(Color.RED);
+            g.drawOval((int) playerX - 16, (int) playerZ - 16, 32, 32);
         }
     }
 
