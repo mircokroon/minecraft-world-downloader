@@ -4,6 +4,9 @@ package packets.lib;
 // Complete documentation is available from the ByteQueue link in:
 //   http://www.cs.colorado.edu/~main/docs/
 
+import java.awt.image.ColorModel;
+import java.util.Collection;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /******************************************************************************
@@ -31,27 +34,16 @@ import java.util.NoSuchElementException;
  *
  * @version Feb 10, 2016
  ******************************************************************************/
-public class ByteQueue implements Cloneable {
-    // Invariant of the ByteQueue class:
-    //   1. The number of items in the queue is in the instance variable manyItems.
-    //   2. For a non-empty queue, the items are stored in a circular array
-    //      beginning at data[front] and continuing through data[rear].
-    //   3. For an empty queue, manyItems is zero and data is a reference to an
-    //      array, but we don't care about front and rear.
+public class ByteQueue {
     private byte[] data;
     private int manyItems;
     private int front;
     private int rear;
 
-
     /**
      * Initialize an empty queue with an initial capacity of 10.  Note that the
      * <CODE>insert</CODE> method works efficiently (without needing more
      * memory) until this capacity is reached.
-     * <b>Postcondition:</b>
-     * This queue is empty and has an initial capacity of 10.
-     * @throws OutOfMemoryError Indicates insufficient memory for:
-     *                          <CODE>new byte[10]</CODE>.
      **/
     public ByteQueue() {
         final int INITIAL_CAPACITY = 10;
@@ -75,41 +67,24 @@ public class ByteQueue implements Cloneable {
      *                                  <CODE>new byte[initialCapacity]</CODE>.
      **/
     public ByteQueue(int initialCapacity) {
-        if (initialCapacity < 0)
-            throw new IllegalArgumentException
-                ("initialCapacity is negative: " + initialCapacity);
-        manyItems = 0;
-        data = new byte[initialCapacity];
-        // We don't care about front and rear for an empty queue.
-    }
-
-
-    /**
-     * Generate a copy of this queue.
-     * @return The return value is a copy of this queue. Subsequent changes to the
-     * copy will not affect the original, nor vice versa. Note that the return
-     * value must be type cast to a <CODE>ByteQueue</CODE> before it can be used.
-     * @throws OutOfMemoryError Indicates insufficient memory for creating the clone.
-     **/
-    public Object clone() {  // Clone a ByteQueue.
-        ByteQueue answer;
-
-        try {
-            answer = (ByteQueue) super.clone();
-        } catch (CloneNotSupportedException e) {
-            // This exception should not occur. But if it does, it would probably indicate a
-            // programming error that made super.clone unavailable. The most comon error
-            // The most common error would be forgetting the "Implements Cloneable"
-            // clause at the start of this class.
-            throw new RuntimeException
-                ("This class does not implement Cloneable");
+        if (initialCapacity < 0) {
+            throw new IllegalArgumentException("initialCapacity is negative: " + initialCapacity);
         }
 
-        answer.data = (byte[]) data.clone();
-
-        return answer;
+        manyItems = 0;
+        data = new byte[initialCapacity];
     }
 
+    /**
+     * Construct a ByteQueue from a collection of bytes.
+     * @param bytes the collection to create the queue from.
+     */
+    public ByteQueue(Collection<Byte> bytes) {
+        data = new byte[bytes.size()];
+        for (Byte b : bytes) {
+            this.insert(b);
+        }
+    }
 
     /**
      * Change the current capacity of this queue.
@@ -170,11 +145,13 @@ public class ByteQueue implements Cloneable {
      * been removed.
      * @throws NoSuchElementException Indicates that this queue is empty.
      **/
-    public byte getFront() {
+    public byte remove() {
         byte answer;
 
-        if (manyItems == 0)
+        if (manyItems == 0) {
             throw new NoSuchElementException("Queue underflow");
+        }
+
         answer = data[front];
         front = nextIndex(front);
         manyItems--;
@@ -183,24 +160,12 @@ public class ByteQueue implements Cloneable {
 
 
     /**
-     * Insert a new item in this queue.  If the addition
-     * would take this queue beyond its current capacity, then the capacity is
-     * increased before adding the new item. The new item may be the null
-     * reference.
+     * Insert a new item in this queue.
      * @param item the item to be pushed onto this queue
-     *             <b>Postcondition:</b>
-     *             The item has been pushed onto this queue.
-     * @throws OutOfMemoryError Indicates insufficient memory for increasing the queue's capacity.
-     *                          <b>Note:</b>
-     *                          An attempt to increase the capacity beyond
-     *                          <CODE>Integer.MAX_VALUE</CODE> will cause the queue to fail with an
-     *                          arithmetic overflow.
      **/
     public void insert(byte item) {
         if (manyItems == data.length) {
-            // Double the capacity and add 1; this works even if manyItems is 0. However, in
-            // case that manyItems*2 + 1 is beyond Integer.MAX_VALUE, there will be an
-            // arithmetic overflow and the bag will fail.
+            // Double the capacity and add 1; this works even if manyItems is 0.
             ensureCapacity(manyItems * 2 + 1);
         }
 
@@ -225,18 +190,13 @@ public class ByteQueue implements Cloneable {
     }
 
 
-    private int nextIndex(int i)
-    // Precondition: 0 <= i and i < data.length
-    // Postcondition: If i+1 is data.length,
-    // then the return value is zero; otherwise
-    // the return value is i+1.
-    {
-        if (++i == data.length)
+    private int nextIndex(int i) {
+        if (++i == data.length) {
             return 0;
-        else
+        } else {
             return i;
+        }
     }
-
 
     /**
      * Accessor method to determine the number of items in this queue.
@@ -246,41 +206,18 @@ public class ByteQueue implements Cloneable {
         return manyItems;
     }
 
-
     /**
-     * Reduce the current capacity of this queue to its actual size (i.e., the
-     * number of items it contains).
-     * <b>Postcondition:</b>
-     * This queue's capacity has been changed to its current size.
-     * @throws OutOfMemoryError Indicates insufficient memory for altering the capacity.
-     **/
-    public void trimToSize() {
-        byte trimmedArray[];
-        int n1, n2;
+     * Empty the array by simply setting the number of items to 0. No need to clear the actual data.
+     */
+    public void clear() {
+        this.manyItems = 0;
+    }
 
-        if (data.length == manyItems)
-            // No change needed.
-            return;
-        else if (manyItems == 0)
-            // Just change the size of the array to 0 because the queue is empty.
-            data = new byte[0];
-        else if (front <= rear) {  // Create trimmed array and copy data[front]...data[rear] into it.
-            trimmedArray = new byte[manyItems];
-            System.arraycopy(data, front, trimmedArray, front, manyItems);
-            data = trimmedArray;
-        } else {  // Create a trimmed array, but be careful about copying items into it. The queue items
-            // occur in two segments. The first segment goes from data[front] to the end of the
-            // array, and the second segment goes from data[0] to data[rear]. The variables n1
-            // and n2 will be set to the number of items in these two segments. We will copy
-            // these segments to trimmedArray[0...manyItems-1].
-            trimmedArray = new byte[manyItems];
-            n1 = data.length - front;
-            n2 = rear + 1;
-            System.arraycopy(data, front, trimmedArray, 0, n1);
-            System.arraycopy(data, 0, trimmedArray, n1, n2);
-            front = 0;
-            rear = manyItems - 1;
-            data = trimmedArray;
+    public byte peek() {
+        if (manyItems == 0) {
+            throw new NoSuchElementException("Queue underflow");
         }
+
+        return data[front];
     }
 }

@@ -1,8 +1,7 @@
 package proxy;
 
 import game.Game;
-import packets.builder.ClientBoundLoginPacketBuilder;
-import packets.builder.ServerBoundLoginPacketBuilder;
+import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
 
@@ -18,9 +17,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
 import javax.crypto.Cipher;
@@ -117,7 +114,7 @@ public class EncryptionManager {
         writeByteArray(bytes, serverVerifyToken);  // verify token
         prependPacketLength(bytes);
 
-        attempt(() -> streamToClient(new LinkedList<>(bytes)));
+        attempt(() -> streamToClient(new ByteQueue(bytes)));
     }
 
     /**
@@ -176,7 +173,7 @@ public class EncryptionManager {
      * Method to stream a given queue of bytes to the client.
      * @param bytes the bytes to stream
      */
-    public void streamToClient(Queue<Byte> bytes) throws IOException {
+    public void streamToClient(ByteQueue bytes) throws IOException {
         streamTo(streamToClient, bytes, this::clientBoundEncrypt);
     }
 
@@ -187,7 +184,7 @@ public class EncryptionManager {
      * @param bytes   the bytes to write
      * @param encrypt the encryption operator
      */
-    private void streamTo(OutputStream stream, Queue<Byte> bytes, UnaryOperator<byte[]> encrypt) throws IOException {
+    private void streamTo(OutputStream stream, ByteQueue bytes, UnaryOperator<byte[]> encrypt) throws IOException {
         byte[] b = new byte[bytes.size()];
         for (int i = 0; i < b.length; i++) {
             b[i] = bytes.remove();
@@ -273,7 +270,7 @@ public class EncryptionManager {
             writeByteArray(bytes, verifyToken);
             prependPacketLength(bytes);
 
-            streamToServer(new LinkedList<>(bytes));
+            streamToServer(new ByteQueue(bytes));
 
             enableEncryption();
         });
@@ -294,7 +291,7 @@ public class EncryptionManager {
         return new BigInteger(sha1.get().digest()).toString(16);
     }
 
-    public void streamToServer(Queue<Byte> bytes) throws IOException {
+    public void streamToServer(ByteQueue bytes) throws IOException {
         // System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
         streamTo(streamToServer, bytes, this::serverBoundEncrypt);
     }
@@ -387,7 +384,7 @@ public class EncryptionManager {
                 nextMode == 1 ? "status" : "login"
             );
 
-            streamToServer(new LinkedList<>(bytes));
+            streamToServer(new ByteQueue(bytes));
         });
     }
 

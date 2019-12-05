@@ -2,20 +2,19 @@ package packets;
 
 import game.Game;
 import packets.builder.PacketBuilder;
+import packets.lib.ByteQueue;
 import proxy.ByteConsumer;
 import proxy.EncryptionManager;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public class DataReader {
-    private Queue<Byte> queue;
-    private Queue<Byte> encryptedQueue;
-    private Queue<Byte> currentPacket;
+    private static final int QUEUE_INIT_SIZE = 2 << 15 - 1;
+    private ByteQueue queue;
+    private ByteQueue encryptedQueue;
+    private ByteQueue currentPacket;
     private PacketBuilder builder;
 
     private EncryptionManager encryptionManager;
@@ -42,9 +41,9 @@ public class DataReader {
      * Reset the reader in case the connection was lost.
      */
     public void reset() {
-        queue = new ConcurrentLinkedQueue<>();
-        currentPacket = new ConcurrentLinkedQueue<>();
-        encryptedQueue = new ConcurrentLinkedQueue<>();
+        queue = new ByteQueue(QUEUE_INIT_SIZE);
+        currentPacket = new ByteQueue(QUEUE_INIT_SIZE);
+        encryptedQueue = new ByteQueue(QUEUE_INIT_SIZE);
         varIntPacketSize = new VarIntResult();
     }
 
@@ -113,7 +112,7 @@ public class DataReader {
             decryptPacket(b, amount);
         } else {
             for (int i = 0; i < amount; i++) {
-                queue.add(b[i]);
+                queue.insert(b[i]);
             }
         }
 
@@ -127,7 +126,7 @@ public class DataReader {
      */
     private void decryptPacket(byte[] b, int amount) {
         for (int i = 0; i < amount; i++) {
-            encryptedQueue.add(b[i]);
+            encryptedQueue.insert(b[i]);
         }
 
         // provide encryption in fixed size blocks, otherwise the decryptor will get angry.
@@ -140,7 +139,7 @@ public class DataReader {
 
             byte[] decrypted = decrypt.apply(encrypted);
             for (byte aDecrypted : decrypted) {
-                queue.add(aDecrypted);
+                queue.insert(aDecrypted);
             }
         }
     }
@@ -229,7 +228,7 @@ public class DataReader {
      * Read a byte, also add it the current packet.
      */
     private byte readNext() {
-        currentPacket.add(queue.peek());
+        currentPacket.insert(queue.peek());
 
         return queue.remove();
     }
