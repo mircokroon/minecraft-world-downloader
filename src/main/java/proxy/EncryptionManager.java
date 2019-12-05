@@ -186,9 +186,7 @@ public class EncryptionManager {
      */
     private void streamTo(OutputStream stream, ByteQueue bytes, UnaryOperator<byte[]> encrypt) throws IOException {
         byte[] b = new byte[bytes.size()];
-        for (int i = 0; i < b.length; i++) {
-            b[i] = bytes.remove();
-        }
+        bytes.copyTo(b);
 
         byte[] encrypted = encrypt.apply(b);
 

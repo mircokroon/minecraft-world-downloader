@@ -4,9 +4,8 @@ package packets.lib;
 // Complete documentation is available from the ByteQueue link in:
 //   http://www.cs.colorado.edu/~main/docs/
 
-import java.awt.image.ColorModel;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 /******************************************************************************
@@ -36,9 +35,14 @@ import java.util.NoSuchElementException;
  ******************************************************************************/
 public class ByteQueue {
     private byte[] data;
-    private int manyItems;
+    private int size;
     private int front;
     private int rear;
+
+    @Override
+    public String toString() {
+        return Arrays.toString(data);
+    }
 
     /**
      * Initialize an empty queue with an initial capacity of 10.  Note that the
@@ -47,7 +51,7 @@ public class ByteQueue {
      **/
     public ByteQueue() {
         final int INITIAL_CAPACITY = 10;
-        manyItems = 0;
+        size = 0;
         data = new byte[INITIAL_CAPACITY];
         // We don't care about front and rear for an empty queue.
     }
@@ -71,7 +75,7 @@ public class ByteQueue {
             throw new IllegalArgumentException("initialCapacity is negative: " + initialCapacity);
         }
 
-        manyItems = 0;
+        size = 0;
         data = new byte[initialCapacity];
     }
 
@@ -96,32 +100,15 @@ public class ByteQueue {
      * @throws OutOfMemoryError Indicates insufficient memory for: <CODE>new byte[minimumCapacity]</CODE>.
      **/
     public void ensureCapacity(int minimumCapacity) {
-        byte biggerArray[];
-        int n1, n2;
-
-        if (data.length >= minimumCapacity)
-            // No change needed.
-            return;
-        else if (manyItems == 0)
-            // Just increase the size of the array because the queue is empty.
+        if (size == 0) {
             data = new byte[minimumCapacity];
-        else if (front <= rear) {  // Create larger array and copy data[front]...data[rear] into it.
-            biggerArray = new byte[minimumCapacity];
-            System.arraycopy(data, front, biggerArray, front, manyItems);
+        } else if (data.length < minimumCapacity) {
+            byte[] biggerArray = new byte[minimumCapacity];
+            copyTo(biggerArray);
             data = biggerArray;
-        } else {  // Create a bigger array, but be careful about copying items into it. The queue items
-            // occur in two segments. The first segment goes from data[front] to the end of the
-            // array, and the second segment goes from data[0] to data[rear]. The variables n1
-            // and n2 will be set to the number of items in these two segments. We will copy
-            // these segments to biggerArray[0...manyItems-1].
-            biggerArray = new byte[minimumCapacity];
-            n1 = data.length - front;
-            n2 = rear + 1;
-            System.arraycopy(data, front, biggerArray, 0, n1);
-            System.arraycopy(data, 0, biggerArray, n1, n2);
+
             front = 0;
-            rear = manyItems - 1;
-            data = biggerArray;
+            rear = size - 1;
         }
     }
 
@@ -148,13 +135,13 @@ public class ByteQueue {
     public byte remove() {
         byte answer;
 
-        if (manyItems == 0) {
+        if (size == 0) {
             throw new NoSuchElementException("Queue underflow");
         }
 
         answer = data[front];
         front = nextIndex(front);
-        manyItems--;
+        size--;
         return answer;
     }
 
@@ -164,19 +151,19 @@ public class ByteQueue {
      * @param item the item to be pushed onto this queue
      **/
     public void insert(byte item) {
-        if (manyItems == data.length) {
-            // Double the capacity and add 1; this works even if manyItems is 0.
-            ensureCapacity(manyItems * 2 + 1);
+        if (size == data.length) {
+            // Double the capacity and add 1; this works even if size is 0.
+            ensureCapacity(size * 2 + 1);
         }
 
-        if (manyItems == 0) {
+        if (size == 0) {
             front = 0;
             rear = 0;
         } else
             rear = nextIndex(rear);
 
         data[rear] = item;
-        manyItems++;
+        size++;
     }
 
 
@@ -186,7 +173,7 @@ public class ByteQueue {
      * <CODE>false</CODE> otherwise.
      **/
     public boolean isEmpty() {
-        return (manyItems == 0);
+        return (size == 0);
     }
 
 
@@ -203,21 +190,32 @@ public class ByteQueue {
      * @return the number of items in this queue
      **/
     public int size() {
-        return manyItems;
+        return size;
     }
 
     /**
      * Empty the array by simply setting the number of items to 0. No need to clear the actual data.
      */
     public void clear() {
-        this.manyItems = 0;
+        this.size = 0;
     }
 
     public byte peek() {
-        if (manyItems == 0) {
+        if (size == 0) {
             throw new NoSuchElementException("Queue underflow");
         }
 
         return data[front];
+    }
+
+    public void copyTo(byte[] copy) {
+        if (front <= rear) {
+            System.arraycopy(data, front, copy, front, size);
+        } else {
+            int n1 = data.length - front;
+            int n2 = rear + 1;
+            System.arraycopy(data, front, copy, 0, n1);
+            System.arraycopy(data, 0, copy, n1, n2);
+        }
     }
 }
