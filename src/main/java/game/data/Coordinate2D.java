@@ -34,8 +34,12 @@ public class Coordinate2D {
         this.z += offsetZ >> 4;
     }
 
+    public boolean isInRange(Coordinate2D other, int distanceX, int distanceZ) {
+        return Math.abs(this.x - other.x) <= distanceX && Math.abs(this.z - other.z) <= distanceZ;
+    }
+
     public boolean isInRange(Coordinate2D other, int distance) {
-        return Math.max(Math.abs(this.x - other.x), Math.abs(this.z - other.z)) <= distance;
+        return isInRange(other, distance, distance);
     }
 
     public Coordinate2D chunkToRegion() {

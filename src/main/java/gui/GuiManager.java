@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -36,7 +35,7 @@ public class GuiManager {
     public static int width = 400;
     public static int height = 400;
 
-    private static ChunkGraphicsHandler chunkGraphicsHandler;
+    private static GraphicsHandler chunkGraphicsHandler;
 
     public static void showGui() {
         SwingUtilities.invokeLater(GuiManager::createAndShowGUI);
@@ -59,7 +58,7 @@ public class GuiManager {
             }
         });
 
-        chunkGraphicsHandler = new ChunkGraphicsHandler();
+        chunkGraphicsHandler = new GraphicsHandler();
         f.add(chunkGraphicsHandler);
 
         f.pack();
@@ -93,21 +92,22 @@ public class GuiManager {
 /**
  * The panel with the canvas we can draw to.
  */
-class ChunkGraphicsHandler extends JPanel implements ActionListener {
-    private final Image IMAGE_DEFAULT = null;
-    private final int render_distance;
+class GraphicsHandler extends JPanel implements ActionListener {
+    private final Color BACKGROUND_COLOR = Color.decode("#292929");
+    private int renderDistanceX;
+    private int renderDistanceZ;
     private int minX;
     private int minZ;
     private int gridSize = 0;
     private HashMap<Coordinate2D, Image> chunkMap = new HashMap<>();
-    private Set<Coordinate2D> inRangeChunks = new HashSet<>();
+    private Set<Coordinate2D> drawableChunks = new HashSet<>();
     private Image chunkImage;
 
-    boolean hasChanged = false;
+    private boolean hasChanged = false;
 
-    ChunkGraphicsHandler() {
-        this.render_distance = Game.getRenderDistance();
-        this.chunkImage = new BufferedImage(GuiManager.width, GuiManager.height, BufferedImage.TYPE_INT_RGB);
+    GraphicsHandler() {
+        replaceChunkImage();
+        computeRenderDistance();
 
         // timer to redraw the canvas
         new Timer(150, this).start();
@@ -116,15 +116,30 @@ class ChunkGraphicsHandler extends JPanel implements ActionListener {
         new Timer(2000, (e) -> computeBounds(false)).start();
     }
 
+    private void replaceChunkImage() {
+        this.chunkImage = new BufferedImage(GuiManager.width, GuiManager.height, BufferedImage.TYPE_INT_RGB);
+    }
+
+    /**
+     * Compute the render distance on both axis -- we have two to keep them separate as non-square windows will look
+     * bad otherwise.
+     */
+    private void computeRenderDistance() {
+        int avgDistance = Game.getRenderDistance();
+        double ratio = (1d * GuiManager.height / GuiManager.width);
+
+        renderDistanceX =  (int) Math.ceil(avgDistance / ratio);
+        renderDistanceZ = (int) Math.ceil(avgDistance * ratio);
+    }
+
     synchronized void setChunkExists(Coordinate2D coord) {
-        chunkMap.put(coord, IMAGE_DEFAULT);
+        chunkMap.put(coord, null);
 
         hasChanged = true;
     }
 
     synchronized void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
         Image image = chunk.getImage();
-        if (image == null) { image = IMAGE_DEFAULT; }
 
         chunkMap.put(coord, image);
         drawChunk(chunkImage.getGraphics(), coord);
@@ -136,19 +151,16 @@ class ChunkGraphicsHandler extends JPanel implements ActionListener {
      * Compute the bounds of the canvas based on the existing chunk data. Will also delete chunks that are out of the
      * set render distance. The computed bounds will be used to determine the scale and positions to draw the chunks to.
      */
-    void computeBounds(boolean force) {
-        if (!force && !hasChanged) {
+    void computeBounds(boolean dimensionsChanged) {
+        if (dimensionsChanged) {
+            computeRenderDistance();
+        } else if (!hasChanged) {
             return;
         }
+
         hasChanged = false;
 
-        inRangeChunks = chunkMap.keySet();
-        if (Game.getPlayerPosition() != null) {
-            Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
-            inRangeChunks = chunkMap.keySet().stream()
-                .filter(el -> playerChunk.isInRange(el, render_distance))
-                .collect(Collectors.toSet());
-        }
+        Set<Coordinate2D> inRangeChunks = getChunksInRange();
 
         int[] xCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getX).toArray();
         int maxX = Arrays.stream(xCoords).max().orElse(0) + 1;
@@ -162,8 +174,35 @@ class ChunkGraphicsHandler extends JPanel implements ActionListener {
         int gridHeight = GuiManager.height / (Math.abs(maxZ - minZ) + 1);
         gridSize = Math.min(gridWidth, gridHeight);
 
-        chunkImage = new BufferedImage(GuiManager.width, GuiManager.height, BufferedImage.TYPE_INT_RGB);
+        replaceChunkImage();
         drawChunksToImage();
+    }
+
+    /**
+     * Computes the set of chunks in range, as well as building the set of all chunks we should draw (up to twice the
+     * range due to pixels).
+     * @return the set of chunks actually in range.
+     */
+    private Set<Coordinate2D> getChunksInRange() {
+        if (Game.getPlayerPosition() == null) {
+            drawableChunks = chunkMap.keySet();
+            return drawableChunks;
+        }
+
+        Set<Coordinate2D> inRangeChunks = new HashSet<>();
+        drawableChunks = new HashSet<>();
+        Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
+
+        for (Coordinate2D coord : chunkMap.keySet()) {
+            if (playerChunk.isInRange(coord, renderDistanceX * 2, renderDistanceZ * 2)) {
+                drawableChunks.add(coord);
+
+                if (playerChunk.isInRange(coord, renderDistanceX, renderDistanceZ)) {
+                    inRangeChunks.add(coord);
+                }
+            }
+        }
+        return inRangeChunks;
     }
 
     /**
@@ -196,9 +235,10 @@ class ChunkGraphicsHandler extends JPanel implements ActionListener {
 
     private void drawChunksToImage() {
         Graphics g = chunkImage.getGraphics();
-
-        g.clearRect(0, 0, GuiManager.width, GuiManager.height);
-        for (Coordinate2D pos : inRangeChunks) {
+        g.setColor(BACKGROUND_COLOR);
+        g.fillRect(0, 0, GuiManager.width, GuiManager.height);
+        g.setColor(Color.WHITE);
+        for (Coordinate2D pos : drawableChunks) {
             drawChunk(g, pos);
         }
     }
