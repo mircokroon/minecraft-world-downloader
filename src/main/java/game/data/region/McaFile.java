@@ -92,7 +92,7 @@ public class McaFile {
      */
     public McaFile(Coordinate2D pos, Map<Integer, ChunkBinary> chunkMap) {
         regionLocation = pos;
-        Path filePath = Paths.get(Game.getExportDirectory(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
+        Path filePath = Paths.get(Game.getExportDirectory(), Game.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
 
         this.chunkMap = new HashMap<>();
         if (filePath.toFile().exists()) {

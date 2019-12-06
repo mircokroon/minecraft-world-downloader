@@ -67,6 +67,7 @@ public class WorldManager extends Thread {
         List<Coordinate2D> existing = Files.walk(exportDir)
             .filter(el -> el.getFileName().toString().endsWith(".mca"))
             .map(Path::toFile)
+            .limit(100) // don't load more than 100 region files
             .filter(el -> el.length() > 0)
             .map(el -> {
                 try {
@@ -78,6 +79,10 @@ public class WorldManager extends Thread {
             })
             .filter(Objects::nonNull)
             .flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList());
+
+        System.out.println(existing.size());
+        GuiManager.drawExistingChunks(existing);
+
     }
 
     /**

@@ -20,7 +20,8 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.swing.JFrame;
@@ -32,10 +33,10 @@ import javax.swing.Timer;
  * Class to the handle the GUI.
  */
 public class GuiManager {
-    public static int WIDTH = 400;
-    public static int HEIGHT = 400;
+    public static int width = 400;
+    public static int height = 400;
 
-    private static GraphicsHandler graphicsHandler;
+    private static ChunkGraphicsHandler chunkGraphicsHandler;
 
     public static void showGui() {
         SwingUtilities.invokeLater(GuiManager::createAndShowGUI);
@@ -48,18 +49,19 @@ public class GuiManager {
     private static void createAndShowGUI() {
         JFrame f = new JFrame("World Downloader");
         f.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        f.setSize(WIDTH, HEIGHT);
+        f.setSize(width, height);
         f.addComponentListener(new ComponentAdapter() {
             public void componentResized(ComponentEvent evt) {
                 Component c = (Component) evt.getSource();
-                HEIGHT = c.getHeight();
-                WIDTH = c.getWidth();
-                graphicsHandler.computeBounds();
+                height = c.getHeight();
+                width = c.getWidth();
+                chunkGraphicsHandler.computeBounds(true);
             }
         });
 
-        graphicsHandler = new GraphicsHandler();
-        f.add(graphicsHandler);
+        chunkGraphicsHandler = new ChunkGraphicsHandler();
+        f.add(chunkGraphicsHandler);
+
         f.pack();
         f.setVisible(true);
 
@@ -76,8 +78,14 @@ public class GuiManager {
      * @param chunk the chunk object
      */
     public static void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
-        if (graphicsHandler != null) {
-            graphicsHandler.setChunkLoaded(coord, chunk);
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.setChunkLoaded(coord, chunk);
+        }
+    }
+
+    public static void drawExistingChunks(List<Coordinate2D> existing) {
+        if (chunkGraphicsHandler != null) {
+            existing.forEach(chunkGraphicsHandler::setChunkExists);
         }
     }
 }
@@ -85,34 +93,56 @@ public class GuiManager {
 /**
  * The panel with the canvas we can draw to.
  */
-class GraphicsHandler extends JPanel implements ActionListener {
+class ChunkGraphicsHandler extends JPanel implements ActionListener {
+    private final Image IMAGE_DEFAULT = null;
     private final int render_distance;
-    private Timer timer;
     private int minX;
     private int minZ;
     private int gridSize = 0;
     private HashMap<Coordinate2D, Image> chunkMap = new HashMap<>();
+    private Set<Coordinate2D> inRangeChunks = new HashSet<>();
+    private Image chunkImage;
 
-    GraphicsHandler() {
+    boolean hasChanged = false;
+
+    ChunkGraphicsHandler() {
         this.render_distance = Game.getRenderDistance();
-        timer = new Timer(1000, this);
-        timer.start();
+        this.chunkImage = new BufferedImage(GuiManager.width, GuiManager.height, BufferedImage.TYPE_INT_RGB);
+
+        // timer to redraw the canvas
+        new Timer(150, this).start();
+
+        // timer to recompute bounds periodically if needed
+        new Timer(2000, (e) -> computeBounds(false)).start();
+    }
+
+    synchronized void setChunkExists(Coordinate2D coord) {
+        chunkMap.put(coord, IMAGE_DEFAULT);
+
+        hasChanged = true;
     }
 
     synchronized void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
         Image image = chunk.getImage();
-        if (image == null) { new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY); }
+        if (image == null) { image = IMAGE_DEFAULT; }
 
         chunkMap.put(coord, image);
-        computeBounds();
+        drawChunk(chunkImage.getGraphics(), coord);
+
+        hasChanged = true;
     }
 
     /**
      * Compute the bounds of the canvas based on the existing chunk data. Will also delete chunks that are out of the
      * set render distance. The computed bounds will be used to determine the scale and positions to draw the chunks to.
      */
-    void computeBounds() {
-        Set<Coordinate2D> inRangeChunks = chunkMap.keySet();
+    void computeBounds(boolean force) {
+        if (!force && !hasChanged) {
+            return;
+        }
+        hasChanged = false;
+
+        inRangeChunks = chunkMap.keySet();
         if (Game.getPlayerPosition() != null) {
             Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
             inRangeChunks = chunkMap.keySet().stream()
@@ -128,9 +158,12 @@ class GraphicsHandler extends JPanel implements ActionListener {
         int maxZ = Arrays.stream(zCoords).max().orElse(0) + 1;
         minZ = Arrays.stream(zCoords).min().orElse(0) - 1;
 
-        int gridWidth = GuiManager.WIDTH / (Math.abs(maxX - minX) + 1);
-        int gridHeight = GuiManager.HEIGHT / (Math.abs(maxZ - minZ) + 1);
+        int gridWidth = GuiManager.width / (Math.abs(maxX - minX) + 1);
+        int gridHeight = GuiManager.height / (Math.abs(maxZ - minZ) + 1);
         gridSize = Math.min(gridWidth, gridHeight);
+
+        chunkImage = new BufferedImage(GuiManager.width, GuiManager.height, BufferedImage.TYPE_INT_RGB);
+        drawChunksToImage();
     }
 
     /**
@@ -139,18 +172,10 @@ class GraphicsHandler extends JPanel implements ActionListener {
      */
     @Override
     protected synchronized void paintComponent(Graphics g) {
-        g.clearRect(0, 0, GuiManager.WIDTH, GuiManager.HEIGHT);
-        for (Map.Entry<Coordinate2D, Image> e : chunkMap.entrySet()) {
-
-            g.drawImage(
-                e.getValue(),
-                (e.getKey().getX() - minX) * gridSize,
-                (e.getKey().getZ() - minZ) * gridSize,
-                gridSize,
-                gridSize,
-                (img, infoflags, x, y, width, height) -> false
-            );
-
+        g.clearRect(0, 0, GuiManager.width, GuiManager.height);
+        if (chunkImage != null) {
+            g.drawImage(chunkImage, 0, 0, GuiManager.width, GuiManager.height,
+                        (im, infoflags, x, y, width, height) -> false);
         }
 
         if (Game.getPlayerPosition() != null) {
@@ -169,9 +194,33 @@ class GraphicsHandler extends JPanel implements ActionListener {
         }
     }
 
+    private void drawChunksToImage() {
+        Graphics g = chunkImage.getGraphics();
+
+        g.clearRect(0, 0, GuiManager.width, GuiManager.height);
+        for (Coordinate2D pos : inRangeChunks) {
+            drawChunk(g, pos);
+        }
+    }
+
+    private void drawChunk(Graphics g, Coordinate2D pos) {
+        Image img =  chunkMap.get(pos);
+
+        int drawX = (pos.getX() - minX) * gridSize;
+        int drawY = (pos.getZ() - minZ) * gridSize;
+        if (img == null) {
+            g.drawRect(drawX, drawY, gridSize, gridSize);
+        } else {
+            g.drawImage(
+                img, drawX, drawY, gridSize, gridSize,
+                (im, infoflags, x, y, width, height) -> false
+            );
+        }
+    }
+
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(GuiManager.WIDTH, GuiManager.HEIGHT);
+        return new Dimension(GuiManager.width, GuiManager.height);
     }
 
     @Override

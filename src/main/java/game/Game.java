@@ -96,10 +96,7 @@ public abstract class Game {
 
         Palette.setMaskBedrock(args.getBoolean("mask-bedrock"));
 
-        File dir = Paths.get(getExportDirectory(), "region").toFile();
-        if (!dir.isDirectory()) {
-            dir.mkdirs();
-        }
+        initFolders();
 
         ChunkFactory.startChunkParserService();
         WorldManager.startSaveService(args.getBoolean("mark-new-chunks"));
@@ -108,6 +105,17 @@ public abstract class Game {
         }
 
         versionHandler = VersionHandler.createVersionHandler();
+    }
+
+    public static void initFolders() {
+        File dirOverworld = Paths.get(getExportDirectory(), Dimension.OVERWORLD.getPath(),"region").toFile();
+        if (!dirOverworld.isDirectory()) { dirOverworld.mkdirs(); }
+
+        File dirNether = Paths.get(getExportDirectory(), Dimension.NETHER.getPath(), "region").toFile();
+        if (!dirNether.isDirectory()) { dirNether.mkdirs(); }
+
+        File dirEnd = Paths.get(getExportDirectory(),Dimension.END.getPath(),  "region").toFile();
+        if (!dirEnd.isDirectory()) { dirEnd.mkdirs(); }
     }
 
     public static String getExportDirectory() {
