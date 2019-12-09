@@ -99,7 +99,7 @@ public abstract class Game {
         initFolders();
 
         ChunkFactory.startChunkParserService();
-        WorldManager.startSaveService(args.getBoolean("mark-new-chunks"));
+        WorldManager.startSaveService(args.getBoolean("mark-new-chunks"), args.getBoolean("write-chunks"));
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
         }

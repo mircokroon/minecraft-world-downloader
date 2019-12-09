@@ -65,6 +65,10 @@ public class Launcher {
             .setDefault(false)
             .type(boolean.class)
             .help("Mark new chunks in an orange outline.");
+        parser.addArgument("--write-chunks").dest("write-chunks")
+            .setDefault(true)
+            .type(boolean.class)
+            .help("Set to false to disable writing the chunks, mostly for debugging purposes.");
 
         Namespace ns = null;
         try {

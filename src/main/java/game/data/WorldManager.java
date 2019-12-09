@@ -54,6 +54,8 @@ public class WorldManager extends Thread {
 
     private static boolean markNewChunks;
 
+    private static boolean writeChunks;
+
     private WorldManager() {
 
     }
@@ -82,7 +84,6 @@ public class WorldManager extends Thread {
 
         System.out.println(existing.size());
         GuiManager.drawExistingChunks(existing);
-
     }
 
     /**
@@ -157,7 +158,7 @@ public class WorldManager extends Thread {
     /**
      * Start the periodic saving service.
      */
-    public static void startSaveService(boolean markNewChunks) {
+    public static void startSaveService(boolean markNewChunks, Boolean writeChunks) {
         WorldManager.markNewChunks = markNewChunks;
 
         if (writer != null) {
@@ -176,13 +177,15 @@ public class WorldManager extends Thread {
      * @param chunk      the chunk
      */
     public static void loadChunk(Coordinate2D coordinate, Chunk chunk) {
-        Coordinate2D regionCoordinates = coordinate.chunkToRegion();
+        if (writeChunks) {
+            Coordinate2D regionCoordinates = coordinate.chunkToRegion();
 
-        if (!regions.containsKey(regionCoordinates)) {
-            regions.put(regionCoordinates, new Region(regionCoordinates));
+            if (!regions.containsKey(regionCoordinates)) {
+                regions.put(regionCoordinates, new Region(regionCoordinates));
+            }
+
+            regions.get(regionCoordinates).addChunk(coordinate, chunk);
         }
-
-        regions.get(regionCoordinates).addChunk(coordinate, chunk);
 
         // draw the chunk once its been parsed
         chunk.whenParsed(() -> GuiManager.setChunkLoaded(coordinate, chunk));
@@ -244,6 +247,9 @@ public class WorldManager extends Thread {
      * Save the world. Will tell all regions to save their chunks.
      */
     private static void save() {
+        if (!writeChunks) {
+            return;
+        }
         if (!regions.isEmpty()) {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[regions.size()]);
@@ -265,6 +271,7 @@ public class WorldManager extends Thread {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
 
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());

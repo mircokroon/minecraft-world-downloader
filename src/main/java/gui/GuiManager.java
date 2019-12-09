@@ -19,10 +19,15 @@ import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -93,14 +98,15 @@ public class GuiManager {
  * The panel with the canvas we can draw to.
  */
 class GraphicsHandler extends JPanel implements ActionListener {
+    private static final Image NONE = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
     private final Color BACKGROUND_COLOR = Color.decode("#292929");
     private int renderDistanceX;
     private int renderDistanceZ;
     private int minX;
     private int minZ;
     private int gridSize = 0;
-    private HashMap<Coordinate2D, Image> chunkMap = new HashMap<>();
-    private Set<Coordinate2D> drawableChunks = new HashSet<>();
+    private Map<Coordinate2D, Image> chunkMap = new ConcurrentHashMap<>();
+    private Collection<Coordinate2D> drawableChunks = new ConcurrentLinkedQueue<>();
     private Image chunkImage;
 
     private boolean hasChanged = false;
@@ -132,13 +138,13 @@ class GraphicsHandler extends JPanel implements ActionListener {
         renderDistanceZ = (int) Math.ceil(avgDistance * ratio);
     }
 
-    synchronized void setChunkExists(Coordinate2D coord) {
-        chunkMap.put(coord, null);
+    void setChunkExists(Coordinate2D coord) {
+        chunkMap.put(coord, NONE);
 
         hasChanged = true;
     }
 
-    synchronized void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
+    void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
         Image image = chunk.getImage();
 
         chunkMap.put(coord, image);
@@ -160,7 +166,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
 
         hasChanged = false;
 
-        Set<Coordinate2D> inRangeChunks = getChunksInRange();
+        Collection<Coordinate2D> inRangeChunks = getChunksInRange();
 
         int[] xCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getX).toArray();
         int maxX = Arrays.stream(xCoords).max().orElse(0) + 1;
@@ -183,14 +189,14 @@ class GraphicsHandler extends JPanel implements ActionListener {
      * range due to pixels).
      * @return the set of chunks actually in range.
      */
-    private Set<Coordinate2D> getChunksInRange() {
+    private Collection<Coordinate2D> getChunksInRange() {
         if (Game.getPlayerPosition() == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
         }
 
-        Set<Coordinate2D> inRangeChunks = new HashSet<>();
-        drawableChunks = new HashSet<>();
+        Collection<Coordinate2D> inRangeChunks = new ConcurrentLinkedQueue<>();
+        drawableChunks = new ConcurrentLinkedQueue<>();
         Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
 
         for (Coordinate2D coord : chunkMap.keySet()) {
@@ -248,7 +254,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
 
         int drawX = (pos.getX() - minX) * gridSize;
         int drawY = (pos.getZ() - minZ) * gridSize;
-        if (img == null) {
+        if (img == NONE) {
             g.drawRect(drawX, drawY, gridSize, gridSize);
         } else {
             g.drawImage(
