@@ -164,4 +164,11 @@ public class DataTypeProvider {
         buffer.flip();
         return buffer.getDouble();
     }
-}
+
+    public Coordinate3D readPosition() {
+        long pos = readLong();
+        int x = (int) (pos >>> 38);
+        int y = (int) (pos & 0xFFF);
+        int z = (int) (pos << 26 >>> 38);
+        return new Coordinate3D(x, y ,z);
+    }
