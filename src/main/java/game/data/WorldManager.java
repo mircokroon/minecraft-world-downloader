@@ -82,7 +82,6 @@ public class WorldManager extends Thread {
             .filter(Objects::nonNull)
             .flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList());
 
-        System.out.println(existing.size());
         GuiManager.drawExistingChunks(existing);
     }
 

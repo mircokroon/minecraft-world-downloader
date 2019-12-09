@@ -29,7 +29,6 @@ import javax.crypto.spec.SecretKeySpec;
  */
 public class EncryptionManager {
     private static final String ENCRYPTION_TYPE = "AES/CFB8/NoPadding";
-    public final int blockSize = 16;
     private boolean encryptionEnabled = false;
     private String serverId;
     private RSAPublicKey serverRealPublicKey;

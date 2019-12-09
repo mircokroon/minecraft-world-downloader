@@ -1,6 +1,5 @@
 package game.data.chunk.version;
 
-import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.Palette;

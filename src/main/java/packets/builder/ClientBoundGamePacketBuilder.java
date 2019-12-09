@@ -13,6 +13,19 @@ import java.util.Map;
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
     public ClientBoundGamePacketBuilder() {
+        operations.put("join_game", provider -> {
+            provider.readInt();
+            provider.readNext();
+
+            Game.setDimension(Dimension.fromId(provider.readInt()));
+
+            return true;
+        });
+        operations.put("respawn", provider -> {
+            Game.setDimension(Dimension.fromId(provider.readInt()));
+            return true;
+        });
+
         operations.put("chunk_data", provider -> {
             try {
                 ChunkFactory.getInstance().addChunk(provider);
@@ -37,6 +50,8 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             ChunkFactory.getInstance().updateTileEntity(position, entityData);
             return true;
         });
+
+
         PacketOperator updatePlayerPosition = provider -> {
             double x = provider.readDouble();
             double y = provider.readDouble();

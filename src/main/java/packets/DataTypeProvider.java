@@ -9,6 +9,7 @@ import se.llbit.nbt.SpecificTag;
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Class to provide an interface between the raw byte data and the various data types. Most methods are
@@ -165,10 +166,7 @@ public class DataTypeProvider {
         return buffer.getDouble();
     }
 
-    public Coordinate3D readPosition() {
-        long pos = readLong();
-        int x = (int) (pos >>> 38);
-        int y = (int) (pos & 0xFFF);
-        int z = (int) (pos << 26 >>> 38);
-        return new Coordinate3D(x, y ,z);
+    public UUID readUUID() {
+        return new UUID(readLong(), readLong());
     }
+}
