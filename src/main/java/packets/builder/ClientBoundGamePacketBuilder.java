@@ -3,6 +3,7 @@ package packets.builder;
 import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
 import se.llbit.nbt.SpecificTag;
