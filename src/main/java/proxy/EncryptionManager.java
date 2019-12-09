@@ -28,6 +28,7 @@ import javax.crypto.spec.SecretKeySpec;
  * Class to handle encryption, decryption and related masking of the proxy server.
  */
 public class EncryptionManager {
+    private static final String ENCRYPTION_TYPE = "AES/CFB8/NoPadding";
     public final int blockSize = 16;
     private boolean encryptionEnabled = false;
     private String serverId;
@@ -303,16 +304,16 @@ public class EncryptionManager {
         attempt(() -> {
             IvParameterSpec ivspec = new IvParameterSpec(clientSharedSecret);
             SecretKeySpec k = new SecretKeySpec(clientSharedSecret, "AES");
-            clientBoundEncryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            clientBoundEncryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             clientBoundEncryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
 
-            clientBoundDecryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            clientBoundDecryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             clientBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
-            serverBoundEncryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            serverBoundEncryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             serverBoundEncryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
 
-            serverBoundDecryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            serverBoundDecryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             serverBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
             encryptionEnabled = true;
