@@ -30,4 +30,12 @@ public class BlockColors {
     public int getColor(String key) {
         return colors.getOrDefault(key, 0);
     }
+
+    /**
+     * We only have colours for 'solid' blocks.
+     * @param key the block ID
+     */
+    public boolean isSolid(String key) {
+        return colors.containsKey(key);
+    }
 }

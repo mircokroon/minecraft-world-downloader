@@ -6,9 +6,8 @@ import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
-import gui.GuiManager;
+import game.data.chunk.version.ColorTransformer;
 import packets.DataTypeProvider;
-import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.IntTag;
 import se.llbit.nbt.ListTag;
@@ -18,6 +17,7 @@ import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.Tag;
 
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
  */
 public abstract class Chunk {
+    private ColorTransformer colorTransformer;
+
     protected static final int LIGHT_SIZE = 2048;
     protected static final int CHUNK_HEIGHT = 256;
     public static final int SECTION_HEIGHT = 16;
@@ -40,12 +42,20 @@ public abstract class Chunk {
     public final int x;
     public final int z;
     private Map<Coordinate3D, SpecificTag> tileEntities;
+
+    protected ChunkSection[] getChunkSections() {
+        return chunkSections;
+    }
+
     private ChunkSection[] chunkSections;
 
     private Runnable afterParse;
     private boolean isNewChunk;
 
     private boolean saved;
+
+
+    private int[] heightMap;
 
     public Chunk(int x, int z) {
         this.saved = false;
@@ -55,6 +65,7 @@ public abstract class Chunk {
 
         chunkSections = new ChunkSection[16];
         tileEntities = new HashMap<>();
+        colorTransformer = new ColorTransformer();
 
         WorldManager.loadChunk(new Coordinate2D(x, z), this);
     }
@@ -203,8 +214,7 @@ public abstract class Chunk {
     protected void addLevelNbtTags(CompoundTag map) {
         map.add("xPos", new IntTag(x));
         map.add("zPos", new IntTag(z));
-        map.add("TerrainPopulated", new ByteTag((byte) 1));
-        map.add("LightPopulated", new ByteTag((byte) 1));
+
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));
         map.add("Entities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>()));
@@ -240,6 +250,9 @@ public abstract class Chunk {
 
         readChunkColumn(full, mask, dataProvider);
 
+        // Used to generate overview, not replaced by 1.14 NBT height maps
+        computeHeightMap();
+
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
             addTileEntity(dataProvider.readNbtTag());
@@ -254,20 +267,20 @@ public abstract class Chunk {
         }
     }
 
-    public abstract Image getImage();
+    public int getNumericBlockStateAt(int x, int y, int z) {
+        int section = y / SECTION_HEIGHT;
+        if (chunkSections[section] == null) { return 0; }
 
-    public BlockState topmostBlockStateAt(int x, int z) {
-        for (int chunkSection = 15; chunkSection >= 0; chunkSection--) {
-            if (chunkSections[chunkSection] == null) { continue; }
-
-            ChunkSection s = chunkSections[chunkSection];
-            BlockState block = s.topmostBlockStateAt(x, z);
-            if (block == null) { continue; }
-
-            return block;
-        }
-        return null;
+        return chunkSections[section].getNumericBlockStateAt(x, y % SECTION_HEIGHT, z);
     }
+
+    public BlockState getBlockStateAt(int x, int y, int z) {
+        int id = getNumericBlockStateAt(x, y, z);
+        if (id == 0) { return null; }
+
+        return WorldManager.getGlobalPalette().getState(id);
+    }
+
 
     /**
      * Mark this as a new chunk iff the
@@ -281,4 +294,92 @@ public abstract class Chunk {
     protected boolean isNewChunk() {
         return isNewChunk;
     }
+
+    public ColorTransformer getColorTransformer() {
+        return colorTransformer;
+    }
+
+    protected void computeHeightMap() {
+        heightMap = new int[SECTION_WIDTH * SECTION_WIDTH];
+
+        for (int x = 0; x < SECTION_WIDTH; x++) {
+            for (int z = 0; z < SECTION_WIDTH; z++) {
+                heightMap[z << 4 | x] = computeHeight(x, z);
+            }
+        }
+    }
+
+    private int computeHeight(int x, int z) {
+        for (int chunkSection = 15; chunkSection >= 0; chunkSection--) {
+
+            ChunkSection cs = getChunkSections()[chunkSection];
+            if (cs == null) { continue; }
+
+            int height = cs.height(x, z);
+            if (height < 0) { continue; }
+
+            return (chunkSection * SECTION_HEIGHT) + height;
+        }
+        return 0;
+    }
+
+    protected BlockState topmostBlockStateAt(int x, int z) {
+        return getBlockStateAt(x, heightAt(x, z), z);
+    }
+
+    protected int heightAt(int x, int z) {
+        return heightMap[z << 4 | x];
+    }
+
+
+    public Image getImage() {
+        BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
+
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                BlockState blockState = topmostBlockStateAt(x, z);
+
+                int color = blockState == null ? 0 : blockState.getColor();
+                color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
+
+                i.setRGB(x, z, color);
+
+                // mark new chunks in a red-ish outline
+                if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
+                    i.setRGB(x, z, getColorTransformer().highlight(i.getRGB(x, z)));
+                }
+            }
+        }
+
+        return i;
+    }
+
+    /**
+     * Looks at the block one coordinate north of the current to check if its above or below the current.
+     * @return a colour multiplier to adjust the color value by. If they elevations are the same it will be 1.0, if the
+     * northern block is above the current its 0.8, otherwise its 1.2.
+     */
+    private double getColorShader(int x, int z) {
+        int ySelf = heightAt(x, z);
+
+        int yNorth;
+        if (z == 0) {
+            Chunk other = WorldManager.getChunk(new Coordinate2D(this.x, this.z - 1));
+            if (other == null) { return 1; }
+            else { yNorth = other.heightAt(x, 15); }
+        } else {
+            yNorth = heightAt(x, z - 1);
+        }
+
+        if (ySelf < yNorth) {
+            return 0.8;
+        } else if (ySelf > yNorth) {
+            return 1.2;
+        }
+        return 1;
+    }
+
+
+
+
 }

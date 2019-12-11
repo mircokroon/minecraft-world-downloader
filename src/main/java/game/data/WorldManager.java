@@ -159,6 +159,7 @@ public class WorldManager extends Thread {
      */
     public static void startSaveService(boolean markNewChunks, Boolean writeChunks) {
         WorldManager.markNewChunks = markNewChunks;
+        WorldManager.writeChunks = writeChunks;
 
         if (writer != null) {
             return;

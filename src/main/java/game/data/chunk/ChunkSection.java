@@ -66,18 +66,15 @@ public abstract class ChunkSection {
         return y;
     }
 
-    public BlockState topmostBlockStateAt(int x, int z) {
+    public int height(int x, int z) {
         for (int y = 15; y >= 0 ; y--) {
-            int index = getPaletteIndex(palette.bitsPerBlock, x, y, z);
-            int state = palette.stateFromId(index);
-            if (state == 0) { continue;}
-
-            BlockState blockState = WorldManager.getGlobalPalette().getState(state >> 4);
-            if (blockState == null) { continue; }
-
-            return blockState;
+            int blockState = getNumericBlockStateAt(x, y, z);
+            if (blockState == 0 || !WorldManager.getGlobalPalette().getState(blockState).isSolid()) {
+                continue;
+            }
+            return y;
         }
-        return null;
+        return -1;
     }
 
     protected int getPaletteIndex(int bitsPerBlock, int x, int y, int z) {
@@ -99,4 +96,13 @@ public abstract class ChunkSection {
 
         return data;
     }
+
+    public int getNumericBlockStateAt(int x, int y, int z) {
+        int index = getPaletteIndex(palette.bitsPerBlock, x, y, z);
+        int state = palette.stateFromId(index);
+
+        return transformState(state);
+    }
+
+    protected int transformState(int state) { return state; }
 }

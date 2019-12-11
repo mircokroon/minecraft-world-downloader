@@ -78,4 +78,12 @@ public class ChunkSection_1_12 extends ChunkSection {
             arr[pos / 2] |= val & 0x0F;
         }
     }
+
+    /**
+     * In 1.14, we ignore the damage value and just get the block ID
+     * @param state the block state - ID and 4 bits of data
+     * @return the block ID
+     */
+    @Override
+    protected int transformState(int state) { return state >> 4; }
 }

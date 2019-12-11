@@ -16,7 +16,7 @@ public enum Dimension {
     public String getPath() {
         switch (this) {
             case NETHER: return "DIM-1";
-            case END: return "DIM";
+            case END: return "DIM1";
             default: return "";
         }
     }

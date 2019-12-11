@@ -147,6 +147,10 @@ class GraphicsHandler extends JPanel implements ActionListener {
     void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
         Image image = chunk.getImage();
 
+        if (image == null) {
+            image = NONE;
+        }
+
         chunkMap.put(coord, image);
         drawChunk(chunkImage.getGraphics(), coord);
 

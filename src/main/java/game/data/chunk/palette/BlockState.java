@@ -46,4 +46,8 @@ public class BlockState {
     public int getColor() {
         return WorldManager.getBlockColors().getColor(name);
     }
+
+    public boolean isSolid() {
+        return WorldManager.getBlockColors().isSolid(name);
+    }
 }
