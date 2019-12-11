@@ -5,6 +5,7 @@ import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
+import game.data.chunk.entity.Entity;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.version.ColorTransformer;
 import packets.DataTypeProvider;
@@ -22,10 +23,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -42,6 +45,7 @@ public abstract class Chunk {
     public final int x;
     public final int z;
     private Map<Coordinate3D, SpecificTag> tileEntities;
+    private Set<Entity> entities;
 
     protected ChunkSection[] getChunkSections() {
         return chunkSections;
@@ -65,6 +69,7 @@ public abstract class Chunk {
 
         chunkSections = new ChunkSection[16];
         tileEntities = new HashMap<>();
+        entities = new HashSet<>();
         colorTransformer = new ColorTransformer();
 
         WorldManager.loadChunk(new Coordinate2D(x, z), this);
@@ -222,6 +227,11 @@ public abstract class Chunk {
         map.add("Biomes", getBiomes());
         map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
         map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
+        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, getEntityList()));
+    }
+
+    private List<SpecificTag> getEntityList() {
+        return entities.stream().map(Entity::toNbt).collect(Collectors.toList());
     }
 
     /**
@@ -379,7 +389,7 @@ public abstract class Chunk {
         return 1;
     }
 
-
-
-
+    public void addEntity(Entity ent) {
+        entities.add(ent);
+    }
 }

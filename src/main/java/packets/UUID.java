@@ -37,4 +37,12 @@ public class UUID {
     public String toString() {
         return Long.toHexString(lower) + Long.toHexString(upper);
     }
+
+    public long getUpper() {
+        return upper;
+    }
+
+    public long getLower() {
+        return lower;
+    }
 }

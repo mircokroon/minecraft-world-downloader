@@ -5,7 +5,11 @@ import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
+import game.data.chunk.Chunk;
 import game.data.chunk.ChunkFactory;
+import game.data.chunk.entity.Entity;
+import game.data.chunk.entity.MobEntity;
+import game.data.chunk.entity.ObjectEntity;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.HashMap;
@@ -14,6 +18,32 @@ import java.util.Map;
 public class ClientBoundGamePacketBuilder extends PacketBuilder {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
     public ClientBoundGamePacketBuilder() {
+
+        operations.put("entity_metadata", provider -> {
+            Entity ent = ChunkFactory.getInstance().getEntity(provider.readVarInt());
+            if (ent == null) { return true; }
+            ent.parseMetadata(provider);
+
+            // mark chunk as unsaved
+            Chunk c = WorldManager.getChunk(ent.getPosition().chunkPos());
+            if (c == null) { return true; }
+
+            c.setSaved(false);
+            return true;
+        });
+
+        operations.put("spawn_mob", provider -> {
+            ChunkFactory.getInstance().addEntity(MobEntity.parse(provider));
+
+            return true;
+        });
+
+        operations.put("spawn_object", provider -> {
+            ChunkFactory.getInstance().addEntity(ObjectEntity.parse(provider));
+
+            return true;
+        });
+
         operations.put("join_game", provider -> {
             provider.readInt();
             provider.readNext();

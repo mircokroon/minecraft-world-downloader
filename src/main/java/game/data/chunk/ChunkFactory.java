@@ -4,12 +4,14 @@ import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.WorldManager;
+import game.data.chunk.entity.Entity;
 import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
 import gui.GuiManager;
 import javafx.util.Pair;
 import packets.DataTypeProvider;
+import packets.UUID;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.Queue;
@@ -24,7 +26,9 @@ public class ChunkFactory extends Thread {
     private static ChunkFactory factory;
 
     private ConcurrentLinkedQueue<DataTypeProvider> unparsedChunks;
-    private ConcurrentMap<Coordinate2D,ConcurrentLinkedQueue<TileEntity>> tileEntities;
+    private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
+    private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
+    private ConcurrentMap<Integer, Entity> entities;
 
     public static ChunkFactory getInstance() {
         if (factory == null) {
@@ -35,7 +39,36 @@ public class ChunkFactory extends Thread {
 
     private ChunkFactory() {
         this.tileEntities = new ConcurrentHashMap<>();
+        this.chunkEntities = new ConcurrentHashMap<>();
+        this.entities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
+    }
+
+    /**
+     * Update a regular entity that was given individually. If the entity is null, do nothing as its an unknown type.
+     * @param ent the entity object
+     */
+    public void addEntity(Entity ent) {
+        if (ent == null) { return; }
+
+        Coordinate2D chunkPos = ent.getPosition().globalToChunk();
+        Chunk chunk = WorldManager.getChunk(chunkPos);
+
+        entities.put(ent.getId(), ent);
+
+        // if the chunk doesn't exist yet, add it to the queue to process later
+        if (chunk == null) {
+            Queue<Integer> queue = chunkEntities.computeIfAbsent(chunkPos, (pos) -> new ConcurrentLinkedQueue<>());
+
+            queue.add(ent.getId());
+        } else {
+            chunk.addEntity(ent);
+            chunk.setSaved(false);
+        }
+    }
+
+    public Entity getEntity(int key) {
+        return entities.getOrDefault(key, null);
     }
 
     /**
@@ -58,15 +91,6 @@ public class ChunkFactory extends Thread {
             chunk.addTileEntity(position, entityData);
             chunk.setSaved(false);
         }
-    }
-
-    /**
-     * Delete all tile entities for a chunk, only done when the chunk is also unloaded. Note that this only related to
-     * tile entities sent in the update-tile-entity packets, ones sent with the chunk will only be stored in the chunk.
-     * @param location the position of the chunk for which we can delete tile entities.
-     */
-    public void deleteTileEntities(Coordinate2D location) {
-        tileEntities.remove(location);
     }
 
     /**
@@ -157,6 +181,13 @@ public class ChunkFactory extends Thread {
                 chunk.addTileEntity(ent.getKey(), ent.getValue());
             }
         }
+
+        if (chunkEntities.containsKey(chunkPos)) {
+            Queue<Integer> queue = chunkEntities.get(chunkPos);
+            for (Integer entId : queue) {
+                chunk.addEntity(entities.get(entId));
+            }
+        }
     }
 
     /**
@@ -171,6 +202,24 @@ public class ChunkFactory extends Thread {
             return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());
         } else {
             return new Chunk_1_12(chunkPos.getX(), chunkPos.getZ());
+        }
+    }
+
+    /**
+     * Delete all tile entities for a chunk, only done when the chunk is also unloaded. Note that this only related to
+     * tile entities sent in the update-tile-entity packets, ones sent with the chunk will only be stored in the chunk.
+     * @param location the position of the chunk for which we can delete tile entities.
+     */
+    public void deleteAllEntities(Coordinate2D location) {
+        tileEntities.remove(location);
+
+        // delete regular entities as well, some might not unload with the origin chunk but we'll ignore that for now
+        Queue<Integer> queue = chunkEntities.get(location);
+        if (queue != null) {
+            for (Integer entId : queue) {
+                entities.remove(entId);
+            }
+            chunkEntities.remove(location);
         }
     }
 

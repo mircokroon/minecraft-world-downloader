@@ -38,6 +38,7 @@ public class GlobalPalette {
     public BlockState getState(int key) {
         return states.getOrDefault(key, null);
     }
+
 }
 
 // we need a class to represent this type because of type erasure nonsense, otherwise Gson will get angry over casting.

@@ -158,6 +158,14 @@ public class DataTypeProvider {
         }
     }
 
+    public double readFloat() {
+        byte[] bytes = readByteArray(4);
+        ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
+        buffer.put(bytes);
+        buffer.flip();
+        return buffer.getFloat();
+    }
+
     public double readDouble() {
         byte[] bytes = readByteArray(8);
         ByteBuffer buffer = ByteBuffer.allocate(Double.BYTES);
@@ -168,5 +176,23 @@ public class DataTypeProvider {
 
     public UUID readUUID() {
         return new UUID(readLong(), readLong());
+    }
+
+    public String readChat() {
+        return readString();
+    }
+    public String readOptChat() {
+        if (readBoolean()) {
+            return readChat();
+        }
+        return null;
+    }
+
+    public void readSlot() {
+        if (readBoolean()) {
+            readVarInt();
+            readNext();
+            readNbtTag();
+        }
     }
 }

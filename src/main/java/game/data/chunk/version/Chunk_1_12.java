@@ -45,6 +45,8 @@ public class Chunk_1_12 extends Chunk {
     protected void addLevelNbtTags(CompoundTag map) {
         map.add("TerrainPopulated", new ByteTag((byte) 1));
         map.add("LightPopulated", new ByteTag((byte) 1));
+
+        super.addLevelNbtTags(map);
     }
 
     protected SpecificTag getBiomes() {

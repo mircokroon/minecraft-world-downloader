@@ -150,7 +150,10 @@ public abstract class Game {
         Protocol p = versionHandler.getProtocol(protocolVersion);
         Game.dataVersion = p.getDataVersion();
         Game.gameVersion = p.getVersion();
+
         WorldManager.setGlobalPalette(p.getVersion());
+        WorldManager.setEntityMap(p.getVersion());
+
         System.out.println("Using protocol of game version " + p.getVersion() + " (" + protocolVersion + ")");
         return p;
     }

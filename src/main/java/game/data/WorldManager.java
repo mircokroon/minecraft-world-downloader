@@ -2,6 +2,8 @@ package game.data;
 
 import game.Game;
 import game.data.chunk.Chunk;
+import game.data.chunk.entity.Entity;
+import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.GlobalPalette;
 import game.data.region.McaFile;
@@ -49,6 +51,7 @@ public class WorldManager extends Thread {
     private static WorldManager writer = null;
 
     private static GlobalPalette globalPalette;
+    private static EntityNames entityMap;
 
     private static BlockColors blockColors;
 
@@ -214,8 +217,15 @@ public class WorldManager extends Thread {
         globalPalette = new GlobalPalette(version);
     }
 
+    public static void setEntityMap(String version) {
+        entityMap = EntityNames.fromJson(version);
+    }
+
     public static GlobalPalette getGlobalPalette() {
         return globalPalette;
+    }
+    public static EntityNames getEntityMap() {
+        return entityMap;
     }
 
     public static BlockColors getBlockColors() {
@@ -224,6 +234,11 @@ public class WorldManager extends Thread {
 
     public static boolean markNewChunks() {
         return markNewChunks;
+    }
+
+    public static void addEntity(Entity ent) {
+        Coordinate2D chunk = ent.getPosition().globalToChunk();
+
     }
 
     /**

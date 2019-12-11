@@ -42,6 +42,9 @@ public class Coordinate2D {
         return isInRange(other, distance, distance);
     }
 
+    public Coordinate2D globalToChunk() {
+        return new Coordinate2D(x >> 4, z >> 4);
+    }
     public Coordinate2D chunkToRegion() {
         return new Coordinate2D(x >> 5, z >> 5);
     }

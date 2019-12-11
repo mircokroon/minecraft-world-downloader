@@ -68,8 +68,10 @@ public abstract class ChunkSection {
 
     public int height(int x, int z) {
         for (int y = 15; y >= 0 ; y--) {
-            int blockState = getNumericBlockStateAt(x, y, z);
-            if (blockState == 0 || !WorldManager.getGlobalPalette().getState(blockState).isSolid()) {
+            int blockStateId = getNumericBlockStateAt(x, y, z);
+
+            BlockState state = WorldManager.getGlobalPalette().getState(blockStateId);
+            if (state == null || !state.isSolid()) {
                 continue;
             }
             return y;
