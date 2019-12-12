@@ -17,19 +17,21 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
+import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -69,6 +71,8 @@ public class GuiManager {
         f.pack();
         f.setVisible(true);
 
+        chunkGraphicsHandler.setComponentPopupMenu(new RightClickMenu(chunkGraphicsHandler));
+
         try {
             WorldManager.loadExistingChunks();
         } catch (IOException e) {
@@ -102,8 +106,7 @@ class GraphicsHandler extends JPanel implements ActionListener {
     private final Color BACKGROUND_COLOR = Color.decode("#292929");
     private int renderDistanceX;
     private int renderDistanceZ;
-    private int minX;
-    private int minZ;
+    private Bounds bounds;
     private int gridSize = 0;
     private Map<Coordinate2D, Image> chunkMap = new ConcurrentHashMap<>();
     private Collection<Coordinate2D> drawableChunks = new ConcurrentLinkedQueue<>();
@@ -112,6 +115,8 @@ class GraphicsHandler extends JPanel implements ActionListener {
     private boolean hasChanged = false;
 
     GraphicsHandler() {
+        this.bounds = new Bounds();
+
         replaceChunkImage();
         computeRenderDistance();
 
@@ -172,20 +177,23 @@ class GraphicsHandler extends JPanel implements ActionListener {
 
         Collection<Coordinate2D> inRangeChunks = getChunksInRange();
 
-        int[] xCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getX).toArray();
-        int maxX = Arrays.stream(xCoords).max().orElse(0) + 1;
-        minX = Arrays.stream(xCoords).min().orElse(0) - 1;
+        this.bounds = getOverviewBounds(inRangeChunks);
 
-        int[] zCoords = inRangeChunks.stream().mapToInt(Coordinate2D::getZ).toArray();
-        int maxZ = Arrays.stream(zCoords).max().orElse(0) + 1;
-        minZ = Arrays.stream(zCoords).min().orElse(0) - 1;
+        int gridWidth = GuiManager.width / bounds.getWidth();
+        int gridHeight = GuiManager.height / bounds.getHeight();
 
-        int gridWidth = GuiManager.width / (Math.abs(maxX - minX) + 1);
-        int gridHeight = GuiManager.height / (Math.abs(maxZ - minZ) + 1);
         gridSize = Math.min(gridWidth, gridHeight);
 
         replaceChunkImage();
         drawChunksToImage();
+    }
+
+    private Bounds getOverviewBounds(Collection<Coordinate2D> coordinates) {
+        Bounds bounds = new Bounds();
+        for (Coordinate2D coordinate : coordinates) {
+            bounds.update(coordinate);
+        }
+        return bounds;
     }
 
     /**
@@ -230,8 +238,8 @@ class GraphicsHandler extends JPanel implements ActionListener {
         if (Game.getPlayerPosition() != null) {
             Coordinate3D playerPosition = Game.getPlayerPosition();
 
-            double playerX = ((playerPosition.getX() / 16.0 - minX) * gridSize);
-            double playerZ = ((playerPosition.getZ() / 16.0 - minZ) * gridSize);
+            double playerX = ((playerPosition.getX() / 16.0 - bounds.getMinX()) * gridSize);
+            double playerZ = ((playerPosition.getZ() / 16.0 - bounds.getMinZ()) * gridSize);
 
             g.setColor(Color.BLACK);
             g.fillOval((int) playerX - 6, (int) playerZ - 6, 12, 12);
@@ -253,11 +261,11 @@ class GraphicsHandler extends JPanel implements ActionListener {
         }
     }
 
-    private void drawChunk(Graphics g, Coordinate2D pos) {
+    private void drawChunk(Graphics g, Coordinate2D pos, Bounds bounds, int gridSize) {
         Image img =  chunkMap.get(pos);
 
-        int drawX = (pos.getX() - minX) * gridSize;
-        int drawY = (pos.getZ() - minZ) * gridSize;
+        int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
+        int drawY = (pos.getZ() - bounds.getMinZ()) * gridSize;
         if (img == NONE) {
             g.drawRect(drawX, drawY, gridSize, gridSize);
         } else {
@@ -268,6 +276,10 @@ class GraphicsHandler extends JPanel implements ActionListener {
         }
     }
 
+    private void drawChunk(Graphics g, Coordinate2D pos) {
+        drawChunk(g, pos, this.bounds, this.gridSize);
+    }
+
     @Override
     public Dimension getPreferredSize() {
         return new Dimension(GuiManager.width, GuiManager.height);
@@ -276,5 +288,112 @@ class GraphicsHandler extends JPanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         repaint();
+    }
+
+    public void export() {
+        int MAX_DIMENSIONS = 1000;
+
+        Bounds b = getOverviewBounds(chunkMap.keySet());
+
+        int imgWidth = Math.min(b.getWidth(), MAX_DIMENSIONS) * Chunk.SECTION_WIDTH;
+        int imgHeight = Math.min(b.getHeight(), MAX_DIMENSIONS) * Chunk.SECTION_WIDTH;
+
+        int gridSize = Chunk.SECTION_WIDTH;
+
+        Image img = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_3BYTE_BGR);
+        chunkMap.keySet().forEach(coord -> {
+            drawChunk(img.getGraphics(), coord, b, gridSize);
+        });
+
+
+        try {
+            ImageIO.write((RenderedImage) img, "png", new File(Game.getExportDirectory() + "/rendered.png"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+class RightClickMenu extends JPopupMenu {
+    public RightClickMenu(GraphicsHandler handler) {
+
+        add(new JMenuItem(new AbstractAction("Save overview to file") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                handler.export();
+            }
+        }));
+
+        add(new JMenuItem(new AbstractAction("Exit") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        }));
+    }
+}
+
+class Bounds {
+    private int minX, maxX, minZ, maxZ;
+
+    public Bounds() {
+        reset();
+    }
+
+    public void reset() {
+        this.minX = Integer.MAX_VALUE;
+        this.maxX = 0;
+        this.minZ = Integer.MAX_VALUE;
+        this.maxZ = 0;
+    }
+
+    public void update(Coordinate2D coord) {
+        updateX(coord.getX());
+        updateZ(coord.getZ());
+    }
+
+    private void updateX(int x) {
+        if (x < minX) { minX = x; }
+        if (x > maxX) { maxX = x; }
+    }
+
+    private void updateZ(int z) {
+        if (z < minZ) { minZ = z; }
+        if (z > maxZ) { maxZ = z; }
+    }
+
+    public int getWidth() {
+        return Math.abs(getMaxX() - getMinX()) + 1;
+    }
+
+    public int getHeight() {
+        return Math.abs(getMaxZ() - getMinZ()) + 1;
+    }
+
+    public int getMinX() {
+        return minX;
+    }
+
+
+    public int getMaxX() {
+        return maxX;
+    }
+
+    public int getMinZ() {
+        return minZ;
+    }
+
+    public int getMaxZ() {
+        return maxZ;
+    }
+
+    @Override
+    public String toString() {
+        return "Bounds{" +
+            "minX=" + minX +
+            ", maxX=" + maxX +
+            ", minZ=" + minZ +
+            ", maxZ=" + maxZ +
+            '}';
     }
 }
