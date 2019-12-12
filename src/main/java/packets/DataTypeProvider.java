@@ -113,10 +113,16 @@ public class DataTypeProvider {
     }
 
     public Coordinate3D readCoordinates() {
-        long val = readLong();
-        int x = (int) (val >> 38);
-        int y = (int) (val >> 26) & 0xFFF;
-        int z = (int) (val << 38 >> 38);
+        long var = readLong();
+        int mask = 0x3FFFFFF;
+        int x = (int) (var >> 38) & mask;
+        int y = (int) (var >> 26) & 0xFFF;
+        int z = (int) var & mask;
+
+        if (x >= 2 << 24) { x -= 2 << 25; }
+        if (y >= 2 << 10) { y -= 2 << 11; }
+        if (z >= 2 << 24) { z -= 2 << 25; }
+
         return new Coordinate3D(x, y, z);
     }
 
