@@ -5,7 +5,7 @@ import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
-import game.data.chunk.Palette;
+import game.data.chunk.palette.Palette;
 import game.protocol.HandshakeProtocol;
 import game.protocol.LoginProtocol;
 import game.protocol.Protocol;

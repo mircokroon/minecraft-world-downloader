@@ -11,8 +11,9 @@ import game.data.chunk.version.Chunk_1_14;
 import gui.GuiManager;
 import javafx.util.Pair;
 import packets.DataTypeProvider;
-import packets.UUID;
+import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.Tag;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -159,6 +160,8 @@ public class ChunkFactory extends Thread {
         Chunk chunk;
         if (full) {
             chunk = getVersionedChunk(chunkPos);
+
+            WorldManager.loadChunk(chunkPos, chunk, true);
         } else {
             chunk = WorldManager.getChunk(new Coordinate2D(chunkPos.getX(), chunkPos.getZ()));
 
@@ -206,6 +209,21 @@ public class ChunkFactory extends Thread {
     }
 
     /**
+     * Returns a chunk of the correct version.
+     * @param chunkPos the position of the chunk
+     * @return the chunk matching the given version
+     */
+    private static Chunk getVersionedChunk(int dataVersion, Coordinate2D chunkPos) {
+        if (dataVersion >= 1901) {
+            return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
+        } else if (dataVersion >= 1444) {
+            return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());
+        } else {
+            return new Chunk_1_12(chunkPos.getX(), chunkPos.getZ());
+        }
+    }
+
+    /**
      * Delete all tile entities for a chunk, only done when the chunk is also unloaded. Note that this only related to
      * tile entities sent in the update-tile-entity packets, ones sent with the chunk will only be stored in the chunk.
      * @param location the position of the chunk for which we can delete tile entities.
@@ -221,6 +239,15 @@ public class ChunkFactory extends Thread {
             }
             chunkEntities.remove(location);
         }
+    }
+
+    public Chunk fromNbt(NamedTag tag, Coordinate2D location) {
+        int dataVersion = tag.getTag().get("DataVersion").intValue();
+        Chunk c = getVersionedChunk(dataVersion, location);
+
+        c.parse(tag.getTag());
+
+        return c;
     }
 
     private class TileEntity extends Pair<Coordinate3D, SpecificTag> {

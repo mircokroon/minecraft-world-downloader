@@ -7,6 +7,7 @@ import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
@@ -71,8 +72,6 @@ public abstract class Chunk {
         tileEntities = new HashMap<>();
         entities = new HashSet<>();
         colorTransformer = new ColorTransformer();
-
-        WorldManager.loadChunk(new Coordinate2D(x, z), this);
     }
 
     public boolean isSaved() {
@@ -135,7 +134,7 @@ public abstract class Chunk {
                 // A bitmask that contains bitsPerBlock set bits
                 int dataArrayLength = dataProvider.readVarInt();
 
-                ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette, bitsPerBlock);
+                ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette);
 
                 // if the chunk has no blocks
                 if (dataArrayLength == 0) {
@@ -161,7 +160,7 @@ public abstract class Chunk {
     }
     protected void parseHeightMaps(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
-    protected abstract ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock);
+    protected abstract ChunkSection createNewChunkSection(byte y, Palette palette);
     protected abstract void readBiomes(DataTypeProvider provider);
     protected abstract SpecificTag getBiomes();
 
@@ -392,4 +391,14 @@ public abstract class Chunk {
     public void addEntity(Entity ent) {
         entities.add(ent);
     }
+
+    public void parse(Tag tag) {
+        tag.get("Level").asCompound().get("Sections").asList().forEach(section -> {
+            int sectionY = section.get("Y").byteValue();
+            this.chunkSections[sectionY] = parseSection(sectionY, section);
+        });
+        computeHeightMap();
+    }
+
+    protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
 }

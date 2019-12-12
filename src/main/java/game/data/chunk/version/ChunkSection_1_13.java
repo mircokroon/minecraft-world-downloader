@@ -1,7 +1,7 @@
 package game.data.chunk.version;
 
 import game.data.chunk.ChunkSection;
-import game.data.chunk.Palette;
+import game.data.chunk.palette.Palette;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.LongArrayTag;
@@ -16,6 +16,11 @@ public class ChunkSection_1_13 extends ChunkSection {
 
     public ChunkSection_1_13(byte y, Palette palette) {
         super(y, palette);
+    }
+    public ChunkSection_1_13(int sectionY, Tag nbt) {
+        super(sectionY, nbt);
+        // TODO:
+        throw new UnsupportedOperationException("Not yet implemented for 1.13");
     }
 
     @Override

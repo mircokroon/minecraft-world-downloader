@@ -2,9 +2,11 @@ package game.data.chunk.version;
 
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
-import game.data.chunk.Palette;
+import game.data.chunk.palette.DummyPalette;
+import game.data.chunk.palette.Palette;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.Tag;
 
 /**
  * Chunk sections in 1.12 require parsing of the full block data as the level format does not include a palette
@@ -12,11 +14,16 @@ import se.llbit.nbt.CompoundTag;
  */
 public class ChunkSection_1_12 extends ChunkSection {
     protected int[][][] blockStates;
-    private int bitsPerBlock;
-    public ChunkSection_1_12(byte y, Palette palette, int bitsPerBlock) {
+    public ChunkSection_1_12(byte y, Palette palette) {
         super(y, palette);
-        this.bitsPerBlock = bitsPerBlock;
         this.blockStates = new int[16][16][16];
+    }
+
+    public ChunkSection_1_12(int sectionY, Tag nbt) {
+        super(sectionY, nbt);
+        this.blockStates = new int[16][16][16];
+        this.palette = new DummyPalette();
+        parseBlockIds(nbt.get("Blocks").byteArray());
     }
 
     @Override
@@ -25,7 +32,7 @@ public class ChunkSection_1_12 extends ChunkSection {
         for (int y = 0; y < Chunk.SECTION_HEIGHT; y++) {
             for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
                 for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
-                    int data = getPaletteIndex(bitsPerBlock, x, y, z);
+                    int data = palette.getIndex(blocks, x, y, z);
 
                     this.blockStates[x][y][z] = palette.stateFromId(data);
                 }
@@ -58,11 +65,19 @@ public class ChunkSection_1_12 extends ChunkSection {
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    insertAtHalf(blockData, x, y, z, (blockStates[x][y][z]) & 0x0F);
+                    insertAtHalf(blockData, x, y, z, blockStates[x][y][z] & 0x0F);
                 }
             }
         }
         return blockData;
+    }
+
+    private void parseBlockIds(byte[] arr) {
+        long[] blocks = new long[arr.length];
+        for (int i = 0; i < arr.length; i++) {
+            blocks[i] = (arr[i] & 0xFF) << 4;
+        }
+        setBlocks(blocks);
     }
 
     /**

@@ -1,7 +1,7 @@
 package game.data.chunk.version;
 
 import game.data.chunk.ChunkSection;
-import game.data.chunk.Palette;
+import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.SpecificTag;
@@ -40,7 +40,12 @@ public class Chunk_1_14 extends Chunk_1_13 {
     }
 
     @Override
-    protected ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock) {
+    protected ChunkSection createNewChunkSection(byte y, Palette palette) {
         return new ChunkSection_1_14(y, palette);
+    }
+
+    @Override
+    protected ChunkSection parseSection(int sectionY, SpecificTag section) {
+        return new ChunkSection_1_14(sectionY, section);
     }
 }

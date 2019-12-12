@@ -2,7 +2,7 @@ package game.data.chunk.version;
 
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
-import game.data.chunk.Palette;
+import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
@@ -22,8 +22,8 @@ public class Chunk_1_12 extends Chunk {
     }
 
     @Override
-    protected ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock) {
-        return new ChunkSection_1_12(y, palette, bitsPerBlock);
+    protected ChunkSection createNewChunkSection(byte y, Palette palette) {
+        return new ChunkSection_1_12(y, palette);
     }
 
 
@@ -47,6 +47,11 @@ public class Chunk_1_12 extends Chunk {
         map.add("LightPopulated", new ByteTag((byte) 1));
 
         super.addLevelNbtTags(map);
+    }
+
+    @Override
+    protected ChunkSection parseSection(int sectionY, SpecificTag section) {
+        return new ChunkSection_1_12(sectionY, section);
     }
 
     protected SpecificTag getBiomes() {

@@ -20,12 +20,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.JFrame;
@@ -74,7 +74,7 @@ public class GuiManager {
         chunkGraphicsHandler.setComponentPopupMenu(new RightClickMenu(chunkGraphicsHandler));
 
         try {
-            WorldManager.loadExistingChunks();
+            WorldManager.outlineExistingChunks();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -175,7 +175,8 @@ class GraphicsHandler extends JPanel implements ActionListener {
 
         hasChanged = false;
 
-        Collection<Coordinate2D> inRangeChunks = getChunksInRange();
+        this.drawableChunks = getChunksInRange(chunkMap.keySet(),renderDistanceX * 2, renderDistanceZ * 2);
+        Collection<Coordinate2D> inRangeChunks = getChunksInRange(drawableChunks, renderDistanceX, renderDistanceZ);
 
         this.bounds = getOverviewBounds(inRangeChunks);
 
@@ -201,27 +202,18 @@ class GraphicsHandler extends JPanel implements ActionListener {
      * range due to pixels).
      * @return the set of chunks actually in range.
      */
-    private Collection<Coordinate2D> getChunksInRange() {
+    private Collection<Coordinate2D> getChunksInRange(Collection<Coordinate2D> coords, int rangeX, int rangeZ) {
         if (Game.getPlayerPosition() == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
         }
+        Coordinate2D player = Game.getPlayerPosition().chunkPos();
 
-        Collection<Coordinate2D> inRangeChunks = new ConcurrentLinkedQueue<>();
-        drawableChunks = new ConcurrentLinkedQueue<>();
-        Coordinate2D playerChunk = Game.getPlayerPosition().chunkPos();
-
-        for (Coordinate2D coord : chunkMap.keySet()) {
-            if (playerChunk.isInRange(coord, renderDistanceX * 2, renderDistanceZ * 2)) {
-                drawableChunks.add(coord);
-
-                if (playerChunk.isInRange(coord, renderDistanceX, renderDistanceZ)) {
-                    inRangeChunks.add(coord);
-                }
-            }
-        }
-        return inRangeChunks;
+        return coords.parallelStream()
+            .filter(coordinate2D -> coordinate2D.isInRange(player, rangeX, rangeZ))
+            .collect(Collectors.toSet());
     }
+
 
     /**
      * Called when the canvas needs to be re-painted. Will draw the player position, all of the chunks and potentially
@@ -291,19 +283,17 @@ class GraphicsHandler extends JPanel implements ActionListener {
     }
 
     public void export() {
-        int MAX_DIMENSIONS = 1000;
+        int MAX_RADIUS = 300;
 
-        Bounds b = getOverviewBounds(chunkMap.keySet());
+        Bounds b = getOverviewBounds(getChunksInRange(chunkMap.keySet(), MAX_RADIUS, MAX_RADIUS));
 
-        int imgWidth = Math.min(b.getWidth(), MAX_DIMENSIONS) * Chunk.SECTION_WIDTH;
-        int imgHeight = Math.min(b.getHeight(), MAX_DIMENSIONS) * Chunk.SECTION_WIDTH;
+        int imgWidth = b.getWidth() * Chunk.SECTION_WIDTH;
+        int imgHeight = b.getHeight() * Chunk.SECTION_WIDTH;
 
         int gridSize = Chunk.SECTION_WIDTH;
 
         Image img = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_3BYTE_BGR);
-        chunkMap.keySet().forEach(coord -> {
-            drawChunk(img.getGraphics(), coord, b, gridSize);
-        });
+        chunkMap.keySet().forEach(coord -> drawChunk(img.getGraphics(), coord, b, gridSize));
 
 
         try {
@@ -330,6 +320,17 @@ class RightClickMenu extends JPopupMenu {
                 System.exit(0);
             }
         }));
+
+        add(new JMenuItem(new AbstractAction("Load all existing chunks") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    WorldManager.drawExistingChunks();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        }));
     }
 }
 
@@ -342,9 +343,9 @@ class Bounds {
 
     public void reset() {
         this.minX = Integer.MAX_VALUE;
-        this.maxX = 0;
+        this.maxX = Integer.MIN_VALUE;
         this.minZ = Integer.MAX_VALUE;
-        this.maxZ = 0;
+        this.maxZ = Integer.MIN_VALUE;
     }
 
     public void update(Coordinate2D coord) {

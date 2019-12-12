@@ -1,7 +1,7 @@
-package game.data.chunk;
+package game.data.chunk.palette;
 
 import game.data.WorldManager;
-import game.data.chunk.palette.GlobalPalette;
+import game.data.chunk.Chunk;
 import packets.DataTypeProvider;
 import se.llbit.nbt.SpecificTag;
 
@@ -13,13 +13,16 @@ import java.util.List;
  */
 public class Palette {
     private static boolean maskBedrock = false;
-    int bitsPerBlock;
+    public int bitsPerBlock;
     int[] palette;
+
+    protected Palette() { }
 
     private Palette(int bitsPerBlock, int[] palette) {
         this.bitsPerBlock = bitsPerBlock;
         this.palette = palette;
     }
+
 
     public static void setMaskBedrock(boolean maskBedrock) {
         Palette.maskBedrock = maskBedrock;
@@ -76,5 +79,25 @@ public class Palette {
             tags.add(globalPalette.getState(i).toNbt());
         }
         return tags;
+    }
+
+    public int getIndex(long[] blocks, int x, int y, int z) {
+        int individualValueMask = (1 << bitsPerBlock) - 1;
+
+        int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;
+        int startLong = (blockNumber * bitsPerBlock) / 64;
+        int startOffset = (blockNumber * bitsPerBlock) % 64;
+        int endLong = ((blockNumber + 1) * bitsPerBlock - 1) / 64;
+
+        int data;
+        if (startLong == endLong) {
+            data = (int) (blocks[startLong] >>> startOffset);
+        } else {
+            int endOffset = 64 - startOffset;
+            data = (int) (blocks[startLong] >>> startOffset | blocks[endLong] << endOffset);
+        }
+        data &= individualValueMask;
+
+        return data;
     }
 }

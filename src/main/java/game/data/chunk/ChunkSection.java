@@ -2,9 +2,11 @@ package game.data.chunk;
 
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.Palette;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.Tag;
 
 /**
  * Class to hold a 16 block tall chunk section.
@@ -21,6 +23,10 @@ public abstract class ChunkSection {
         this.blockLight = new byte[2048];
         this.skyLight = new byte[2048];
         this.palette = palette;
+    }
+
+    public ChunkSection(int sectionY, Tag nbt) {
+        this.y = (byte) sectionY;
     }
 
     public void setSkyLight(byte[] skyLight) {
@@ -79,29 +85,8 @@ public abstract class ChunkSection {
         return -1;
     }
 
-    protected int getPaletteIndex(int bitsPerBlock, int x, int y, int z) {
-        int individualValueMask = (1 << bitsPerBlock) - 1;
-
-        int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;
-        int startLong = (blockNumber * bitsPerBlock) / 64;
-        int startOffset = (blockNumber * bitsPerBlock) % 64;
-        int endLong = ((blockNumber + 1) * bitsPerBlock - 1) / 64;
-
-        int data;
-        if (startLong == endLong) {
-            data = (int) (blocks[startLong] >>> startOffset);
-        } else {
-            int endOffset = 64 - startOffset;
-            data = (int) (blocks[startLong] >>> startOffset | blocks[endLong] << endOffset);
-        }
-        data &= individualValueMask;
-
-        return data;
-    }
-
     public int getNumericBlockStateAt(int x, int y, int z) {
-        int index = getPaletteIndex(palette.bitsPerBlock, x, y, z);
-        int state = palette.stateFromId(index);
+        int state = palette.stateFromId(palette.getIndex(blocks, x, y, z));
 
         return transformState(state);
     }

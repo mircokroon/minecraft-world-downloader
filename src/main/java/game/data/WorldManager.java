@@ -34,11 +34,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Manage the world, including saving, parsing and updating the GUI.
@@ -63,17 +66,53 @@ public class WorldManager extends Thread {
 
     }
 
+    public static void outlineExistingChunks() throws IOException {
+        Stream<McaFile> files = getMcaFiles(true);
+
+        GuiManager.drawExistingChunks(
+            files.flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList())
+        );
+    }
+
+    public static void drawExistingChunks() throws IOException {
+        Stream<McaFile> files = getMcaFiles(false);
+
+        // Step 1: parse all the chunks
+        Set<Map.Entry<Coordinate2D, Chunk>> parsedChunks = files.parallel()
+            .flatMap(el -> el.getParsedChunks().entrySet().stream())
+            .collect(Collectors.toSet());
+
+        // Step 2: add all chunks to the WorldManager if it doesn't have them yet
+        Set<Coordinate2D> toDelete = new HashSet<>();
+        parsedChunks.forEach(entry -> {
+            if (getChunk(entry.getKey()) == null) {
+                toDelete.add(entry.getKey());
+                loadChunk(entry.getKey(), entry.getValue(), false);
+            }
+        });
+
+        // Step 3: draw the picture
+        parsedChunks.forEach(entry -> GuiManager.setChunkLoaded(entry.getKey(), entry.getValue()));
+
+        // Step 4: delete the newly added chunks
+        toDelete.forEach(WorldManager::unloadChunk);
+    }
+
     /**
      * Read from the save path to see which chunks have been saved already.
      */
-    public static void loadExistingChunks() throws IOException {
+    private static Stream<McaFile> getMcaFiles(boolean limit) throws IOException {
         Path exportDir = Paths.get(Game.getExportDirectory(), "region");
 
-        List<Coordinate2D> existing = Files.walk(exportDir)
+        Stream<File> stream = Files.walk(exportDir)
             .filter(el -> el.getFileName().toString().endsWith(".mca"))
-            .map(Path::toFile)
-            .limit(100) // don't load more than 100 region files
-            .filter(el -> el.length() > 0)
+            .map(Path::toFile);
+
+        if (limit) {
+            stream = stream.limit(100); // don't load more than 100 region files
+        }
+
+        return stream.filter(el -> el.length() > 0)
             .map(el -> {
                 try {
                     return new McaFile(el);
@@ -82,10 +121,7 @@ public class WorldManager extends Thread {
                 }
                 return null;
             })
-            .filter(Objects::nonNull)
-            .flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList());
-
-        GuiManager.drawExistingChunks(existing);
+            .filter(Objects::nonNull);
     }
 
     /**
@@ -179,7 +215,7 @@ public class WorldManager extends Thread {
      * @param coordinate the chunk coordinates
      * @param chunk      the chunk
      */
-    public static void loadChunk(Coordinate2D coordinate, Chunk chunk) {
+    public static void loadChunk(Coordinate2D coordinate, Chunk chunk, boolean drawInGui) {
         if (writeChunks) {
             Coordinate2D regionCoordinates = coordinate.chunkToRegion();
 
@@ -190,8 +226,10 @@ public class WorldManager extends Thread {
             regions.get(regionCoordinates).addChunk(coordinate, chunk);
         }
 
-        // draw the chunk once its been parsed
-        chunk.whenParsed(() -> GuiManager.setChunkLoaded(coordinate, chunk));
+        if (drawInGui) {
+            // draw the chunk once its been parsed
+            chunk.whenParsed(() -> GuiManager.setChunkLoaded(coordinate, chunk));
+        }
     }
 
     /**

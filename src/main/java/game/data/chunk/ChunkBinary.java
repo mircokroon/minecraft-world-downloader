@@ -1,10 +1,14 @@
 package game.data.chunk;
 
+import game.data.Coordinate2D;
 import game.data.region.McaFile;
 import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;
+import se.llbit.nbt.Tag;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
@@ -65,6 +69,18 @@ public class ChunkBinary {
         binary.setTimestamp((int) (System.currentTimeMillis() / 1000));
 
         return binary;
+    }
+
+    public Chunk toChunk(Coordinate2D coordinate2D) {
+        int length = (chunkData[0] & 0xFF) << 24 | (chunkData[1] & 0xFF) << 16 | (chunkData[2] & 0xFF) << 8 | (chunkData[3] & 0xFF);
+
+        byte[] compressedNbtData = new byte[length - 1];
+        System.arraycopy(this.chunkData, 5, compressedNbtData, 0, length - 1);
+
+        byte[] data = CompressionManager.zlibDecompress(compressedNbtData);
+        NamedTag nbt = (NamedTag) NamedTag.read(new DataInputStream(new ByteArrayInputStream(data)));
+
+        return ChunkFactory.getInstance().fromNbt(nbt, coordinate2D);
     }
 
     public int getTimestamp() {
