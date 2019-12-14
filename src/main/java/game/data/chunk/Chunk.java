@@ -332,10 +332,6 @@ public abstract class Chunk {
         return 0;
     }
 
-    protected BlockState topmostBlockStateAt(int x, int z) {
-        return getBlockStateAt(x, heightAt(x, z), z);
-    }
-
     protected int heightAt(int x, int z) {
         return heightMap[z << 4 | x];
     }
@@ -346,9 +342,21 @@ public abstract class Chunk {
 
         for (int x = 0; x < 16; x++) {
             for (int z = 0; z < 16; z++) {
-                BlockState blockState = topmostBlockStateAt(x, z);
+                int y = heightAt(x, z);
+                BlockState blockState = getBlockStateAt(x, heightAt(x, z), z);
 
-                int color = blockState == null ? 0 : blockState.getColor();
+                int color;
+                if (blockState == null) {
+                    color = 0;
+                } else {
+                    color = blockState.getColor();
+                    for (int offset = 1; offset < 24 && blockState.isWater(); offset++) {
+                        blockState = getBlockStateAt(x, heightAt(x, z) - offset, z);
+                        if (blockState == null) { break; }
+                        color = getColorTransformer().blendWith(color, blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
+                    }
+                }
+
                 color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
 
                 i.setRGB(x, z, color);
@@ -374,16 +382,22 @@ public abstract class Chunk {
         int yNorth;
         if (z == 0) {
             Chunk other = WorldManager.getChunk(new Coordinate2D(this.x, this.z - 1));
+            if (this.x == 17641 && this.z == -168053 && x == 0) {
+                System.out.println("Other chunk: " + other);
+            }
             if (other == null) { return 1; }
             else { yNorth = other.heightAt(x, 15); }
         } else {
             yNorth = heightAt(x, z - 1);
         }
 
+        if (this.x == 17641 && this.z == -168053 && x == 0 && z == 0) {
+            System.out.println(ySelf + " .. " + yNorth);
+        }
         if (ySelf < yNorth) {
-            return 0.8;
+            return 0.4 + (0.4 / (yNorth - ySelf));
         } else if (ySelf > yNorth) {
-            return 1.2;
+            return 1.9 - (0.7 / Math.sqrt(ySelf - yNorth));
         }
         return 1;
     }

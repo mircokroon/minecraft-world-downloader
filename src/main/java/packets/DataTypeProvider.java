@@ -91,7 +91,7 @@ public class DataTypeProvider {
 
         StringBuilder sb = new StringBuilder();
         while (stringSize-- > 0) {
-            sb.appendCodePoint(readNext());
+            sb.appendCodePoint(readNext() & 0xFF);
         }
         return sb.toString();
     }

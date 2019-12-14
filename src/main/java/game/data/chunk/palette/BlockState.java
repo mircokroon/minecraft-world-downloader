@@ -47,6 +47,10 @@ public class BlockState {
         return WorldManager.getBlockColors().getColor(name);
     }
 
+    public boolean isWater() {
+        return name.equals("minecraft:water");
+    }
+
     public boolean isSolid() {
         return WorldManager.getBlockColors().isSolid(name);
     }

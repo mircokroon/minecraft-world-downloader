@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Proxy server class, handles receiving of data and forwarding it to the right places.
  */
 public class ProxyServer extends Thread {
+    private final int DEFAULT_PORT = 25565;
     private int portRemote;
     private int portLocal;
     private String host;
@@ -47,7 +48,8 @@ public class ProxyServer extends Thread {
 
     @Override
     public void run() {
-        System.out.println("Starting proxy for " + host + ":" + portRemote + ". Make sure to connect to localhost:" + portLocal + " instead of the regular server address.");
+        String friendlyHost = host + (portRemote == DEFAULT_PORT ? "" : ":" + portRemote);
+        System.out.println("Starting proxy for " + friendlyHost + ". Make sure to connect to localhost:" + portLocal + " instead of the regular server address.");
 
         // Create a ServerSocket to listen for connections with
         AtomicReference<ServerSocket> ss = new AtomicReference<>();
@@ -73,8 +75,7 @@ public class ProxyServer extends Thread {
 
                 // If the server cannot connect, close client connection
                 attempt(() -> server.set(new Socket(host, portRemote)), (ex) -> {
-                    System.out.println("Cannot connect to host: ");
-                    ex.printStackTrace();
+                    System.out.println("Cannot connect to " + friendlyHost + ". The server may be down or on a different address.");
 
                     attempt(client.get()::close);
                 });

@@ -13,8 +13,8 @@ import java.util.List;
  */
 public class Palette {
     private static boolean maskBedrock = false;
-    public int bitsPerBlock;
-    int[] palette;
+    private int bitsPerBlock;
+    private int[] palette;
 
     protected Palette() { }
 

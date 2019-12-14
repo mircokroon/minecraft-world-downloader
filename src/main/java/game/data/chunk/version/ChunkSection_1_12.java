@@ -23,7 +23,11 @@ public class ChunkSection_1_12 extends ChunkSection {
         super(sectionY, nbt);
         this.blockStates = new int[16][16][16];
         this.palette = new DummyPalette();
-        parseBlockIds(nbt.get("Blocks").byteArray());
+
+        long[] blocks = parseBlockIds(nbt.get("Blocks").byteArray());
+        parseBlockStates(nbt.get("Data").byteArray(), blocks);
+        setBlocks(blocks);
+
     }
 
     @Override
@@ -72,12 +76,24 @@ public class ChunkSection_1_12 extends ChunkSection {
         return blockData;
     }
 
-    private void parseBlockIds(byte[] arr) {
+    private long[] parseBlockIds(byte[] arr) {
         long[] blocks = new long[arr.length];
         for (int i = 0; i < arr.length; i++) {
             blocks[i] = (arr[i] & 0xFF) << 4;
         }
-        setBlocks(blocks);
+        return blocks;
+    }
+
+    private void parseBlockStates(byte[] arr, long[] blocks) {
+        for (int i = 0; i < blocks.length; i++) {
+            int b = arr[i/2] & 0xFF;
+            if (i % 2 == 0) {
+                b = b & 0x0F;
+            } else {
+                b = (b & 0xF0) >> 4;
+            }
+            blocks[i] |= b;
+        }
     }
 
     /**
@@ -93,12 +109,4 @@ public class ChunkSection_1_12 extends ChunkSection {
             arr[pos / 2] |= val & 0x0F;
         }
     }
-
-    /**
-     * In 1.14, we ignore the damage value and just get the block ID
-     * @param state the block state - ID and 4 bits of data
-     * @return the block ID
-     */
-    @Override
-    protected int transformState(int state) { return state >> 4; }
 }

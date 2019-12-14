@@ -216,7 +216,7 @@ public class WorldManager extends Thread {
      * @param chunk      the chunk
      */
     public static void loadChunk(Coordinate2D coordinate, Chunk chunk, boolean drawInGui) {
-        if (writeChunks) {
+        if (!drawInGui || writeChunks) {
             Coordinate2D regionCoordinates = coordinate.chunkToRegion();
 
             if (!regions.containsKey(regionCoordinates)) {

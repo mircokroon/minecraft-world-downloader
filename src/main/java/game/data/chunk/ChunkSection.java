@@ -86,10 +86,6 @@ public abstract class ChunkSection {
     }
 
     public int getNumericBlockStateAt(int x, int y, int z) {
-        int state = palette.stateFromId(palette.getIndex(blocks, x, y, z));
-
-        return transformState(state);
+        return palette.stateFromId(palette.getIndex(blocks, x, y, z));
     }
-
-    protected int transformState(int state) { return state; }
 }
