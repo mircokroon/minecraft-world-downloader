@@ -8,6 +8,7 @@ import game.data.chunk.entity.Entity;
 import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
+import game.data.chunk.version.Chunk_1_15;
 import gui.GuiManager;
 import javafx.util.Pair;
 import packets.DataTypeProvider;
@@ -199,7 +200,9 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(Coordinate2D chunkPos) {
-        if (Game.getProtocolVersion() >= 440) {
+        if (Game.getProtocolVersion() >= 550) {
+            return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
+        } else if (Game.getProtocolVersion() >= 440) {
             return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
         } else if (Game.getProtocolVersion() >= 341) {
             return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());
@@ -214,7 +217,9 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(int dataVersion, Coordinate2D chunkPos) {
-        if (dataVersion >= 1901) {
+        if (dataVersion >= 2200) {
+            return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
+        } else if (dataVersion >= 1901) {
             return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
         } else if (dataVersion >= 1444) {
             return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());

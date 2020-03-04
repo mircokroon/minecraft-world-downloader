@@ -18,7 +18,8 @@ public class Chunk_1_12 extends Chunk {
 
     public Chunk_1_12(int x, int z) {
         super(x, z);
-        biomes = new byte[256];
+
+        this.biomes = new byte[256];
     }
 
     @Override
@@ -26,14 +27,12 @@ public class Chunk_1_12 extends Chunk {
         return new ChunkSection_1_12(y, palette);
     }
 
-
-
     private void setBiome(int x, int z, byte biomeId) {
         biomes[z * 16 + x] = biomeId;
     }
 
     @Override
-    protected void readBiomes(DataTypeProvider dataProvider) {
+    protected void parse2DBiomeData(DataTypeProvider dataProvider) {
         for (int z = 0; z < SECTION_WIDTH; z++) {
             for (int x = 0; x < SECTION_WIDTH; x++) {
                 setBiome(x, z, dataProvider.readNext());

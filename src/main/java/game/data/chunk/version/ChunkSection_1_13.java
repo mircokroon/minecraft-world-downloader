@@ -19,8 +19,8 @@ public class ChunkSection_1_13 extends ChunkSection {
     }
     public ChunkSection_1_13(int sectionY, Tag nbt) {
         super(sectionY, nbt);
-        // TODO:
-        throw new UnsupportedOperationException("Not yet implemented for 1.13");
+        this.setBlocks(nbt.get("BlockStates").longArray());
+        this.palette = new Palette(nbt.get("Palette").asList());
     }
 
     @Override

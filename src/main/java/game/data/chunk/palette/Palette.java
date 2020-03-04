@@ -3,7 +3,9 @@ package game.data.chunk.palette;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import packets.DataTypeProvider;
+import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,26 @@ public class Palette {
     private Palette(int bitsPerBlock, int[] palette) {
         this.bitsPerBlock = bitsPerBlock;
         this.palette = palette;
+    }
+
+    public Palette(ListTag nbt) {
+        this.bitsPerBlock = computeBitsPerBlock(nbt.size() - 1);
+        this.palette = new int[nbt.size()];
+
+        GlobalPalette global = WorldManager.getGlobalPalette();
+        for (int i = 0; i < nbt.size(); i++) {
+            BlockState bs = global.getState(nbt.get(i).get("Name").stringValue());
+            this.palette[i] = bs.getNumericId();
+        }
+    }
+
+    private int computeBitsPerBlock(int maxIndex) {
+        int bitsNeeded = 0;
+        while (maxIndex > 0) {
+            bitsNeeded++;
+            maxIndex >>= 1;
+        }
+        return Math.max(4, bitsNeeded);
     }
 
 
@@ -56,6 +78,9 @@ public class Palette {
         if (bitsPerBlock > 8) {
             return index;
         }
+        if (palette.length == 0) {
+            return 0;
+        }
 
         return palette[index];
     }
@@ -82,6 +107,10 @@ public class Palette {
     }
 
     public int getIndex(long[] blocks, int x, int y, int z) {
+        if (blocks.length == 0) {
+            return 0;
+        }
+
         int individualValueMask = (1 << bitsPerBlock) - 1;
 
         int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;

@@ -48,7 +48,12 @@ public class ChunkBinary {
         ChunkBinary binary = new ChunkBinary();
 
         ByteArrayOutputStream output = new ByteArrayOutputStream();
-        nbt.write(new DataOutputStream(output));
+        try {
+            nbt.write(new DataOutputStream(output));
+        } catch (Exception ex) {
+            System.out.println("Unable to write chunk " + chunk.x + ", " + chunk.z);
+            return null;
+        }
 
         byte[] data = CompressionManager.zlibCompress(output.toByteArray());
 

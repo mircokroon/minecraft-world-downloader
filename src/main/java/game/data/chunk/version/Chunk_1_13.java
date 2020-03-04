@@ -19,7 +19,6 @@ public class Chunk_1_13 extends Chunk {
 
     public Chunk_1_13(int x, int z) {
         super(x, z);
-        biomes = new int[256];
     }
 
     @Override
@@ -27,23 +26,19 @@ public class Chunk_1_13 extends Chunk {
         return new ChunkSection_1_13(y, palette);
     }
 
-
-    private void setBiome(int x, int z, int biomeId) {
-        biomes[z * 16 + x] = biomeId;
+    @Override
+    protected void parse2DBiomeData(DataTypeProvider dataProvider) {
+        setBiomes(dataProvider.readIntArray(256));
     }
 
-    @Override
-    protected void readBiomes(DataTypeProvider dataProvider) {
-        for (int z = 0; z < SECTION_WIDTH; z++) {
-            for (int x = 0; x < SECTION_WIDTH; x++) {
-                setBiome(x, z, dataProvider.readInt());
-            }
-        }
+
+    protected void setBiomes(int[] biomes) {
+        this.biomes = biomes;
     }
 
     @Override
     protected void addLevelNbtTags(CompoundTag map) {
-        map.add("Status", new StringTag("postprocessed"));
+        map.add("Status", new StringTag("full"));
 
         // empty maps
         CompoundTag carvingMasks = new CompoundTag();

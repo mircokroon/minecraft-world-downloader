@@ -215,4 +215,5 @@ public abstract class Game {
     public static int getRenderDistance() {
         return args.getInt("render-distance");
     }
+
 }

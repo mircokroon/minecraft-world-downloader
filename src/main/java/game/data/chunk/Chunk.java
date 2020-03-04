@@ -59,7 +59,6 @@ public abstract class Chunk {
 
     private boolean saved;
 
-
     private int[] heightMap;
 
     public Chunk(int x, int z) {
@@ -153,16 +152,18 @@ public abstract class Chunk {
             }
         }
 
-        // biome data is only present in full chunks
+        // biome data is only present in full chunks, for <= 1.14.4
         if (full) {
-            readBiomes(dataProvider);
+            parse2DBiomeData(dataProvider);
         }
     }
     protected void parseHeightMaps(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
     protected abstract ChunkSection createNewChunkSection(byte y, Palette palette);
-    protected abstract void readBiomes(DataTypeProvider provider);
     protected abstract SpecificTag getBiomes();
+
+    protected void parse2DBiomeData(DataTypeProvider provider) { }
+    protected void parse3DBiomeData(DataTypeProvider provider) { }
 
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
@@ -254,6 +255,10 @@ public abstract class Chunk {
 
         // for 1.14+
         parseHeightMaps(dataProvider);
+
+        if (full) {
+            parse3DBiomeData(dataProvider);
+        }
 
         int size = dataProvider.readVarInt();
 
@@ -382,18 +387,13 @@ public abstract class Chunk {
         int yNorth;
         if (z == 0) {
             Chunk other = WorldManager.getChunk(new Coordinate2D(this.x, this.z - 1));
-            if (this.x == 17641 && this.z == -168053 && x == 0) {
-                System.out.println("Other chunk: " + other);
-            }
+
             if (other == null) { return 1; }
             else { yNorth = other.heightAt(x, 15); }
         } else {
             yNorth = heightAt(x, z - 1);
         }
 
-        if (this.x == 17641 && this.z == -168053 && x == 0 && z == 0) {
-            System.out.println(ySelf + " .. " + yNorth);
-        }
         if (ySelf < yNorth) {
             return 0.4 + (0.4 / (yNorth - ySelf));
         } else if (ySelf > yNorth) {
@@ -409,7 +409,9 @@ public abstract class Chunk {
     public void parse(Tag tag) {
         tag.get("Level").asCompound().get("Sections").asList().forEach(section -> {
             int sectionY = section.get("Y").byteValue();
-            this.chunkSections[sectionY] = parseSection(sectionY, section);
+            if (sectionY >= 0 && sectionY < this.chunkSections.length) {
+                this.chunkSections[sectionY] = parseSection(sectionY, section);
+            }
         });
         computeHeightMap();
     }

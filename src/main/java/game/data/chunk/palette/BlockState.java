@@ -11,10 +11,12 @@ import java.util.Map;
  */
 public class BlockState {
     private String name;
+    private int id;
     private Map<String, String> properties;
 
-    public BlockState(String name, Map<String, String> properties) {
+    public BlockState(String name, int id, Map<String, String> properties) {
         this.name = name;
+        this.id = id;
         this.properties = properties;
     }
 
@@ -53,5 +55,9 @@ public class BlockState {
 
     public boolean isSolid() {
         return WorldManager.getBlockColors().isSolid(name);
+    }
+
+    public int getNumericId() {
+        return id;
     }
 }

@@ -2,6 +2,7 @@ package game.data.chunk;
 
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.GlobalPalette;
 import game.data.chunk.palette.Palette;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;

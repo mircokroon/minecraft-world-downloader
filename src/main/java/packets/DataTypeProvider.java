@@ -142,6 +142,14 @@ public class DataTypeProvider {
         return res;
     }
 
+    public int[] readIntArray(int size) {
+        int[] res = new int[size];
+        for (int i = 0; i < size; i++) {
+            res[i] = readInt();
+        }
+        return res;
+    }
+
     public int[] readVarIntArray(int size) {
         int[] res = new int[size];
         for (int i = 0; i < size; i++) {
