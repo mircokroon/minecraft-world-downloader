@@ -7,8 +7,7 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 - Offset world coordinates of the saved location
 - Optional GUI to show overview of which chunks have been saved:
 
-![https://i.imgur.com/AwwPw42.png](https://i.imgur.com/AwwPw42.png)
-
+<img src="https://i.imgur.com/AwwPw42.png" width="50%">
 
 ### Requirements
 - Java 8 or higher
@@ -35,4 +34,4 @@ Then connect to ```localhost``` in Minecraft to start downloading the world. The
 |  --gui | true | If false, hides the saved chunks GUI |
 |  --minecraft | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
 | --render-distance | 75 | Render distance of (in chunks) of the overview map |
-|  --seed | 0 | World seed, only useful when generating additional chunks in Minecraft after downloading |
+|  --seed | 0 | World seed, useful when generating chunks after downloading |
