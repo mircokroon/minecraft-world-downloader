@@ -5,14 +5,14 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 - Requires no client modifications and as such works with every game client, vanilla or not
 - Automatically merge into previous downloads or existing worlds
 - Offset world coordinates of the saved location
-- Optional GUI to show which chunks have been loaded & saved:
+- Optional GUI to show overview of which chunks have been saved:
 
-![https://imgur.com/kEHta0F](https://i.imgur.com/kEHta0F.jpg)
+![https://i.imgur.com/AwwPw42.png](https://i.imgur.com/AwwPw42.png)
 
 
 ### Requirements
 - Java 8 or higher
-- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+
+- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+
 
 ### Basic usage
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using the commandline by running:
@@ -34,4 +34,5 @@ Then connect to ```localhost``` in Minecraft to start downloading the world. The
 |  --center-y | 0 | Offset the world so that the given coordinate is at 0 |
 |  --gui | true | If false, hides the saved chunks GUI |
 |  --minecraft | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
-| --render-distance | 75 | Render distance of (in chunks) of the overview map. |
+| --render-distance | 75 | Render distance of (in chunks) of the overview map |
+|  --seed | 0 | World seed, only useful when generating additional chunks in Minecraft after downloading |
