@@ -10,7 +10,7 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 <img src="https://i.imgur.com/AwwPw42.png" width="50%">
 
 ### Requirements
-- Java 8 or higher
+- Java 9 or higher
 - Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+
 
 ### Basic usage
