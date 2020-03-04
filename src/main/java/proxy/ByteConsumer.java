@@ -1,8 +1,10 @@
 package proxy;
 
+import packets.lib.ByteQueue;
+
 import java.io.IOException;
 import java.util.Queue;
 
 public interface ByteConsumer {
-    void consume(Queue<Byte> arr) throws IOException;
+    void consume(ByteQueue arr) throws IOException;
 }

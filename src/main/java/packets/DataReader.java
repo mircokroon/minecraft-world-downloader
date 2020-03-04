@@ -2,19 +2,18 @@ package packets;
 
 import game.Game;
 import packets.builder.PacketBuilder;
+import packets.lib.ByteQueue;
 import proxy.ByteConsumer;
 import proxy.EncryptionManager;
 
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.Queue;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 public class DataReader {
-    private Queue<Byte> queue;
-    private Queue<Byte> encryptedQueue;
-    private Queue<Byte> currentPacket;
+    private static final int QUEUE_INIT_SIZE = 2 << 15 - 1;
+    private ByteQueue queue;
+    private ByteQueue currentPacket;
     private PacketBuilder builder;
 
     private EncryptionManager encryptionManager;
@@ -41,9 +40,8 @@ public class DataReader {
      * Reset the reader in case the connection was lost.
      */
     public void reset() {
-        queue = new LinkedList<>();
-        currentPacket = new LinkedList<>();
-        encryptedQueue = new LinkedList<>();
+        queue = new ByteQueue(QUEUE_INIT_SIZE);
+        currentPacket = new ByteQueue(QUEUE_INIT_SIZE);
         varIntPacketSize = new VarIntResult();
     }
 
@@ -112,10 +110,9 @@ public class DataReader {
             decryptPacket(b, amount);
         } else {
             for (int i = 0; i < amount; i++) {
-                queue.add(b[i]);
+                queue.insert(b[i]);
             }
         }
-
         readPackets();
     }
 
@@ -125,22 +122,17 @@ public class DataReader {
      * @param amount the number of bytes to read from the given array
      */
     private void decryptPacket(byte[] b, int amount) {
-        for (int i = 0; i < amount; i++) {
-            encryptedQueue.add(b[i]);
+        byte[] encrypted = b;
+
+        if (b.length != amount) {
+            encrypted = new byte[amount];
+            System.arraycopy(b, 0, encrypted, 0, amount);
         }
 
-        // provide encryption in fixed size blocks, otherwise the decryptor will get angry.
-        if (encryptedQueue.size() >= encryptionManager.blockSize) {
-            int toEncrypt = encryptedQueue.size() - (encryptedQueue.size() % encryptionManager.blockSize);
-            byte[] encrypted = new byte[toEncrypt];
-            for (int i = 0; i < toEncrypt; i++) {
-                encrypted[i] = encryptedQueue.remove();
-            }
+        byte[] decrypted = decrypt.apply(encrypted);
 
-            byte[] decrypted = decrypt.apply(encrypted);
-            for (byte aDecrypted : decrypted) {
-                queue.add(aDecrypted);
-            }
+        for (byte aDecrypted : decrypted) {
+            queue.insert(aDecrypted);
         }
     }
 
@@ -228,7 +220,7 @@ public class DataReader {
      * Read a byte, also add it the current packet.
      */
     private byte readNext() {
-        currentPacket.add(queue.peek());
+        currentPacket.insert(queue.peek());
 
         return queue.remove();
     }

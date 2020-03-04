@@ -5,8 +5,11 @@ import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
+import game.data.chunk.entity.Entity;
+import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.Palette;
+import game.data.chunk.version.ColorTransformer;
 import packets.DataTypeProvider;
-import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.IntTag;
 import se.llbit.nbt.ListTag;
@@ -15,20 +18,26 @@ import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.Tag;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
  */
 public abstract class Chunk {
+    private ColorTransformer colorTransformer;
+
     protected static final int LIGHT_SIZE = 2048;
     protected static final int CHUNK_HEIGHT = 256;
     public static final int SECTION_HEIGHT = 16;
@@ -37,19 +46,31 @@ public abstract class Chunk {
     public final int x;
     public final int z;
     private Map<Coordinate3D, SpecificTag> tileEntities;
+    private Set<Entity> entities;
+
+    protected ChunkSection[] getChunkSections() {
+        return chunkSections;
+    }
+
     private ChunkSection[] chunkSections;
 
+    private Runnable afterParse;
+    private boolean isNewChunk;
+
     private boolean saved;
+
+    private int[] heightMap;
 
     public Chunk(int x, int z) {
         this.saved = false;
         this.x = x;
         this.z = z;
+        this.isNewChunk = false;
 
         chunkSections = new ChunkSection[16];
         tileEntities = new HashMap<>();
-
-        WorldManager.loadChunk(new Coordinate2D(x, z), this);
+        entities = new HashSet<>();
+        colorTransformer = new ColorTransformer();
     }
 
     public boolean isSaved() {
@@ -58,6 +79,13 @@ public abstract class Chunk {
 
     public void setSaved(boolean saved) {
         this.saved = saved;
+    }
+
+    /**
+     * Allows a callback to be called when the chunk is done being parsed.
+     */
+    public void whenParsed(Runnable r) {
+        afterParse = r;
     }
 
     public void addTileEntity(Coordinate3D location, SpecificTag tag) {
@@ -105,7 +133,7 @@ public abstract class Chunk {
                 // A bitmask that contains bitsPerBlock set bits
                 int dataArrayLength = dataProvider.readVarInt();
 
-                ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette, bitsPerBlock);
+                ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette);
 
                 // if the chunk has no blocks
                 if (dataArrayLength == 0) {
@@ -124,16 +152,18 @@ public abstract class Chunk {
             }
         }
 
-        // biome data is only present in full chunks
+        // biome data is only present in full chunks, for <= 1.14.4
         if (full) {
-            readBiomes(dataProvider);
+            parse2DBiomeData(dataProvider);
         }
     }
     protected void parseHeightMaps(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
-    protected abstract ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock);
-    protected abstract void readBiomes(DataTypeProvider provider);
+    protected abstract ChunkSection createNewChunkSection(byte y, Palette palette);
     protected abstract SpecificTag getBiomes();
+
+    protected void parse2DBiomeData(DataTypeProvider provider) { }
+    protected void parse3DBiomeData(DataTypeProvider provider) { }
 
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
@@ -189,8 +219,7 @@ public abstract class Chunk {
     protected void addLevelNbtTags(CompoundTag map) {
         map.add("xPos", new IntTag(x));
         map.add("zPos", new IntTag(z));
-        map.add("TerrainPopulated", new ByteTag((byte) 1));
-        map.add("LightPopulated", new ByteTag((byte) 1));
+
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));
         map.add("Entities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>()));
@@ -198,6 +227,11 @@ public abstract class Chunk {
         map.add("Biomes", getBiomes());
         map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
         map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
+        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, getEntityList()));
+    }
+
+    private List<SpecificTag> getEntityList() {
+        return entities.stream().map(Entity::toNbt).collect(Collectors.toList());
     }
 
     /**
@@ -216,15 +250,22 @@ public abstract class Chunk {
      * @param dataProvider network input
      * @param full indicates if its the full chunk or a part of it
      */
-    public void parse(DataTypeProvider dataProvider, boolean full) {
+    void parse(DataTypeProvider dataProvider, boolean full) {
         int mask = dataProvider.readVarInt();
 
         // for 1.14+
         parseHeightMaps(dataProvider);
 
+        if (full) {
+            parse3DBiomeData(dataProvider);
+        }
+
         int size = dataProvider.readVarInt();
 
         readChunkColumn(full, mask, dataProvider);
+
+        // Used to generate overview, not replaced by 1.14 NBT height maps
+        computeHeightMap();
 
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
@@ -233,5 +274,147 @@ public abstract class Chunk {
 
         // ensure the chunk is (re)saved
         this.saved = false;
+
+        // run the callback if one exists
+        if (afterParse != null) {
+            afterParse.run();
+        }
     }
+
+    public int getNumericBlockStateAt(int x, int y, int z) {
+        int section = y / SECTION_HEIGHT;
+        if (chunkSections[section] == null) { return 0; }
+
+        return chunkSections[section].getNumericBlockStateAt(x, y % SECTION_HEIGHT, z);
+    }
+
+    public BlockState getBlockStateAt(int x, int y, int z) {
+        int id = getNumericBlockStateAt(x, y, z);
+        if (id == 0) { return null; }
+
+        return WorldManager.getGlobalPalette().getState(id);
+    }
+
+
+    /**
+     * Mark this as a new chunk iff the
+     */
+    void markAsNew() {
+        if (WorldManager.markNewChunks()) {
+            this.isNewChunk = true;
+        }
+    }
+
+    protected boolean isNewChunk() {
+        return isNewChunk;
+    }
+
+    public ColorTransformer getColorTransformer() {
+        return colorTransformer;
+    }
+
+    protected void computeHeightMap() {
+        heightMap = new int[SECTION_WIDTH * SECTION_WIDTH];
+
+        for (int x = 0; x < SECTION_WIDTH; x++) {
+            for (int z = 0; z < SECTION_WIDTH; z++) {
+                heightMap[z << 4 | x] = computeHeight(x, z);
+            }
+        }
+    }
+
+    private int computeHeight(int x, int z) {
+        for (int chunkSection = 15; chunkSection >= 0; chunkSection--) {
+
+            ChunkSection cs = getChunkSections()[chunkSection];
+            if (cs == null) { continue; }
+
+            int height = cs.height(x, z);
+            if (height < 0) { continue; }
+
+            return (chunkSection * SECTION_HEIGHT) + height;
+        }
+        return 0;
+    }
+
+    protected int heightAt(int x, int z) {
+        return heightMap[z << 4 | x];
+    }
+
+
+    public Image getImage() {
+        BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
+
+        for (int x = 0; x < 16; x++) {
+            for (int z = 0; z < 16; z++) {
+                int y = heightAt(x, z);
+                BlockState blockState = getBlockStateAt(x, heightAt(x, z), z);
+
+                int color;
+                if (blockState == null) {
+                    color = 0;
+                } else {
+                    color = blockState.getColor();
+                    for (int offset = 1; offset < 24 && blockState.isWater(); offset++) {
+                        blockState = getBlockStateAt(x, heightAt(x, z) - offset, z);
+                        if (blockState == null) { break; }
+                        color = getColorTransformer().blendWith(color, blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
+                    }
+                }
+
+                color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
+
+                i.setRGB(x, z, color);
+
+                // mark new chunks in a red-ish outline
+                if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
+                    i.setRGB(x, z, getColorTransformer().highlight(i.getRGB(x, z)));
+                }
+            }
+        }
+
+        return i;
+    }
+
+    /**
+     * Looks at the block one coordinate north of the current to check if its above or below the current.
+     * @return a colour multiplier to adjust the color value by. If they elevations are the same it will be 1.0, if the
+     * northern block is above the current its 0.8, otherwise its 1.2.
+     */
+    private double getColorShader(int x, int z) {
+        int ySelf = heightAt(x, z);
+
+        int yNorth;
+        if (z == 0) {
+            Chunk other = WorldManager.getChunk(new Coordinate2D(this.x, this.z - 1));
+
+            if (other == null) { return 1; }
+            else { yNorth = other.heightAt(x, 15); }
+        } else {
+            yNorth = heightAt(x, z - 1);
+        }
+
+        if (ySelf < yNorth) {
+            return 0.4 + (0.4 / (yNorth - ySelf));
+        } else if (ySelf > yNorth) {
+            return 1.9 - (0.7 / Math.sqrt(ySelf - yNorth));
+        }
+        return 1;
+    }
+
+    public void addEntity(Entity ent) {
+        entities.add(ent);
+    }
+
+    public void parse(Tag tag) {
+        tag.get("Level").asCompound().get("Sections").asList().forEach(section -> {
+            int sectionY = section.get("Y").byteValue();
+            if (sectionY >= 0 && sectionY < this.chunkSections.length) {
+                this.chunkSections[sectionY] = parseSection(sectionY, section);
+            }
+        });
+        computeHeightMap();
+    }
+
+    protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
 }

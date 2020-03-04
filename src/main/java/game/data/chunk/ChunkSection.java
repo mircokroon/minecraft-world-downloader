@@ -1,8 +1,13 @@
 package game.data.chunk;
 
+import game.data.WorldManager;
+import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.GlobalPalette;
+import game.data.chunk.palette.Palette;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.Tag;
 
 /**
  * Class to hold a 16 block tall chunk section.
@@ -19,6 +24,10 @@ public abstract class ChunkSection {
         this.blockLight = new byte[2048];
         this.skyLight = new byte[2048];
         this.palette = palette;
+    }
+
+    public ChunkSection(int sectionY, Tag nbt) {
+        this.y = (byte) sectionY;
     }
 
     public void setSkyLight(byte[] skyLight) {
@@ -62,5 +71,22 @@ public abstract class ChunkSection {
 
     public byte getY() {
         return y;
+    }
+
+    public int height(int x, int z) {
+        for (int y = 15; y >= 0 ; y--) {
+            int blockStateId = getNumericBlockStateAt(x, y, z);
+
+            BlockState state = WorldManager.getGlobalPalette().getState(blockStateId);
+            if (state == null || !state.isSolid()) {
+                continue;
+            }
+            return y;
+        }
+        return -1;
+    }
+
+    public int getNumericBlockStateAt(int x, int y, int z) {
+        return palette.stateFromId(palette.getIndex(blocks, x, y, z));
     }
 }

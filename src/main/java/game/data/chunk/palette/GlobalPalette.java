@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -12,6 +13,7 @@ import java.util.HashMap;
  */
 public class GlobalPalette {
     private HashMap<Integer, BlockState> states;
+    private HashMap<String, BlockState> nameStates;
 
     /**
      * Instantiate a global palette using the given Minecraft version.
@@ -19,6 +21,7 @@ public class GlobalPalette {
      */
     public GlobalPalette(String version) {
         this.states = new HashMap<>();
+        this.nameStates = new HashMap<>();
 
         String file = "blocks-" + version + ".json";
         InputStream input = GlobalPalette.class.getClassLoader().getResourceAsStream(file);
@@ -28,7 +31,9 @@ public class GlobalPalette {
 
         JsonResult map = new Gson().fromJson(new InputStreamReader(input), JsonResult.class);
         map.forEach((name, type) -> type.states.forEach(state -> {
-            states.put(state.id, new BlockState(name, state.properties));
+            BlockState s = new BlockState(name, state.id, state.properties);
+            states.put(state.id, s);
+            nameStates.put(name, s);
         }));
     }
 
@@ -38,7 +43,16 @@ public class GlobalPalette {
     public BlockState getState(int key) {
         return states.getOrDefault(key, null);
     }
+
+    public BlockState getState(String key) {
+        return nameStates.getOrDefault(key, null);
+    }
+
 }
 
-// we need a class to represent this type because of type erasure nonsense, otherwise Gson will get angry over casting.
+// we need a class to represent this type because of type erasure, otherwise Gson will get angry over casting.
 class JsonResult extends HashMap<String, JsonBlockType> { }
+
+// additional classes for inside the JsonResult
+class JsonBlockType { ArrayList<JsonBlockState> states; }
+class JsonBlockState { int id; HashMap<String, String> properties;}

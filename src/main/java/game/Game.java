@@ -5,7 +5,7 @@ import game.data.Coordinate3D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
-import game.data.chunk.Palette;
+import game.data.chunk.palette.Palette;
 import game.protocol.HandshakeProtocol;
 import game.protocol.LoginProtocol;
 import game.protocol.Protocol;
@@ -36,22 +36,18 @@ public abstract class Game {
     private static final int DEFAULT_VERSION = 340;
     private static NetworkMode mode = NetworkMode.STATUS;
     private static Dimension dimension = Dimension.OVERWORLD;
+    private static Coordinate3D playerPosition;
 
+    private static VersionHandler versionHandler;
+    private static String gameVersion;
+    private static int protocolVersion = DEFAULT_VERSION;
+    private static int dataVersion;
+
+    private static Namespace args;
     private static DataReader serverBoundDataReader;
     private static DataReader clientBoundDataReader;
     private static EncryptionManager encryptionManager;
     private static CompressionManager compressionManager;
-    private static String host;
-    private static String exportDir;
-    private static long seed;
-    private static int portRemote;
-    private static int portLocal;
-    private static Coordinate3D playerPosition;
-    private static String gamePath;
-    private static VersionHandler versionHandler;
-    private static int protocolVersion = DEFAULT_VERSION;
-    private static int dataVersion;
-    private static String gameVersion;
 
     public static int getDataVersion() {
         return dataVersion;
@@ -87,31 +83,23 @@ public abstract class Game {
 
 
     public static long getSeed() {
-        return seed;
+        return args.getLong("seed");
     }
 
     /**
      * Parse arguments from the commandline.
      */
     public static void init(Namespace args) {
-        host = args.getString("server");
-        portRemote = args.getInt("port");
-        portLocal = args.getInt("local-port");
-        exportDir = args.getString("output");
-        seed = args.getLong("seed");
-        gamePath = args.getString("minecraft");
+        Game.args = args;
 
         Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
 
         Palette.setMaskBedrock(args.getBoolean("mask-bedrock"));
 
-        File dir = Paths.get(exportDir, "region").toFile();
-        if (!dir.isDirectory()) {
-            dir.mkdirs();
-        }
+        initFolders();
 
         ChunkFactory.startChunkParserService();
-        WorldManager.startSaveService();
+        WorldManager.startSaveService(args.getBoolean("mark-new-chunks"), args.getBoolean("write-chunks"));
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
         }
@@ -119,12 +107,19 @@ public abstract class Game {
         versionHandler = VersionHandler.createVersionHandler();
     }
 
-    public static String getHost() {
-        return host;
+    public static void initFolders() {
+        File dirOverworld = Paths.get(getExportDirectory(), Dimension.OVERWORLD.getPath(),"region").toFile();
+        if (!dirOverworld.isDirectory()) { dirOverworld.mkdirs(); }
+
+        File dirNether = Paths.get(getExportDirectory(), Dimension.NETHER.getPath(), "region").toFile();
+        if (!dirNether.isDirectory()) { dirNether.mkdirs(); }
+
+        File dirEnd = Paths.get(getExportDirectory(),Dimension.END.getPath(),  "region").toFile();
+        if (!dirEnd.isDirectory()) { dirEnd.mkdirs(); }
     }
 
-    public static int getPortRemote() {
-        return portRemote;
+    public static String getExportDirectory() {
+        return args.getString("output");
     }
 
     public static void startProxy() {
@@ -135,8 +130,32 @@ public abstract class Game {
 
         setMode(NetworkMode.HANDSHAKE);
 
-        ProxyServer proxy = new ProxyServer(portRemote, portLocal, host);
+        ProxyServer proxy = new ProxyServer(getPortRemote(), getPortLocal(), getHost());
         proxy.runServer(serverBoundDataReader, clientBoundDataReader);
+    }
+
+    public static int getPortRemote() {
+        return args.getInt("port");
+    }
+
+    private static int getPortLocal() {
+        return args.getInt("local-port");
+    }
+
+    public static String getHost() {
+        return args.getString("server");
+    }
+
+    public static Protocol getGameProtocol() {
+        Protocol p = versionHandler.getProtocol(protocolVersion);
+        Game.dataVersion = p.getDataVersion();
+        Game.gameVersion = p.getVersion();
+
+        WorldManager.setGlobalPalette(p.getVersion());
+        WorldManager.setEntityMap(p.getVersion());
+
+        System.out.println("Using protocol of game version " + p.getVersion() + " (" + protocolVersion + ")");
+        return p;
     }
 
     public static NetworkMode getMode() {
@@ -181,12 +200,8 @@ public abstract class Game {
         setMode(NetworkMode.HANDSHAKE);
     }
 
-    public static String getExportDirectory() {
-        return exportDir;
-    }
-
     public static String getGamePath() {
-        return gamePath;
+        return args.getString("minecraft");
     }
 
     public static int getProtocolVersion() {
@@ -197,12 +212,8 @@ public abstract class Game {
         Game.protocolVersion = protocolVersion;
     }
 
-    public static Protocol getGameProtocol() {
-        Protocol p = versionHandler.getProtocol(protocolVersion);
-        Game.dataVersion = p.getDataVersion();
-        Game.gameVersion = p.getVersion();
-        WorldManager.setGlobalPalette(p.getVersion());
-        System.out.println("Using protocol of game version " + p.getVersion() + " ("  + protocolVersion + ")");
-        return p;
+    public static int getRenderDistance() {
+        return args.getInt("render-distance");
     }
+
 }

@@ -24,8 +24,7 @@ public class Launcher {
             .help("The address of the remote server to connect to. Hostname or IP address (without port).");
         parser.addArgument("-p", "--port").type(Integer.class)
             .setDefault(25565)
-            .help("The port of the remote server.")
-            .textualName();
+            .help("The port of the remote server.");
         parser.addArgument("-l", "--local-port").type(Integer.class)
             .setDefault(25565)
             .help("The local port which the client has to connect to.")
@@ -58,6 +57,18 @@ public class Launcher {
         parser.addArgument("-m", "--minecraft")
             .setDefault(Paths.get("%appdata%", ".minecraft").toString())
             .help("Path to your Minecraft installation, used to authenticate with Mojang servers.");
+        parser.addArgument("-r", "--render-distance").dest("render-distance")
+            .setDefault(75)
+            .type(Integer.class)
+            .help("Render distance of (in chunks) of the overview map.");
+        parser.addArgument("--mark-new-chunks").dest("mark-new-chunks")
+            .setDefault(false)
+            .type(boolean.class)
+            .help("Mark new chunks in an orange outline.");
+        parser.addArgument("--write-chunks").dest("write-chunks")
+            .setDefault(true)
+            .type(boolean.class)
+            .help("Set to false to disable writing the chunks, mostly for debugging purposes.");
 
         Namespace ns = null;
         try {

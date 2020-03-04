@@ -13,10 +13,14 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * Proxy server class, handles receiving of data and forwarding it to the right places.
  */
-public class ProxyServer {
+public class ProxyServer extends Thread {
+    private final int DEFAULT_PORT = 25565;
     private int portRemote;
     private int portLocal;
     private String host;
+
+    private DataReader onServerBoundPacket;
+    private DataReader onClientBoundPacket;
 
     /**
      * Initialise the proxy server class.
@@ -36,7 +40,16 @@ public class ProxyServer {
      * @param onClientBoundPacket data reader for server -> client traffic
      */
     public void runServer(DataReader onServerBoundPacket, DataReader onClientBoundPacket) {
-        System.out.println("Starting proxy for " + host + ":" + portRemote + ". Make sure to connect to localhost:" + portLocal + " instead of the regular server address.");
+        this.onClientBoundPacket = onClientBoundPacket;
+        this.onServerBoundPacket = onServerBoundPacket;
+        this.start();
+        this.setPriority(10);
+    }
+
+    @Override
+    public void run() {
+        String friendlyHost = host + (portRemote == DEFAULT_PORT ? "" : ":" + portRemote);
+        System.out.println("Starting proxy for " + friendlyHost + ". Make sure to connect to localhost:" + portLocal + " instead of the regular server address.");
 
         // Create a ServerSocket to listen for connections with
         AtomicReference<ServerSocket> ss = new AtomicReference<>();
@@ -62,8 +75,7 @@ public class ProxyServer {
 
                 // If the server cannot connect, close client connection
                 attempt(() -> server.set(new Socket(host, portRemote)), (ex) -> {
-                    System.out.println("Cannot connect to host: ");
-                    ex.printStackTrace();
+                    System.out.println("Cannot connect to " + friendlyHost + ". The server may be down or on a different address.");
 
                     attempt(client.get()::close);
                 });
@@ -73,12 +85,11 @@ public class ProxyServer {
                 Game.getEncryptionManager().setStreamToServer(streamToServer);
 
                 // start client listener thread
-                new Thread(() -> {
+                Thread clientListener = new Thread(() -> {
                     Game.setMode(NetworkMode.HANDSHAKE);
                     attempt(() -> {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
-
                             onServerBoundPacket.pushData(request, bytesRead);
                         }
                     }, (ex) -> {
@@ -91,7 +102,9 @@ public class ProxyServer {
                     });
                     // the client closed the connection to us, so close our connection to the server.
                     attempt(streamToServer::close);
-                }).start();
+                });
+                clientListener.start();
+                clientListener.setPriority(10);
 
                 // listen to messages from server
                 attempt(() -> {

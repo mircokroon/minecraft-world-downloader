@@ -2,6 +2,7 @@ package game.data.region;
 
 import game.Game;
 import game.data.Coordinate2D;
+import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import org.apache.commons.io.IOUtils;
 
@@ -92,7 +93,7 @@ public class McaFile {
      */
     public McaFile(Coordinate2D pos, Map<Integer, ChunkBinary> chunkMap) {
         regionLocation = pos;
-        Path filePath = Paths.get(Game.getExportDirectory(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
+        Path filePath = Paths.get(Game.getExportDirectory(), Game.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
 
         this.chunkMap = new HashMap<>();
         if (filePath.toFile().exists()) {
@@ -192,12 +193,19 @@ public class McaFile {
      * @return the list of positions.
      */
     public List<Coordinate2D> getChunkPositions() {
-        return chunkMap.keySet().stream().map(el -> {
-            int offset = el / 4;
-            int localX = offset & 0x1F;
-            int localZ = offset >>> 5;
+        return chunkMap.keySet().stream().map(this::intToCoordinate).collect(Collectors.toList());
+    }
 
-            return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
-        }).collect(Collectors.toList());
+    private Coordinate2D intToCoordinate(int i) {
+        int offset = i / 4;
+        int localX = offset & 0x1F;
+        int localZ = offset >>> 5;
+        return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
+    }
+
+    public Map<Coordinate2D, Chunk> getParsedChunks() {
+        Map<Coordinate2D, Chunk> res = new HashMap<>();
+        chunkMap.forEach((key, value) -> res.put(intToCoordinate(key), value.toChunk(intToCoordinate(key))));
+        return res;
     }
 }

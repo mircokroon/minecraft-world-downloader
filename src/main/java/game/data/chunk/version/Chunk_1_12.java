@@ -2,9 +2,11 @@ package game.data.chunk.version;
 
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
-import game.data.chunk.Palette;
+import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ByteArrayTag;
+import se.llbit.nbt.ByteTag;
+import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.SpecificTag;
 
 /**
@@ -16,12 +18,13 @@ public class Chunk_1_12 extends Chunk {
 
     public Chunk_1_12(int x, int z) {
         super(x, z);
-        biomes = new byte[256];
+
+        this.biomes = new byte[256];
     }
 
     @Override
-    protected ChunkSection createNewChunkSection(byte y, Palette palette, int bitsPerBlock) {
-        return new ChunkSection_1_12(y, palette, bitsPerBlock);
+    protected ChunkSection createNewChunkSection(byte y, Palette palette) {
+        return new ChunkSection_1_12(y, palette);
     }
 
     private void setBiome(int x, int z, byte biomeId) {
@@ -29,7 +32,7 @@ public class Chunk_1_12 extends Chunk {
     }
 
     @Override
-    protected void readBiomes(DataTypeProvider dataProvider) {
+    protected void parse2DBiomeData(DataTypeProvider dataProvider) {
         for (int z = 0; z < SECTION_WIDTH; z++) {
             for (int x = 0; x < SECTION_WIDTH; x++) {
                 setBiome(x, z, dataProvider.readNext());
@@ -37,7 +40,22 @@ public class Chunk_1_12 extends Chunk {
         }
     }
 
+    @Override
+    protected void addLevelNbtTags(CompoundTag map) {
+        map.add("TerrainPopulated", new ByteTag((byte) 1));
+        map.add("LightPopulated", new ByteTag((byte) 1));
+
+        super.addLevelNbtTags(map);
+    }
+
+    @Override
+    protected ChunkSection parseSection(int sectionY, SpecificTag section) {
+        return new ChunkSection_1_12(sectionY, section);
+    }
+
     protected SpecificTag getBiomes() {
         return new ByteArrayTag(biomes);
     }
+
+
 }

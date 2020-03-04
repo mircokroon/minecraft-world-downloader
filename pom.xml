@@ -4,18 +4,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>mircokroon.proxy-world-downloader</groupId>
+    <groupId>mircokroon.minecraft-world-downloader</groupId>
     <artifactId>minecraft-world-downloader</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
+    <properties>
+        <java.version>9</java.version>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -82,11 +86,8 @@
 
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx</artifactId>
-            <version>11</version>
-            <type>pom</type>
+            <artifactId>javafx-base</artifactId>
+            <version>11.0.2</version>
         </dependency>
-
-
     </dependencies>
 </project>

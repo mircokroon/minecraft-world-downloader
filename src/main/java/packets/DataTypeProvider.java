@@ -9,6 +9,7 @@ import se.llbit.nbt.SpecificTag;
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Class to provide an interface between the raw byte data and the various data types. Most methods are
@@ -90,7 +91,7 @@ public class DataTypeProvider {
 
         StringBuilder sb = new StringBuilder();
         while (stringSize-- > 0) {
-            sb.appendCodePoint(readNext());
+            sb.appendCodePoint(readNext() & 0xFF);
         }
         return sb.toString();
     }
@@ -112,10 +113,16 @@ public class DataTypeProvider {
     }
 
     public Coordinate3D readCoordinates() {
-        long val = readLong();
-        int x = (int) (val >> 38);
-        int y = (int) (val >> 26) & 0xFFF;
-        int z = (int) (val << 38 >> 38);
+        long var = readLong();
+        int mask = 0x3FFFFFF;
+        int x = (int) (var >> 38) & mask;
+        int y = (int) (var >> 26) & 0xFFF;
+        int z = (int) var & mask;
+
+        if (x >= 2 << 24) { x -= 2 << 25; }
+        if (y >= 2 << 10) { y -= 2 << 11; }
+        if (z >= 2 << 24) { z -= 2 << 25; }
+
         return new Coordinate3D(x, y, z);
     }
 
@@ -131,6 +138,14 @@ public class DataTypeProvider {
         long[] res = new long[size];
         for (int i = 0; i < size; i++) {
             res[i] = readLong();
+        }
+        return res;
+    }
+
+    public int[] readIntArray(int size) {
+        int[] res = new int[size];
+        for (int i = 0; i < size; i++) {
+            res[i] = readInt();
         }
         return res;
     }
@@ -157,11 +172,41 @@ public class DataTypeProvider {
         }
     }
 
+    public double readFloat() {
+        byte[] bytes = readByteArray(4);
+        ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
+        buffer.put(bytes);
+        buffer.flip();
+        return buffer.getFloat();
+    }
+
     public double readDouble() {
         byte[] bytes = readByteArray(8);
         ByteBuffer buffer = ByteBuffer.allocate(Double.BYTES);
         buffer.put(bytes);
         buffer.flip();
         return buffer.getDouble();
+    }
+
+    public UUID readUUID() {
+        return new UUID(readLong(), readLong());
+    }
+
+    public String readChat() {
+        return readString();
+    }
+    public String readOptChat() {
+        if (readBoolean()) {
+            return readChat();
+        }
+        return null;
+    }
+
+    public void readSlot() {
+        if (readBoolean()) {
+            readVarInt();
+            readNext();
+            readNbtTag();
+        }
     }
 }

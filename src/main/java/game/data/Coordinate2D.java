@@ -34,10 +34,17 @@ public class Coordinate2D {
         this.z += offsetZ >> 4;
     }
 
-    public boolean isInRange(Coordinate2D other, int distance) {
-        return Math.max(Math.abs(this.x - other.x), Math.abs(this.z - other.z)) <= distance;
+    public boolean isInRange(Coordinate2D other, int distanceX, int distanceZ) {
+        return Math.abs(this.x - other.x) <= distanceX && Math.abs(this.z - other.z) <= distanceZ;
     }
 
+    public boolean isInRange(Coordinate2D other, int distance) {
+        return isInRange(other, distance, distance);
+    }
+
+    public Coordinate2D globalToChunk() {
+        return new Coordinate2D(x >> 4, z >> 4);
+    }
     public Coordinate2D chunkToRegion() {
         return new Coordinate2D(x >> 5, z >> 5);
     }

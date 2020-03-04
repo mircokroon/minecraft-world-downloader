@@ -1,8 +1,7 @@
 package proxy;
 
 import game.Game;
-import packets.builder.ClientBoundLoginPacketBuilder;
-import packets.builder.ServerBoundLoginPacketBuilder;
+import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
 
@@ -18,9 +17,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
 import javax.crypto.Cipher;
@@ -31,7 +28,7 @@ import javax.crypto.spec.SecretKeySpec;
  * Class to handle encryption, decryption and related masking of the proxy server.
  */
 public class EncryptionManager {
-    public final int blockSize = 16;
+    private static final String ENCRYPTION_TYPE = "AES/CFB8/NoPadding";
     private boolean encryptionEnabled = false;
     private String serverId;
     private RSAPublicKey serverRealPublicKey;
@@ -117,7 +114,7 @@ public class EncryptionManager {
         writeByteArray(bytes, serverVerifyToken);  // verify token
         prependPacketLength(bytes);
 
-        attempt(() -> streamToClient(new LinkedList<>(bytes)));
+        attempt(() -> streamToClient(new ByteQueue(bytes)));
     }
 
     /**
@@ -176,7 +173,7 @@ public class EncryptionManager {
      * Method to stream a given queue of bytes to the client.
      * @param bytes the bytes to stream
      */
-    public void streamToClient(Queue<Byte> bytes) throws IOException {
+    public void streamToClient(ByteQueue bytes) throws IOException {
         streamTo(streamToClient, bytes, this::clientBoundEncrypt);
     }
 
@@ -187,11 +184,9 @@ public class EncryptionManager {
      * @param bytes   the bytes to write
      * @param encrypt the encryption operator
      */
-    private void streamTo(OutputStream stream, Queue<Byte> bytes, UnaryOperator<byte[]> encrypt) throws IOException {
+    private void streamTo(OutputStream stream, ByteQueue bytes, UnaryOperator<byte[]> encrypt) throws IOException {
         byte[] b = new byte[bytes.size()];
-        for (int i = 0; i < b.length; i++) {
-            b[i] = bytes.remove();
-        }
+        bytes.copyTo(b);
 
         byte[] encrypted = encrypt.apply(b);
 
@@ -273,7 +268,7 @@ public class EncryptionManager {
             writeByteArray(bytes, verifyToken);
             prependPacketLength(bytes);
 
-            streamToServer(new LinkedList<>(bytes));
+            streamToServer(new ByteQueue(bytes));
 
             enableEncryption();
         });
@@ -294,7 +289,7 @@ public class EncryptionManager {
         return new BigInteger(sha1.get().digest()).toString(16);
     }
 
-    public void streamToServer(Queue<Byte> bytes) throws IOException {
+    public void streamToServer(ByteQueue bytes) throws IOException {
         // System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
         streamTo(streamToServer, bytes, this::serverBoundEncrypt);
     }
@@ -308,16 +303,16 @@ public class EncryptionManager {
         attempt(() -> {
             IvParameterSpec ivspec = new IvParameterSpec(clientSharedSecret);
             SecretKeySpec k = new SecretKeySpec(clientSharedSecret, "AES");
-            clientBoundEncryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            clientBoundEncryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             clientBoundEncryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
 
-            clientBoundDecryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            clientBoundDecryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             clientBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
-            serverBoundEncryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            serverBoundEncryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             serverBoundEncryptor.init(Cipher.ENCRYPT_MODE, k, ivspec);
 
-            serverBoundDecryptor = Cipher.getInstance("AES/CFB8/PKCS5Padding");
+            serverBoundDecryptor = Cipher.getInstance(ENCRYPTION_TYPE);
             serverBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
             encryptionEnabled = true;
@@ -387,7 +382,7 @@ public class EncryptionManager {
                 nextMode == 1 ? "status" : "login"
             );
 
-            streamToServer(new LinkedList<>(bytes));
+            streamToServer(new ByteQueue(bytes));
         });
     }
 
