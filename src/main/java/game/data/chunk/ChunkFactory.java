@@ -248,11 +248,12 @@ public class ChunkFactory extends Thread {
 
     public Chunk fromNbt(NamedTag tag, Coordinate2D location) {
         int dataVersion = tag.getTag().get("DataVersion").intValue();
-        Chunk c = getVersionedChunk(dataVersion, location);
+        Chunk chunk = getVersionedChunk(dataVersion, location);
 
-        c.parse(tag.getTag());
+        chunk.parse(tag.getTag());
+        chunk.setSaved(true);
 
-        return c;
+        return chunk;
     }
 
     private class TileEntity extends Pair<Coordinate3D, SpecificTag> {
