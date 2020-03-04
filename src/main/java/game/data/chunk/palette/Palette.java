@@ -23,6 +23,21 @@ public class Palette {
     private Palette(int bitsPerBlock, int[] palette) {
         this.bitsPerBlock = bitsPerBlock;
         this.palette = palette;
+
+        synchronizeBitsPerBlock();
+    }
+
+    /**
+     * Some non-vanilla servers will use more bits per block than needed, which will cause
+     * issues when reading in the chunk later. To fix this, we increase the size of the
+     * palette array by by adding unused block states.
+     */
+    private void synchronizeBitsPerBlock() {
+        while (this.bitsPerBlock > computeBitsPerBlock(palette.length - 1)) {
+            int[] newPalette = new int[palette.length + 1];
+            System.arraycopy(palette, 0, newPalette, 0, palette.length);
+            this.palette = newPalette;
+        }
     }
 
     public Palette(ListTag nbt) {
@@ -37,11 +52,7 @@ public class Palette {
     }
 
     private int computeBitsPerBlock(int maxIndex) {
-        int bitsNeeded = 0;
-        while (maxIndex > 0) {
-            bitsNeeded++;
-            maxIndex >>= 1;
-        }
+        int bitsNeeded = Integer.SIZE - Integer.numberOfLeadingZeros(maxIndex);
         return Math.max(4, bitsNeeded);
     }
 
@@ -79,6 +90,9 @@ public class Palette {
             return index;
         }
         if (palette.length == 0) {
+            return 0;
+        }
+        if (index >= palette.length) {
             return 0;
         }
 
