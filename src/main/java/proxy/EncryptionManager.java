@@ -362,14 +362,15 @@ public class EncryptionManager {
      * the hostname before allowing a connection.
      * @param protocolVersion the version of the connection protocol
      * @param nextMode        the next connection mode (login or status)
+     * @param hostExtension   additional text to add to the end of the host, primarily for Forge
      */
-    public void sendMaskedHandshake(int protocolVersion, int nextMode) {
+    public void sendMaskedHandshake(int protocolVersion, int nextMode, String hostExtension) {
         attempt(() -> {
             List<Byte> bytes = new ArrayList<>();
 
             writeVarInt(bytes, 0);
             writeVarInt(bytes, protocolVersion);
-            writeString(bytes, Game.getHost());
+            writeString(bytes, Game.getHost() + hostExtension);
             writeShort(bytes, Game.getPortRemote());
             writeVarInt(bytes, nextMode);
             prependPacketLength(bytes);

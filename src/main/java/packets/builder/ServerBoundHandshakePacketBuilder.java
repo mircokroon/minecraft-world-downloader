@@ -25,7 +25,7 @@ public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
             }
 
             Game.setProtocolVersion(protocolVersion);
-            Game.getEncryptionManager().sendMaskedHandshake(protocolVersion, nextMode);
+            Game.getEncryptionManager().sendMaskedHandshake(protocolVersion, nextMode, getHostExtensions(host));
             return false;
         });
     }
@@ -38,5 +38,18 @@ public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
     @Override
     public boolean isClientBound() {
         return false;
+    }
+
+    /**
+     * Forge appends some data to the end of the host to indicate the client is running forge. We need to copy
+     * this over to the masked handshake packet.
+     * @param host the original host sent by the client
+     * @return the host extension bit (e.g. \0FML\0)
+     */
+    private String getHostExtensions(String host) {
+        String[] parts = host.split("\0", 2);
+        if (parts.length <= 1) { return ""; }
+
+        return "\0" + parts[1];
     }
 }
