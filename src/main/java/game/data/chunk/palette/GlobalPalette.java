@@ -48,6 +48,12 @@ public class GlobalPalette {
         return nameStates.getOrDefault(key, null);
     }
 
+    /**
+     * Returns the first state in the palette, used to replace unknown states with air. 
+     */
+    public BlockState getDefaultState() {
+        return states.values().iterator().next();
+    }
 }
 
 // we need a class to represent this type because of type erasure, otherwise Gson will get angry over casting.

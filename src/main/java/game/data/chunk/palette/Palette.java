@@ -5,7 +5,6 @@ import game.data.chunk.Chunk;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,7 +114,11 @@ public class Palette {
         }
 
         for (int i : palette) {
-            tags.add(globalPalette.getState(i).toNbt());
+            BlockState state = globalPalette.getState(i);
+            if (state == null) { state = globalPalette.getDefaultState(); }
+
+            tags.add(state.toNbt());
+
         }
         return tags;
     }
