@@ -13,13 +13,23 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 - Java 9 or higher
 - Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+
 
-### Basic usage
+### Download release
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using the commandline by running:
 
-```java -jar world-downloader.jar -s address.to.server.com```
+```
+wget https://github.com/mircokroon/minecraft-world-downloader/releases/download/v1.4.1/world-downloader.jar
+java -jar world-downloader.jar -s address.to.server.com
+```
 
 Then connect to ```localhost``` in Minecraft to start downloading the world. The world will be saved to the ```world/``` by default.
 
+### Build from source
+```
+git clone https://github.com/mircokroon/minecraft-world-downloader
+cd minecraft-world-downloader
+mvn install
+java -jar ./target/minecraft-world-downloader-1.0.jar -s address.to.server.com
+```
 
 ### Options
 |  **Parameter** | **Default** | **Description** |
