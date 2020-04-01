@@ -9,12 +9,9 @@ import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
 import game.data.chunk.version.Chunk_1_15;
-import gui.GuiManager;
-import javafx.util.Pair;
 import packets.DataTypeProvider;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.Tag;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
@@ -182,7 +179,7 @@ public class ChunkFactory extends Thread {
         if (tileEntities.containsKey(chunkPos)) {
             Queue<TileEntity> queue = tileEntities.get(chunkPos);
             for (TileEntity ent : queue) {
-                chunk.addTileEntity(ent.getKey(), ent.getValue());
+                chunk.addTileEntity(ent.getPosition(), ent.getTag());
             }
         }
 
@@ -256,9 +253,21 @@ public class ChunkFactory extends Thread {
         return chunk;
     }
 
-    private class TileEntity extends Pair<Coordinate3D, SpecificTag> {
-        public TileEntity(Coordinate3D key, SpecificTag value) {
-            super(key, value);
+    private class TileEntity {
+        Coordinate3D position;
+        SpecificTag tag;
+
+        public TileEntity(Coordinate3D position, SpecificTag tag) {
+            this.position = position;
+            this.tag = tag;
+        }
+
+        public Coordinate3D getPosition() {
+            return position;
+        }
+
+        public SpecificTag getTag() {
+            return tag;
         }
     }
 }
