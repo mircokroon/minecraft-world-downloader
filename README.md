@@ -27,8 +27,8 @@ Then connect to ```localhost``` in Minecraft to start downloading the world. The
 ```
 git clone https://github.com/mircokroon/minecraft-world-downloader
 cd minecraft-world-downloader
-mvn install
-java -jar ./target/minecraft-world-downloader-1.0.jar -s address.to.server.com
+mvn assembly:assembly
+java -jar ./target/world-downloader.jar -s address.to.server.com
 ```
 
 ### Options
