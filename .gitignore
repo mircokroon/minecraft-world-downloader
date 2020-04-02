@@ -1,5 +1,8 @@
 target/
-\.idea/
+.idea/
+.classpath
+.project
+.settings/
 out/
 tags
 world/
