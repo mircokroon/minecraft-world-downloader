@@ -33,8 +33,16 @@ public class ClientAuthenticator {
      * @return the contents of the file
      */
     private String getFile() {
-        String appdataPath = System.getenv("appdata").replace("\\", "\\\\");
-        Path p = Paths.get(Game.getGamePath().replaceAll("(?i)%APPDATA%", appdataPath), "launcher_profiles.json");
+        String path = Game.getGamePath();
+
+        // handle common %APPDATA% env variable for Windows
+        if (path.toUpperCase().contains("%APPDATA%") && System.getenv("appdata") != null) {
+            String appdataPath = System.getenv("appdata").replace("\\", "\\\\");
+            path = path.replaceAll("(?i)%APPDATA%", appdataPath);
+        }
+
+        Path p = Paths.get(path, "launcher_profiles.json");
+
         try {
             return String.join("\n", Files.readAllLines(p));
         } catch (Exception e) {
