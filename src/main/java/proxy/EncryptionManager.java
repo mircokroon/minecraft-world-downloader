@@ -92,6 +92,8 @@ public class EncryptionManager {
         try {
             r.run();
         } catch (Exception ex) {
+            ex.printStackTrace();
+
             attempt(() -> streamToServer.close());
             attempt(() -> streamToClient.close());
             return false;

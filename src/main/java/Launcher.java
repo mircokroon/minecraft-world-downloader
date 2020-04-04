@@ -3,6 +3,7 @@ import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import org.apache.commons.lang3.SystemUtils;
 
 import java.nio.file.Paths;
 
@@ -55,7 +56,7 @@ public class Launcher {
             .type(Long.class)
             .help("Level seed for output file, as a long.");
         parser.addArgument("-m", "--minecraft")
-            .setDefault(Paths.get("%appdata%", ".minecraft").toString())
+            .setDefault(getDefaultPath())
             .help("Path to your Minecraft installation, used to authenticate with Mojang servers.");
         parser.addArgument("-r", "--render-distance").dest("render-distance")
             .setDefault(75)
@@ -78,5 +79,19 @@ public class Launcher {
             System.exit(1);
         }
         return ns;
+    }
+
+    /**
+     * Get the platform-specific default path for the Minecraft installation directory.
+     * @return the path as a string
+     */
+    private static String getDefaultPath() {
+        if (SystemUtils.IS_OS_WINDOWS) {
+            return Paths.get("%appdata%", ".minecraft").toString();
+        } else if (SystemUtils.IS_OS_LINUX) {
+            return Paths.get("~", ".minecraft").toString();
+        } else {
+            return ".minecraft";
+        }
     }
 }
