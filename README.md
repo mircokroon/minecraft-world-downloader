@@ -13,23 +13,15 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 - Java 9 or higher
 - Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+
 
-### Download release
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases) the latest release and execute the jar file using the commandline by running:
+### Basic usage
+[Download](https://github.com/mircokroon/minecraft-world-downloader/releases) `world-downloader.jar` from the  latest release and execute the jar file using the commandline by running:
 
 ```
-wget https://github.com/mircokroon/minecraft-world-downloader/releases/download/v1.4.1/world-downloader.jar
 java -jar world-downloader.jar -s address.to.server.com
 ```
 
 Then connect to ```localhost``` in Minecraft to start downloading the world. The world will be saved to the ```world/``` by default.
 
-### Build from source
-```
-git clone https://github.com/mircokroon/minecraft-world-downloader
-cd minecraft-world-downloader
-mvn assembly:assembly
-java -jar ./target/world-downloader.jar -s address.to.server.com
-```
 
 ### Options
 |  **Parameter** | **Default** | **Description** |
@@ -45,3 +37,24 @@ java -jar ./target/world-downloader.jar -s address.to.server.com
 |  --minecraft | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
 | --render-distance | 75 | Render distance of (in chunks) of the overview map |
 |  --seed | 0 | World seed, useful when generating chunks after downloading |
+
+### Running on Linux
+To easily download the latest release using the terminal, the following commands can be used:
+```
+wget https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar
+java -jar world-downloader.jar -s address.to.server.com
+```
+
+When running headless Java, the GUI should be disabled by including the GUI option:
+```
+java -jar world-downloader.jar -s address.to.server.com --gui=false
+```
+
+### Building from source
+Building the project manually can be done with the Maven assembly plugin:
+```
+git clone https://github.com/mircokroon/minecraft-world-downloader
+cd minecraft-world-downloader
+mvn assembly:assembly
+java -jar ./target/world-downloader.jar -s address.to.server.com
+```
