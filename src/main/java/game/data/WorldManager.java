@@ -35,7 +35,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,6 +60,8 @@ public class WorldManager extends Thread {
     private static boolean markNewChunks;
 
     private static boolean writeChunks;
+
+    private static ContainerManager containerManager;
 
     private WorldManager() {
 
@@ -329,4 +330,14 @@ public class WorldManager extends Thread {
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
     }
+
+    public static ContainerManager getContainerManager() {
+        if (containerManager == null) {
+            containerManager = new ContainerManager();
+        }
+        return new ContainerManager();
+    }
+
+
+
 }

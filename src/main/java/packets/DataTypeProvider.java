@@ -2,6 +2,7 @@ package packets;
 
 import game.Game;
 import game.data.Coordinate3D;
+import game.data.container.Slot;
 import packets.version.DataTypeProvider_1_14;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
@@ -9,7 +10,8 @@ import se.llbit.nbt.SpecificTag;
 import java.io.DataInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to provide an interface between the raw byte data and the various data types. Most methods are
@@ -202,11 +204,20 @@ public class DataTypeProvider {
         return null;
     }
 
-    public void readSlot() {
-        if (readBoolean()) {
-            readVarInt();
-            readNext();
-            readNbtTag();
+    public List<Slot> readSlots(int count) {
+        List<Slot> slots = new ArrayList<>(count);
+
+        while (count-- > 0) {
+            slots.add(readSlot());
         }
+
+        return slots;
+    }
+
+    public Slot readSlot() {
+        if (readBoolean()) {
+            return new Slot(readVarInt(), readNext(), readNbtTag());
+        }
+        return null;
     }
 }
