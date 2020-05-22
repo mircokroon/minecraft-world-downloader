@@ -41,6 +41,10 @@ public class MobEntity extends Entity {
         if (metaData == null) {
             metaData = MetaData.getVersionedMetaData();
         }
-        metaData.parse(provider);
+        try {
+            metaData.parse(provider);
+        } catch (Exception ex) {
+            // couldn't parse metadata, whatever
+        }
     }
 }

@@ -33,13 +33,13 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
         });
 
         operations.put("spawn_mob", provider -> {
-            ChunkFactory.getInstance().addEntity(MobEntity.parse(provider));
+            ChunkFactory.getInstance().addEntity(provider, MobEntity::parse);
 
             return true;
         });
 
         operations.put("spawn_object", provider -> {
-            ChunkFactory.getInstance().addEntity(ObjectEntity.parse(provider));
+            ChunkFactory.getInstance().addEntity(provider, ObjectEntity::parse);
 
             return true;
         });

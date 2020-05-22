@@ -21,6 +21,21 @@ public class MetaData_1_13 extends MetaData {
         typeHandlers.put(5, DataTypeProvider::readOptChat);
         typeHandlers.put(6, DataTypeProvider::readSlot);
         typeHandlers.put(7, DataTypeProvider::readBoolean);
+        typeHandlers.put(8, DataTypeProvider::readBoolean);
+        typeHandlers.put(9, DataTypeProvider::readLong);
+        // typeHandlers.put(10, DataTypeProvider::read);
+        typeHandlers.put(11, DataTypeProvider::readVarInt);
+        // typeHandlers.put(12, DataTypeProvider::read);
+        typeHandlers.put(13, DataTypeProvider::readVarInt);
+        typeHandlers.put(14, DataTypeProvider::readNbtTag);
+        // typeHandlers.put(15, DataTypeProvider::read);
+        typeHandlers.put(16, (provider -> {
+            provider.readVarInt();
+            provider.readVarInt();
+            provider.readVarInt();
+        }));
+        typeHandlers.put(17, DataTypeProvider::readOptVarInt);
+        typeHandlers.put(18, DataTypeProvider::readVarInt);
     }
 
     private int air;

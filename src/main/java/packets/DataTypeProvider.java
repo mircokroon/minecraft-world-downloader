@@ -209,4 +209,11 @@ public class DataTypeProvider {
             readNbtTag();
         }
     }
+
+    public static int readOptVarInt(DataTypeProvider provider) {
+        if (provider.readBoolean()) {
+            return provider.readVarInt();
+        }
+        return 0;
+    }
 }
