@@ -51,6 +51,12 @@ java -jar world-downloader.jar -s address.to.server.com --gui=false
 ```
 
 ### Building from source
+
+Dependencies on debian/ubuntu
+```
+sudo apt-get install default-jdk maven
+```
+
 Building the project manually can be done with the Maven assembly plugin:
 ```
 git clone https://github.com/mircokroon/minecraft-world-downloader
