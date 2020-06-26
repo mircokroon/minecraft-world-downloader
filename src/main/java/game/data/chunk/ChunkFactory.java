@@ -1,7 +1,6 @@
 package game.data.chunk;
 
 import game.Game;
-import game.VersionStatus;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.WorldManager;
@@ -34,6 +33,8 @@ public class ChunkFactory extends Thread {
     private ConcurrentMap<Integer, Entity> entities;
 
     private List<EntityParserPair> unparsedEntities;
+
+    private boolean threadStarted = false;
 
     public static ChunkFactory getInstance() {
         if (factory == null) {
@@ -130,11 +131,11 @@ public class ChunkFactory extends Thread {
      * by chunk parsing.
      */
     public static void startChunkParserService() {
-        if (factory != null) {
+        ChunkFactory factory = getInstance();
+        if (factory.threadStarted) {
             return;
         }
 
-        factory = getInstance();
         factory.start();
     }
 
@@ -143,6 +144,8 @@ public class ChunkFactory extends Thread {
      */
     @Override
     public synchronized void run() {
+        threadStarted = true;
+
         DataTypeProvider provider;
         while (true) {
             while ((provider = getUnparsedChunk()) != null) {
