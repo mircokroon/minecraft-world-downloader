@@ -36,7 +36,7 @@ public class ChunkSection_1_12 extends ChunkSection {
         for (int y = 0; y < Chunk.SECTION_HEIGHT; y++) {
             for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
                 for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
-                    int data = palette.getIndex(blocks, x, y, z);
+                    int data = getPaletteIndex(x, y, z);
 
                     this.blockStates[x][y][z] = palette.stateFromId(data);
                 }

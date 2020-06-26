@@ -30,7 +30,13 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
             return false;
         });
         operations.put("login_success", provider -> {
-            String uuid = provider.readString();
+            String uuid;
+            if (Game.getProtocolVersion() >= 736) {
+                uuid = provider.readUUID().toString();
+            } else {
+                // pre 1.16
+                uuid = provider.readString();
+            }
             String username = provider.readString();
             System.out.println("Login success: " + username + " logged in with uuid " + uuid);
             Game.setMode(NetworkMode.GAME);

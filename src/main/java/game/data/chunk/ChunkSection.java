@@ -2,7 +2,6 @@ package game.data.chunk;
 
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
-import game.data.chunk.palette.GlobalPalette;
 import game.data.chunk.palette.Palette;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
@@ -87,6 +86,31 @@ public abstract class ChunkSection {
     }
 
     public int getNumericBlockStateAt(int x, int y, int z) {
-        return palette.stateFromId(palette.getIndex(blocks, x, y, z));
+        return palette.stateFromId(getPaletteIndex(x, y, z));
+    }
+    
+    public int getPaletteIndex(int x, int y, int z) {
+        if (blocks.length == 0) {
+            return 0;
+        }
+        int bitsPerBlock = palette.getBitsPerBlock();
+
+        int individualValueMask = (1 << bitsPerBlock) - 1;
+
+        int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;
+        int startLong = (blockNumber * bitsPerBlock) / 64;
+        int startOffset = (blockNumber * bitsPerBlock) % 64;
+        int endLong = ((blockNumber + 1) * bitsPerBlock - 1) / 64;
+
+        int data;
+        if (startLong == endLong) {
+            data = (int) (blocks[startLong] >>> startOffset);
+        } else {
+            int endOffset = 64 - startOffset;
+            data = (int) (blocks[startLong] >>> startOffset | blocks[endLong] << endOffset);
+        }
+        data &= individualValueMask;
+
+        return data;
     }
 }

@@ -48,6 +48,14 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             provider.readInt();
             provider.readNext();
 
+            // extra world info after 1.16
+            if (Game.getProtocolVersion() >= 736) {
+                provider.readNext();
+                int numWorlds = provider.readVarInt();
+                provider.readStringArray(numWorlds);
+                provider.readNbtTag();
+            }
+
             Game.setDimension(Dimension.fromId(provider.readInt()));
 
             return true;

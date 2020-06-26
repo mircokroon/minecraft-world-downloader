@@ -9,6 +9,7 @@ import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
 import game.data.chunk.version.Chunk_1_15;
+import game.data.chunk.version.Chunk_1_16;
 import packets.DataTypeProvider;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
@@ -225,7 +226,9 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(Coordinate2D chunkPos) {
-        if (Game.getProtocolVersion() >= 550) {
+        if (Game.getProtocolVersion() >= 735) {
+            return new Chunk_1_16(chunkPos.getX(), chunkPos.getZ());
+        } else  if (Game.getProtocolVersion() >= 550) {
             return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
         } else if (Game.getProtocolVersion() >= 440) {
             return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
@@ -242,7 +245,9 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(int dataVersion, Coordinate2D chunkPos) {
-        if (dataVersion >= 2200) {
+        if (dataVersion >= 2566) {
+            return new Chunk_1_16(chunkPos.getX(), chunkPos.getZ());
+        } else if (dataVersion >= 2200) {
             return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
         } else if (dataVersion >= 1901) {
             return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());

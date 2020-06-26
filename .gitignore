@@ -8,3 +8,5 @@ tags
 world/
 tmp/
 *.iml
+
+cache/

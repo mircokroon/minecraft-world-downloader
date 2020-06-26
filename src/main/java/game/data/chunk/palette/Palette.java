@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class Palette {
     private static boolean maskBedrock = false;
-    private int bitsPerBlock;
+    protected int bitsPerBlock;
     private int[] palette;
 
     protected Palette() { }
@@ -123,27 +123,7 @@ public class Palette {
         return tags;
     }
 
-    public int getIndex(long[] blocks, int x, int y, int z) {
-        if (blocks.length == 0) {
-            return 0;
-        }
-
-        int individualValueMask = (1 << bitsPerBlock) - 1;
-
-        int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;
-        int startLong = (blockNumber * bitsPerBlock) / 64;
-        int startOffset = (blockNumber * bitsPerBlock) % 64;
-        int endLong = ((blockNumber + 1) * bitsPerBlock - 1) / 64;
-
-        int data;
-        if (startLong == endLong) {
-            data = (int) (blocks[startLong] >>> startOffset);
-        } else {
-            int endOffset = 64 - startOffset;
-            data = (int) (blocks[startLong] >>> startOffset | blocks[endLong] << endOffset);
-        }
-        data &= individualValueMask;
-
-        return data;
+    public int getBitsPerBlock() {
+        return bitsPerBlock;
     }
 }
