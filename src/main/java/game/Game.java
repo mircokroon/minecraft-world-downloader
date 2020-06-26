@@ -161,11 +161,9 @@ public abstract class Game {
         try {
             RegistryLoader loader = new RegistryLoader(p.getVersion());
 
-            System.out.println("Generting global palette");
             WorldManager.setGlobalPalette(loader.generateGlobalPalette());
             WorldManager.setEntityMap(loader.generateEntityNames());
 
-            System.out.println("global palette set");
             WorldManager.startSaveService();
             ChunkFactory.startChunkParserService();
 
