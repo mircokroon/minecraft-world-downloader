@@ -31,7 +31,7 @@ public class ClientBoundLoginPacketBuilder extends PacketBuilder {
         });
         operations.put("login_success", provider -> {
             String uuid;
-            if (Game.getProtocolVersion() >= 736) {
+            if (Game.getProtocolVersion() >= 735) {
                 uuid = provider.readUUID().toString();
             } else {
                 // pre 1.16
