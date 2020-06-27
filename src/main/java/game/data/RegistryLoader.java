@@ -53,10 +53,11 @@ public class RegistryLoader {
     }
 
     /**
-     * Checks if json files already exist containing the reports for this version.0
+     * Checks if json files already exist containing the reports for this version. 1.12.2 has separate handling as the
+     * server jar couldn't yet generate reports at this point.
      */
     private boolean hasExistingReports() {
-        return blocksPath.toFile().exists() && registryPath.toFile().exists();
+        return version.equals("1.12.2") || blocksPath.toFile().exists() && registryPath.toFile().exists();
     }
 
     /**
@@ -75,7 +76,7 @@ public class RegistryLoader {
         VersionMap map = new Gson().fromJson(new InputStreamReader(input), VersionMap.class);
 
         if (!map.containsKey(version)) {
-            throw new IllegalArgumentException("Cannot find given version: " + version + ". Are you using the latest version of this downloader?");
+            throw new IllegalArgumentException("Cannot find given version: " + version + ". Are you using the latest world downloader version?");
         }
 
         downloadServerJar(map.get(version));
@@ -147,11 +148,19 @@ public class RegistryLoader {
     }
 
     public EntityNames generateEntityNames() throws IOException {
-        return EntityNames.fromRegistry(new FileInputStream(registryPath.toFile()));
+        if (version.equals("1.12.2")) {
+            return EntityNames.fromJson("1.12.2");
+        } else {
+            return EntityNames.fromRegistry(new FileInputStream(registryPath.toFile()));
+        }
     }
 
     public GlobalPalette generateGlobalPalette() throws IOException {
-        return new GlobalPalette(new FileInputStream(blocksPath.toFile()));
+        if (version.equals("1.12.2")) {
+            return new GlobalPalette("1.12.2");
+        } else {
+            return new GlobalPalette(new FileInputStream(blocksPath.toFile()));
+        }
     }
 }
 
