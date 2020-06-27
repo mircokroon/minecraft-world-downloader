@@ -107,7 +107,7 @@
 				"0x2C": "player_vehicle_move",
 				"0x24": "chunk_update_light",
 				"0x09": "update_block_entity",
-				"0x03": "spawn_mob",
+				"0x02": "spawn_mob",
 				"0x00": "spawn_object",
 				"0x44": "entity_data"
 			},
