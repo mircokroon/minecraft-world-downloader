@@ -99,7 +99,7 @@
 		},
 		"735":  {
 			"version": "1.16.0",
-			"dataVersion": 2566,
+			"dataVersion": 2567,
 			"clientbound": {
 				"0x21": "chunk_data",
 				"0x1D": "chunk_unload",
