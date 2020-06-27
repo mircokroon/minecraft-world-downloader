@@ -2,7 +2,7 @@ package game.data;
 
 import game.Game;
 import game.data.chunk.Chunk;
-import game.data.chunk.entity.Entity;
+import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.GlobalPalette;
@@ -35,7 +35,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -194,20 +193,27 @@ public class WorldManager extends Thread {
     }
 
     /**
-     * Start the periodic saving service.
+     * Set the config variables for the save service.
      */
-    public static void startSaveService(boolean markNewChunks, Boolean writeChunks) {
+    public static void setSaveServiceVariables(boolean markNewChunks, Boolean writeChunks) {
         WorldManager.markNewChunks = markNewChunks;
         WorldManager.writeChunks = writeChunks;
 
+        blockColors = BlockColors.create();
+    }
+
+    /**
+     * Start the periodic saving service.
+     */
+    public static void startSaveService() {
         if (writer != null) {
             return;
         }
 
-        blockColors = BlockColors.create();
-
         writer = new WorldManager();
         writer.start();
+
+        ChunkFactory.getInstance().parseEntities();
     }
 
     /**
@@ -251,12 +257,12 @@ public class WorldManager extends Thread {
         }
     }
 
-    public static void setGlobalPalette(String version) {
-        globalPalette = new GlobalPalette(version);
+    public static void setGlobalPalette(GlobalPalette palette) {
+        globalPalette = palette;
     }
 
-    public static void setEntityMap(String version) {
-        entityMap = EntityNames.fromJson(version);
+    public static void setEntityMap(EntityNames names) {
+        entityMap = names;
     }
 
     public static GlobalPalette getGlobalPalette() {
@@ -272,11 +278,6 @@ public class WorldManager extends Thread {
 
     public static boolean markNewChunks() {
         return markNewChunks;
-    }
-
-    public static void addEntity(Entity ent) {
-        Coordinate2D chunk = ent.getPosition().globalToChunk();
-
     }
 
     /**

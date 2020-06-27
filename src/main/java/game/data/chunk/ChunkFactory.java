@@ -9,14 +9,18 @@ import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
 import game.data.chunk.version.Chunk_1_15;
+import game.data.chunk.version.Chunk_1_16;
 import packets.DataTypeProvider;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 
 /**
  * Class responsible for creating chunks.
@@ -28,6 +32,10 @@ public class ChunkFactory extends Thread {
     private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
     private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
     private ConcurrentMap<Integer, Entity> entities;
+
+    private List<EntityParserPair> unparsedEntities;
+
+    private boolean threadStarted = false;
 
     public static ChunkFactory getInstance() {
         if (factory == null) {
@@ -41,6 +49,25 @@ public class ChunkFactory extends Thread {
         this.chunkEntities = new ConcurrentHashMap<>();
         this.entities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
+        this.unparsedEntities = new LinkedList<>();
+    }
+
+    /**
+     * Add an unparsed entity.
+     */
+    public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
+        if (WorldManager.getEntityMap() != null) {
+            addEntity(parser.apply(provider));
+        } else {
+            this.unparsedEntities.add(new EntityParserPair(provider, parser));
+        }
+    }
+
+    /**
+     * Parse all entities that were added to the entity list before
+     */
+    public void parseEntities() {
+        this.unparsedEntities.forEach(el -> addEntity(el.parse()));
     }
 
     /**
@@ -105,11 +132,11 @@ public class ChunkFactory extends Thread {
      * by chunk parsing.
      */
     public static void startChunkParserService() {
-        if (factory != null) {
+        ChunkFactory factory = getInstance();
+        if (factory.threadStarted) {
             return;
         }
 
-        factory = getInstance();
         factory.start();
     }
 
@@ -118,6 +145,8 @@ public class ChunkFactory extends Thread {
      */
     @Override
     public synchronized void run() {
+        threadStarted = true;
+
         DataTypeProvider provider;
         while (true) {
             while ((provider = getUnparsedChunk()) != null) {
@@ -197,7 +226,9 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(Coordinate2D chunkPos) {
-        if (Game.getProtocolVersion() >= 550) {
+        if (Game.getProtocolVersion() >= 735) {
+            return new Chunk_1_16(chunkPos.getX(), chunkPos.getZ());
+        } else  if (Game.getProtocolVersion() >= 550) {
             return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
         } else if (Game.getProtocolVersion() >= 440) {
             return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
@@ -214,7 +245,9 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(int dataVersion, Coordinate2D chunkPos) {
-        if (dataVersion >= 2200) {
+        if (dataVersion >= 2566) {
+            return new Chunk_1_16(chunkPos.getX(), chunkPos.getZ());
+        } else if (dataVersion >= 2200) {
             return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
         } else if (dataVersion >= 1901) {
             return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
@@ -269,5 +302,19 @@ public class ChunkFactory extends Thread {
         public SpecificTag getTag() {
             return tag;
         }
+    }
+}
+
+class EntityParserPair {
+    DataTypeProvider provider;
+    Function<DataTypeProvider, Entity> parser;
+
+    public EntityParserPair(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
+        this.provider = provider;
+        this.parser = parser;
+    }
+
+    public Entity parse() {
+        return parser.apply(provider);
     }
 }

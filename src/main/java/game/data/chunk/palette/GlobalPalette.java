@@ -17,14 +17,18 @@ public class GlobalPalette {
 
     /**
      * Instantiate a global palette using the given Minecraft version.
-     * @param version the Minecraft version, NOT protocol version
+     * @param version the Minecraft version (e.g. 1.12.2), NOT protocol version
      */
     public GlobalPalette(String version) {
+        this(GlobalPalette.class.getClassLoader().getResourceAsStream("blocks-" + version + ".json"));
+    }
+
+    /**
+     * Instantiate a global palette using the input stream (to a JSON file).
+     */
+    public GlobalPalette(InputStream input) {
         this.states = new HashMap<>();
         this.nameStates = new HashMap<>();
-
-        String file = "blocks-" + version + ".json";
-        InputStream input = GlobalPalette.class.getClassLoader().getResourceAsStream(file);
 
         // if the file doesn't exist, there is no palette for this version.
         if (input == null) { return; }

@@ -3,6 +3,7 @@ package game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
+import game.data.RegistryLoader;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.palette.Palette;
@@ -27,6 +28,7 @@ import proxy.EncryptionManager;
 import proxy.ProxyServer;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
@@ -81,7 +83,6 @@ public abstract class Game {
         playerPosition = newPos;
     }
 
-
     public static long getSeed() {
         return args.getLong("seed");
     }
@@ -98,8 +99,7 @@ public abstract class Game {
 
         initFolders();
 
-        ChunkFactory.startChunkParserService();
-        WorldManager.startSaveService(args.getBoolean("mark-new-chunks"), args.getBoolean("write-chunks"));
+        WorldManager.setSaveServiceVariables(args.getBoolean("mark-new-chunks"), args.getBoolean("write-chunks"));
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
         }
@@ -151,11 +151,27 @@ public abstract class Game {
         Game.dataVersion = p.getDataVersion();
         Game.gameVersion = p.getVersion();
 
-        WorldManager.setGlobalPalette(p.getVersion());
-        WorldManager.setEntityMap(p.getVersion());
+        new Thread(() -> loadVersionRegistries(p)).start();
 
         System.out.println("Using protocol of game version " + p.getVersion() + " (" + protocolVersion + ")");
         return p;
+    }
+
+    private static void loadVersionRegistries(Protocol p) {
+        try {
+            RegistryLoader loader = new RegistryLoader(p.getVersion());
+
+            WorldManager.setGlobalPalette(loader.generateGlobalPalette());
+            WorldManager.setEntityMap(loader.generateEntityNames());
+
+            WorldManager.startSaveService();
+            ChunkFactory.startChunkParserService();
+
+            loader.clean();
+        } catch (InterruptedException | IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     public static NetworkMode getMode() {

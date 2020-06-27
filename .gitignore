@@ -6,5 +6,7 @@ target/
 out/
 tags
 world/
-
+tmp/
 *.iml
+
+cache/

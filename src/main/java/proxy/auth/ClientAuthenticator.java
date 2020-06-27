@@ -1,10 +1,10 @@
 package proxy.auth;
 
 import com.google.gson.Gson;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
-import com.mashape.unirest.http.exceptions.UnirestException;
 import game.Game;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
+import kong.unirest.UnirestException;
 
 import java.io.IOException;
 import java.nio.file.Files;

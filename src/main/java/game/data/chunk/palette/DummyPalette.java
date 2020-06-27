@@ -24,9 +24,4 @@ public class DummyPalette extends Palette {
     public List<SpecificTag> toNbt() {
         throw new UnsupportedOperationException("Cannot convert a dummy palette to NBT");
     }
-
-    @Override
-    public int getIndex(long[] blocks, int x, int y, int z) {
-        return (int) blocks[y * 16 * 16 + z * 16 + x];
-    }
 }

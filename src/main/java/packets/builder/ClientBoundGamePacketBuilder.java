@@ -33,13 +33,13 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
         });
 
         operations.put("spawn_mob", provider -> {
-            ChunkFactory.getInstance().addEntity(MobEntity.parse(provider));
+            ChunkFactory.getInstance().addEntity(provider, MobEntity::parse);
 
             return true;
         });
 
         operations.put("spawn_object", provider -> {
-            ChunkFactory.getInstance().addEntity(ObjectEntity.parse(provider));
+            ChunkFactory.getInstance().addEntity(provider, ObjectEntity::parse);
 
             return true;
         });
@@ -47,6 +47,14 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
         operations.put("join_game", provider -> {
             provider.readInt();
             provider.readNext();
+
+            // extra world info after 1.16
+            if (Game.getProtocolVersion() >= 736) {
+                provider.readNext();
+                int numWorlds = provider.readVarInt();
+                provider.readStringArray(numWorlds);
+                provider.readNbtTag();
+            }
 
             Game.setDimension(Dimension.fromId(provider.readInt()));
 
