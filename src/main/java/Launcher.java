@@ -70,6 +70,10 @@ public class Launcher {
             .setDefault(true)
             .type(boolean.class)
             .help("Set to false to disable writing the chunks, mostly for debugging purposes.");
+        parser.addArgument("-w", "--enable-world-gen").dest("enable-world-gen")
+            .setDefault(true)
+            .type(boolean.class)
+            .help("When false, set world type to a superflat void to prevent new chunks from being added.");
 
         Namespace ns = null;
         try {

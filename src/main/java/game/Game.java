@@ -50,6 +50,7 @@ public abstract class Game {
     private static DataReader clientBoundDataReader;
     private static EncryptionManager encryptionManager;
     private static CompressionManager compressionManager;
+    private static boolean enableWorldGen;
 
     public static int getDataVersion() {
         return dataVersion;
@@ -103,6 +104,7 @@ public abstract class Game {
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
         }
+        enableWorldGen = args.getBoolean("enable-world-gen");
 
         versionHandler = VersionHandler.createVersionHandler();
     }
@@ -232,4 +234,7 @@ public abstract class Game {
         return args.getInt("render-distance");
     }
 
+    public static boolean isWorldGenEnabled() {
+        return enableWorldGen;
+    }
 }

@@ -37,6 +37,7 @@ Then connect to ```localhost``` in Minecraft to start downloading the world. The
 |  --minecraft | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
 | --render-distance | 75 | Render distance of (in chunks) of the overview map |
 |  --seed | 0 | World seed, useful when generating chunks after downloading |
+|  --enable-world-gen | true | When set to false, will prevent new terrain from being generated in-game. |
 
 ### Running on Linux
 To easily download the latest release using the terminal, the following commands can be used:
