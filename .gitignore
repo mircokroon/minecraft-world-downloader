@@ -10,3 +10,7 @@ tmp/
 *.iml
 
 cache/
+
+*.dat
+
+*.mca

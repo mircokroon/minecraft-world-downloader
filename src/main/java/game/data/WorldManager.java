@@ -184,12 +184,26 @@ public class WorldManager extends Thread {
             data.add("Version", versionTag);
         }
 
+        if (!Game.isWorldGenEnabled()) {
+            disableWorldGeneration(data);
+        }
+
         // write the file
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         root.write(new DataOutputStream(output));
 
         byte[] compressed = CompressionManager.gzipCompress(output.toByteArray());
         Files.write(levelDat.toPath(), compressed);
+    }
+
+    /**
+     * Set world type to a superflat void world.
+     */
+    private static void disableWorldGeneration(CompoundTag data) {
+        data.add("generatorName", new StringTag("flat"));
+
+        // this is the 1.12.2 superflat format, but it still works in later versions.
+        data.add("generatorOptions", new StringTag("3;minecraft:air;127"));
     }
 
     /**
