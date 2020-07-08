@@ -131,8 +131,9 @@ public class WorldManager extends Thread {
         File levelDat = Paths.get(Game.getExportDirectory(), "level.dat").toFile();
 
         // if there is no level.dat yet, make one from the default
+        // TODO: fix memory leak caused by duplicates in the NBT tags
         InputStream fileInput;
-        if (levelDat.isFile()) {
+        if (false && levelDat.isFile()) {
             fileInput = new FileInputStream(levelDat);
         } else {
             fileInput = WorldManager.class.getClassLoader().getResourceAsStream("level.dat");
