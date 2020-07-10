@@ -48,7 +48,7 @@ public class ClientAuthenticator {
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Cannot read or find '" + p.toString() + "'!\nUse launch option: \"-m /path/to/.minecraft/\" to indicate the location of your Minecraft installation.");
-            System.exit(0);
+            System.exit(1);
         }
         return null;
     }
