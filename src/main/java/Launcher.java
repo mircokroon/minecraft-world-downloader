@@ -93,7 +93,7 @@ public class Launcher {
         if (SystemUtils.IS_OS_WINDOWS) {
             return Paths.get("%appdata%", ".minecraft").toString();
         } else if (SystemUtils.IS_OS_LINUX) {
-            return Paths.get("~", ".minecraft").toString();
+            return System.getProperty("user.home") + "/.minecraft";
         } else {
             return ".minecraft";
         }
