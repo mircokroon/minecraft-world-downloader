@@ -32,6 +32,10 @@ public class Palette {
      * palette array by by adding unused block states.
      */
     private void synchronizeBitsPerBlock() {
+        if (this.bitsPerBlock > 16) {
+            throw new IllegalArgumentException("Bits per block may not be more than 16. Given: " + this.bitsPerBlock);
+        }
+
         while (this.bitsPerBlock > computeBitsPerBlock(palette.length - 1)) {
             int[] newPalette = new int[palette.length + 1];
             System.arraycopy(palette, 0, newPalette, 0, palette.length);

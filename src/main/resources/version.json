@@ -116,6 +116,26 @@
 				"0x13": "player_position_look",
 				"0x16": "player_vehicle_move"
 			}
+		},
+		"751":  {
+			"version": "1.16.2",
+			"dataVersion": 2578,
+			"clientbound": {
+				"0x20": "chunk_data",
+				"0x1E": "chunk_unload",
+				"0x34": "player_position_look",
+				"0x2B": "player_vehicle_move",
+				"0x23": "chunk_update_light",
+				"0x09": "update_block_entity",
+				"0x02": "spawn_mob",
+				"0x00": "spawn_object",
+				"0x44": "entity_data"
+			},
+			"serverbound": {
+				"0x12": "player_position",
+				"0x13": "player_position_look",
+				"0x16": "player_vehicle_move"
+			}
 		}
 		
 	}
