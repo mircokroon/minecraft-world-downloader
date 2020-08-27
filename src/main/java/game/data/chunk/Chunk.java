@@ -47,6 +47,7 @@ public abstract class Chunk {
     public final int z;
     private Map<Coordinate3D, SpecificTag> tileEntities;
     private Set<Entity> entities;
+    private Dimension dimension;
 
     protected ChunkSection[] getChunkSections() {
         return chunkSections;
@@ -422,4 +423,12 @@ public abstract class Chunk {
     }
 
     protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
+
+    public void setDimension(Dimension dimension) {
+        this.dimension = dimension;
+    }
+
+    public Dimension getDimension() {
+        return this.dimension;
+    }
 }

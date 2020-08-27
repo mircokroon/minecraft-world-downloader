@@ -12,6 +12,7 @@ import game.data.chunk.entity.MobEntity;
 import game.data.chunk.entity.ObjectEntity;
 import se.llbit.nbt.SpecificTag;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,24 +45,27 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             return true;
         });
 
+        // only used in 1.16+
         operations.put("join_game", provider -> {
             provider.readInt();
             provider.readNext();
+            provider.readNext();
+            provider.readNext();
 
-            // extra world info after 1.16
-            if (Game.getProtocolVersion() >= 736) {
-                provider.readNext();
-                int numWorlds = provider.readVarInt();
-                provider.readStringArray(numWorlds);
-                provider.readNbtTag();
-            }
+            int numWorlds = provider.readVarInt();
+            String[] worldNames = provider.readStringArray(numWorlds);
 
-            Game.setDimension(Dimension.fromId(provider.readInt()));
+            SpecificTag dimensionCodec = provider.readNbtTag();
+            SpecificTag dimension = provider.readNbtTag();
+
+            Game.setDimension(Dimension.fromString(provider.readString()));
 
             return true;
         });
         operations.put("respawn", provider -> {
-            Game.setDimension(Dimension.fromId(provider.readInt()));
+            SpecificTag dimension = provider.readNbtTag();
+
+            Game.setDimension(Dimension.fromString(provider.readString()));
             return true;
         });
 

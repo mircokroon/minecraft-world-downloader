@@ -5,7 +5,6 @@ import packets.DataTypeProvider;
 public class Chunk_1_16_2 extends Chunk_1_16 {
     public Chunk_1_16_2(int x, int z) {
         super(x, z);
-        System.out.println("1.16.2 chunk");
     }
 
     // this was introduced in 1.16.0 but is already gone in 1.16.2

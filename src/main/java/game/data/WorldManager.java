@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 public class WorldManager extends Thread {
     private final static int SAVE_DELAY = 20 * 1000;
 
-    private static Map<Coordinate2D, Region> regions = new ConcurrentHashMap<>();
+    private static Map<CoordinateDimension2D, Region> regions = new ConcurrentHashMap<>();
 
     private static WorldManager writer = null;
 
@@ -238,7 +238,7 @@ public class WorldManager extends Thread {
      */
     public static void loadChunk(Coordinate2D coordinate, Chunk chunk, boolean drawInGui) {
         if (!drawInGui || writeChunks) {
-            Coordinate2D regionCoordinates = coordinate.chunkToRegion();
+            CoordinateDimension2D regionCoordinates = new CoordinateDimension2D(coordinate.chunkToRegion(), chunk.getDimension());
 
             if (!regions.containsKey(regionCoordinates)) {
                 regions.put(regionCoordinates, new Region(regionCoordinates));
@@ -346,3 +346,4 @@ public class WorldManager extends Thread {
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
     }
 }
+

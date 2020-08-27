@@ -129,7 +129,9 @@
 				"0x09": "update_block_entity",
 				"0x02": "spawn_mob",
 				"0x00": "spawn_object",
-				"0x44": "entity_data"
+				"0x44": "entity_data",
+                "0x24": "join_game",
+				"0x39": "respawn"
 			},
 			"serverbound": {
 				"0x12": "player_position",

@@ -3,6 +3,7 @@ package game.data.chunk;
 import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.version.Chunk_1_12;
@@ -29,7 +30,7 @@ import java.util.function.Function;
 public class ChunkFactory extends Thread {
     private static ChunkFactory factory;
 
-    private ConcurrentLinkedQueue<DataTypeProvider> unparsedChunks;
+    private ConcurrentLinkedQueue<ChunkParserPair> unparsedChunks;
     private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
     private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
     private ConcurrentMap<Integer, Entity> entities;
@@ -124,7 +125,7 @@ public class ChunkFactory extends Thread {
      * Need a non-static method to do this as we cannot otherwise call notify
      */
     public synchronized void addChunk(DataTypeProvider provider) {
-        unparsedChunks.add(provider);
+        unparsedChunks.add(new ChunkParserPair(provider, Game.getDimension()));
         notify();
     }
 
@@ -148,7 +149,7 @@ public class ChunkFactory extends Thread {
     public synchronized void run() {
         threadStarted = true;
 
-        DataTypeProvider provider;
+        ChunkParserPair provider;
         while (true) {
             while ((provider = getUnparsedChunk()) != null) {
                 try {
@@ -170,7 +171,7 @@ public class ChunkFactory extends Thread {
     /**
      * Gets an unparsed chunk from the list, or null if the list is empty.
      */
-    private synchronized DataTypeProvider getUnparsedChunk() {
+    private synchronized ChunkParserPair getUnparsedChunk() {
         if (unparsedChunks.isEmpty()) {
             return null;
         }
@@ -180,7 +181,9 @@ public class ChunkFactory extends Thread {
     /**
      * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
      */
-    private void readChunkDataPacket(DataTypeProvider dataProvider) {
+    private void readChunkDataPacket(ChunkParserPair chunkParserPair) {
+        DataTypeProvider dataProvider = chunkParserPair.provider;
+
         Coordinate2D chunkPos = new Coordinate2D(dataProvider.readInt(), dataProvider.readInt());
         chunkPos.offsetChunk();
 
@@ -188,6 +191,7 @@ public class ChunkFactory extends Thread {
         Chunk chunk;
         if (full) {
             chunk = getVersionedChunk(chunkPos);
+            chunk.setDimension(chunkParserPair.dimension);
 
             WorldManager.loadChunk(chunkPos, chunk, true);
         } else {
@@ -307,6 +311,16 @@ public class ChunkFactory extends Thread {
         public SpecificTag getTag() {
             return tag;
         }
+    }
+}
+
+class ChunkParserPair {
+    DataTypeProvider provider;
+    Dimension dimension;
+
+    public ChunkParserPair(DataTypeProvider provider, Dimension dimension) {
+        this.provider = provider;
+        this.dimension = dimension;
     }
 }
 

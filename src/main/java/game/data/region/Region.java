@@ -2,10 +2,10 @@ package game.data.region;
 
 import game.Game;
 import game.data.Coordinate2D;
+import game.data.CoordinateDimension2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
-import gui.GuiManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Region {
     private final int UNLOAD_RANGE = 24;
     private Map<Coordinate2D, Chunk> chunks;
-    private Coordinate2D regionCoordinates;
+    private CoordinateDimension2D regionCoordinates;
 
     private boolean updatedSinceLastWrite;
     private Set<Coordinate2D> toDelete;
@@ -31,7 +31,7 @@ public class Region {
      * Initialise the region with the given coordinates.
      * @param regionCoordinates coordinates of the region (so global coordinates / 16 / 32)
      */
-    public Region(Coordinate2D regionCoordinates) {
+    public Region(CoordinateDimension2D regionCoordinates) {
         this.regionCoordinates = regionCoordinates;
         this.chunks = new ConcurrentHashMap<>();
         this.updatedSinceLastWrite = false;
