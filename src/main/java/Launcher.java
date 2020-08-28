@@ -94,6 +94,8 @@ public class Launcher {
             return Paths.get("%appdata%", ".minecraft").toString();
         } else if (SystemUtils.IS_OS_LINUX) {
             return Paths.get(System.getProperty("user.home"), ".minecraft").toString();
+        } else if (SystemUtils.IS_OS_UNIX) {
+            return Paths.get("/Users/", System.getProperty("user.name"), "/Library/Application Support/minecraft").toString();
         } else {
             return ".minecraft";
         }
