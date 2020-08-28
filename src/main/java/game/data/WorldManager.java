@@ -61,6 +61,8 @@ public class WorldManager extends Thread {
 
     private static boolean writeChunks;
 
+    private static ContainerManager containerManager;
+
     private WorldManager() {
 
     }
@@ -346,5 +348,15 @@ public class WorldManager extends Thread {
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
     }
+
+    public static ContainerManager getContainerManager() {
+        if (containerManager == null) {
+            containerManager = new ContainerManager();
+        }
+        return new ContainerManager();
+    }
+
+
+
 }
 

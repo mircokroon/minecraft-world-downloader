@@ -10,8 +10,10 @@ import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.entity.MobEntity;
 import game.data.chunk.entity.ObjectEntity;
+import game.data.container.Slot;
 import se.llbit.nbt.SpecificTag;
 
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -108,6 +110,25 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
 
         operations.put("player_position_look", updatePlayerPosition);
         operations.put("player_vehicle_move", updatePlayerPosition);
+
+        operations.put("open_window", provider -> {
+            int windowId = provider.readVarInt();
+            int windowType = provider.readVarInt();
+            String windowTitle = provider.readChat();
+
+            System.out.println("Opened window: #" + windowId + "::" + windowType + " with name " + windowTitle);
+            return true;
+        });
+
+        operations.put("window_items", provider -> {
+            int windowId = provider.readVarInt();
+            int count = provider.readShort();
+            List<Slot> slots = provider.readSlots(count);
+
+            System.out.println("Items for #" + windowId + ": " + slots);
+
+            return true;
+        });
     }
 
     @Override
