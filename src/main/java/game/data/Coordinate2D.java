@@ -19,6 +19,11 @@ public class Coordinate2D {
         this.z = (int) z;
     }
 
+    public void offset(int x, int z) {
+        this.x += x;
+        this.z += z;
+    }
+
     public static void setOffset(int x, int z) {
         offsetX = x >> 4 << 4;
         offsetZ = z >> 4 << 4;
@@ -86,5 +91,9 @@ public class Coordinate2D {
             return pos + 32;
         }
         return pos;
+    }
+
+    public CoordinateDim2D addDimension(Dimension dimension) {
+        return new CoordinateDim2D(this, dimension);
     }
 }

@@ -1,14 +1,15 @@
 package game.data.chunk;
 
 import game.Game;
-import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.CoordinateDim2D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
+import game.data.container.InventoryWindow;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.IntTag;
@@ -16,6 +17,7 @@ import se.llbit.nbt.ListTag;
 import se.llbit.nbt.LongTag;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
 import se.llbit.nbt.Tag;
 
 import java.awt.Image;
@@ -43,8 +45,7 @@ public abstract class Chunk {
     public static final int SECTION_HEIGHT = 16;
     public static final int SECTION_WIDTH = 16;
 
-    public final int x;
-    public final int z;
+    public CoordinateDim2D location;
     private Map<Coordinate3D, SpecificTag> tileEntities;
     private Set<Entity> entities;
 
@@ -61,10 +62,9 @@ public abstract class Chunk {
 
     private int[] heightMap;
 
-    public Chunk(int x, int z) {
+    public Chunk(CoordinateDim2D location) {
         this.saved = false;
-        this.x = x;
-        this.z = z;
+        this.location = location;
         this.isNewChunk = false;
 
         chunkSections = new ChunkSection[16];
@@ -218,8 +218,8 @@ public abstract class Chunk {
      * call this (super) method.
      */
     protected void addLevelNbtTags(CompoundTag map) {
-        map.add("xPos", new IntTag(x));
-        map.add("zPos", new IntTag(z));
+        map.add("xPos", new IntTag(this.location.getX()));
+        map.add("zPos", new IntTag(this.location.getZ()));
 
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));
@@ -293,6 +293,10 @@ public abstract class Chunk {
         return chunkSections[section].getNumericBlockStateAt(x, y % SECTION_HEIGHT, z);
     }
 
+    public BlockState getBlockStateAt(Coordinate3D location) {
+        return getBlockStateAt(location.getX(), location.getY(), location.getZ());
+    }
+
     public BlockState getBlockStateAt(int x, int y, int z) {
         int id = getNumericBlockStateAt(x, y, z);
         if (id == 0) { return null; }
@@ -329,7 +333,10 @@ public abstract class Chunk {
     }
 
     private int computeHeight(int x, int z) {
-        for (int chunkSection = 15; chunkSection >= 0; chunkSection--) {
+        // if we're in the Nether, we only consider blocks below Y=96. Otherwise the entire minimap is grey.
+        int topSection = this.location.getDimension().equals(Dimension.NETHER) ? 5 : 15;
+
+        for (int chunkSection = topSection; chunkSection >= 0; chunkSection--) {
 
             ChunkSection cs = getChunkSections()[chunkSection];
             if (cs == null) { continue; }
@@ -342,7 +349,7 @@ public abstract class Chunk {
         return 0;
     }
 
-    protected int heightAt(int x, int z) {
+    public int heightAt(int x, int z) {
         return heightMap[z << 4 | x];
     }
 
@@ -391,7 +398,10 @@ public abstract class Chunk {
 
         int yNorth;
         if (z == 0) {
-            Chunk other = WorldManager.getChunk(new Coordinate2D(this.x, this.z - 1));
+            CoordinateDim2D coordinate = location.copy();
+            coordinate.offset(0, -1);
+
+            Chunk other = WorldManager.getChunk(coordinate);
 
             if (other == null) { return 1; }
             else { yNorth = other.heightAt(x, 15); }
@@ -422,4 +432,24 @@ public abstract class Chunk {
     }
 
     protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
+
+    /**
+     * Add inventory items to a tile entity (e.g. a chest)
+     */
+    public void addInventory(InventoryWindow window) {
+        CompoundTag tileEntity = (CompoundTag) tileEntities.get(window.getContainerLocation());
+
+        // if a tile entity is missing, don't store anything
+        if (tileEntity == null) {
+            return;
+        }
+
+        tileEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
+
+        if (window.hasCustomName()) {
+            tileEntity.add("CustomName", new StringTag(window.getWindowTitle()));
+        }
+
+        this.setSaved(false);
+    }
 }

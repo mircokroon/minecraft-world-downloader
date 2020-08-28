@@ -16,7 +16,8 @@
 			"serverbound": {
 				"0x0D": "player_position",
 				"0x0E": "player_position_look",
-				"0x10": "vehicle_move"
+				"0x10": "vehicle_move",
+				"0x1F": "right_click"
 			}
 		},		
 		"404": {
@@ -35,7 +36,8 @@
 			"serverbound": {
 				"0x10": "player_position",
 				"0x11": "player_position_look",
-				"0x13": "vehicle_move"
+				"0x13": "vehicle_move",
+				"0x29": "right_click"
 			}
 		},
 		"480": {
@@ -54,7 +56,8 @@
 			"serverbound": {
 				"0x11": "player_position",
 				"0x12": "player_position_look",
-				"0x15": "player_vehicle_move"
+				"0x15": "player_vehicle_move",
+				"0x2C": "right_click"
 			}
 		},
 		"498": {
@@ -74,7 +77,8 @@
 			"serverbound": {
 				"0x11": "player_position",
 				"0x12": "player_position_look",
-				"0x15": "player_vehicle_move"
+				"0x15": "player_vehicle_move",
+				"0x2C": "right_click"
 			}
 		},
 		"573":  {
@@ -89,12 +93,18 @@
 				"0x0A": "update_block_entity",
 				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
-				"0x44": "entity_data"
+				"0x44": "entity_data",
+				"0x2F": "open_window",
+                "0x14": "close_window",
+                "0x15": "window_items"
+
 			},
 			"serverbound": {
 				"0x11": "player_position",
 				"0x12": "player_position_look",
-				"0x15": "player_vehicle_move"
+				"0x15": "player_vehicle_move",
+				"0x2C": "right_click",
+                "0x0A": "close_window"
 			}
 		},
 		"735":  {
@@ -129,12 +139,19 @@
 				"0x09": "update_block_entity",
 				"0x02": "spawn_mob",
 				"0x00": "spawn_object",
-				"0x44": "entity_data"
+				"0x44": "entity_data",
+                "0x24": "join_game",
+				"0x39": "respawn",
+				"0x2D": "open_window",
+                "0x12": "close_window",
+				"0x13": "window_items"
 			},
 			"serverbound": {
 				"0x12": "player_position",
 				"0x13": "player_position_look",
-				"0x16": "player_vehicle_move"
+				"0x16": "player_vehicle_move",
+				"0x2E": "right_click",
+                "0x0A": "close_window"
 			}
 		}
 		

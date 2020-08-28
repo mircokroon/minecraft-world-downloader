@@ -1,9 +1,11 @@
-package game.data;
+package game.data.registries;
 
 import com.google.gson.Gson;
 
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.GlobalPalette;
+import game.data.container.ItemRegistry;
+import game.data.container.MenuRegistry;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.apache.commons.io.FileUtils;
@@ -160,6 +162,22 @@ public class RegistryLoader {
             return new GlobalPalette("1.12.2");
         } else {
             return new GlobalPalette(new FileInputStream(blocksPath.toFile()));
+        }
+    }
+
+    public MenuRegistry generateMenuRegistry() throws IOException {
+        if (version.equals("1.12.2")) {
+            return new MenuRegistry();
+        } else {
+            return MenuRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+        }
+    }
+
+    public ItemRegistry generateItemRegistry() throws IOException {
+        if (version.equals("1.12.2")) {
+            return new ItemRegistry();
+        } else {
+            return ItemRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
         }
     }
 }

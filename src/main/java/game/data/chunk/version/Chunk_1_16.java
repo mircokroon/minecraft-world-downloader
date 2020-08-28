@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import game.data.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
@@ -8,8 +9,8 @@ import se.llbit.nbt.SpecificTag;
 public class Chunk_1_16 extends Chunk_1_15 {
     private boolean ignoreOldData;
 
-    public Chunk_1_16(int x, int z) {
-        super(x, z);
+    public Chunk_1_16(CoordinateDim2D location) {
+        super(location);
     }
 
     @Override

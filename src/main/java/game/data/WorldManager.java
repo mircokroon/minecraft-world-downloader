@@ -6,6 +6,9 @@ import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.GlobalPalette;
+import game.data.container.ContainerManager;
+import game.data.container.ItemRegistry;
+import game.data.container.MenuRegistry;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
@@ -48,12 +51,14 @@ import java.util.stream.Stream;
 public class WorldManager extends Thread {
     private final static int SAVE_DELAY = 20 * 1000;
 
-    private static Map<Coordinate2D, Region> regions = new ConcurrentHashMap<>();
+    private static Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
 
     private static WorldManager writer = null;
 
     private static GlobalPalette globalPalette;
     private static EntityNames entityMap;
+    private static MenuRegistry menuRegistry;
+    private static ItemRegistry itemRegistry;
 
     private static BlockColors blockColors;
 
@@ -61,32 +66,36 @@ public class WorldManager extends Thread {
 
     private static boolean writeChunks;
 
+    private static ContainerManager containerManager;
+
     private WorldManager() {
 
     }
 
     public static void outlineExistingChunks() throws IOException {
-        Stream<McaFile> files = getMcaFiles(true);
+        Dimension dimension = Game.getDimension();
+        Stream<McaFile> files = getMcaFiles(dimension, true);
 
         GuiManager.drawExistingChunks(
-            files.flatMap(el -> el.getChunkPositions().stream()).collect(Collectors.toList())
+            files.flatMap(el -> el.getChunkPositions(dimension).stream()).collect(Collectors.toList())
         );
     }
 
     public static void drawExistingChunks() throws IOException {
-        Stream<McaFile> files = getMcaFiles(false);
+        Dimension dimension = Game.getDimension();
+        Stream<McaFile> files = getMcaFiles(dimension, false);
 
         // Step 1: parse all the chunks
-        Set<Map.Entry<Coordinate2D, Chunk>> parsedChunks = files.parallel()
-            .flatMap(el -> el.getParsedChunks().entrySet().stream())
+        Set<Map.Entry<CoordinateDim2D, Chunk>> parsedChunks = files.parallel()
+            .flatMap(el -> el.getParsedChunks(dimension).entrySet().stream())
             .collect(Collectors.toSet());
 
         // Step 2: add all chunks to the WorldManager if it doesn't have them yet
-        Set<Coordinate2D> toDelete = new HashSet<>();
+        Set<CoordinateDim2D> toDelete = new HashSet<>();
         parsedChunks.forEach(entry -> {
             if (getChunk(entry.getKey()) == null) {
                 toDelete.add(entry.getKey());
-                loadChunk(entry.getKey(), entry.getValue(), false);
+                loadChunk(entry.getValue(), false);
             }
         });
 
@@ -100,8 +109,8 @@ public class WorldManager extends Thread {
     /**
      * Read from the save path to see which chunks have been saved already.
      */
-    private static Stream<McaFile> getMcaFiles(boolean limit) throws IOException {
-        Path exportDir = Paths.get(Game.getExportDirectory(), "region");
+    private static Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
+        Path exportDir = Paths.get(Game.getExportDirectory(), dimension.getPath(), "region");
 
         Stream<File> stream = Files.walk(exportDir)
             .filter(el -> el.getFileName().toString().endsWith(".mca"))
@@ -233,23 +242,22 @@ public class WorldManager extends Thread {
 
     /**
      * Add a parsed chunk to the correct region.
-     * @param coordinate the chunk coordinates
      * @param chunk      the chunk
      */
-    public static void loadChunk(Coordinate2D coordinate, Chunk chunk, boolean drawInGui) {
+    public static void loadChunk(Chunk chunk, boolean drawInGui) {
         if (!drawInGui || writeChunks) {
-            Coordinate2D regionCoordinates = coordinate.chunkToRegion();
+            CoordinateDim2D regionCoordinates = chunk.location.chunkToDimRegion();
 
             if (!regions.containsKey(regionCoordinates)) {
                 regions.put(regionCoordinates, new Region(regionCoordinates));
             }
 
-            regions.get(regionCoordinates).addChunk(coordinate, chunk);
+            regions.get(regionCoordinates).addChunk(chunk.location, chunk);
         }
 
         if (drawInGui) {
             // draw the chunk once its been parsed
-            chunk.whenParsed(() -> GuiManager.setChunkLoaded(coordinate, chunk));
+            chunk.whenParsed(() -> GuiManager.setChunkLoaded(chunk.location, chunk));
         }
     }
 
@@ -258,15 +266,15 @@ public class WorldManager extends Thread {
      * @param coordinate the global chunk coordinates
      * @return the chunk
      */
-    public static Chunk getChunk(Coordinate2D coordinate) {
-        if (!regions.containsKey(coordinate.chunkToRegion())) {
+    public static Chunk getChunk(CoordinateDim2D coordinate) {
+        if (!regions.containsKey(coordinate.chunkToDimRegion())) {
             return null;
         }
-        return regions.get(coordinate.chunkToRegion()).getChunk(coordinate);
+        return regions.get(coordinate.chunkToDimRegion()).getChunk(coordinate);
     }
 
-    public static void unloadChunk(Coordinate2D coordinate) {
-        Region r = regions.get(coordinate.chunkToRegion());
+    public static void unloadChunk(CoordinateDim2D coordinate) {
+        Region r = regions.get(coordinate.chunkToDimRegion());
         if (r != null) {
             r.removeChunk(coordinate);
         }
@@ -278,6 +286,10 @@ public class WorldManager extends Thread {
 
     public static void setEntityMap(EntityNames names) {
         entityMap = names;
+    }
+
+    public static void setMenuRegistry(MenuRegistry menus) {
+        menuRegistry = menus;
     }
 
     public static GlobalPalette getGlobalPalette() {
@@ -293,6 +305,18 @@ public class WorldManager extends Thread {
 
     public static boolean markNewChunks() {
         return markNewChunks;
+    }
+
+    public static MenuRegistry getMenuRegistry() {
+        return menuRegistry;
+    }
+
+    public static ItemRegistry getItemRegistry() {
+        return itemRegistry;
+    }
+
+    public static void setItemRegistry(ItemRegistry items) {
+        itemRegistry = items;
     }
 
     /**
@@ -345,4 +369,15 @@ public class WorldManager extends Thread {
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
     }
+
+    public static ContainerManager getContainerManager() {
+        if (containerManager == null) {
+            containerManager = new ContainerManager();
+        }
+        return containerManager;
+    }
+
+
+
 }
+

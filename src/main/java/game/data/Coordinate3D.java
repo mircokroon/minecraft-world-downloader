@@ -12,6 +12,10 @@ public class Coordinate3D extends Coordinate2D {
         this.y = y;
     }
 
+    public Coordinate3D add(Coordinate2D change) {
+        return new Coordinate3D(this.x + change.x, this.y, this.z + change.z);
+    }
+
     public void setTo(int x, int y, int z) {
         this.x = x;
         this.y = y;
@@ -21,16 +25,15 @@ public class Coordinate3D extends Coordinate2D {
     public int getY() {
         return y;
     }
-    public Coordinate2D chunkPos() {
-        return new Coordinate2D(chunkPosX(), chunkPosZ());
+
+    public Coordinate3D withinChunk() {
+        return new Coordinate3D(withinChunk(x), y, withinChunk(z));
     }
 
-    private int chunkPosX() {
-        return x >> 4;
-    }
-
-    private int chunkPosZ() {
-        return z >> 4;
+    private int withinChunk(int val) {
+        int newVal = val % 16;
+        if (newVal < 0) { return newVal + 16; }
+        return newVal;
     }
 
     @Override

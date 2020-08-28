@@ -3,7 +3,7 @@ package game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.Dimension;
-import game.data.RegistryLoader;
+import game.data.registries.RegistryLoader;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.palette.Palette;
@@ -165,6 +165,8 @@ public abstract class Game {
 
             WorldManager.setGlobalPalette(loader.generateGlobalPalette());
             WorldManager.setEntityMap(loader.generateEntityNames());
+            WorldManager.setMenuRegistry(loader.generateMenuRegistry());
+            WorldManager.setItemRegistry(loader.generateItemRegistry());
 
             WorldManager.startSaveService();
             ChunkFactory.startChunkParserService();

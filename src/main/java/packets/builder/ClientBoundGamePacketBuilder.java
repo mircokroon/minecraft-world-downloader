@@ -1,8 +1,8 @@
 package packets.builder;
 
 import game.Game;
-import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.CoordinateDim2D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
@@ -10,8 +10,10 @@ import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.entity.MobEntity;
 import game.data.chunk.entity.ObjectEntity;
+import game.data.container.Slot;
 import se.llbit.nbt.SpecificTag;
 
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +27,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             ent.parseMetadata(provider);
 
             // mark chunk as unsaved
-            Chunk c = WorldManager.getChunk(ent.getPosition().chunkPos());
+            Chunk c = WorldManager.getChunk(ent.getPosition().globalToChunk().addDimension(Game.getDimension()));
             if (c == null) { return true; }
 
             c.setSaved(false);
@@ -44,24 +46,27 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             return true;
         });
 
+        // only used in 1.16+
         operations.put("join_game", provider -> {
             provider.readInt();
             provider.readNext();
+            provider.readNext();
+            provider.readNext();
 
-            // extra world info after 1.16
-            if (Game.getProtocolVersion() >= 736) {
-                provider.readNext();
-                int numWorlds = provider.readVarInt();
-                provider.readStringArray(numWorlds);
-                provider.readNbtTag();
-            }
+            int numWorlds = provider.readVarInt();
+            String[] worldNames = provider.readStringArray(numWorlds);
 
-            Game.setDimension(Dimension.fromId(provider.readInt()));
+            SpecificTag dimensionCodec = provider.readNbtTag();
+            SpecificTag dimension = provider.readNbtTag();
+
+            Game.setDimension(Dimension.fromString(provider.readString()));
 
             return true;
         });
         operations.put("respawn", provider -> {
-            Game.setDimension(Dimension.fromId(provider.readInt()));
+            SpecificTag dimension = provider.readNbtTag();
+
+            Game.setDimension(Dimension.fromString(provider.readString()));
             return true;
         });
 
@@ -74,7 +79,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             return true;
         });
         operations.put("chunk_unload", provider -> {
-            WorldManager.unloadChunk(new Coordinate2D(provider.readInt(), provider.readInt()));
+            WorldManager.unloadChunk(new CoordinateDim2D(provider.readInt(), provider.readInt(), Game.getDimension()));
             return true;
         });
         operations.put("chunk_update_light", provider -> {
@@ -105,6 +110,29 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
 
         operations.put("player_position_look", updatePlayerPosition);
         operations.put("player_vehicle_move", updatePlayerPosition);
+
+        operations.put("open_window", provider -> {
+            int windowId = provider.readVarInt();
+            int windowType = provider.readVarInt();
+            String windowTitle = provider.readChat();
+
+            WorldManager.getContainerManager().openWindow(windowId, windowType, windowTitle);
+            return true;
+        });
+        operations.put("close_window", provider -> {
+            WorldManager.getContainerManager().closeWindow(provider.readNext());
+            return true;
+        });
+
+        operations.put("window_items", provider -> {
+            int windowId = provider.readVarInt();
+            int count = provider.readShort();
+            List<Slot> slots = provider.readSlots(count);
+
+            WorldManager.getContainerManager().items(windowId, slots);
+
+            return true;
+        });
     }
 
     @Override

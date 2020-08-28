@@ -1,11 +1,11 @@
 package game.data.chunk.version;
 
+import game.data.CoordinateDim2D;
 import packets.DataTypeProvider;
 
 public class Chunk_1_16_2 extends Chunk_1_16 {
-    public Chunk_1_16_2(int x, int z) {
-        super(x, z);
-        System.out.println("1.16.2 chunk");
+    public Chunk_1_16_2(CoordinateDim2D location) {
+        super(location);
     }
 
     // this was introduced in 1.16.0 but is already gone in 1.16.2

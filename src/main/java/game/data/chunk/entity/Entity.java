@@ -88,4 +88,8 @@ public abstract class Entity {
     public Integer getId() {
         return id;
     }
+
+    public String getTypeName() {
+        return typeName;
+    }
 }

@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import game.data.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -16,8 +17,8 @@ public class Chunk_1_12 extends Chunk {
 
     private byte[] biomes;
 
-    public Chunk_1_12(int x, int z) {
-        super(x, z);
+    public Chunk_1_12(CoordinateDim2D location) {
+        super(location);
 
         this.biomes = new byte[256];
     }

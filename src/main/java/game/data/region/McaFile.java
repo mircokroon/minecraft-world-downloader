@@ -2,6 +2,8 @@ package game.data.region;
 
 import game.Game;
 import game.data.Coordinate2D;
+import game.data.CoordinateDim2D;
+import game.data.Dimension;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import org.apache.commons.io.IOUtils;
@@ -91,9 +93,9 @@ public class McaFile {
      * @param pos      the positon of this file
      * @param chunkMap the map of chunk binaries
      */
-    public McaFile(Coordinate2D pos, Map<Integer, ChunkBinary> chunkMap) {
+    public McaFile(CoordinateDim2D pos, Map<Integer, ChunkBinary> chunkMap) {
         regionLocation = pos;
-        Path filePath = Paths.get(Game.getExportDirectory(), Game.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
+        Path filePath = Paths.get(Game.getExportDirectory(), pos.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
 
         this.chunkMap = new HashMap<>();
         if (filePath.toFile().exists()) {
@@ -192,8 +194,10 @@ public class McaFile {
      * Return a list of chunk positions of chunks that are present in this file.
      * @return the list of positions.
      */
-    public List<Coordinate2D> getChunkPositions() {
-        return chunkMap.keySet().stream().map(this::intToCoordinate).collect(Collectors.toList());
+    public List<CoordinateDim2D> getChunkPositions(Dimension dimension) {
+        return chunkMap.keySet().stream()
+            .map(num -> intToCoordinate(num).addDimension(dimension))
+            .collect(Collectors.toList());
     }
 
     private Coordinate2D intToCoordinate(int i) {
@@ -203,9 +207,12 @@ public class McaFile {
         return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
     }
 
-    public Map<Coordinate2D, Chunk> getParsedChunks() {
-        Map<Coordinate2D, Chunk> res = new HashMap<>();
-        chunkMap.forEach((key, value) -> res.put(intToCoordinate(key), value.toChunk(intToCoordinate(key))));
+    public Map<CoordinateDim2D, Chunk> getParsedChunks(Dimension dimension) {
+        Map<CoordinateDim2D, Chunk> res = new HashMap<>();
+        chunkMap.forEach((key, value) -> res.put(
+            new CoordinateDim2D(intToCoordinate(key), dimension),
+            value.toChunk(intToCoordinate(key).addDimension(dimension))
+        ));
         return res;
     }
 }
