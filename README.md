@@ -4,7 +4,7 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 ### Features
 - Requires no client modifications and as such works with every game client, vanilla or not
 - Automatically merge into previous downloads or existing worlds
-- Offset world coordinates of the saved location
+- Save chests and other inventories by opening them
 - Optional GUI to show overview of which chunks have been saved:
 
 <img src="https://i.imgur.com/AwwPw42.png" width="50%">
