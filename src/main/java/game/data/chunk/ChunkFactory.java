@@ -106,7 +106,7 @@ public class ChunkFactory extends Thread {
      */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
         position.offsetGlobal();
-        CoordinateDim2D chunkPos = position.chunkPos().addDimension(Game.getDimension());
+        CoordinateDim2D chunkPos = position.globalToChunk().addDimension(Game.getDimension());
 
         Chunk chunk = WorldManager.getChunk(chunkPos);
 

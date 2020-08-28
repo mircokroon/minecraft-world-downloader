@@ -46,7 +46,6 @@ public class MenuRegistry {
 
     public int getSlotCount(int protocolId) {
         String inventoryName = menus.get(protocolId);
-        System.out.println("Window found: " + inventoryName);
         return NUM_SLOTS.getOrDefault(inventoryName, 0);
     }
 }

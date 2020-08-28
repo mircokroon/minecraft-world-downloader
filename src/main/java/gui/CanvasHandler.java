@@ -147,7 +147,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
         }
-        Coordinate2D player = Game.getPlayerPosition().chunkPos();
+        Coordinate2D player = Game.getPlayerPosition().globalToChunk();
 
         return coords.parallelStream()
             .filter(coordinateDim2D -> coordinateDim2D.getDimension().equals(dimension))

@@ -17,6 +17,7 @@ import se.llbit.nbt.ListTag;
 import se.llbit.nbt.LongTag;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
 import se.llbit.nbt.Tag;
 
 import java.awt.Image;
@@ -348,7 +349,7 @@ public abstract class Chunk {
         return 0;
     }
 
-    protected int heightAt(int x, int z) {
+    public int heightAt(int x, int z) {
         return heightMap[z << 4 | x];
     }
 
@@ -432,16 +433,23 @@ public abstract class Chunk {
 
     protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
 
+    /**
+     * Add inventory items to a tile entity (e.g. a chest)
+     */
     public void addInventory(InventoryWindow window) {
         CompoundTag tileEntity = (CompoundTag) tileEntities.get(window.getContainerLocation());
 
-        // Check if it's a double chest. Technically we should look at the block type for this, but...
-        if (window.getSlotList().size() == 54) {
-            BlockState block = getBlockStateAt(window.getContainerLocation());
-            // TODO
-        } else {
-            tileEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
-            this.setSaved(false);
+        // if a tile entity is missing, don't store anything
+        if (tileEntity == null) {
+            return;
         }
+
+        tileEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
+
+        if (window.hasCustomName()) {
+            tileEntity.add("CustomName", new StringTag(window.getWindowTitle()));
+        }
+
+        this.setSaved(false);
     }
 }

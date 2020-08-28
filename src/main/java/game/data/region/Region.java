@@ -89,7 +89,7 @@ public class Region {
         }
 
         updatedSinceLastWrite = false;
-        Coordinate2D playerPos = Game.getPlayerPosition().chunkPos();
+        Coordinate2D playerPos = Game.getPlayerPosition().globalToChunk();
 
         Map<Integer, ChunkBinary> chunkBinaryMap = new HashMap<>();
         List<Coordinate2D> saved = new ArrayList<>();

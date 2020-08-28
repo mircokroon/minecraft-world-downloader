@@ -20,6 +20,19 @@ public class BlockState {
         this.properties = properties;
     }
 
+    public String getProperty(String name) {
+        return properties.get(name);
+    }
+
+    public boolean isDoubleChest() {
+        if (!name.equals("minecraft:chest") && !name.equals("minecraft:trapped_chest")) {
+            return false;
+        }
+
+        String type = properties.get("type");
+        return type.equals("left") || type.equals("right");
+    }
+
     /**
      * Convert this palette state to NBT format.
      */

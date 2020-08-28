@@ -27,7 +27,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             ent.parseMetadata(provider);
 
             // mark chunk as unsaved
-            Chunk c = WorldManager.getChunk(ent.getPosition().chunkPos().addDimension(Game.getDimension()));
+            Chunk c = WorldManager.getChunk(ent.getPosition().globalToChunk().addDimension(Game.getDimension()));
             if (c == null) { return true; }
 
             c.setSaved(false);
