@@ -14,7 +14,7 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 - Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.0+
 
 ### Basic usage
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases) `world-downloader.jar` from the  latest release and execute the jar file using the commandline by running:
+[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the  latest release and execute the jar file using the commandline by running:
 
 ```
 java -jar world-downloader.jar -s address.to.server.com
