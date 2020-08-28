@@ -3,6 +3,7 @@ package game.data.chunk;
 import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.CoordinateDim2D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
@@ -31,11 +32,11 @@ public class ChunkFactory extends Thread {
     private static ChunkFactory factory;
 
     private ConcurrentLinkedQueue<ChunkParserPair> unparsedChunks;
-    private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
-    private ConcurrentMap<Coordinate2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
+    private ConcurrentMap<CoordinateDim2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
+    private ConcurrentMap<CoordinateDim2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
     private ConcurrentMap<Integer, Entity> entities;
 
-    private List<EntityParserPair> unparsedEntities;
+    private List<EntityParser> unparsedEntities;
 
     private boolean threadStarted = false;
 
@@ -59,9 +60,9 @@ public class ChunkFactory extends Thread {
      */
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
         if (WorldManager.getEntityMap() != null) {
-            addEntity(parser.apply(provider));
+            addEntity(parser.apply(provider), Game.getDimension());
         } else {
-            this.unparsedEntities.add(new EntityParserPair(provider, parser));
+            this.unparsedEntities.add(new EntityParser(provider, Game.getDimension(), parser));
         }
     }
 
@@ -69,17 +70,17 @@ public class ChunkFactory extends Thread {
      * Parse all entities that were added to the entity list before
      */
     public void parseEntities() {
-        this.unparsedEntities.forEach(el -> addEntity(el.parse()));
+        this.unparsedEntities.forEach(el -> addEntity(el.parse(), el.dimension));
     }
 
     /**
      * Update a regular entity that was given individually. If the entity is null, do nothing as its an unknown type.
      * @param ent the entity object
      */
-    public void addEntity(Entity ent) {
+    public void addEntity(Entity ent, Dimension dimension) {
         if (ent == null) { return; }
 
-        Coordinate2D chunkPos = ent.getPosition().globalToChunk();
+        CoordinateDim2D chunkPos = ent.getPosition().globalToChunk().addDimension(dimension);
         Chunk chunk = WorldManager.getChunk(chunkPos);
 
         entities.put(ent.getId(), ent);
@@ -87,7 +88,6 @@ public class ChunkFactory extends Thread {
         // if the chunk doesn't exist yet, add it to the queue to process later
         if (chunk == null) {
             Queue<Integer> queue = chunkEntities.computeIfAbsent(chunkPos, (pos) -> new ConcurrentLinkedQueue<>());
-
             queue.add(ent.getId());
         } else {
             chunk.addEntity(ent);
@@ -106,13 +106,14 @@ public class ChunkFactory extends Thread {
      */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
         position.offsetGlobal();
+        CoordinateDim2D chunkPos = position.chunkPos().addDimension(Game.getDimension());
 
-        Chunk chunk = WorldManager.getChunk(position.chunkPos());
+        Chunk chunk = WorldManager.getChunk(chunkPos);
 
         // if the chunk doesn't exist yet, add it to the queue to process later
         if (chunk == null) {
             Queue<TileEntity> queue = tileEntities
-                .computeIfAbsent(position.chunkPos(), (pos) -> new ConcurrentLinkedQueue<>());
+                .computeIfAbsent(chunkPos, (pos) -> new ConcurrentLinkedQueue<>());
 
             queue.add(new TileEntity(position, entityData));
         } else {
@@ -181,21 +182,20 @@ public class ChunkFactory extends Thread {
     /**
      * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
      */
-    private void readChunkDataPacket(ChunkParserPair chunkParserPair) {
-        DataTypeProvider dataProvider = chunkParserPair.provider;
+    private void readChunkDataPacket(ChunkParserPair parser) {
+        DataTypeProvider dataProvider = parser.provider;
 
-        Coordinate2D chunkPos = new Coordinate2D(dataProvider.readInt(), dataProvider.readInt());
+        CoordinateDim2D chunkPos = new CoordinateDim2D(dataProvider.readInt(), dataProvider.readInt(), parser.dimension);
         chunkPos.offsetChunk();
 
         boolean full = dataProvider.readBoolean();
         Chunk chunk;
         if (full) {
             chunk = getVersionedChunk(chunkPos);
-            chunk.setDimension(chunkParserPair.dimension);
 
-            WorldManager.loadChunk(chunkPos, chunk, true);
+            WorldManager.loadChunk(chunk, true);
         } else {
-            chunk = WorldManager.getChunk(new Coordinate2D(chunkPos.getX(), chunkPos.getZ()));
+            chunk = WorldManager.getChunk(new CoordinateDim2D(chunkPos.getX(), chunkPos.getZ(), parser.dimension));
 
             // if we don't have the partial chunk (anymore?), just make one from scratch
             if (chunk == null) {
@@ -230,19 +230,19 @@ public class ChunkFactory extends Thread {
      * @param chunkPos the position of the chunk
      * @return the chunk matching the given version
      */
-    private static Chunk getVersionedChunk(Coordinate2D chunkPos) {
+    private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
         if (Game.getProtocolVersion() >= 751) {
-            return new Chunk_1_16_2(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_16_2(chunkPos);
         } else if (Game.getProtocolVersion() >= 735) {
-            return new Chunk_1_16(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_16(chunkPos);
         } else  if (Game.getProtocolVersion() >= 550) {
-            return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_15(chunkPos);
         } else if (Game.getProtocolVersion() >= 440) {
-            return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_14(chunkPos);
         } else if (Game.getProtocolVersion() >= 341) {
-            return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_13(chunkPos);
         } else {
-            return new Chunk_1_12(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_12(chunkPos);
         }
     }
 
@@ -251,19 +251,19 @@ public class ChunkFactory extends Thread {
      * @param chunkPos the position of the chunk
      * @return the chunk matching the given version
      */
-    private static Chunk getVersionedChunk(int dataVersion, Coordinate2D chunkPos) {
+    private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
         if (dataVersion >= 2578) {
-            return new Chunk_1_16_2(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_16_2(chunkPos);
         } else if (dataVersion >= 2566) {
-            return new Chunk_1_16(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_16(chunkPos);
         } else if (dataVersion >= 2200) {
-            return new Chunk_1_15(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_15(chunkPos);
         } else if (dataVersion >= 1901) {
-            return new Chunk_1_14(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_14(chunkPos);
         } else if (dataVersion >= 1444) {
-            return new Chunk_1_13(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_13(chunkPos);
         } else {
-            return new Chunk_1_12(chunkPos.getX(), chunkPos.getZ());
+            return new Chunk_1_12(chunkPos);
         }
     }
 
@@ -285,7 +285,7 @@ public class ChunkFactory extends Thread {
         }
     }
 
-    public Chunk fromNbt(NamedTag tag, Coordinate2D location) {
+    public Chunk fromNbt(NamedTag tag, CoordinateDim2D location) {
         int dataVersion = tag.getTag().get("DataVersion").intValue();
         Chunk chunk = getVersionedChunk(dataVersion, location);
 
@@ -324,11 +324,13 @@ class ChunkParserPair {
     }
 }
 
-class EntityParserPair {
+class EntityParser {
     DataTypeProvider provider;
+    Dimension dimension;
     Function<DataTypeProvider, Entity> parser;
 
-    public EntityParserPair(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
+    public EntityParser(DataTypeProvider provider, Dimension dimension, Function<DataTypeProvider, Entity> parser) {
+        this.dimension = dimension;
         this.provider = provider;
         this.parser = parser;
     }

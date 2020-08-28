@@ -2,6 +2,7 @@ package gui;
 
 
 import game.data.Coordinate2D;
+import game.data.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 
@@ -63,13 +64,13 @@ public class GuiManager {
      * @param coord the chunk coordinates
      * @param chunk the chunk object
      */
-    public static void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
+    public static void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
         if (chunkGraphicsHandler != null) {
             chunkGraphicsHandler.setChunkLoaded(coord, chunk);
         }
     }
 
-    public static void drawExistingChunks(List<Coordinate2D> existing) {
+    public static void drawExistingChunks(List<CoordinateDim2D> existing) {
         if (chunkGraphicsHandler != null) {
             existing.forEach(chunkGraphicsHandler::setChunkExists);
         }

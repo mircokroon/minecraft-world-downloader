@@ -1,8 +1,8 @@
 package game.data.chunk;
 
 import game.Game;
-import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.CoordinateDim2D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
@@ -43,11 +43,9 @@ public abstract class Chunk {
     public static final int SECTION_HEIGHT = 16;
     public static final int SECTION_WIDTH = 16;
 
-    public final int x;
-    public final int z;
+    public CoordinateDim2D location;
     private Map<Coordinate3D, SpecificTag> tileEntities;
     private Set<Entity> entities;
-    private Dimension dimension;
 
     protected ChunkSection[] getChunkSections() {
         return chunkSections;
@@ -62,10 +60,9 @@ public abstract class Chunk {
 
     private int[] heightMap;
 
-    public Chunk(int x, int z) {
+    public Chunk(CoordinateDim2D location) {
         this.saved = false;
-        this.x = x;
-        this.z = z;
+        this.location = location;
         this.isNewChunk = false;
 
         chunkSections = new ChunkSection[16];
@@ -219,8 +216,8 @@ public abstract class Chunk {
      * call this (super) method.
      */
     protected void addLevelNbtTags(CompoundTag map) {
-        map.add("xPos", new IntTag(x));
-        map.add("zPos", new IntTag(z));
+        map.add("xPos", new IntTag(this.location.getX()));
+        map.add("zPos", new IntTag(this.location.getZ()));
 
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));
@@ -392,7 +389,10 @@ public abstract class Chunk {
 
         int yNorth;
         if (z == 0) {
-            Chunk other = WorldManager.getChunk(new Coordinate2D(this.x, this.z - 1));
+            CoordinateDim2D coordinate = location.copy();
+            coordinate.offset(0, -1);
+
+            Chunk other = WorldManager.getChunk(coordinate);
 
             if (other == null) { return 1; }
             else { yNorth = other.heightAt(x, 15); }
@@ -423,12 +423,4 @@ public abstract class Chunk {
     }
 
     protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
-
-    public void setDimension(Dimension dimension) {
-        this.dimension = dimension;
-    }
-
-    public Dimension getDimension() {
-        return this.dimension;
-    }
 }

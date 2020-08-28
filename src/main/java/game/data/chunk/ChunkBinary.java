@@ -1,10 +1,9 @@
 package game.data.chunk;
 
-import game.data.Coordinate2D;
+import game.data.CoordinateDim2D;
 import game.data.region.McaFile;
 import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;
-import se.llbit.nbt.Tag;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -51,7 +50,7 @@ public class ChunkBinary {
         try {
             nbt.write(new DataOutputStream(output));
         } catch (Exception ex) {
-            System.out.println("Unable to write chunk " + chunk.x + ", " + chunk.z);
+            System.out.println("Unable to write chunk " + chunk.location.getX() + ", " + chunk.location.getZ());
             return null;
         }
 
@@ -76,7 +75,7 @@ public class ChunkBinary {
         return binary;
     }
 
-    public Chunk toChunk(Coordinate2D coordinate2D) {
+    public Chunk toChunk(CoordinateDim2D coordinate2D) {
         int length = (chunkData[0] & 0xFF) << 24 | (chunkData[1] & 0xFF) << 16 | (chunkData[2] & 0xFF) << 8 | (chunkData[3] & 0xFF);
 
         byte[] compressedNbtData = new byte[length - 1];

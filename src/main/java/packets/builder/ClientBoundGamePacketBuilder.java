@@ -1,8 +1,8 @@
 package packets.builder;
 
 import game.Game;
-import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.CoordinateDim2D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
@@ -12,7 +12,6 @@ import game.data.chunk.entity.MobEntity;
 import game.data.chunk.entity.ObjectEntity;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +25,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             ent.parseMetadata(provider);
 
             // mark chunk as unsaved
-            Chunk c = WorldManager.getChunk(ent.getPosition().chunkPos());
+            Chunk c = WorldManager.getChunk(ent.getPosition().chunkPos().addDimension(Game.getDimension()));
             if (c == null) { return true; }
 
             c.setSaved(false);
@@ -78,7 +77,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             return true;
         });
         operations.put("chunk_unload", provider -> {
-            WorldManager.unloadChunk(new Coordinate2D(provider.readInt(), provider.readInt()));
+            WorldManager.unloadChunk(new CoordinateDim2D(provider.readInt(), provider.readInt(), Game.getDimension()));
             return true;
         });
         operations.put("chunk_update_light", provider -> {

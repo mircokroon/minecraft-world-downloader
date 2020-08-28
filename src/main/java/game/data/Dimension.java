@@ -13,8 +13,10 @@ public enum Dimension {
         }
     }
 
+    /**
+     * TODO: support custom dimensions?
+     */
     public static Dimension fromString(String readString) {
-        System.out.println("Given dimension: " + readString);
         switch (readString) {
             case "minecraft:the_end": return END;
             case "minecraft:the_nether": return NETHER;

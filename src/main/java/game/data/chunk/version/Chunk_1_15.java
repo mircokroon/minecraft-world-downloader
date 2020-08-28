@@ -1,10 +1,11 @@
 package game.data.chunk.version;
 
+import game.data.CoordinateDim2D;
 import packets.DataTypeProvider;
 
 public class Chunk_1_15 extends Chunk_1_14 {
-    public Chunk_1_15(int x, int z) {
-        super(x, z);
+    public Chunk_1_15(CoordinateDim2D location) {
+        super(location);
     }
 
     @Override

@@ -3,6 +3,7 @@ package gui;
 import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.CoordinateDim2D;
 import game.data.chunk.Chunk;
 
 import java.awt.Color;
@@ -22,7 +23,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.Timer;
 
 /**
@@ -36,8 +36,8 @@ public class CanvasHandler extends JPanel implements ActionListener {
     private int renderDistanceZ;
     private Bounds bounds;
     private int gridSize = 0;
-    private Map<Coordinate2D, Image> chunkMap = new ConcurrentHashMap<>();
-    private Collection<Coordinate2D> drawableChunks = new ConcurrentLinkedQueue<>();
+    private Map<CoordinateDim2D, Image> chunkMap = new ConcurrentHashMap<>();
+    private Collection<CoordinateDim2D> drawableChunks = new ConcurrentLinkedQueue<>();
     private Image chunkImage;
 
     private boolean hasChanged = false;
@@ -82,13 +82,13 @@ public class CanvasHandler extends JPanel implements ActionListener {
         renderDistanceZ = (int) Math.ceil(renderDistance * ratio);
     }
 
-    void setChunkExists(Coordinate2D coord) {
+    void setChunkExists(CoordinateDim2D coord) {
         chunkMap.put(coord, NONE);
 
         hasChanged = true;
     }
 
-    void setChunkLoaded(Coordinate2D coord, Chunk chunk) {
+    void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
         Image image = chunk.getImage();
 
         if (image == null) {
@@ -115,7 +115,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
         hasChanged = false;
 
         this.drawableChunks = getChunksInRange(chunkMap.keySet(),renderDistanceX * 2, renderDistanceZ * 2);
-        Collection<Coordinate2D> inRangeChunks = getChunksInRange(drawableChunks, renderDistanceX, renderDistanceZ);
+        Collection<CoordinateDim2D> inRangeChunks = getChunksInRange(drawableChunks, renderDistanceX, renderDistanceZ);
 
         this.bounds = getOverviewBounds(inRangeChunks);
 
@@ -128,7 +128,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
         drawChunksToImage();
     }
 
-    private Bounds getOverviewBounds(Collection<Coordinate2D> coordinates) {
+    private Bounds getOverviewBounds(Collection<CoordinateDim2D> coordinates) {
         Bounds bounds = new Bounds();
         for (Coordinate2D coordinate : coordinates) {
             bounds.update(coordinate);
@@ -141,7 +141,8 @@ public class CanvasHandler extends JPanel implements ActionListener {
      * range due to pixels).
      * @return the set of chunks actually in range.
      */
-    private Collection<Coordinate2D> getChunksInRange(Collection<Coordinate2D> coords, int rangeX, int rangeZ) {
+    private Collection<CoordinateDim2D> getChunksInRange(Collection<CoordinateDim2D> coords, int rangeX, int rangeZ) {
+        game.data.Dimension dimension = Game.getDimension();
         if (Game.getPlayerPosition() == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
@@ -149,6 +150,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
         Coordinate2D player = Game.getPlayerPosition().chunkPos();
 
         return coords.parallelStream()
+            .filter(coordinateDim2D -> coordinateDim2D.getDimension().equals(dimension))
             .filter(coordinate2D -> coordinate2D.isInRange(player, rangeX, rangeZ))
             .collect(Collectors.toSet());
     }

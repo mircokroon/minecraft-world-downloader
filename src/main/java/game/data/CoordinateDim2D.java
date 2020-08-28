@@ -1,14 +1,17 @@
 package game.data;
 
-public class CoordinateDimension2D extends Coordinate2D {
+/**
+ * 2D coordinates with a dimension component.
+ */
+public class CoordinateDim2D extends Coordinate2D {
     Dimension dimension;
 
-    public CoordinateDimension2D(Coordinate2D coordinate2D, Dimension dimension) {
+    public CoordinateDim2D(Coordinate2D coordinate2D, Dimension dimension) {
         super(coordinate2D.x, coordinate2D.z);
         this.dimension = dimension;
     }
 
-    public CoordinateDimension2D(int x, int z, Dimension dimension) {
+    public CoordinateDim2D(int x, int z, Dimension dimension) {
         super(x, z);
         this.dimension = dimension;
     }
@@ -25,7 +28,7 @@ public class CoordinateDimension2D extends Coordinate2D {
             return false;
         }
 
-        CoordinateDimension2D that = (CoordinateDimension2D) o;
+        CoordinateDim2D that = (CoordinateDim2D) o;
 
         return dimension == that.dimension;
     }
@@ -39,5 +42,18 @@ public class CoordinateDimension2D extends Coordinate2D {
 
     public Dimension getDimension() {
         return dimension;
+    }
+
+    public CoordinateDim2D chunkToDimRegion() {
+        return new CoordinateDim2D(this.chunkToRegion(), this.dimension);
+    }
+
+    public CoordinateDim2D copy() {
+        return new CoordinateDim2D(x, z, dimension);
+    }
+
+    @Override
+    public String toString() {
+        return "(" + x + ", " + z + ", " + dimension + ")";
     }
 }
