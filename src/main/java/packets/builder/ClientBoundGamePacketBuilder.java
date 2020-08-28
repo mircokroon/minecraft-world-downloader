@@ -116,7 +116,11 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             int windowType = provider.readVarInt();
             String windowTitle = provider.readChat();
 
-            System.out.println("Opened window: #" + windowId + "::" + windowType + " with name " + windowTitle);
+            WorldManager.getContainerManager().openWindow(windowId, windowType, windowTitle);
+            return true;
+        });
+        operations.put("close_window", provider -> {
+            WorldManager.getContainerManager().closeWindow(provider.readNext());
             return true;
         });
 
@@ -125,7 +129,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             int count = provider.readShort();
             List<Slot> slots = provider.readSlots(count);
 
-            System.out.println("Items for #" + windowId + ": " + slots);
+            WorldManager.getContainerManager().items(windowId, slots);
 
             return true;
         });

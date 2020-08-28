@@ -6,6 +6,9 @@ import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.GlobalPalette;
+import game.data.container.ContainerManager;
+import game.data.container.ItemRegistry;
+import game.data.container.MenuRegistry;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
@@ -54,6 +57,8 @@ public class WorldManager extends Thread {
 
     private static GlobalPalette globalPalette;
     private static EntityNames entityMap;
+    private static MenuRegistry menuRegistry;
+    private static ItemRegistry itemRegistry;
 
     private static BlockColors blockColors;
 
@@ -283,6 +288,10 @@ public class WorldManager extends Thread {
         entityMap = names;
     }
 
+    public static void setMenuRegistry(MenuRegistry menus) {
+        menuRegistry = menus;
+    }
+
     public static GlobalPalette getGlobalPalette() {
         return globalPalette;
     }
@@ -296,6 +305,18 @@ public class WorldManager extends Thread {
 
     public static boolean markNewChunks() {
         return markNewChunks;
+    }
+
+    public static MenuRegistry getMenuRegistry() {
+        return menuRegistry;
+    }
+
+    public static ItemRegistry getItemRegistry() {
+        return itemRegistry;
+    }
+
+    public static void setItemRegistry(ItemRegistry items) {
+        itemRegistry = items;
     }
 
     /**
@@ -353,7 +374,7 @@ public class WorldManager extends Thread {
         if (containerManager == null) {
             containerManager = new ContainerManager();
         }
-        return new ContainerManager();
+        return containerManager;
     }
 
 

@@ -60,4 +60,13 @@ public class BlockState {
     public int getNumericId() {
         return id;
     }
+
+    @Override
+    public String toString() {
+        return "BlockState{" +
+            "name='" + name + '\'' +
+            ", id=" + id +
+            ", properties=" + properties +
+            '}';
+    }
 }

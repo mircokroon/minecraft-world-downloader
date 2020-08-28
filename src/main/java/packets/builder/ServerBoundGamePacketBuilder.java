@@ -37,6 +37,10 @@ public class ServerBoundGamePacketBuilder extends PacketBuilder {
 
             return true;
         });
+        operations.put("close_window", provider -> {
+            WorldManager.getContainerManager().closeWindow(provider.readNext());
+            return true;
+        });
     }
 
     @Override

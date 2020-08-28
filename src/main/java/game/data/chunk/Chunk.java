@@ -9,6 +9,7 @@ import game.data.chunk.entity.Entity;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
+import game.data.container.InventoryWindow;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.IntTag;
@@ -291,6 +292,10 @@ public abstract class Chunk {
         return chunkSections[section].getNumericBlockStateAt(x, y % SECTION_HEIGHT, z);
     }
 
+    public BlockState getBlockStateAt(Coordinate3D location) {
+        return getBlockStateAt(location.getX(), location.getY(), location.getZ());
+    }
+
     public BlockState getBlockStateAt(int x, int y, int z) {
         int id = getNumericBlockStateAt(x, y, z);
         if (id == 0) { return null; }
@@ -426,4 +431,17 @@ public abstract class Chunk {
     }
 
     protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
+
+    public void addInventory(InventoryWindow window) {
+        CompoundTag tileEntity = (CompoundTag) tileEntities.get(window.getContainerLocation());
+
+        // Check if it's a double chest. Technically we should look at the block type for this, but...
+        if (window.getSlotList().size() == 54) {
+            BlockState block = getBlockStateAt(window.getContainerLocation());
+            // TODO
+        } else {
+            tileEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
+            this.setSaved(false);
+        }
+    }
 }

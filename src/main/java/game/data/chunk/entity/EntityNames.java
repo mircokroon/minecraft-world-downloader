@@ -2,6 +2,8 @@ package game.data.chunk.entity;
 
 import com.google.gson.Gson;
 
+import game.data.registries.RegistriesJson;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
@@ -41,10 +43,9 @@ public class EntityNames {
 
         // convert JSON structure into protocol_id->name map
         EntityNames entityNames = new EntityNames();
-        map.get("minecraft:entity_type").entries.forEach((name, properties) -> {
-            int protocolId = properties.get("protocol_id");
-            entityNames.entities.put(protocolId, name);
-        });
+        map.get("minecraft:entity_type").getEntries().forEach(
+            (name, properties) -> entityNames.entities.put(properties.get("protocol_id"), name)
+        );
 
         return entityNames;
     }
@@ -55,10 +56,4 @@ public class EntityNames {
     public String getName(int key) {
         return entities.getOrDefault(key, null);
     }
-}
-
-class RegistriesJson extends HashMap<String, EntityTypes> { }
-
-class EntityTypes {
-    HashMap<String, HashMap<String, Integer>> entries;
 }
