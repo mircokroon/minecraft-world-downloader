@@ -327,7 +327,10 @@ public abstract class Chunk {
     }
 
     private int computeHeight(int x, int z) {
-        for (int chunkSection = 15; chunkSection >= 0; chunkSection--) {
+        // if we're in the Nether, we only consider blocks below Y=96. Otherwise the entire minimap is grey.
+        int topSection = this.location.getDimension().equals(Dimension.NETHER) ? 5 : 15;
+
+        for (int chunkSection = topSection; chunkSection >= 0; chunkSection--) {
 
             ChunkSection cs = getChunkSections()[chunkSection];
             if (cs == null) { continue; }
