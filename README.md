@@ -53,10 +53,18 @@ java -jar world-downloader.jar -s address.to.server.com --gui=false
 
 ### Building from source
 <details>
-  <summary>Dependencies on debian/ubuntu</summary>
+  <summary>Dependencies on linux</summary>
+  
+  ### debian/ubuntu
   
   ```
   sudo apt-get install default-jdk maven
+  ```
+
+  ### arch/manjaro
+  
+  ```
+  sudo pacman -S --needed jdk-openjdk maven
   ```
 </details>
 
