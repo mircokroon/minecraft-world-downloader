@@ -74,6 +74,10 @@ public class Launcher {
             .setDefault(true)
             .type(boolean.class)
             .help("When false, set world type to a superflat void to prevent new chunks from being added.");
+        parser.addArgument("--enable-srv-lookup").dest("enable-srv-lookup")
+            .setDefault(true)
+            .type(boolean.class)
+            .help("When true, checks for true address using DNS service records");
 
         Namespace ns = null;
         try {

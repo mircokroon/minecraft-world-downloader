@@ -51,6 +51,7 @@ public abstract class Game {
     private static EncryptionManager encryptionManager;
     private static CompressionManager compressionManager;
     private static boolean enableWorldGen;
+    private static boolean enableSrvLookup;
 
     public static int getDataVersion() {
         return dataVersion;
@@ -105,6 +106,7 @@ public abstract class Game {
             GuiManager.showGui();
         }
         enableWorldGen = args.getBoolean("enable-world-gen");
+        enableSrvLookup = args.getBoolean("enable-srv-lookup");
 
         versionHandler = VersionHandler.createVersionHandler();
     }
@@ -238,5 +240,9 @@ public abstract class Game {
 
     public static boolean isWorldGenEnabled() {
         return enableWorldGen;
+    }
+
+    public static boolean isSrvLookupEnabled() {
+        return enableSrvLookup;
     }
 }

@@ -2,6 +2,10 @@ package proxy;
 
 import game.Game;
 import game.NetworkMode;
+import org.xbill.DNS.Lookup;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.SRVRecord;
+import org.xbill.DNS.Type;
 import packets.DataReader;
 
 import java.io.InputStream;
@@ -48,6 +52,10 @@ public class ProxyServer extends Thread {
 
     @Override
     public void run() {
+        if (Game.isSrvLookupEnabled()) {
+            performSrvLookup();
+        }
+
         String friendlyHost = host + (portRemote == DEFAULT_PORT ? "" : ":" + portRemote);
         System.out.println("Starting proxy for " + friendlyHost + ". Make sure to connect to localhost:" + portLocal + " instead of the regular server address.");
 
@@ -75,8 +83,7 @@ public class ProxyServer extends Thread {
 
                 // If the server cannot connect, close client connection
                 attempt(() -> server.set(new Socket(host, portRemote)), (ex) -> {
-                    System.out.println("Cannot connect to " + friendlyHost + ". The server may be down or on a different address.");
-
+                    System.out.println("Cannot connect to " + friendlyHost + ". The server may be down or on a different address. (" + ex.getClass().getCanonicalName() + ")");
                     attempt(client.get()::close);
                 });
 
@@ -128,6 +135,26 @@ public class ProxyServer extends Thread {
                 if (client.get() != null) { attempt(client.get()::close); }
             });
         }
+    }
+
+    /**
+     * Checks for DNS service records of the form _minecraft._tcp.example.com. If they exist, we will replace the
+     * current host and port with the ones found there.
+     */
+    private void performSrvLookup() {
+        attempt(() -> {
+            Record[] records = new Lookup("_minecraft._tcp." + host, Type.SRV).run();
+
+            // no records were found
+            if (records == null || records.length == 0) {
+                return;
+            }
+
+            // if there's multiple records, we'll just take the first one
+            SRVRecord srvRecord = (SRVRecord) records[0];
+            portRemote = srvRecord.getPort();
+            host = srvRecord.getTarget().toString(true);
+        });
     }
 
     /**
