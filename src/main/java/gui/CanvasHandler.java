@@ -57,6 +57,13 @@ public class CanvasHandler extends JPanel implements ActionListener {
         bindScroll();
     }
 
+    public void clearChunks() {
+        chunkMap.clear();
+        drawableChunks.clear();
+
+        hasChanged = true;
+    }
+
     private void bindScroll() {
         this.addMouseWheelListener(mouseWheelEvent -> {
             this.renderDistance = this.renderDistance + (mouseWheelEvent.getWheelRotation() * 2);

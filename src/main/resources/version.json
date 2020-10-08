@@ -132,7 +132,7 @@
 			"dataVersion": 2578,
 			"clientbound": {
 				"0x20": "chunk_data",
-				"0x1E": "chunk_unload",
+				"0x1C": "chunk_unload",
 				"0x34": "player_position_look",
 				"0x2B": "player_vehicle_move",
 				"0x23": "chunk_update_light",

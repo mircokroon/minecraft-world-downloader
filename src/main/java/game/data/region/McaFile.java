@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 public class McaFile {
     public final static int SECTOR_SIZE = 4096;
     private Map<Integer, ChunkBinary> chunkMap;
-    private Path filePath;
-    private Coordinate2D regionLocation;
+    private final Path filePath;
+    private final Coordinate2D regionLocation;
 
     /**
      * Parse MCA from a given file location.
