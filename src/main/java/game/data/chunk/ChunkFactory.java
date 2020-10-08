@@ -48,6 +48,10 @@ public class ChunkFactory extends Thread {
     }
 
     private ChunkFactory() {
+        clear();
+    }
+
+    public void clear() {
         this.tileEntities = new ConcurrentHashMap<>();
         this.chunkEntities = new ConcurrentHashMap<>();
         this.entities = new ConcurrentHashMap<>();
@@ -126,6 +130,11 @@ public class ChunkFactory extends Thread {
      * Need a non-static method to do this as we cannot otherwise call notify
      */
     public synchronized void addChunk(DataTypeProvider provider) {
+        // if the world manager is currently paused, discard this chunk
+        if (WorldManager.isPaused()) {
+            return;
+        }
+
         unparsedChunks.add(new ChunkParserPair(provider, Game.getDimension()));
         notify();
     }

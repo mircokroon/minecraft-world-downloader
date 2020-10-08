@@ -75,5 +75,11 @@ public class GuiManager {
             existing.forEach(chunkGraphicsHandler::setChunkExists);
         }
     }
+
+    public static void clearChunks() {
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.clearChunks();
+        }
+    }
 }
 

@@ -12,6 +12,7 @@ import game.data.container.MenuRegistry;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import proxy.CompressionManager;
 import se.llbit.nbt.ByteTag;
@@ -37,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -65,6 +67,10 @@ public class WorldManager extends Thread {
     private static boolean markNewChunks;
 
     private static boolean writeChunks;
+
+    private static boolean isPaused;
+
+    private static boolean isSaving;
 
     private static ContainerManager containerManager;
 
@@ -338,10 +344,18 @@ public class WorldManager extends Thread {
     /**
      * Save the world. Will tell all regions to save their chunks.
      */
-    private static void save() {
+    public static void save() {
         if (!writeChunks) {
             return;
         }
+
+        // make sure we can't have two saving calls at once (due to save & exit)
+        if (isSaving) {
+            return;
+        }
+        isSaving = true;
+
+
         if (!regions.isEmpty()) {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[regions.size()]);
@@ -367,6 +381,8 @@ public class WorldManager extends Thread {
 
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
+
+        isSaving = false;
     }
 
     public static ContainerManager getContainerManager() {
@@ -376,6 +392,34 @@ public class WorldManager extends Thread {
         return containerManager;
     }
 
+    public static void pauseSaving() {
+        isPaused = true;
+    }
+
+    public static void resumeSaving() {
+        isPaused = false;
+    }
+
+    public static void deleteAllExisting() {
+        regions = new HashMap<>();
+        ChunkFactory.getInstance().clear();
+
+        try {
+            File dir = Paths.get(Game.getExportDirectory(), Game.getDimension().getPath(), "region").toFile();
+
+            if (dir.isDirectory()) {
+                FileUtils.cleanDirectory(dir);
+            }
+        } catch (IOException ex) {
+            System.out.println("Could not delete region files. Reason: " + ex.getMessage());
+        }
+
+        GuiManager.clearChunks();
+    }
+
+    public static boolean isPaused() {
+        return isPaused;
+    }
 
 
 }
