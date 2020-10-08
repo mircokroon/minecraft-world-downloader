@@ -2,6 +2,7 @@ package game.data.registries;
 
 import com.google.gson.Gson;
 
+import game.UnsupportedMinecraftVersionException;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.GlobalPalette;
 import game.data.container.ItemRegistry;
@@ -125,8 +126,13 @@ public class RegistryLoader {
      */
     private void moveReports() throws IOException {
         ensureExists(destinationPath);
-        Files.move(REGISTRIES_GENERATED_PATH, registryPath, StandardCopyOption.REPLACE_EXISTING);
-        Files.move(BLOCKS_GENERATED_PATH, blocksPath, StandardCopyOption.REPLACE_EXISTING);
+
+        if (versionSupportsGenerators()) {
+            Files.move(REGISTRIES_GENERATED_PATH, registryPath, StandardCopyOption.REPLACE_EXISTING);
+        }
+        if (versionSupportsBlockGenerator()) {
+            Files.move(BLOCKS_GENERATED_PATH, blocksPath, StandardCopyOption.REPLACE_EXISTING);
+        }
     }
 
     /**
@@ -150,35 +156,47 @@ public class RegistryLoader {
     }
 
     public EntityNames generateEntityNames() throws IOException {
-        if (version.equals("1.12.2")) {
-            return EntityNames.fromJson("1.12.2");
-        } else {
+        if (versionSupportsGenerators()) {
             return EntityNames.fromRegistry(new FileInputStream(registryPath.toFile()));
+        } else if (version.equals("1.12.2")) {
+            return EntityNames.fromJson("1.12.2");
+        } else if (version.equals("1.13.2")) {
+            return EntityNames.fromJson("1.13.2");
+        } else {
+            throw new UnsupportedMinecraftVersionException(version);
         }
     }
 
     public GlobalPalette generateGlobalPalette() throws IOException {
-        if (version.equals("1.12.2")) {
-            return new GlobalPalette("1.12.2");
-        } else {
+        if (versionSupportsBlockGenerator()) {
             return new GlobalPalette(new FileInputStream(blocksPath.toFile()));
+        } else {
+            return new GlobalPalette("1.12.2");
         }
     }
 
     public MenuRegistry generateMenuRegistry() throws IOException {
-        if (version.equals("1.12.2")) {
-            return new MenuRegistry();
-        } else {
+        if (versionSupportsGenerators()) {
             return MenuRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+        } else {
+            return new MenuRegistry();
         }
     }
 
     public ItemRegistry generateItemRegistry() throws IOException {
-        if (version.equals("1.12.2")) {
-            return new ItemRegistry();
-        } else {
+        if (versionSupportsGenerators()) {
             return ItemRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+        } else {
+            return new ItemRegistry();
         }
+    }
+
+    public boolean versionSupportsBlockGenerator() {
+        return !version.startsWith("1.12");
+    }
+
+    public boolean versionSupportsGenerators() {
+        return versionSupportsBlockGenerator() && !version.startsWith("1.13");
     }
 }
 
