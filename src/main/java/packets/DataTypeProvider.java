@@ -5,6 +5,7 @@ import game.data.Coordinate3D;
 import game.data.container.Slot;
 import game.data.container.Slot_1_12;
 import packets.version.DataTypeProvider_1_13;
+import packets.version.DataTypeProvider_1_14;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
@@ -28,7 +29,9 @@ public class DataTypeProvider {
     }
 
     public static DataTypeProvider ofPacket(byte[] finalFullPacket) {
-        if (Game.getProtocolVersion() > 404) {
+        if (Game.getProtocolVersion() >= 477) {
+            return new DataTypeProvider_1_14(finalFullPacket);
+        } else if (Game.getProtocolVersion() >= 404) {
             return new DataTypeProvider_1_13(finalFullPacket);
         } else {
             return new DataTypeProvider(finalFullPacket);

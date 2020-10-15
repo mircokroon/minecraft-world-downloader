@@ -127,7 +127,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
         operations.put("open_window", provider -> {
             int windowId = provider.readNext();
 
-            if (Game.getProtocolVersion() < 404) {
+            if (Game.getProtocolVersion() < 477) {
                 String windowType = provider.readString();
                 String windowTitle = provider.readChat();
 

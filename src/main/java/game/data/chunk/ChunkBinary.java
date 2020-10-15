@@ -51,6 +51,7 @@ public class ChunkBinary {
             nbt.write(new DataOutputStream(output));
         } catch (Exception ex) {
             System.out.println("Unable to write chunk " + chunk.location.getX() + ", " + chunk.location.getZ());
+            ex.printStackTrace();
             return null;
         }
 

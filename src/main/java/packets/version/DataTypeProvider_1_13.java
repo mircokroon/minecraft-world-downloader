@@ -13,15 +13,6 @@ public class DataTypeProvider_1_13 extends DataTypeProvider {
     }
 
     @Override
-    public Coordinate3D readCoordinates() {
-        long val = readLong();
-        int x = (int) (val >> 38);
-        int y = (int) (val & 0xFFF);
-        int z = (int) ((val << 38 >> 38) >> 12);
-        return new Coordinate3D(x, y, z);
-    }
-
-    @Override
     public DataTypeProvider ofLength(int length) {
         return new DataTypeProvider_1_13(this.readByteArray(length));
     }
