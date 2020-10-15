@@ -5,6 +5,7 @@ import game.data.chunk.Chunk;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
+import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPalette;
 import game.data.container.ContainerManager;
 import game.data.container.ItemRegistry;
@@ -283,6 +284,15 @@ public class WorldManager extends Thread {
         if (r != null) {
             r.removeChunk(coordinate);
         }
+    }
+
+    public static BlockState blockStateAt(Coordinate3D coordinate3D) {
+        Chunk c = WorldManager.getChunk(coordinate3D.globalToChunk().addDimension(Game.getDimension()));
+
+        if (c == null) { return null; }
+
+        Coordinate3D pos = coordinate3D.withinChunk();
+        return c.getBlockStateAt(pos);
     }
 
     public static void setGlobalPalette(GlobalPalette palette) {

@@ -17,6 +17,20 @@ public class InventoryWindow {
 
     Coordinate3D containerLocation;
 
+    /**
+     * Constructor for 1.12, slot count is just given here
+     */
+    InventoryWindow(String windowTitle, Coordinate3D containerLocation, int slotCount) {
+        this.windowType = -1;
+        this.windowTitle = windowTitle;
+        this.containerLocation = containerLocation;
+
+        this.slotCount = slotCount;
+    }
+
+    /**
+     * Constructor for later versions, we need to check the window type against the registry
+     */
     InventoryWindow(int windowType, String windowTitle, Coordinate3D containerLocation) {
         this.windowType = windowType;
         this.windowTitle = windowTitle;

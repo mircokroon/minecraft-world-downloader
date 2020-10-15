@@ -30,7 +30,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             Chunk c = WorldManager.getChunk(ent.getPosition().globalToChunk().addDimension(Game.getDimension()));
             if (c == null) { return true; }
 
-            c.setSaved(false);
+            WorldManager.touchChunk(c);
             return true;
         });
 
@@ -46,27 +46,40 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
             return true;
         });
 
-        // only used in 1.16+
         operations.put("join_game", provider -> {
             provider.readInt();
             provider.readNext();
-            provider.readNext();
-            provider.readNext();
 
-            int numWorlds = provider.readVarInt();
-            String[] worldNames = provider.readStringArray(numWorlds);
+            // older versions
+            if (Game.getProtocolVersion() < 735) {
+                int dimensionEnum = provider.readInt();
 
-            SpecificTag dimensionCodec = provider.readNbtTag();
-            SpecificTag dimension = provider.readNbtTag();
+                Game.setDimension(Dimension.fromId(dimensionEnum));
 
-            Game.setDimension(Dimension.fromString(provider.readString()));
+                // > 1.16
+            } else {
+                provider.readNext();
+                provider.readNext();
 
+                int numWorlds = provider.readVarInt();
+                String[] worldNames = provider.readStringArray(numWorlds);
+
+                SpecificTag dimensionCodec = provider.readNbtTag();
+                SpecificTag dimension = provider.readNbtTag();
+
+                Game.setDimension(Dimension.fromString(provider.readString()));
+            }
             return true;
         });
-        operations.put("respawn", provider -> {
-            SpecificTag dimension = provider.readNbtTag();
 
-            Game.setDimension(Dimension.fromString(provider.readString()));
+        operations.put("respawn", provider -> {
+            if (Game.getProtocolVersion() < 735) {
+                int dimensionEnum = provider.readInt();
+                Game.setDimension(Dimension.fromId(dimensionEnum));
+            } else {
+                SpecificTag dimension = provider.readNbtTag();
+                Game.setDimension(Dimension.fromString(provider.readString()));
+            }
             return true;
         });
 
@@ -112,11 +125,21 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
         operations.put("player_vehicle_move", updatePlayerPosition);
 
         operations.put("open_window", provider -> {
-            int windowId = provider.readVarInt();
-            int windowType = provider.readVarInt();
-            String windowTitle = provider.readChat();
+            int windowId = provider.readNext();
 
-            WorldManager.getContainerManager().openWindow(windowId, windowType, windowTitle);
+            if (Game.getProtocolVersion() < 404) {
+                String windowType = provider.readString();
+                String windowTitle = provider.readChat();
+
+                int numSlots = provider.readNext() & 0xFF;
+
+                WorldManager.getContainerManager().openWindow_1_12(windowId, numSlots, windowTitle);
+            } else {
+                int windowType = provider.readVarInt();
+                String windowTitle = provider.readChat();
+
+                WorldManager.getContainerManager().openWindow(windowId, windowType, windowTitle);
+            }
             return true;
         });
         operations.put("close_window", provider -> {
@@ -125,7 +148,7 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
         });
 
         operations.put("window_items", provider -> {
-            int windowId = provider.readVarInt();
+            int windowId = provider.readNext();
             int count = provider.readShort();
             List<Slot> slots = provider.readSlots(count);
 

@@ -3,7 +3,8 @@ package packets;
 import game.Game;
 import game.data.Coordinate3D;
 import game.data.container.Slot;
-import packets.version.DataTypeProvider_1_14;
+import game.data.container.Slot_1_12;
+import packets.version.DataTypeProvider_1_13;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
@@ -28,7 +29,7 @@ public class DataTypeProvider {
 
     public static DataTypeProvider ofPacket(byte[] finalFullPacket) {
         if (Game.getProtocolVersion() > 404) {
-            return new DataTypeProvider_1_14(finalFullPacket);
+            return new DataTypeProvider_1_13(finalFullPacket);
         } else {
             return new DataTypeProvider(finalFullPacket);
         }
@@ -214,11 +215,17 @@ public class DataTypeProvider {
         return slots;
     }
 
+    /**
+     * 1.12 version for slot reading, slightly different from 1.13+
+     */
     public Slot readSlot() {
-        if (readBoolean()) {
-            return new Slot(readVarInt(), readNext(), readNbtTag());
+        int itemId = readShort();
+
+        if (itemId == 0xFFFF) {
+            return null;
         }
-        return null;
+
+        return new Slot_1_12(itemId, readNext(), readShort(), readNbtTag());
     }
 
     public static int readOptVarInt(DataTypeProvider provider) {

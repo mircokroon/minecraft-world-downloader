@@ -186,6 +186,8 @@ public class RegistryLoader {
     public ItemRegistry generateItemRegistry() throws IOException {
         if (versionSupportsGenerators()) {
             return ItemRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+        } else if (version.equals("1.12.2")) {
+            return ItemRegistry.fromJson(version);
         } else {
             return new ItemRegistry();
         }

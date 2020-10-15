@@ -3,9 +3,11 @@ package game.data.container;
 import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
+import game.data.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.BlockState;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +25,21 @@ public class ContainerManager {
 
     public void lastInteractedWith(Coordinate3D coordinates) {
         lastInteractedWith = coordinates;
+    }
+
+    public void openWindow_1_12(int windowId, int numSlots, String windowTitle) {
+        if (windowId == PLAYER_INVENTORY) {
+            return;
+        }
+
+        if (lastInteractedWith != null) {
+            InventoryWindow window = new InventoryWindow(windowTitle, lastInteractedWith, numSlots);
+
+            // if a window has 0 slots, ignore it
+            if (window.getSlotCount() > 0) {
+                knownWindows.put(windowId, window);
+            }
+        }
     }
 
     public void openWindow(int windowId, int windowType, String windowTitle) {
@@ -53,17 +70,53 @@ public class ContainerManager {
         if (c == null) { return; }
 
         BlockState block = c.getBlockStateAt(window.getContainerLocation().withinChunk());
+
         if (block == null) { return; }
 
         WorldManager.touchChunk(c);
 
-        if (window.getSlotList().size() == 54 && block.isDoubleChest()) {
+        if (window.getSlotList().size() == 54 && block.hasProperty("type") && block.isDoubleChest()) {
             addDoubleChestInventory(block, window);
+        } else if (window.getSlotList().size() == 54 && !block.hasProperty("type") && block.isChest()) {
+            handleChest1_12(block, window);
         } else {
             c.addInventory(window);
         }
     }
 
+    /**
+     * Handles double chests in 1.12.
+     */
+    private void handleChest1_12(BlockState block, InventoryWindow window) {
+        Direction facing = Direction.valueOf(block.getProperty("facing").toUpperCase());
+        Coordinate3D pos = window.getContainerLocation();
+
+        Coordinate3D beforePos = pos.add(facing.clockwise().toCoordinate());
+        BlockState blockBefore = WorldManager.blockStateAt(beforePos);
+
+        InventoryWindow[] chests = window.split();
+
+        // for some reason the ordering of double chests depends on the direction they are facing in 1.12 (wtf?)
+        if (facing.equals(Direction.NORTH) || facing.equals(Direction.EAST)) {
+            ArrayUtils.swap(chests, 0, 1);
+        }
+
+        // if it's the left half of the chest
+        if (blockBefore == block) {
+            chests[0].adjustContainerLocation(facing.clockwise().toCoordinate());
+        } else {
+            // otherwise it must be the right half ... we don't support triple chests
+            chests[1].adjustContainerLocation(facing.counterClockwise().toCoordinate());
+        }
+
+
+        closeWindow(chests[0]);
+        closeWindow(chests[1]);
+    }
+
+    /**
+     * Split Window into two halves, for two halves of a double chest.
+     */
     private void addDoubleChestInventory(BlockState block, InventoryWindow window) {
         InventoryWindow[] chests = window.split();
         Coordinate2D companionDirection = getCompanionChestDirection(block);

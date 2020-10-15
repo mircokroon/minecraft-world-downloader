@@ -2,15 +2,27 @@ package game.data.container;
 
 import com.google.gson.Gson;
 
+import game.data.chunk.palette.GlobalPalette;
 import game.data.registries.RegistriesJson;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
 
 public class ItemRegistry {
     private Map<Integer, String> items;
+
+    public static ItemRegistry fromJson(String version) {
+        InputStream x = GlobalPalette.class.getClassLoader().getResourceAsStream("items-" + version + ".json");
+        if (x == null) {
+            return null;
+        }
+        Gson g = new Gson();
+        return g.fromJson(new InputStreamReader(x), ItemRegistry.class);
+    }
 
     public static ItemRegistry fromRegistry(FileInputStream input) {
         if (input == null) { return new ItemRegistry(); }
