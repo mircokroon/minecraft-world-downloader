@@ -5,6 +5,7 @@ import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
 
 /**
  * In 1.14 the chunks are now given a heightmap in the packet. They also no longer contain light information, as
@@ -20,8 +21,10 @@ public class Chunk_1_14 extends Chunk_1_13 {
 
     @Override
     protected void addLevelNbtTags(CompoundTag map) {
-        map.add("Heightmaps", heightMap);
         super.addLevelNbtTags(map);
+
+        map.add("Heightmaps", heightMap);
+        map.add("Status", new StringTag("full"));
     }
 
     @Override
