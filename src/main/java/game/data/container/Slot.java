@@ -21,6 +21,7 @@ public class Slot {
     public String toString() {
         return "Slot{" +
             "itemId=" + itemId +
+            ", Name=" + WorldManager.getItemRegistry().getItemName(itemId) +
             ", count=" + count +
             ", nbt=" + nbt +
             '}';

@@ -11,13 +11,19 @@
 				"0x09": "update_block_entity",
 				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
-				"0x3C": "entity_data"
+				"0x3C": "entity_data",
+				"0x23": "join_game",
+				"0x35": "respawn",
+				"0x13": "open_window",
+				"0x12": "close_window",
+				"0x14": "window_items"
 			},
 			"serverbound": {
 				"0x0D": "player_position",
 				"0x0E": "player_position_look",
 				"0x10": "vehicle_move",
-				"0x1F": "right_click"
+				"0x1F": "right_click",
+				"0x08": "close_window"
 			}
 		},		
 		"404": {
@@ -29,6 +35,8 @@
 				"0x32": "player_position_look",
 				"0x2B": "player_vehicle_move",
 				"0x09": "update_block_entity",
+				"0x25": "join_game",
+				"0x38": "respawn",
 				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
 				"0x3F": "entity_data"
@@ -38,26 +46,6 @@
 				"0x11": "player_position_look",
 				"0x13": "vehicle_move",
 				"0x29": "right_click"
-			}
-		},
-		"480": {
-			"version": "1.14.1",
-			"dataVersion": 1957,
-			"clientbound": {
-				"0x21": "chunk_data",
-				"0x1D": "chunk_unload",
-				"0x35": "player_position_look",
-				"0x2C": "player_vehicle_move",
-				"0x24": "chunk_update_light",
-				"0x09": "update_block_entity",
-				"0x03": "spawn_mob",
-				"0x00": "spawn_object"
-			},
-			"serverbound": {
-				"0x11": "player_position",
-				"0x12": "player_position_look",
-				"0x15": "player_vehicle_move",
-				"0x2C": "right_click"
 			}
 		},
 		"498": {
@@ -70,15 +58,21 @@
 				"0x2C": "player_vehicle_move",
 				"0x24": "chunk_update_light",
 				"0x09": "update_block_entity",
+				"0x25": "join_game",
+				"0x3A": "respawn",
 				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
-				"0x43": "entity_data"
+				"0x43": "entity_data",
+				"0x2E": "open_window",
+				"0x13": "close_window",
+				"0x14": "window_items"
 			},
 			"serverbound": {
 				"0x11": "player_position",
 				"0x12": "player_position_look",
 				"0x15": "player_vehicle_move",
-				"0x2C": "right_click"
+				"0x2C": "right_click",
+				"0x0A": "close_window"
 			}
 		},
 		"573":  {
@@ -93,6 +87,8 @@
 				"0x0A": "update_block_entity",
 				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
+				"0x26": "join_game",
+				"0x3B": "respawn",
 				"0x44": "entity_data",
 				"0x2F": "open_window",
                 "0x14": "close_window",

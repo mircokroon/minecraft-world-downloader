@@ -3,10 +3,7 @@ package packets.version;
 import game.data.Coordinate3D;
 import packets.DataTypeProvider;
 
-/**
- * Some changes are made in 1.14 to the order of coordinates, this class handles them correctly.
- */
-public class DataTypeProvider_1_14 extends DataTypeProvider {
+public class DataTypeProvider_1_14 extends DataTypeProvider_1_13 {
     public DataTypeProvider_1_14(byte[] finalFullPacket) {
         super(finalFullPacket);
     }

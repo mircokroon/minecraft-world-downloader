@@ -28,10 +28,9 @@ public class ServerBoundGamePacketBuilder extends PacketBuilder {
 
         operations.put("right_click", provider -> {
             // newer versions first include a VarInt with the hand
-            if (Game.getProtocolVersion() >= 404) {
+            if (Game.getProtocolVersion() >= 477) {
                 provider.readVarInt();
             }
-
 
             WorldManager.getContainerManager().lastInteractedWith(provider.readCoordinates());
 

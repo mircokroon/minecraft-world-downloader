@@ -24,13 +24,20 @@ public class BlockState {
         return properties.get(name);
     }
 
+    public boolean isChest() {
+        return name.equals("minecraft:chest") || name.equals("minecraft:trapped_chest");
+    }
     public boolean isDoubleChest() {
-        if (!name.equals("minecraft:chest") && !name.equals("minecraft:trapped_chest")) {
+        if (!isChest()) {
             return false;
         }
 
         String type = properties.get("type");
         return type.equals("left") || type.equals("right");
+    }
+
+    public boolean hasProperty(String property) {
+        return properties.get(property) != null;
     }
 
     /**
