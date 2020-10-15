@@ -40,4 +40,28 @@ public class Coordinate3D extends Coordinate2D {
     public String toString() {
         return "(" + x + ", " + y + ", " + z + ")";
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
+
+        Coordinate3D that = (Coordinate3D) o;
+
+        return y == that.y;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + y;
+        return result;
+    }
 }
