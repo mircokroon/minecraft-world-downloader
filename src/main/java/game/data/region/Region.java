@@ -139,4 +139,10 @@ public class Region {
         return new McaFile(regionCoordinates, chunkBinaryMap);
     }
 
+    /**
+     * Mark region as having modified chunks.
+     */
+    public void touch() {
+        this.updatedSinceLastWrite = true;
+    }
 }

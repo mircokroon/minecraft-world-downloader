@@ -325,6 +325,14 @@ public class WorldManager extends Thread {
     }
 
     /**
+     * Mark a chunk and it's region as having unsaved changes.
+     */
+    public static void touchChunk(Chunk c) {
+        c.touch();
+        regions.get(c.location.chunkToDimRegion()).touch();
+    }
+
+    /**
      * Loop to call save periodically.
      */
     @Override

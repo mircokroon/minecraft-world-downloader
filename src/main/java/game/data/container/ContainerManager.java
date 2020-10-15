@@ -55,6 +55,8 @@ public class ContainerManager {
         BlockState block = c.getBlockStateAt(window.getContainerLocation().withinChunk());
         if (block == null) { return; }
 
+        WorldManager.touchChunk(c);
+
         if (window.getSlotList().size() == 54 && block.isDoubleChest()) {
             addDoubleChestInventory(block, window);
         } else {

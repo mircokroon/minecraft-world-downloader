@@ -450,6 +450,12 @@ public abstract class Chunk {
             tileEntity.add("CustomName", new StringTag(window.getWindowTitle()));
         }
 
+    }
+
+    /**
+     * Mark this chunk as unsaved.
+     */
+    public void touch() {
         this.setSaved(false);
     }
 }
