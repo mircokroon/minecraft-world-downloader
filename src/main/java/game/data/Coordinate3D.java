@@ -36,6 +36,10 @@ public class Coordinate3D extends Coordinate2D {
         return newVal;
     }
 
+    public CoordinateDim3D addDimension3D(Dimension dimension) {
+        return new CoordinateDim3D(this, dimension);
+    }
+
     @Override
     public String toString() {
         return "(" + x + ", " + y + ", " + z + ")";

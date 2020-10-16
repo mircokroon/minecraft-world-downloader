@@ -4,6 +4,7 @@ import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
+import game.data.CoordinateDim3D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.BlockState;
@@ -17,10 +18,12 @@ public class ContainerManager {
     private static final int PLAYER_INVENTORY = 0;
 
     private Coordinate3D lastInteractedWith;
-    private Map<Integer, InventoryWindow> knownWindows;
+    private final Map<Integer, InventoryWindow> knownWindows;
+    private final Map<CoordinateDim3D, InventoryWindow> storedWindows;
 
     public ContainerManager() {
         knownWindows = new HashMap<>();
+        storedWindows = new HashMap<>();
     }
 
     public void lastInteractedWith(Coordinate3D coordinates) {
@@ -81,6 +84,7 @@ public class ContainerManager {
             handleChest1_12(block, window);
         } else {
             c.addInventory(window);
+            storedWindows.put(window.containerLocation.addDimension3D(Game.getDimension()), window);
         }
     }
 
@@ -144,6 +148,13 @@ public class ContainerManager {
         if (window != null) {
             window.setSlots(slots);
         }
+    }
+
+    public void loadPreviousInventoriesAt(Chunk c, CoordinateDim3D location) {
+        if (storedWindows.containsKey(location)) {
+            c.addInventory(storedWindows.get(location));
+        }
+
     }
 }
 

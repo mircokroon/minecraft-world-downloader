@@ -10,9 +10,9 @@ import java.util.Map;
  * A block state in the global palette (1.13+).
  */
 public class BlockState {
-    private String name;
-    private int id;
-    private Map<String, String> properties;
+    private final String name;
+    private final int id;
+    private final Map<String, String> properties;
 
     public BlockState(String name, int id, Map<String, String> properties) {
         this.name = name;
@@ -33,11 +33,11 @@ public class BlockState {
         }
 
         String type = properties.get("type");
-        return type.equals("left") || type.equals("right");
+        return type != null && (type.equals("left") || type.equals("right"));
     }
 
     public boolean hasProperty(String property) {
-        return properties.get(property) != null;
+        return properties.containsKey(property);
     }
 
     /**

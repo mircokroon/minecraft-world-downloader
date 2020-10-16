@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 /**
@@ -12,6 +13,7 @@ import java.util.HashMap;
  * Minecraft server.jar. More details are in the readme file in the resource folder.
  */
 public class GlobalPalette {
+    private static final HashMap<String, String> EMPTY_MAP = new HashMap<>();
     private HashMap<Integer, BlockState> states;
     private HashMap<String, BlockState> nameStates;
 
@@ -35,6 +37,10 @@ public class GlobalPalette {
 
         JsonResult map = new Gson().fromJson(new InputStreamReader(input), JsonResult.class);
         map.forEach((name, type) -> type.states.forEach(state -> {
+            if (state.properties == null) {
+                state.properties = EMPTY_MAP;
+            }
+
             BlockState s = new BlockState(name, state.id, state.properties);
             states.put(state.id, s);
             nameStates.put(name, s);
