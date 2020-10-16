@@ -3,12 +3,14 @@ package game.data.chunk;
 import game.Game;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
+import game.data.CoordinateDim3D;
 import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
+import game.data.container.ContainerManager;
 import game.data.container.InventoryWindow;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
@@ -104,6 +106,10 @@ public abstract class Chunk {
         entity.add("z", new IntTag(location.getZ()));
 
         tileEntities.put(location, tag);
+
+        // check for inventory contents we previously saved
+        CoordinateDim3D pos = location.addDimension3D(this.location.getDimension());
+        WorldManager.getContainerManager().loadPreviousInventoriesAt(this, pos);
     }
 
     /**
