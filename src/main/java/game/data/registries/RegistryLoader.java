@@ -102,6 +102,12 @@ public class RegistryLoader {
             .asBytes();
 
         ensureExists(Paths.get(CACHE));
+
+        // in case we can't download the server.jar
+        if (!status.isSuccess()) {
+            throw new IOException("Unable to download server.jar. Status: " + status.getStatusText());
+        }
+
         Files.write(SERVER_PATH, status.getBody());
     }
 
