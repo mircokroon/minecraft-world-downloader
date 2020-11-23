@@ -10,12 +10,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 
 public class ClientAuthenticator {
     private static int STATUS_SUCCESS = 204;
@@ -25,6 +23,9 @@ public class ClientAuthenticator {
     private LauncherProfiles profiles;
     private AuthDetails manualDetails;
 
+    // for launcher versions 2.2+
+    private LauncherAccounts accounts;
+
     /**
      * Initialise the authenticator class by reading from the JSON file.
      */
@@ -32,11 +33,39 @@ public class ClientAuthenticator {
 
         try {
             Gson g = new Gson();
-            profiles = g.fromJson(getFile(), LauncherProfiles.class);
+
+
+            readProfiles(g);
+            readAccounts(g);
         } catch (IOException ex) {
             startAuthDialogue();
         }
 
+    }
+
+    private void readAccounts(Gson g) throws IOException {
+        Path p = Paths.get(getMinecraftPath(), "launcher_accounts.json");
+
+        if (!p.toFile().exists()) {
+            // probably not the right version of the launcher
+            return;
+        }
+
+        System.out.println("Reading account information from " + p.toString());
+
+        String path =  String.join("\n", Files.readAllLines(p));
+
+        accounts = g.fromJson(path, LauncherAccounts.class);
+    }
+
+    private void readProfiles(Gson g) throws IOException {
+        Path p = Paths.get(getMinecraftPath(), "launcher_profiles.json");
+
+        System.out.println("Reading profile information from " + p.toString());
+
+        String path =  String.join("\n", Files.readAllLines(p));
+
+        profiles = g.fromJson(path, LauncherProfiles.class);
     }
 
     /**
@@ -68,7 +97,8 @@ public class ClientAuthenticator {
     private String promptAccessToken(BufferedReader reader) {
         System.out.println();
         System.out.println("Your access token is needed for authentication. It...");
-        System.out.println("\t- Can be found in launcher_profiles.json, inside your .minecraft directory (for the default launcher)");
+        System.out.println("\t- Can be found in launcher_accounts.json, inside your .minecraft directory (for the default launcher)");
+        System.out.println("\t- Can be found in launcher_profiles.json, if launcher_accounts.json does not exist");
         System.out.println("\t- Should be named 'accessToken'");
         System.out.println("\t- Is quite long (over 300 characters)");
         System.out.println("\t- Can change when starting the game, so launch Minecraft before entering it");
@@ -118,7 +148,7 @@ public class ClientAuthenticator {
      * Get the contents of the Minecraft launcher_profiles.json from the given installation path.
      * @return the contents of the file
      */
-    private String getFile() throws IOException {
+    private String getMinecraftPath() {
         String path = Game.getGamePath();
 
         // handle common %APPDATA% env variable for Windows
@@ -127,16 +157,27 @@ public class ClientAuthenticator {
             path = path.replaceAll("(?i)%APPDATA%", appdataPath);
         }
 
-        Path p = Paths.get(path, "launcher_profiles.json");
-
-        System.out.println("Reading profile information from " + p.toString());
-
-        return String.join("\n", Files.readAllLines(p));
+        return path;
     }
 
+    /**
+     * Get the auth details from the profiles file. If launcher_accounts.json exists, we use that accessToken instead
+     * because the other one won't be valid in this case.
+     */
     private AuthDetails getAuthDetails() {
         if (profiles != null) {
-            return profiles.getAuthDetails();
+            AuthDetails details = profiles.getAuthDetails();
+
+            // for launcher version 2.2, check the accounts file for the accessToken instead (why is there 2?)
+            if (accounts != null) {
+                String token = accounts.getToken();
+
+                if (token != null) {
+                    System.out.println("Using accessToken from launcher_accounts.json");
+                    details.accessToken = token;
+                }
+            }
+            return details;
         } else {
             return manualDetails;
         }
