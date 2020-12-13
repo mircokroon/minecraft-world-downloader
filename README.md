@@ -38,6 +38,7 @@ Then connect to ```localhost``` in Minecraft to start downloading the world. The
 | --render-distance | 75 | Render distance of (in chunks) of the overview map |
 |  --seed | 0 | World seed, useful when generating chunks after downloading |
 |  --enable-world-gen | true | When set to false, will prevent new terrain from being generated in-game. |
+|  --mark-unsaved-chunks | true | When enabled, marks unsaved chunks red in the GUI. |
 
 ### Running on Linux
 To easily download the latest release using the terminal, the following commands can be used:
