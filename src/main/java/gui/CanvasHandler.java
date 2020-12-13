@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
@@ -30,13 +31,16 @@ import javax.swing.Timer;
  */
 public class CanvasHandler extends JPanel implements ActionListener {
     private static final Image NONE = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
+    private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
     private final Color BACKGROUND_COLOR = Color.decode("#292929");
+    private final Color UNSAVED_COLOR = new Color(255, 0, 0, 100);
     private int renderDistance = Game.getRenderDistance();
+    private boolean markUnsaved = Game.markUnsavedChunks();
     private int renderDistanceX;
     private int renderDistanceZ;
     private Bounds bounds;
     private int gridSize = 0;
-    private Map<CoordinateDim2D, Image> chunkMap = new ConcurrentHashMap<>();
+    private Map<CoordinateDim2D, ChunkImage> chunkMap = new ConcurrentHashMap<>();
     private Collection<CoordinateDim2D> drawableChunks = new ConcurrentLinkedQueue<>();
     private Image chunkImage;
 
@@ -90,7 +94,15 @@ public class CanvasHandler extends JPanel implements ActionListener {
     }
 
     void setChunkExists(CoordinateDim2D coord) {
-        chunkMap.put(coord, NONE);
+        chunkMap.put(coord, NO_IMG);
+
+        hasChanged = true;
+    }
+
+    void markChunkSaved(CoordinateDim2D coord) {
+        if (chunkMap.containsKey(coord)) {
+            chunkMap.get(coord).setSaved(true);
+        }
 
         hasChanged = true;
     }
@@ -102,7 +114,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
             image = NONE;
         }
 
-        chunkMap.put(coord, image);
+        chunkMap.put(coord, new ChunkImage(image, chunk.isSaved()));
         drawChunk(chunkImage.getGraphics(), coord);
 
         hasChanged = true;
@@ -164,8 +176,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
 
 
     /**
-     * Called when the canvas needs to be re-painted. Will draw the player position, all of the chunks and potentially
-     * the text 'saving' if the world is being saved.
+     * Called when the canvas needs to be re-painted. Will draw the player position and all of the chunks.
      */
     @Override
     protected synchronized void paintComponent(Graphics g) {
@@ -195,24 +206,30 @@ public class CanvasHandler extends JPanel implements ActionListener {
         Graphics g = chunkImage.getGraphics();
         g.setColor(BACKGROUND_COLOR);
         g.fillRect(0, 0, GuiManager.width, GuiManager.height);
-        g.setColor(Color.WHITE);
         for (Coordinate2D pos : drawableChunks) {
             drawChunk(g, pos);
         }
     }
 
     private void drawChunk(Graphics g, Coordinate2D pos, Bounds bounds, int gridSize) {
-        Image img =  chunkMap.get(pos);
+        ChunkImage chunkImage = chunkMap.get(pos);
 
         int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
         int drawY = (pos.getZ() - bounds.getMinZ()) * gridSize;
-        if (img == NONE) {
+        if (chunkImage.getImage() == NONE) {
+            g.setColor(Color.WHITE);
             g.drawRect(drawX, drawY, gridSize, gridSize);
         } else {
             g.drawImage(
-                img, drawX, drawY, gridSize, gridSize,
-                (im, infoflags, x, y, width, height) -> false
+                    chunkImage.getImage(), drawX, drawY, gridSize, gridSize,
+                    (im, infoFlags, x, y, width, height) -> false
             );
+
+            // if the chunk wasn't saved yet, mark it as such
+            if (markUnsaved && !chunkImage.isSaved) {
+                g.setColor(UNSAVED_COLOR);
+                g.fillRect(drawX, drawY, gridSize, gridSize);
+            }
         }
     }
 
@@ -249,5 +266,27 @@ public class CanvasHandler extends JPanel implements ActionListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+}
+
+class ChunkImage {
+    Image image;
+    boolean isSaved;
+
+    public ChunkImage(Image image, boolean isSaved) {
+        this.image = image;
+        this.isSaved = isSaved;
+    }
+
+    public Image getImage() {
+        return image;
+    }
+
+    public boolean isSaved() {
+        return isSaved;
+    }
+
+    public void setSaved(boolean saved) {
+        isSaved = saved;
     }
 }
