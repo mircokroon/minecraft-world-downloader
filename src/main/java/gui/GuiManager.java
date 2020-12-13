@@ -1,7 +1,6 @@
 package gui;
 
 
-import game.data.Coordinate2D;
 import game.data.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
@@ -67,6 +66,12 @@ public class GuiManager {
     public static void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
         if (chunkGraphicsHandler != null) {
             chunkGraphicsHandler.setChunkLoaded(coord, chunk);
+        }
+    }
+
+    public static void markChunkSaved(CoordinateDim2D coord) {
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.markChunkSaved(coord);
         }
     }
 

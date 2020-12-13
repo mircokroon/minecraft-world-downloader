@@ -6,6 +6,7 @@ import game.data.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
+import gui.GuiManager;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -92,7 +93,6 @@ public class Region {
         Coordinate2D playerPos = Game.getPlayerPosition().globalToChunk();
 
         Map<Integer, ChunkBinary> chunkBinaryMap = new HashMap<>();
-        List<Coordinate2D> saved = new ArrayList<>();
         chunks.keySet().forEach(coordinate -> {
             try {
                 Chunk chunk = chunks.get(coordinate);
@@ -108,7 +108,7 @@ public class Region {
                 }
 
                 chunk.setSaved(true);
-                saved.add(coordinate);
+                GuiManager.markChunkSaved(coordinate.addDimension(regionCoordinates.getDimension()));
 
                 // get the chunk in binary format and get its coordinates as an Mca compatible integer. Then add
                 // these to the map of chunk binaries.

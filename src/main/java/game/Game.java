@@ -238,6 +238,10 @@ public abstract class Game {
         return args.getInt("render-distance");
     }
 
+    public static boolean markUnsavedChunks() {
+        return args.get("mark-unsaved-chunks");
+    }
+
     public static boolean isWorldGenEnabled() {
         return enableWorldGen;
     }

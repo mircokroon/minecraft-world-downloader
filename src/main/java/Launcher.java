@@ -78,6 +78,10 @@ public class Launcher {
             .setDefault(true)
             .type(boolean.class)
             .help("When true, checks for true address using DNS service records");
+        parser.addArgument("-u", "--mark-unsaved-chunks").dest("mark-unsaved-chunks")
+            .setDefault(true)
+            .type(boolean.class)
+            .help("When true, marks chunks red in the overview until they are written to the disk.");
 
         Namespace ns = null;
         try {
