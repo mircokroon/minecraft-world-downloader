@@ -10,31 +10,43 @@ public class LauncherAccounts {
     HashMap<String, LauncherAccount> accounts;
     String activeAccountLocalId;
 
-    String getToken() {
-        if (accounts == null) { return null; }
-
-        LauncherAccount account = accounts.get(activeAccountLocalId);
-
-        if (account == null) { return null; }
-
-        return account.accessToken;
-    }
-
     @Override
     public String toString() {
         return "LauncherAccounts{" +
             "accounts=" + accounts +
             '}';
     }
+
+    public AuthDetails getAuthDetails() {
+        if (accounts == null || !accounts.containsKey(activeAccountLocalId)) { return null; }
+        LauncherAccount account = accounts.get(activeAccountLocalId);
+
+        return new AuthDetails(account.minecraftProfile.id, account.accessToken);
+    }
 }
 
 class LauncherAccount {
     String accessToken;
+    MinecraftProfile minecraftProfile;
 
     @Override
     public String toString() {
         return "LauncherAccount{" +
-            "accessToken='" + accessToken + '\'' +
-            '}';
+                "accessToken='" + accessToken + '\'' +
+                ", profile=" + minecraftProfile +
+                '}';
+    }
+}
+
+class MinecraftProfile {
+    String id;
+    String name;
+
+    @Override
+    public String toString() {
+        return "MinecraftProfile{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

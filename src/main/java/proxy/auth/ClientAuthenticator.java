@@ -165,22 +165,23 @@ public class ClientAuthenticator {
      * because the other one won't be valid in this case.
      */
     private AuthDetails getAuthDetails() {
+        // Launcher after version 2.2
+        if (accounts != null) {
+            AuthDetails details = accounts.getAuthDetails();
+            if (details != null) {
+                return details;
+            }
+        }
+
+        // Launcher before version 2.2
         if (profiles != null) {
             AuthDetails details = profiles.getAuthDetails();
-
-            // for launcher version 2.2, check the accounts file for the accessToken instead (why is there 2?)
-            if (accounts != null) {
-                String token = accounts.getToken();
-
-                if (token != null) {
-                    System.out.println("Using accessToken from launcher_accounts.json");
-                    details.accessToken = token;
-                }
+            if (details != null) {
+                return details;
             }
-            return details;
-        } else {
-            return manualDetails;
         }
+
+        return manualDetails;
     }
 
     /**
