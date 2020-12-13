@@ -160,8 +160,17 @@ public class RegistryLoader {
      */
     private void ensureExists(Path folder) {
         File dir = folder.toFile();
+
         if (!dir.isDirectory()) {
-            dir.mkdirs();
+            try {
+                boolean created = dir.mkdirs();
+
+                if (!created) {
+                    System.out.println("Could not create folder " + folder.toString());
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
 
