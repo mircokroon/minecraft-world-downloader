@@ -38,7 +38,7 @@ public abstract class Game {
     private static final int DEFAULT_VERSION = 340;
     private static NetworkMode mode = NetworkMode.STATUS;
     private static Dimension dimension = Dimension.OVERWORLD;
-    private static Coordinate3D playerPosition;
+    private static Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
 
     private static VersionHandler versionHandler;
     private static String gameVersion;
