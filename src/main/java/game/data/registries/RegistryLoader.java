@@ -42,7 +42,20 @@ public class RegistryLoader {
     private Path registryPath;
     private Path blocksPath;
 
-    public RegistryLoader(String version) throws IOException, InterruptedException {
+    private static HashMap<String, RegistryLoader> knownLoaders = new HashMap<>();
+
+    public static RegistryLoader forVersion(String version) {
+        return knownLoaders.computeIfAbsent(version, (v) -> {
+            try {
+                return new RegistryLoader(v);
+            } catch (IOException|InterruptedException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
+    }
+
+    private RegistryLoader(String version) throws IOException, InterruptedException {
         this.version = version;
         String versionPath = version.replaceAll("\\.", "_");
 

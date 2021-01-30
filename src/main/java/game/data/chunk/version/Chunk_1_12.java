@@ -14,14 +14,18 @@ import se.llbit.nbt.SpecificTag;
  * Chunks in the 1.12(.2) format. Biomes were a byte array in this version.
  */
 public class Chunk_1_12 extends Chunk {
+    public static final int DATA_VERSION = 1132;
 
-    private byte[] biomes;
+    private final byte[] biomes;
 
     public Chunk_1_12(CoordinateDim2D location) {
         super(location);
 
         this.biomes = new byte[256];
     }
+
+    @Override
+    public int getDataVersion() { return DATA_VERSION; }
 
     @Override
     protected ChunkSection createNewChunkSection(byte y, Palette palette) {

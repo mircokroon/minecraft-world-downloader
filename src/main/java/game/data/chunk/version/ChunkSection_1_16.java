@@ -13,6 +13,11 @@ public class ChunkSection_1_16 extends ChunkSection_1_13 {
         super(sectionY, nbt);
     }
 
+    @Override
+    public int getDataVersion() {
+        return Chunk_1_16.DATA_VERSION;
+    }
+
     /**
      * 1.16 needs a a slightly different getPaletteIndex method. Instead of a blockstate now overlapping multiple longs,
      * it will push the next index to the next long (so some bits at the end of each long may go unused). Luckily, this

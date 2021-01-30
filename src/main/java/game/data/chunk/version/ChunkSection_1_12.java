@@ -14,6 +14,12 @@ import se.llbit.nbt.Tag;
  */
 public class ChunkSection_1_12 extends ChunkSection {
     protected int[][][] blockStates;
+
+    @Override
+    public int getDataVersion() {
+        return Chunk_1_12.DATA_VERSION;
+    }
+
     public ChunkSection_1_12(byte y, Palette palette) {
         super(y, palette);
         this.blockStates = new int[16][16][16];

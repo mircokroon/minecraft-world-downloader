@@ -44,21 +44,20 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * Manage the world, including saving, parsing and updating the GUI.
  */
-public class WorldManager extends Thread {
+public class WorldManager {
     private final static int SAVE_DELAY = 20 * 1000;
 
     private static Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
 
     private static WorldManager writer = null;
 
-    private static GlobalPalette globalPalette;
     private static EntityNames entityMap;
     private static MenuRegistry menuRegistry;
     private static ItemRegistry itemRegistry;
@@ -295,10 +294,6 @@ public class WorldManager extends Thread {
         return c.getBlockStateAt(pos);
     }
 
-    public static void setGlobalPalette(GlobalPalette palette) {
-        globalPalette = palette;
-    }
-
     public static void setEntityMap(EntityNames names) {
         entityMap = names;
     }
@@ -307,9 +302,6 @@ public class WorldManager extends Thread {
         menuRegistry = menus;
     }
 
-    public static GlobalPalette getGlobalPalette() {
-        return globalPalette;
-    }
     public static EntityNames getEntityMap() {
         return entityMap;
     }
@@ -343,20 +335,11 @@ public class WorldManager extends Thread {
     }
 
     /**
-     * Loop to call save periodically.
+     * Periodically save the world.
      */
-    @Override
-    public void run() {
-        setPriority(1);
-        while (true) {
-            try {
-                Thread.sleep(SAVE_DELAY);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            save();
-        }
+    public void start() {
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleWithFixedDelay(WorldManager::save, SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -376,7 +359,7 @@ public class WorldManager extends Thread {
 
         if (!regions.isEmpty()) {
             // convert the values to an array first to prevent blocking any threads
-            Region[] r = regions.values().toArray(new Region[regions.size()]);
+            Region[] r = regions.values().toArray(new Region[0]);
             for (Region region : r) {
                 McaFile file = region.toFile();
                 if (file == null) { continue; }

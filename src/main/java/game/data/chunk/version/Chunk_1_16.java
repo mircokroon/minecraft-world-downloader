@@ -7,11 +7,16 @@ import packets.DataTypeProvider;
 import se.llbit.nbt.SpecificTag;
 
 public class Chunk_1_16 extends Chunk_1_15 {
+    public static final int DATA_VERSION = 2566;
+
     private boolean ignoreOldData;
 
     public Chunk_1_16(CoordinateDim2D location) {
         super(location);
     }
+
+    @Override
+    public int getDataVersion() { return DATA_VERSION; }
 
     @Override
     protected void readIgnoreOldData(DataTypeProvider dataProvider) {

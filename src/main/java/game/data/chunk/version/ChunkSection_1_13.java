@@ -14,13 +14,18 @@ import se.llbit.nbt.Tag;
  */
 public class ChunkSection_1_13 extends ChunkSection {
 
+    @Override
+    public int getDataVersion() {
+        return Chunk_1_13.DATA_VERSION;
+    }
+
     public ChunkSection_1_13(byte y, Palette palette) {
         super(y, palette);
     }
     public ChunkSection_1_13(int sectionY, Tag nbt) {
         super(sectionY, nbt);
         this.setBlocks(nbt.get("BlockStates").longArray());
-        this.palette = new Palette(nbt.get("Palette").asList());
+        this.palette = new Palette(getDataVersion(), nbt.get("Palette").asList());
     }
 
     @Override
