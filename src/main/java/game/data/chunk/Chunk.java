@@ -8,6 +8,7 @@ import game.data.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
 import game.data.container.ContainerManager;
@@ -74,6 +75,7 @@ public abstract class Chunk {
         entities = new HashSet<>();
         colorTransformer = new ColorTransformer();
     }
+    public abstract int getDataVersion();
 
     public boolean isSaved() {
         return saved;
@@ -195,7 +197,7 @@ public abstract class Chunk {
 
         CompoundTag root = new CompoundTag();
         root.add("Level", createNbtLevel());
-        root.add("DataVersion", new IntTag(Game.getDataVersion()));
+        root.add("DataVersion", new IntTag(getDataVersion()));
 
         return new NamedTag("", root);
     }
@@ -307,7 +309,7 @@ public abstract class Chunk {
         int id = getNumericBlockStateAt(x, y, z);
         if (id == 0) { return null; }
 
-        return WorldManager.getGlobalPalette().getState(id);
+        return GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(id);
     }
 
 

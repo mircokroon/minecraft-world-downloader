@@ -4,9 +4,14 @@ import game.data.CoordinateDim2D;
 import packets.DataTypeProvider;
 
 public class Chunk_1_16_2 extends Chunk_1_16 {
+    public static final int DATA_VERSION = 2578;
+
     public Chunk_1_16_2(CoordinateDim2D location) {
         super(location);
     }
+
+    @Override
+    public int getDataVersion() { return DATA_VERSION; }
 
     // this was introduced in 1.16.0 but is already gone in 1.16.2
     @Override

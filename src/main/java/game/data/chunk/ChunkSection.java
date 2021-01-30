@@ -2,6 +2,7 @@ package game.data.chunk;
 
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
@@ -17,6 +18,8 @@ public abstract class ChunkSection {
     protected byte[] skyLight;
     protected byte y;
     protected Palette palette;
+
+    public abstract int getDataVersion();
 
     public ChunkSection(byte y, Palette palette) {
         this.y = y;
@@ -76,7 +79,7 @@ public abstract class ChunkSection {
         for (int y = 15; y >= 0 ; y--) {
             int blockStateId = getNumericBlockStateAt(x, y, z);
 
-            BlockState state = WorldManager.getGlobalPalette().getState(blockStateId);
+            BlockState state = GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(blockStateId);
             if (state == null || !state.isSolid()) {
                 continue;
             }

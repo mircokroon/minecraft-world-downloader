@@ -28,7 +28,6 @@ import proxy.EncryptionManager;
 import proxy.ProxyServer;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Paths;
 
 /**
@@ -40,7 +39,7 @@ public abstract class Game {
     private static Dimension dimension = Dimension.OVERWORLD;
     private static Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
 
-    private static VersionHandler versionHandler;
+    private static ProtocolVersionHandler versionHandler;
     private static String gameVersion;
     private static int protocolVersion = DEFAULT_VERSION;
     private static int dataVersion;
@@ -108,7 +107,7 @@ public abstract class Game {
         enableWorldGen = args.getBoolean("enable-world-gen");
         enableSrvLookup = args.getBoolean("enable-srv-lookup");
 
-        versionHandler = VersionHandler.createVersionHandler();
+        versionHandler = ProtocolVersionHandler.getInstance();
     }
 
     public static void initFolders() {
@@ -151,7 +150,7 @@ public abstract class Game {
     }
 
     public static Protocol getGameProtocol() {
-        Protocol p = versionHandler.getProtocol(protocolVersion);
+        Protocol p = versionHandler.getProtocolByProtocolVersion(protocolVersion);
         Game.dataVersion = p.getDataVersion();
         Game.gameVersion = p.getVersion();
 
@@ -163,9 +162,8 @@ public abstract class Game {
 
     private static void loadVersionRegistries(Protocol p) {
         try {
-            RegistryLoader loader = new RegistryLoader(p.getVersion());
+            RegistryLoader loader = RegistryLoader.forVersion(p.getVersion());
 
-            WorldManager.setGlobalPalette(loader.generateGlobalPalette());
             WorldManager.setEntityMap(loader.generateEntityNames());
             WorldManager.setMenuRegistry(loader.generateMenuRegistry());
             WorldManager.setItemRegistry(loader.generateItemRegistry());
@@ -174,7 +172,7 @@ public abstract class Game {
             ChunkFactory.startChunkParserService();
 
             loader.clean();
-        } catch (InterruptedException | IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             System.exit(1);
         }

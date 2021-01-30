@@ -1,7 +1,5 @@
 package game.data.chunk.palette;
 
-import game.data.WorldManager;
-import game.data.chunk.Chunk;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
@@ -43,14 +41,18 @@ public class Palette {
         }
     }
 
-    public Palette(ListTag nbt) {
+    public Palette(int dataVersion, ListTag nbt) {
         this.bitsPerBlock = computeBitsPerBlock(nbt.size() - 1);
         this.palette = new int[nbt.size()];
 
-        GlobalPalette global = WorldManager.getGlobalPalette();
+        GlobalPalette global = GlobalPaletteProvider.getGlobalPalette(dataVersion);
         for (int i = 0; i < nbt.size(); i++) {
             BlockState bs = global.getState(nbt.get(i).get("Name").stringValue());
-            this.palette[i] = bs.getNumericId();
+
+            // if a block is unknown, just leave it at 0
+            if (bs != null) {
+                this.palette[i] = bs.getNumericId();
+            }
         }
     }
 
@@ -111,7 +113,7 @@ public class Palette {
      */
     public List<SpecificTag> toNbt() {
         List<SpecificTag> tags = new ArrayList<>();
-        GlobalPalette globalPalette = WorldManager.getGlobalPalette();
+        GlobalPalette globalPalette = GlobalPaletteProvider.getGlobalPalette();
 
         if (globalPalette == null) {
             throw new UnsupportedOperationException("Cannot create palette NBT without a global palette.");

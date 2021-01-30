@@ -15,12 +15,16 @@ import se.llbit.nbt.StringTag;
  * Chunk format for 1.13+. Now includes a status tag and the biomes are integers.
  */
 public class Chunk_1_13 extends Chunk {
+    public static final int DATA_VERSION = 1444;
 
     private int[] biomes;
 
     public Chunk_1_13(CoordinateDim2D location) {
         super(location);
     }
+
+    @Override
+    public int getDataVersion() { return DATA_VERSION; }
 
     @Override
     protected ChunkSection createNewChunkSection(byte y, Palette palette) {

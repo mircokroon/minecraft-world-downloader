@@ -261,15 +261,15 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
-        if (dataVersion >= 2578) {
+        if (dataVersion >= Chunk_1_16_2.DATA_VERSION) {
             return new Chunk_1_16_2(chunkPos);
-        } else if (dataVersion >= 2566) {
+        } else if (dataVersion >= Chunk_1_16.DATA_VERSION) {
             return new Chunk_1_16(chunkPos);
-        } else if (dataVersion >= 2200) {
+        } else if (dataVersion >= Chunk_1_15.DATA_VERSION) {
             return new Chunk_1_15(chunkPos);
-        } else if (dataVersion >= 1901) {
+        } else if (dataVersion >= Chunk_1_14.DATA_VERSION) {
             return new Chunk_1_14(chunkPos);
-        } else if (dataVersion >= 1444) {
+        } else if (dataVersion >= Chunk_1_13.DATA_VERSION) {
             return new Chunk_1_13(chunkPos);
         } else {
             return new Chunk_1_12(chunkPos);
@@ -304,7 +304,7 @@ public class ChunkFactory extends Thread {
         return chunk;
     }
 
-    private class TileEntity {
+    private static class TileEntity {
         Coordinate3D position;
         SpecificTag tag;
 
