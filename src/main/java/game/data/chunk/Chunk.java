@@ -363,32 +363,44 @@ public abstract class Chunk {
     public Image getImage() {
         BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
 
-        for (int x = 0; x < 16; x++) {
-            for (int z = 0; z < 16; z++) {
-                int y = heightAt(x, z);
-                BlockState blockState = getBlockStateAt(x, heightAt(x, z), z);
+        try {
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    int y = heightAt(x, z);
+                    BlockState blockState = getBlockStateAt(x, heightAt(x, z), z);
 
-                int color;
-                if (blockState == null) {
-                    color = 0;
-                } else {
-                    color = blockState.getColor();
-                    for (int offset = 1; offset < 24 && blockState.isWater(); offset++) {
-                        blockState = getBlockStateAt(x, heightAt(x, z) - offset, z);
-                        if (blockState == null) { break; }
-                        color = getColorTransformer().blendWith(color, blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
+                    int color;
+                    if (blockState == null) {
+                        color = 0;
+                    } else {
+                        color = blockState.getColor();
+                        for (int offset = 1; offset < 24 && blockState.isWater(); offset++) {
+                            // make sure the offset doesn't put us into the negatives
+                            if (y - offset < 0) {
+                                break;
+                            }
+
+                            blockState = getBlockStateAt(x, y - offset, z);
+                            if (blockState == null) {
+                                break;
+                            }
+                            color = getColorTransformer().blendWith(color, blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
+                        }
+                    }
+
+                    color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
+
+                    i.setRGB(x, z, color);
+
+                    // mark new chunks in a red-ish outline
+                    if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
+                        i.setRGB(x, z, getColorTransformer().highlight(i.getRGB(x, z)));
                     }
                 }
-
-                color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
-
-                i.setRGB(x, z, color);
-
-                // mark new chunks in a red-ish outline
-                if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
-                    i.setRGB(x, z, getColorTransformer().highlight(i.getRGB(x, z)));
-                }
             }
+        } catch (Exception ex) {
+            System.out.println("Unable to draw picture for chunk at " + this.location);
+            ex.printStackTrace();
         }
 
         return i;
