@@ -39,7 +39,6 @@ public class EncryptionManager {
     private OutputStream streamToServer;
     private KeyPair serverKeyPair;
     private String username;
-    private ClientAuthenticator clientAuthenticator;
 
     {
         // generate the keypair for the fake server
@@ -50,9 +49,7 @@ public class EncryptionManager {
         });
     }
 
-    public EncryptionManager() {
-        clientAuthenticator = new ClientAuthenticator();
-    }
+    public EncryptionManager() {  }
 
     public boolean isEncryptionEnabled() {
         return encryptionEnabled;
@@ -252,7 +249,7 @@ public class EncryptionManager {
      */
     private void sendReplacementEncryptionConfirmation() {
         // authenticate the client so that the remote server will accept us
-        boolean client = disconnectOnError(() -> clientAuthenticator.makeRequest(generateServerHash()));
+        boolean client = disconnectOnError(() -> new ClientAuthenticator().makeRequest(generateServerHash()));
         if (!client) { return; }
 
         // verify the connecting client connection is who he claims to be

@@ -40,6 +40,7 @@ public class ChunkBinary {
     public static ChunkBinary fromChunk(Chunk chunk) throws IOException {
         NamedTag nbt = chunk.toNbt();
 
+        // this only happens for empty chunks (hopefully)
         if (nbt == null) {
             return null;
         }
