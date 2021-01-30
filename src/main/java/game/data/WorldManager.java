@@ -51,7 +51,7 @@ import java.util.stream.Stream;
 /**
  * Manage the world, including saving, parsing and updating the GUI.
  */
-public class WorldManager extends Thread {
+public class WorldManager {
     private final static int SAVE_DELAY = 20 * 1000;
 
     private static Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
@@ -343,20 +343,11 @@ public class WorldManager extends Thread {
     }
 
     /**
-     * Loop to call save periodically.
+     * Periodically save the world.
      */
-    @Override
-    public void run() {
-        setPriority(1);
-        while (true) {
-            try {
-                Thread.sleep(SAVE_DELAY);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            save();
-        }
+    public void start() {
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        executor.scheduleWithFixedDelay(WorldManager::save, SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
     /**
