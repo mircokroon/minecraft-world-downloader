@@ -1,5 +1,7 @@
 package game.data;
 
+import game.data.dimension.Dimension;
+
 public class Coordinate3D extends Coordinate2D {
     private int y;
 

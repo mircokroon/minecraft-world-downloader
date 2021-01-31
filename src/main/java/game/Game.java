@@ -2,7 +2,7 @@ package game;
 
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
-import game.data.Dimension;
+import game.data.dimension.Dimension;
 import game.data.registries.RegistryLoader;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
@@ -98,8 +98,6 @@ public abstract class Game {
 
         Palette.setMaskBedrock(args.getBoolean("mask-bedrock"));
 
-        initFolders();
-
         WorldManager.setSaveServiceVariables(args.getBoolean("mark-new-chunks"), args.getBoolean("write-chunks"));
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
@@ -108,17 +106,6 @@ public abstract class Game {
         enableSrvLookup = args.getBoolean("enable-srv-lookup");
 
         versionHandler = ProtocolVersionHandler.getInstance();
-    }
-
-    public static void initFolders() {
-        File dirOverworld = Paths.get(getExportDirectory(), Dimension.OVERWORLD.getPath(),"region").toFile();
-        if (!dirOverworld.isDirectory()) { dirOverworld.mkdirs(); }
-
-        File dirNether = Paths.get(getExportDirectory(), Dimension.NETHER.getPath(), "region").toFile();
-        if (!dirNether.isDirectory()) { dirNether.mkdirs(); }
-
-        File dirEnd = Paths.get(getExportDirectory(),Dimension.END.getPath(),  "region").toFile();
-        if (!dirEnd.isDirectory()) { dirEnd.mkdirs(); }
     }
 
     public static String getExportDirectory() {

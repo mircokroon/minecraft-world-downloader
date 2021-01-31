@@ -6,10 +6,11 @@ import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
-import game.data.chunk.palette.GlobalPalette;
 import game.data.container.ContainerManager;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
+import game.data.dimension.Dimension;
+import game.data.dimension.DimensionCodec;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
@@ -74,8 +75,33 @@ public class WorldManager {
 
     private static ContainerManager containerManager;
 
+    private static DimensionCodec dimensionCodec;
+
     private WorldManager() {
 
+    }
+
+    /**
+     * Set the dimension codec, used to store information about the dimensions that this server supports.
+     */
+    public static void setDimensionCodec(DimensionCodec codec) {
+        dimensionCodec = codec;
+
+        // We can immediately try to write the dimension data to the proper directory.
+        try {
+            Path p = Paths.get(Game.getExportDirectory(), "datapacks", "downloaded", "data");
+            if (codec.write(p)) {
+
+                // we need to copy that pack.mcmeta file from so that Minecraft will recognise the datapack
+                Path packMeta = Paths.get(p.getParent().toString(), "pack.mcmeta");
+                InputStream in = WorldManager.class.getClassLoader().getResourceAsStream("pack.mcmeta");
+                byte[] bytes = IOUtils.toByteArray(in);
+                Files.write(packMeta, bytes);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not write dimension codec. Custom dimensions may not work properly.");
+        }
     }
 
     public static void outlineExistingChunks() throws IOException {
@@ -118,6 +144,10 @@ public class WorldManager {
     private static Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
         Path exportDir = Paths.get(Game.getExportDirectory(), dimension.getPath(), "region");
 
+        if (!exportDir.toFile().exists()) {
+            return Stream.empty();
+        }
+
         Stream<File> stream = Files.walk(exportDir)
             .filter(el -> el.getFileName().toString().endsWith(".mca"))
             .map(Path::toFile);
@@ -143,6 +173,12 @@ public class WorldManager {
      * the resource folder.
      */
     private static void saveLevelData() throws IOException {
+        // make sure the folder exists
+        File directory = Paths.get(Game.getExportDirectory()).toFile();
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
         File levelDat = Paths.get(Game.getExportDirectory(), "level.dat").toFile();
 
         // if there is no level.dat yet, make one from the default
@@ -332,6 +368,10 @@ public class WorldManager {
     public static void touchChunk(Chunk c) {
         c.touch();
         regions.get(c.location.chunkToDimRegion()).touch();
+    }
+
+    public static DimensionCodec getDimensionCodec() {
+        return dimensionCodec;
     }
 
     /**

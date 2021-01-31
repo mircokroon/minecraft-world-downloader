@@ -4,7 +4,7 @@ import game.Game;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
-import game.data.Dimension;
+import game.data.dimension.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.entity.Entity;
 import game.data.chunk.version.Chunk_1_12;
