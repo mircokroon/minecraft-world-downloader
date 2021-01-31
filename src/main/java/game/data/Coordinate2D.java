@@ -1,5 +1,7 @@
 package game.data;
 
+import game.data.dimension.Dimension;
+
 import java.util.Objects;
 
 public class Coordinate2D {

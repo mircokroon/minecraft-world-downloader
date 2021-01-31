@@ -1,5 +1,7 @@
 package game.data;
 
+import game.data.dimension.Dimension;
+
 /**
  * 2D coordinates with a dimension component.
  */

@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
@@ -161,7 +160,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
      * @return the set of chunks actually in range.
      */
     private Collection<CoordinateDim2D> getChunksInRange(Collection<CoordinateDim2D> coords, int rangeX, int rangeZ) {
-        game.data.Dimension dimension = Game.getDimension();
+        game.data.dimension.Dimension dimension = Game.getDimension();
         if (Game.getPlayerPosition() == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;

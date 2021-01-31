@@ -3,7 +3,7 @@ package packets.builder;
 import game.Game;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
-import game.data.Dimension;
+import game.data.dimension.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkFactory;
@@ -11,8 +11,10 @@ import game.data.chunk.entity.Entity;
 import game.data.chunk.entity.MobEntity;
 import game.data.chunk.entity.ObjectEntity;
 import game.data.container.Slot;
+import game.data.dimension.DimensionCodec;
 import se.llbit.nbt.SpecificTag;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,13 +63,16 @@ public class ClientBoundGamePacketBuilder extends PacketBuilder {
                 provider.readNext();
                 provider.readNext();
 
-                int numWorlds = provider.readVarInt();
-                String[] worldNames = provider.readStringArray(numWorlds);
+                int numDimensions = provider.readVarInt();
+                String[] dimensionNames = provider.readStringArray(numDimensions);
 
-                SpecificTag dimensionCodec = provider.readNbtTag();
-                SpecificTag dimension = provider.readNbtTag();
+                WorldManager.setDimensionCodec(DimensionCodec.fromNbt(dimensionNames, provider.readNbtTag()));
 
-                Game.setDimension(Dimension.fromString(provider.readString()));
+                SpecificTag dimensionNbt = provider.readNbtTag();
+
+                Dimension dimension = Dimension.fromString(provider.readString());
+                dimension.registerType(dimensionNbt);
+                Game.setDimension(dimension);
             }
             return true;
         });

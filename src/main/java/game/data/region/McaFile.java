@@ -3,7 +3,7 @@ package game.data.region;
 import game.Game;
 import game.data.Coordinate2D;
 import game.data.CoordinateDim2D;
-import game.data.Dimension;
+import game.data.dimension.Dimension;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import org.apache.commons.io.IOUtils;
@@ -134,6 +134,13 @@ public class McaFile {
         });
 
         byte[] toWrite = join(locations, timestamps, chunkDataList, maxpos[0]);
+
+        // create directory if it doesn't already exist
+        File directory = filePath.getParent().toFile();
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
         Files.write(filePath, toWrite);
     }
 
