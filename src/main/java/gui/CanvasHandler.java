@@ -1,6 +1,6 @@
 package gui;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
@@ -33,8 +33,8 @@ public class CanvasHandler extends JPanel implements ActionListener {
     private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
     private final Color BACKGROUND_COLOR = Color.decode("#292929");
     private final Color UNSAVED_COLOR = new Color(255, 0, 0, 100);
-    private int renderDistance = Game.getRenderDistance();
-    private boolean markUnsaved = Game.markUnsavedChunks();
+    private int renderDistance = Config.getRenderDistance();
+    private boolean markUnsaved = Config.markUnsavedChunks();
     private int renderDistanceX;
     private int renderDistanceZ;
     private Bounds bounds;
@@ -160,12 +160,12 @@ public class CanvasHandler extends JPanel implements ActionListener {
      * @return the set of chunks actually in range.
      */
     private Collection<CoordinateDim2D> getChunksInRange(Collection<CoordinateDim2D> coords, int rangeX, int rangeZ) {
-        game.data.dimension.Dimension dimension = Game.getDimension();
-        if (Game.getPlayerPosition() == null) {
+        game.data.dimension.Dimension dimension = Config.getDimension();
+        if (Config.getPlayerPosition() == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
         }
-        Coordinate2D player = Game.getPlayerPosition().globalToChunk();
+        Coordinate2D player = Config.getPlayerPosition().globalToChunk();
 
         return coords.parallelStream()
             .filter(coordinateDim2D -> coordinateDim2D.getDimension().equals(dimension))
@@ -185,8 +185,8 @@ public class CanvasHandler extends JPanel implements ActionListener {
                         (im, infoflags, x, y, width, height) -> false);
         }
 
-        if (Game.getPlayerPosition() != null) {
-            Coordinate3D playerPosition = Game.getPlayerPosition();
+        if (Config.getPlayerPosition() != null) {
+            Coordinate3D playerPosition = Config.getPlayerPosition();
 
             double playerX = ((playerPosition.getX() / 16.0 - bounds.getMinX()) * gridSize);
             double playerZ = ((playerPosition.getZ() / 16.0 - bounds.getMinZ()) * gridSize);
@@ -261,7 +261,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
 
 
         try {
-            ImageIO.write((RenderedImage) img, "png", new File(Game.getExportDirectory() + "/rendered.png"));
+            ImageIO.write((RenderedImage) img, "png", new File(Config.getExportDirectory() + "/rendered.png"));
         } catch (IOException e) {
             e.printStackTrace();
         }

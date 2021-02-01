@@ -1,6 +1,6 @@
 package game.data;
 
-import game.Game;
+import game.Config;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
@@ -89,7 +89,7 @@ public class WorldManager {
 
         // We can immediately try to write the dimension data to the proper directory.
         try {
-            Path p = Paths.get(Game.getExportDirectory(), "datapacks", "downloaded", "data");
+            Path p = Paths.get(Config.getExportDirectory(), "datapacks", "downloaded", "data");
             if (codec.write(p)) {
 
                 // we need to copy that pack.mcmeta file from so that Minecraft will recognise the datapack
@@ -105,7 +105,7 @@ public class WorldManager {
     }
 
     public static void outlineExistingChunks() throws IOException {
-        Dimension dimension = Game.getDimension();
+        Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, true);
 
         GuiManager.drawExistingChunks(
@@ -114,7 +114,7 @@ public class WorldManager {
     }
 
     public static void drawExistingChunks() throws IOException {
-        Dimension dimension = Game.getDimension();
+        Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, false);
 
         // Step 1: parse all the chunks
@@ -142,7 +142,7 @@ public class WorldManager {
      * Read from the save path to see which chunks have been saved already.
      */
     private static Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
-        Path exportDir = Paths.get(Game.getExportDirectory(), dimension.getPath(), "region");
+        Path exportDir = Paths.get(Config.getExportDirectory(), dimension.getPath(), "region");
 
         if (!exportDir.toFile().exists()) {
             return Stream.empty();
@@ -174,12 +174,12 @@ public class WorldManager {
      */
     private static void saveLevelData() throws IOException {
         // make sure the folder exists
-        File directory = Paths.get(Game.getExportDirectory()).toFile();
+        File directory = Paths.get(Config.getExportDirectory()).toFile();
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        File levelDat = Paths.get(Game.getExportDirectory(), "level.dat").toFile();
+        File levelDat = Paths.get(Config.getExportDirectory(), "level.dat").toFile();
 
         // if there is no level.dat yet, make one from the default
         InputStream fileInput;
@@ -198,7 +198,7 @@ public class WorldManager {
         CompoundTag data = (CompoundTag) root.unpack().get("Data");
 
         // add the player's position
-        Coordinate3D playerPosition = Game.getPlayerPosition();
+        Coordinate3D playerPosition = Config.getPlayerPosition();
         if (playerPosition != null) {
             Tag playerTag = data.get("Player");
             CompoundTag player;
@@ -222,20 +222,20 @@ public class WorldManager {
         }
 
         // add the seed & last played time
-        data.add("RandomSeed", new LongTag(Game.getSeed()));
+        data.add("RandomSeed", new LongTag(Config.getSeed()));
         data.add("LastPlayed", new LongTag(System.currentTimeMillis()));
 
         // add the version
-        if (Game.getDataVersion() > 0 && Game.getGameVersion() != null) {
+        if (Config.getDataVersion() > 0 && Config.getGameVersion() != null) {
             CompoundTag versionTag = new CompoundTag();
-            versionTag.add("Id", new IntTag(Game.getDataVersion()));
-            versionTag.add("Name", new StringTag(Game.getGameVersion()));
+            versionTag.add("Id", new IntTag(Config.getDataVersion()));
+            versionTag.add("Name", new StringTag(Config.getGameVersion()));
             versionTag.add("Snapshot", new ByteTag((byte) 0));
 
             data.add("Version", versionTag);
         }
 
-        if (!Game.isWorldGenEnabled()) {
+        if (!Config.isWorldGenEnabled()) {
             disableWorldGeneration(data);
         }
 
@@ -322,7 +322,7 @@ public class WorldManager {
     }
 
     public static BlockState blockStateAt(Coordinate3D coordinate3D) {
-        Chunk c = WorldManager.getChunk(coordinate3D.globalToChunk().addDimension(Game.getDimension()));
+        Chunk c = WorldManager.getChunk(coordinate3D.globalToChunk().addDimension(Config.getDimension()));
 
         if (c == null) { return null; }
 
@@ -446,7 +446,7 @@ public class WorldManager {
         ChunkFactory.getInstance().clear();
 
         try {
-            File dir = Paths.get(Game.getExportDirectory(), Game.getDimension().getPath(), "region").toFile();
+            File dir = Paths.get(Config.getExportDirectory(), Config.getDimension().getPath(), "region").toFile();
 
             if (dir.isDirectory()) {
                 FileUtils.cleanDirectory(dir);

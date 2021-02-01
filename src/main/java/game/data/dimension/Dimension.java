@@ -1,7 +1,7 @@
 package game.data.dimension;
 
 import com.google.gson.Gson;
-import game.Game;
+import game.Config;
 import game.data.WorldManager;
 import se.llbit.nbt.SpecificTag;
 
@@ -99,7 +99,7 @@ public class Dimension {
 
             // re-write since we write the dimension information on join otherwise
             try {
-                write(Paths.get(Game.getExportDirectory(), "datapacks", "downloaded", "data"));
+                write(Paths.get(Config.getExportDirectory(), "datapacks", "downloaded", "data"));
             } catch (IOException e) {
                 e.printStackTrace();
             }

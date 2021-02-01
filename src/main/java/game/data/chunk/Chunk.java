@@ -1,6 +1,6 @@
 package game.data.chunk;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
 import game.data.CoordinateDim3D;
@@ -176,7 +176,7 @@ public abstract class Chunk {
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
 
-        if (Game.getDimension() == Dimension.OVERWORLD) {
+        if (Config.getDimension() == Dimension.OVERWORLD) {
             section.setSkyLight(dataProvider.readByteArray(LIGHT_SIZE));
         }
     }

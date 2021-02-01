@@ -1,15 +1,18 @@
 package packets.handler;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate3D;
 import game.data.WorldManager;
+import proxy.ConnectionManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ServerBoundGamePacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
-    public ServerBoundGamePacketHandler() {
+    public ServerBoundGamePacketHandler(ConnectionManager connectionManager) {
+        super(connectionManager);
+
         PacketOperator updatePlayerPosition = provider -> {
             double x = provider.readDouble();
             double y = provider.readDouble();
@@ -17,7 +20,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
             Coordinate3D playerPos = new Coordinate3D(x, y, z);
             playerPos.offsetGlobal();
-            Game.setPlayerPosition(playerPos);
+            Config.setPlayerPosition(playerPos);
 
             return true;
         };
@@ -28,7 +31,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
         operations.put("right_click", provider -> {
             // newer versions first include a VarInt with the hand
-            if (Game.getProtocolVersion() >= 477) {
+            if (Config.getProtocolVersion() >= 477) {
                 provider.readVarInt();
             }
 

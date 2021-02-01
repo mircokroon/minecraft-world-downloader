@@ -1,6 +1,6 @@
 package game.data.chunk;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
@@ -64,9 +64,9 @@ public class ChunkFactory extends Thread {
      */
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
         if (WorldManager.getEntityMap() != null) {
-            addEntity(parser.apply(provider), Game.getDimension());
+            addEntity(parser.apply(provider), Config.getDimension());
         } else {
-            this.unparsedEntities.add(new EntityParser(provider, Game.getDimension(), parser));
+            this.unparsedEntities.add(new EntityParser(provider, Config.getDimension(), parser));
         }
     }
 
@@ -110,7 +110,7 @@ public class ChunkFactory extends Thread {
      */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
         position.offsetGlobal();
-        CoordinateDim2D chunkPos = position.globalToChunk().addDimension(Game.getDimension());
+        CoordinateDim2D chunkPos = position.globalToChunk().addDimension(Config.getDimension());
 
         Chunk chunk = WorldManager.getChunk(chunkPos);
 
@@ -135,7 +135,7 @@ public class ChunkFactory extends Thread {
             return;
         }
 
-        unparsedChunks.add(new ChunkParserPair(provider, Game.getDimension()));
+        unparsedChunks.add(new ChunkParserPair(provider, Config.getDimension()));
         notify();
     }
 
@@ -240,15 +240,15 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
-        if (Game.getProtocolVersion() >= 751) {
+        if (Config.getProtocolVersion() >= 751) {
             return new Chunk_1_16_2(chunkPos);
-        } else if (Game.getProtocolVersion() >= 735) {
+        } else if (Config.getProtocolVersion() >= 735) {
             return new Chunk_1_16(chunkPos);
-        } else  if (Game.getProtocolVersion() >= 550) {
+        } else  if (Config.getProtocolVersion() >= 550) {
             return new Chunk_1_15(chunkPos);
-        } else if (Game.getProtocolVersion() >= 440) {
+        } else if (Config.getProtocolVersion() >= 440) {
             return new Chunk_1_14(chunkPos);
-        } else if (Game.getProtocolVersion() >= 341) {
+        } else if (Config.getProtocolVersion() >= 341) {
             return new Chunk_1_13(chunkPos);
         } else {
             return new Chunk_1_12(chunkPos);

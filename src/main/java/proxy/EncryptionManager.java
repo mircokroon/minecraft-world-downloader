@@ -1,6 +1,6 @@
 package proxy;
 
-import game.Game;
+import game.Config;
 import packets.builder.PacketBuilder;
 import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
@@ -314,19 +314,20 @@ public class EncryptionManager {
      */
     public void sendMaskedHandshake(int protocolVersion, int nextMode, String hostExtension) {
         attempt(() -> {
+            ConnectionDetails connectionDetails = Config.getConnectionDetails();
             PacketBuilder builder = new PacketBuilder(0);
 
             builder.writeVarInt(protocolVersion);
-            builder.writeString(Game.getHost() + hostExtension);
-            builder.writeShort(Game.getPortRemote());
+            builder.writeString(connectionDetails.getHost() + hostExtension);
+            builder.writeShort(connectionDetails.getPortRemote());
             builder.writeVarInt(nextMode);
 
             System.out.format(
-                "Performed handshake with %s:%d, protocol version %d :: next state: %s\n",
-                Game.getHost(),
-                Game.getPortRemote(),
-                protocolVersion,
-                nextMode == 1 ? "status" : "login"
+                    "Performed handshake with %s:%d, protocol version %d :: next state: %s\n",
+                    connectionDetails.getHost(),
+                    connectionDetails.getPortRemote(),
+                    protocolVersion,
+                    nextMode == 1 ? "status" : "login"
             );
 
             streamToServer(builder.build());

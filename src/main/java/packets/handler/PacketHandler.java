@@ -4,6 +4,7 @@ import game.protocol.HandshakeProtocol;
 import game.protocol.Protocol;
 import packets.DataProvider;
 import packets.DataTypeProvider;
+import proxy.ConnectionManager;
 
 import java.util.Map;
 import javax.naming.SizeLimitExceededException;
@@ -12,6 +13,8 @@ import javax.naming.SizeLimitExceededException;
  * Family of classes to handle incoming packets and perform appropriate actions based on the packet type and contents.
  */
 public abstract class PacketHandler {
+    private ConnectionManager connectionManager;
+
     protected static Protocol protocol = new HandshakeProtocol();
 
     public static void setProtocol(Protocol protocol) {
@@ -19,6 +22,14 @@ public abstract class PacketHandler {
     }
 
     private DataProvider reader;
+
+    public PacketHandler(ConnectionManager connectionManager) {
+        this.connectionManager = connectionManager;
+    }
+
+    protected ConnectionManager getConnectionManager() {
+        return connectionManager;
+    }
 
     /**
      * Build the given packet, will generate a type provider to parse the contents of the packages to real values. Will
@@ -51,5 +62,6 @@ public abstract class PacketHandler {
 
     public void setReader(DataProvider reader) {
         this.reader = reader;
+        this.reader.setCompressionManager(connectionManager.getCompressionManager());
     }
 }

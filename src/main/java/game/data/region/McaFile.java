@@ -1,6 +1,6 @@
 package game.data.region;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.CoordinateDim2D;
 import game.data.dimension.Dimension;
@@ -95,7 +95,7 @@ public class McaFile {
      */
     public McaFile(CoordinateDim2D pos, Map<Integer, ChunkBinary> chunkMap) {
         regionLocation = pos;
-        Path filePath = Paths.get(Game.getExportDirectory(), pos.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
+        Path filePath = Paths.get(Config.getExportDirectory(), pos.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
 
         this.chunkMap = new HashMap<>();
         if (filePath.toFile().exists()) {

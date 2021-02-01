@@ -1,6 +1,6 @@
 package game.data.region;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.CoordinateDim2D;
 import game.data.chunk.Chunk;
@@ -9,10 +9,8 @@ import game.data.chunk.ChunkFactory;
 import gui.GuiManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -90,7 +88,7 @@ public class Region {
         }
 
         updatedSinceLastWrite = false;
-        Coordinate2D playerPos = Game.getPlayerPosition().globalToChunk();
+        Coordinate2D playerPos = Config.getPlayerPosition().globalToChunk();
 
         Map<Integer, ChunkBinary> chunkBinaryMap = new HashMap<>();
         chunks.keySet().forEach(coordinate -> {

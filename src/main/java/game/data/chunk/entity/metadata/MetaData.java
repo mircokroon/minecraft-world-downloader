@@ -1,6 +1,6 @@
 package game.data.chunk.entity.metadata;
 
-import game.Game;
+import game.Config;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 
@@ -34,7 +34,7 @@ public abstract class MetaData {
      * @return the metadata matching the given version
      */
     public static MetaData getVersionedMetaData() {
-        if (Game.getProtocolVersion() >= 341) {
+        if (Config.getProtocolVersion() >= 341) {
             return new MetaData_1_13();
         } else {
             return new MetaData_1_12();

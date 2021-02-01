@@ -1,14 +1,17 @@
 package packets.handler;
 
-import game.Game;
+import game.Config;
 import game.NetworkMode;
+import proxy.ConnectionManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ServerBoundHandshakePacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
-    public ServerBoundHandshakePacketHandler() {
+    public ServerBoundHandshakePacketHandler(ConnectionManager connectionManager) {
+        super(connectionManager);
+
         operations.put("handshake", provider -> {
             int protocolVersion = provider.readVarInt();
             String host = provider.readString();
@@ -17,15 +20,15 @@ public class ServerBoundHandshakePacketHandler extends PacketHandler {
 
             switch (nextMode) {
                 case 1:
-                    Game.setMode(NetworkMode.STATUS);
+                    getConnectionManager().setMode(NetworkMode.STATUS);
                     break;
                 case 2:
-                    Game.setMode(NetworkMode.LOGIN);
+                    getConnectionManager().setMode(NetworkMode.LOGIN);
                     break;
             }
 
-            Game.setProtocolVersion(protocolVersion);
-            Game.getEncryptionManager().sendMaskedHandshake(protocolVersion, nextMode, getHostExtensions(host));
+            Config.setProtocolVersion(protocolVersion);
+            getConnectionManager().getEncryptionManager().sendMaskedHandshake(protocolVersion, nextMode, getHostExtensions(host));
             return false;
         });
     }

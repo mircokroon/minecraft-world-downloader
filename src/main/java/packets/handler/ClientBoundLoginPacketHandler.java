@@ -1,14 +1,17 @@
 package packets.handler;
 
-import game.Game;
+import game.Config;
 import game.NetworkMode;
+import proxy.ConnectionManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class ClientBoundLoginPacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
-    public ClientBoundLoginPacketHandler() {
+    public ClientBoundLoginPacketHandler(ConnectionManager connectionManager) {
+        super(connectionManager);
+
         operations.put("disconnect", provider -> {
             String reason = provider.readString();
             System.out.println("Disconnect: " + reason);
@@ -21,12 +24,12 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
             int verifyTokenLen = provider.readVarInt();
             byte[] verifyToken = provider.readByteArray(verifyTokenLen);
 
-            Game.getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken, serverId);
+            getConnectionManager().getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken, serverId);
             return false;
         });
         operations.put("login_success", provider -> {
             String uuid;
-            if (Game.getProtocolVersion() >= 735) {
+            if (Config.getProtocolVersion() >= 735) {
                 uuid = provider.readUUID().toString();
             } else {
                 // pre 1.16
@@ -34,12 +37,12 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
             }
             String username = provider.readString();
             System.out.println("Login success: " + username + " logged in with uuid " + uuid);
-            Game.setMode(NetworkMode.GAME);
+            getConnectionManager().setMode(NetworkMode.GAME);
             return true;
         });
         operations.put("set_compression", provider -> {
             int limit = provider.readVarInt();
-            Game.getCompressionManager().enableCompression(limit);
+            getConnectionManager().getCompressionManager().enableCompression(limit);
             return true;
         });
 

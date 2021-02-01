@@ -1,6 +1,6 @@
 package packets.handler;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
 import game.data.dimension.Dimension;
@@ -12,6 +12,7 @@ import game.data.chunk.entity.MobEntity;
 import game.data.chunk.entity.ObjectEntity;
 import game.data.container.Slot;
 import game.data.dimension.DimensionCodec;
+import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.List;
@@ -20,7 +21,8 @@ import java.util.Map;
 
 public class ClientBoundGamePacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
-    public ClientBoundGamePacketHandler() {
+    public ClientBoundGamePacketHandler(ConnectionManager connectionManager) {
+        super(connectionManager);
 
         operations.put("entity_metadata", provider -> {
             Entity ent = ChunkFactory.getInstance().getEntity(provider.readVarInt());
@@ -28,7 +30,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             ent.parseMetadata(provider);
 
             // mark chunk as unsaved
-            Chunk c = WorldManager.getChunk(ent.getPosition().globalToChunk().addDimension(Game.getDimension()));
+            Chunk c = WorldManager.getChunk(ent.getPosition().globalToChunk().addDimension(Config.getDimension()));
             if (c == null) { return true; }
 
             WorldManager.touchChunk(c);
@@ -52,10 +54,10 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             provider.readNext();
 
             // older versions
-            if (Game.getProtocolVersion() < 735) {
+            if (Config.getProtocolVersion() < 735) {
                 int dimensionEnum = provider.readInt();
 
-                Game.setDimension(Dimension.fromId(dimensionEnum));
+                Config.setDimension(Dimension.fromId(dimensionEnum));
 
                 // > 1.16
             } else {
@@ -71,18 +73,18 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
                 Dimension dimension = Dimension.fromString(provider.readString());
                 dimension.registerType(dimensionNbt);
-                Game.setDimension(dimension);
+                Config.setDimension(dimension);
             }
             return true;
         });
 
         operations.put("respawn", provider -> {
-            if (Game.getProtocolVersion() < 735) {
+            if (Config.getProtocolVersion() < 735) {
                 int dimensionEnum = provider.readInt();
-                Game.setDimension(Dimension.fromId(dimensionEnum));
+                Config.setDimension(Dimension.fromId(dimensionEnum));
             } else {
                 SpecificTag dimension = provider.readNbtTag();
-                Game.setDimension(Dimension.fromString(provider.readString()));
+                Config.setDimension(Dimension.fromString(provider.readString()));
             }
             return true;
         });
@@ -96,7 +98,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
         operations.put("chunk_unload", provider -> {
-            WorldManager.unloadChunk(new CoordinateDim2D(provider.readInt(), provider.readInt(), Game.getDimension()));
+            WorldManager.unloadChunk(new CoordinateDim2D(provider.readInt(), provider.readInt(), Config.getDimension()));
             return true;
         });
         operations.put("chunk_update_light", provider -> {
@@ -120,7 +122,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
             Coordinate3D playerPos = new Coordinate3D(x, y, z);
             playerPos.offsetGlobal();
-            Game.setPlayerPosition(playerPos);
+            Config.setPlayerPosition(playerPos);
 
             return true;
         };
@@ -131,7 +133,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("open_window", provider -> {
             int windowId = provider.readNext();
 
-            if (Game.getProtocolVersion() < 477) {
+            if (Config.getProtocolVersion() < 477) {
                 String windowType = provider.readString();
                 String windowTitle = provider.readChat();
 

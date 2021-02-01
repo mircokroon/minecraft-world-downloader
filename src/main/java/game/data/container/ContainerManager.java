@@ -1,9 +1,8 @@
 package game.data.container;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
-import game.data.CoordinateDim2D;
 import game.data.CoordinateDim3D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
@@ -68,7 +67,7 @@ public class ContainerManager {
     }
 
     private void closeWindow(InventoryWindow window) {
-        Chunk c = WorldManager.getChunk(window.containerLocation.globalToChunk().addDimension(Game.getDimension()));
+        Chunk c = WorldManager.getChunk(window.containerLocation.globalToChunk().addDimension(Config.getDimension()));
 
         if (c == null) { return; }
 
@@ -84,7 +83,7 @@ public class ContainerManager {
             handleChest1_12(block, window);
         } else {
             c.addInventory(window);
-            storedWindows.put(window.containerLocation.addDimension3D(Game.getDimension()), window);
+            storedWindows.put(window.containerLocation.addDimension3D(Config.getDimension()), window);
         }
     }
 

@@ -1,16 +1,18 @@
-import game.Game;
+import game.Config;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.commons.lang3.SystemUtils;
+import proxy.ConnectionManager;
 
 import java.nio.file.Paths;
 
 public class Launcher {
     public static void main(String[] args) {
-        Game.init(getArguments(args));
-        Game.startProxy();
+        Config.init(getArguments(args));
+
+        new ConnectionManager().startProxy();
     }
 
     /**

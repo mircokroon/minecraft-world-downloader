@@ -1,6 +1,5 @@
 package packets;
 
-import game.Game;
 import proxy.CompressionManager;
 
 import javax.naming.SizeLimitExceededException;
@@ -12,7 +11,10 @@ public class DataProvider {
 
     public DataProvider(DataReader reader) {
         this.reader = reader;
-        this.compressionManager = Game.getCompressionManager();
+    }
+
+    public void setCompressionManager(CompressionManager compressionManager) {
+        this.compressionManager = compressionManager;
     }
 
     /**

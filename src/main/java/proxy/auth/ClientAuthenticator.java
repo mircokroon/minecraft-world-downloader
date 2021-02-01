@@ -1,7 +1,7 @@
 package proxy.auth;
 
 import com.google.gson.Gson;
-import game.Game;
+import game.Config;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
@@ -149,7 +149,7 @@ public class ClientAuthenticator {
      * @return the contents of the file
      */
     private String getMinecraftPath() {
-        String path = Game.getGamePath();
+        String path = Config.getGamePath();
 
         // handle common %APPDATA% env variable for Windows
         if (path.toUpperCase().contains("%APPDATA%") && System.getenv("appdata") != null) {
