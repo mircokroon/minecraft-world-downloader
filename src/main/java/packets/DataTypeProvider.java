@@ -48,7 +48,7 @@ public class DataTypeProvider {
         byte read;
         do {
             if (!hasNext()) {
-                throw new RuntimeException("VarLong lacks bytes! We may be out of sync now.");
+                throw new RuntimeException("Invalid VarLong found! Packet structure may have changed.");
             }
             read = readNext();
             int value = (read & 0b01111111);

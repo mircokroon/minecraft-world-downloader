@@ -1,7 +1,13 @@
 package packets.builder;
 
 import packets.lib.ByteQueue;
+import se.llbit.nbt.NamedTag;
+import se.llbit.nbt.SpecificTag;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class PacketBuilder {
@@ -82,5 +88,40 @@ public class PacketBuilder {
         bytes.insert((byte) ((shortVal >>> 8) & 0xFF));
         bytes.insert((byte) ((shortVal) & 0xFF));
     }
+
+    /**
+     * Write an int, needs to split into 4 bytes in the correct order.
+     */
+    public void writeInt(int val) {
+        byte[] bytes = new byte[4];
+        bytes[3] = (byte) (val & 0xFF);
+        bytes[2] = (byte) (val >> 8 & 0xFF);
+        bytes[1] = (byte) (val >> 16 & 0xFF);
+        bytes[0] = (byte) (val >> 24 & 0xFF);
+
+        writeByteArray(bytes);
+    }
+
+    public void writeBoolean(boolean val) {
+        bytes.insert((byte) (val ? 0x1 : 0x0));
+    }
+
+    /**
+     * Writes an NBT tag. We need to wrap this in a NamedTag, as the named tag is not written itself.
+     */
+    public void writeNbt(SpecificTag nbt) {
+        try {
+            new NamedTag("", nbt).write(new DataOutputStream(new OutputStream() {
+                @Override
+                public void write(int b) {
+                    bytes.insert((byte) b);
+                }
+            }));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
 }

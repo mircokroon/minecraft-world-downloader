@@ -65,7 +65,7 @@ public class DataReader {
     public static int readVarInt(Supplier<Boolean> hasNext, Supplier<Byte> readNext) {
         VarIntResult res = readVarInt(hasNext, readNext, new VarIntResult(false, 0, 0));
         if (!res.isComplete()) {
-            throw new RuntimeException("VarInt lacks bytes! We may be out of sync now.");
+            throw new RuntimeException("Invalid VarInt found! Packet structure may have changed.");
         }
         return res.getResult();
     }
