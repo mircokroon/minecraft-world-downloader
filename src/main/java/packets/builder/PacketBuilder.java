@@ -1,13 +1,14 @@
 package packets.builder;
 
+import packets.UUID;
 import packets.lib.ByteQueue;
+import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class PacketBuilder {
@@ -16,6 +17,17 @@ public class PacketBuilder {
     public PacketBuilder(int packetId) {
         this.bytes = new ByteQueue();
         writeVarInt(packetId);
+    }
+
+    /**
+     * Construct a message packet for the client.
+     */
+    public static PacketBuilder constructClientMessage(String message, MessageTarget target) {
+        PacketBuilder builder = new PacketBuilder(0x0E);
+        builder.writeString("{\"text\": \"" + message + "\"}");
+        builder.writeByte(target.getIdentifier());
+        builder.writeUUID(new UUID(0L, 0L));
+        return builder;
     }
 
     /**
@@ -40,6 +52,12 @@ public class PacketBuilder {
             }
             destination.insert(temp);
         } while (value != 0);
+    }
+
+    private static ByteQueue createVarInt(int value) {
+        ByteQueue res = new ByteQueue(5);
+        writeVarInt(res, value);
+        return res;
     }
 
     /**
@@ -77,6 +95,44 @@ public class PacketBuilder {
 
     public ByteQueue build() {
         prependPacketLength();
+        return bytes;
+    }
+
+    /**
+     * If we're building a packet and we are given a compressionManager, that means we need to compress the packet
+     * if it's large enough. The compression manager does compressing, but we still need to prefix the size and let the
+     * client know if it was actually compressed.
+     */
+    public ByteQueue build(CompressionManager compressionManager) {
+        if (!compressionManager.isCompressionEnabled()) {
+            return build();
+        }
+
+        byte[] original = bytes.toArray();
+        byte[] compressed = compressionManager.compressPacket(original);
+
+        // no compression happened
+        if (compressed == original) {
+            // without compression the prefix is packet length + 0 byte
+            ByteQueue prefix = createVarInt(original.length + 1);
+            prefix.insert((byte) 0);
+
+            this.bytes.prepend(prefix);
+        } else {
+            System.out.println( "compressed" );
+            // with compression we need to first prefix a varInt of the uncompressed data length
+            ByteQueue dataLen = createVarInt(original.length);
+
+            // ...and then prefix the length of the entire packet
+            ByteQueue packetLen = createVarInt(dataLen.size() + compressed.length);
+
+            byte[] res = new byte[compressed.length + dataLen.size() + packetLen.size()];
+            System.arraycopy(packetLen.toArray(), 0, res, 0, packetLen.size());
+            System.arraycopy(dataLen.toArray(), 0, res, packetLen.size(), dataLen.size());
+            System.arraycopy(compressed, 0, res, packetLen.size() + dataLen.size(), compressed.length);
+
+            return new ByteQueue(res);
+        }
         return bytes;
     }
 
@@ -123,5 +179,26 @@ public class PacketBuilder {
     }
 
 
+    public void writeByte(byte b) {
+        bytes.insert(b);
+    }
 
+    public void writeUUID(UUID uuid) {
+        writeLong(uuid.getLower());
+        writeLong(uuid.getUpper());
+    }
+
+    void writeLong(long val) {
+        byte[] bytes = new byte[8];
+        bytes[7] = (byte) (val & 0xFF);
+        bytes[6] = (byte) (val >> 8 & 0xFF);
+        bytes[5] = (byte) (val >> 16 & 0xFF);
+        bytes[4] = (byte) (val >> 24 & 0xFF);
+        bytes[3] = (byte) (val >> 32 & 0xFF);
+        bytes[2] = (byte) (val >> 40 & 0xFF);
+        bytes[1] = (byte) (val >> 48 & 0xFF);
+        bytes[0] = (byte) (val >> 56 & 0xFF);
+
+        writeByteArray(bytes);
+    }
 }

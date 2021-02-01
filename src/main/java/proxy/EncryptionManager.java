@@ -20,6 +20,7 @@ import java.security.MessageDigest;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
 
@@ -38,9 +39,11 @@ public class EncryptionManager {
     private OutputStream streamToServer;
     private KeyPair serverKeyPair;
     private String username;
+    private ConcurrentLinkedQueue<ByteQueue> insertedPackets;
+    private CompressionManager compressionManager;
 
     {
-        // generate the keypair for the fake server
+        // generate the keypair for the local server
         attempt(() -> {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
             keyGen.initialize(1024);
@@ -48,10 +51,21 @@ public class EncryptionManager {
         });
     }
 
-    public EncryptionManager() {  }
+    public EncryptionManager(CompressionManager compressionManager) {
+        this.compressionManager = compressionManager;
+        this.insertedPackets = new ConcurrentLinkedQueue<>();
+    }
 
     public boolean isEncryptionEnabled() {
         return encryptionEnabled;
+    }
+
+    /**
+     * Adds a packet to the queue. This queue is checked whenever a packet is sent, and they will be sent to the
+     * client after.
+     */
+    public void enqueuePacket(PacketBuilder packet) {
+        insertedPackets.add(packet.build(compressionManager));
     }
 
     /**
@@ -120,11 +134,16 @@ public class EncryptionManager {
     }
 
     /**
-     * Method to stream a given queue of bytes to the client.
+     * Method to stream a given queue of bytes to the client. Whenever this is called it also checks whether we have
+     * any injected packets queued to be sent to the client.
      * @param bytes the bytes to stream
      */
     public void streamToClient(ByteQueue bytes) throws IOException {
         streamTo(streamToClient, bytes, this::clientBoundEncrypt);
+
+        while (!insertedPackets.isEmpty()) {
+            streamTo(streamToClient, insertedPackets.remove(), this::clientBoundEncrypt);
+        }
     }
 
     /**
@@ -135,8 +154,7 @@ public class EncryptionManager {
      * @param encrypt the encryption operator
      */
     private void streamTo(OutputStream stream, ByteQueue bytes, UnaryOperator<byte[]> encrypt) throws IOException {
-        byte[] b = new byte[bytes.size()];
-        bytes.copyTo(b);
+        byte[] b = bytes.toArray();
 
         byte[] encrypted = encrypt.apply(b);
 

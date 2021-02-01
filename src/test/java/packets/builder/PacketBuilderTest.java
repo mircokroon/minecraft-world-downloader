@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import packets.DataTypeProvider;
+import packets.UUID;
 import packets.lib.ByteQueue;
 import se.llbit.nbt.*;
 
@@ -148,5 +149,25 @@ class PacketBuilderAndParserTest {
         builder.writeNbt(before);
 
         assertThat(getParser().readNbtTag()).isEqualTo(before);
+    }
+
+    @Test
+    void longTest() {
+        long before = 2L^48 - 2L^12;
+        builder.writeLong(before);
+
+        long after = getParser().readLong();
+
+        assertThat(after).isEqualTo(before);
+    }
+
+    @Test
+    void uuidTest() {
+        UUID before = new UUID(2L^42, 2L^12);
+        builder.writeUUID(before);
+
+        UUID after = getParser().readUUID();
+
+        assertThat(after).isEqualTo(before);
     }
 }

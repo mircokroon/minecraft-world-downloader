@@ -13,7 +13,7 @@ import javax.naming.SizeLimitExceededException;
  * Family of classes to handle incoming packets and perform appropriate actions based on the packet type and contents.
  */
 public abstract class PacketHandler {
-    private ConnectionManager connectionManager;
+    private final ConnectionManager connectionManager;
 
     protected static Protocol protocol = new HandshakeProtocol();
 

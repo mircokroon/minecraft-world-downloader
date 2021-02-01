@@ -56,6 +56,13 @@ public class ByteQueue {
         // We don't care about front and rear for an empty queue.
     }
 
+    public ByteQueue(byte[] arr) {
+        this.data = arr;
+        size = arr.length;
+        front = 0;
+        rear = arr.length;
+    }
+
 
     /**
      * Initialize an empty queue with a specified initial capacity. Note that the
@@ -244,5 +251,11 @@ public class ByteQueue {
             System.arraycopy(data, front, copy, 0, n1);
             System.arraycopy(data, 0, copy, n1, n2);
         }
+    }
+
+    public byte[] toArray() {
+        byte[] b = new byte[this.size()];
+        copyTo(b);
+        return b;
     }
 }

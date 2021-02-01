@@ -10,7 +10,11 @@ import game.data.chunk.palette.Palette;
 import game.protocol.Protocol;
 import gui.GuiManager;
 import net.sourceforge.argparse4j.inf.Namespace;
+import packets.builder.PacketBuilder;
+import packets.lib.ByteQueue;
 import proxy.ConnectionDetails;
+
+import java.util.function.Consumer;
 
 /**
  * Class the manage the central configuration and set up.
@@ -19,6 +23,7 @@ public abstract class Config {
     private static final int DEFAULT_VERSION = 340;
     private static Dimension dimension = Dimension.OVERWORLD;
     private static Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
+    private static Consumer<PacketBuilder> injector;
 
     private static ProtocolVersionHandler versionHandler;
     private static String gameVersion;
@@ -147,5 +152,16 @@ public abstract class Config {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    /**
+     * Packet injector allows new packets to be sent to the client.
+     */
+    public static void registerPacketInjector(Consumer<PacketBuilder> injector) {
+        Config.injector = injector;
+    }
+
+    public static Consumer<PacketBuilder> getPacketInjector() {
+        return injector;
     }
 }

@@ -2,6 +2,7 @@ package proxy;
 
 import game.Config;
 import game.NetworkMode;
+import game.data.WorldManager;
 import game.protocol.HandshakeProtocol;
 import game.protocol.LoginProtocol;
 import game.protocol.StatusProtocol;
@@ -56,7 +57,7 @@ public class ConnectionManager {
      */
     public void startProxy() {
         compressionManager = new CompressionManager();
-        encryptionManager = new EncryptionManager();
+        encryptionManager = new EncryptionManager(compressionManager);
         serverBoundDataReader = DataReader.serverBound(encryptionManager);
         clientBoundDataReader = DataReader.clientBound(encryptionManager);
 
@@ -64,6 +65,8 @@ public class ConnectionManager {
 
         ProxyServer proxy = new ProxyServer(this, Config.getConnectionDetails());
         proxy.runServer(serverBoundDataReader, clientBoundDataReader);
+
+        Config.registerPacketInjector(this.getEncryptionManager()::enqueuePacket);
     }
 
     /**
