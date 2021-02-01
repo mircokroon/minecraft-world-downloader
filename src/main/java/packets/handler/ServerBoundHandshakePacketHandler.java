@@ -1,4 +1,4 @@
-package packets.builder;
+package packets.handler;
 
 import game.Game;
 import game.NetworkMode;
@@ -6,9 +6,9 @@ import game.NetworkMode;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ServerBoundHandshakePacketBuilder extends PacketBuilder {
+public class ServerBoundHandshakePacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
-    public ServerBoundHandshakePacketBuilder() {
+    public ServerBoundHandshakePacketHandler() {
         operations.put("handshake", provider -> {
             int protocolVersion = provider.readVarInt();
             String host = provider.readString();

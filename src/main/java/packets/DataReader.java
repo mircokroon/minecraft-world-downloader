@@ -1,7 +1,7 @@
 package packets;
 
 import game.Game;
-import packets.builder.PacketBuilder;
+import packets.handler.PacketHandler;
 import packets.lib.ByteQueue;
 import proxy.ByteConsumer;
 import proxy.EncryptionManager;
@@ -14,11 +14,11 @@ public class DataReader {
     private static final int QUEUE_INIT_SIZE = 2 << 15 - 1;
     private ByteQueue queue;
     private ByteQueue currentPacket;
-    private PacketBuilder builder;
+    private PacketHandler packetHandler;
 
-    private EncryptionManager encryptionManager;
-    private UnaryOperator<byte[]> decrypt;
-    private ByteConsumer transmit;
+    private final EncryptionManager encryptionManager;
+    private final UnaryOperator<byte[]> decrypt;
+    private final ByteConsumer transmit;
 
     private VarIntResult varIntPacketSize;
 
@@ -158,7 +158,7 @@ public class DataReader {
             // parse the packet (including decompression)
             boolean forwardPacket = true;
             try {
-                forwardPacket = getBuilder().build(nextPacketSize);
+                forwardPacket = getPacketHandler().handle(nextPacketSize);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -207,13 +207,13 @@ public class DataReader {
     }
 
 
-    private PacketBuilder getBuilder() {
-        return builder;
+    private PacketHandler getPacketHandler() {
+        return packetHandler;
     }
 
-    public void setBuilder(PacketBuilder builder) {
-        this.builder = builder;
-        builder.setReader(new DataProvider(this));
+    public void setPacketHandler(PacketHandler packetHandler) {
+        this.packetHandler = packetHandler;
+        packetHandler.setReader(new DataProvider(this));
     }
 
     /**

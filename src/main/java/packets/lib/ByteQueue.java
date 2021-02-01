@@ -41,7 +41,7 @@ public class ByteQueue {
 
     @Override
     public String toString() {
-        return Arrays.toString(data);
+        return size + ":" + Arrays.toString(data);
     }
 
     /**
@@ -50,7 +50,7 @@ public class ByteQueue {
      * memory) until this capacity is reached.
      **/
     public ByteQueue() {
-        final int INITIAL_CAPACITY = 10;
+        final int INITIAL_CAPACITY = 32;
         size = 0;
         data = new byte[INITIAL_CAPACITY];
         // We don't care about front and rear for an empty queue.
@@ -159,11 +159,38 @@ public class ByteQueue {
         if (size == 0) {
             front = 0;
             rear = 0;
-        } else
+        } else {
             rear = nextIndex(rear);
+        }
 
         data[rear] = item;
         size++;
+    }
+
+
+    /**
+     * Adds data to the start of the queue. We do not amortize this as it's usually the last data to be added.
+     */
+    public void prepend(ByteQueue other) {
+        if (front != 0) {
+            throw new UnsupportedOperationException("Cannot prepend unless queue starts at 0.");
+        }
+
+        int requiredLength = size + other.size();
+        if (requiredLength >= this.data.length) {
+            // if the data array is too small, we create a new array and copy both there
+            byte[] res = new byte[requiredLength];
+            System.arraycopy(other.data, 0, res, 0, other.size);
+            System.arraycopy(this.data, 0, res, other.size, size);
+            this.data = res;
+        } else {
+            // if the data array is large enough, we move the original data and then write the new data
+            // at the start
+            System.arraycopy(this.data, 0, this.data, other.size, size);
+            System.arraycopy(other.data, 0, this.data, 0, other.size);
+        }
+        this.rear += other.size();
+        this.size += other.size();
     }
 
 

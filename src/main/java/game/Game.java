@@ -14,21 +14,18 @@ import game.protocol.StatusProtocol;
 import gui.GuiManager;
 import net.sourceforge.argparse4j.inf.Namespace;
 import packets.DataReader;
-import packets.builder.ClientBoundGamePacketBuilder;
-import packets.builder.ClientBoundHandshakePacketBuilder;
-import packets.builder.ClientBoundLoginPacketBuilder;
-import packets.builder.ClientBoundStatusPacketBuilder;
-import packets.builder.PacketBuilder;
-import packets.builder.ServerBoundGamePacketBuilder;
-import packets.builder.ServerBoundHandshakePacketBuilder;
-import packets.builder.ServerBoundLoginPacketBuilder;
-import packets.builder.ServerBoundStatusPacketBuilder;
+import packets.handler.ClientBoundGamePacketHandler;
+import packets.handler.ClientBoundHandshakePacketHandler;
+import packets.handler.ClientBoundLoginPacketHandler;
+import packets.handler.ClientBoundStatusPacketHandler;
+import packets.handler.PacketHandler;
+import packets.handler.ServerBoundGamePacketHandler;
+import packets.handler.ServerBoundHandshakePacketHandler;
+import packets.handler.ServerBoundLoginPacketHandler;
+import packets.handler.ServerBoundStatusPacketHandler;
 import proxy.CompressionManager;
 import proxy.EncryptionManager;
 import proxy.ProxyServer;
-
-import java.io.File;
-import java.nio.file.Paths;
 
 /**
  * Class the manage the central configuration and set up.
@@ -174,24 +171,24 @@ public abstract class Game {
 
         switch (mode) {
             case STATUS:
-                PacketBuilder.setProtocol(new StatusProtocol());
-                serverBoundDataReader.setBuilder(new ServerBoundStatusPacketBuilder());
-                clientBoundDataReader.setBuilder(new ClientBoundStatusPacketBuilder());
+                PacketHandler.setProtocol(new StatusProtocol());
+                serverBoundDataReader.setPacketHandler(new ServerBoundStatusPacketHandler());
+                clientBoundDataReader.setPacketHandler(new ClientBoundStatusPacketHandler());
                 break;
             case LOGIN:
-                PacketBuilder.setProtocol(new LoginProtocol());
-                serverBoundDataReader.setBuilder(new ServerBoundLoginPacketBuilder());
-                clientBoundDataReader.setBuilder(new ClientBoundLoginPacketBuilder());
+                PacketHandler.setProtocol(new LoginProtocol());
+                serverBoundDataReader.setPacketHandler(new ServerBoundLoginPacketHandler());
+                clientBoundDataReader.setPacketHandler(new ClientBoundLoginPacketHandler());
                 break;
             case GAME:
-                PacketBuilder.setProtocol(getGameProtocol());
-                serverBoundDataReader.setBuilder(new ServerBoundGamePacketBuilder());
-                clientBoundDataReader.setBuilder(new ClientBoundGamePacketBuilder());
+                PacketHandler.setProtocol(getGameProtocol());
+                serverBoundDataReader.setPacketHandler(new ServerBoundGamePacketHandler());
+                clientBoundDataReader.setPacketHandler(new ClientBoundGamePacketHandler());
                 break;
             case HANDSHAKE:
-                PacketBuilder.setProtocol(new HandshakeProtocol());
-                serverBoundDataReader.setBuilder(new ServerBoundHandshakePacketBuilder());
-                clientBoundDataReader.setBuilder(new ClientBoundHandshakePacketBuilder());
+                PacketHandler.setProtocol(new HandshakeProtocol());
+                serverBoundDataReader.setPacketHandler(new ServerBoundHandshakePacketHandler());
+                clientBoundDataReader.setPacketHandler(new ClientBoundHandshakePacketHandler());
                 break;
         }
     }

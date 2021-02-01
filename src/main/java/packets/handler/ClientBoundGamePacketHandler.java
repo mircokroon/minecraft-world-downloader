@@ -1,4 +1,4 @@
-package packets.builder;
+package packets.handler;
 
 import game.Game;
 import game.data.Coordinate3D;
@@ -14,14 +14,13 @@ import game.data.container.Slot;
 import game.data.dimension.DimensionCodec;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClientBoundGamePacketBuilder extends PacketBuilder {
+public class ClientBoundGamePacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
-    public ClientBoundGamePacketBuilder() {
+    public ClientBoundGamePacketHandler() {
 
         operations.put("entity_metadata", provider -> {
             Entity ent = ChunkFactory.getInstance().getEntity(provider.readVarInt());
