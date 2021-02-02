@@ -25,7 +25,6 @@ public class ConnectionManager {
     }
 
     public void setMode(NetworkMode mode) {
-        System.out.println("Set mode to " + mode);
         this.mode = mode;
 
         switch (mode) {

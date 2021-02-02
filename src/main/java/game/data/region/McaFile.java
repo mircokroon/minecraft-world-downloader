@@ -222,4 +222,13 @@ public class McaFile {
         ));
         return res;
     }
+
+    public ChunkBinary getChunkBinary(CoordinateDim2D coord) {
+        Map<CoordinateDim2D, ChunkBinary> res = new HashMap<>();
+        chunkMap.forEach((key, value) -> res.put(
+                new CoordinateDim2D(intToCoordinate(key), coord.getDimension()),
+                value
+        ));
+        return res.get(coord);
+    }
 }

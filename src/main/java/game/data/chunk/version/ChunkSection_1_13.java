@@ -25,6 +25,8 @@ public class ChunkSection_1_13 extends ChunkSection {
     public ChunkSection_1_13(int sectionY, Tag nbt) {
         super(sectionY, nbt);
         this.setBlocks(nbt.get("BlockStates").longArray());
+        this.setBlockLight(nbt.get("BlockLight").byteArray());
+        this.setSkyLight(nbt.get("SkyLight").byteArray());
         this.palette = new Palette(getDataVersion(), nbt.get("Palette").asList());
     }
 

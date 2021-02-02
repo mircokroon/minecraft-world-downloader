@@ -1,10 +1,12 @@
 package game.data.chunk.palette;
 
 import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -131,5 +133,29 @@ public class Palette {
 
     public int getBitsPerBlock() {
         return bitsPerBlock;
+    }
+
+    public void write(PacketBuilder packet) {
+        packet.writeVarInt(bitsPerBlock);
+        packet.writeVarInt(palette.length);
+        packet.writeVarIntArray(palette);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Palette palette1 = (Palette) o;
+
+        if (bitsPerBlock != palette1.bitsPerBlock) return false;
+        return Arrays.equals(palette, palette1.palette);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = bitsPerBlock;
+        result = 31 * result + Arrays.hashCode(palette);
+        return result;
     }
 }

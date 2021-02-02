@@ -2,6 +2,7 @@ package game.data.chunk.version;
 
 import game.data.CoordinateDim2D;
 import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 
 public class Chunk_1_16_2 extends Chunk_1_16 {
     public static final int DATA_VERSION = 2578;
@@ -22,5 +23,12 @@ public class Chunk_1_16_2 extends Chunk_1_16 {
     protected void parse3DBiomeData(DataTypeProvider provider) {
         int biomesLength = provider.readVarInt();
         setBiomes(provider.readVarIntArray(biomesLength));
+    }
+
+    @Override
+    protected void writeBiomes(PacketBuilder packet) {
+        int[] biomes = getBiomes();
+        packet.writeVarInt(biomes.length);
+        packet.writeVarIntArray(biomes);
     }
 }

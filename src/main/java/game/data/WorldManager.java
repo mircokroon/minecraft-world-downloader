@@ -2,6 +2,7 @@ package game.data;
 
 import game.Config;
 import game.data.chunk.Chunk;
+import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
@@ -16,6 +17,7 @@ import game.data.region.Region;
 import gui.GuiManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import packets.builder.PacketBuilder;
 import proxy.CompressionManager;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -53,38 +55,52 @@ import java.util.stream.Stream;
  * Manage the world, including saving, parsing and updating the GUI.
  */
 public class WorldManager {
-    private final static int SAVE_DELAY = 20 * 1000;
+    private static final int SAVE_DELAY = 20 * 1000;
 
-    private static Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
+    private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
 
-    private static WorldManager writer = null;
+    private EntityNames entityMap;
+    private MenuRegistry menuRegistry;
+    private ItemRegistry itemRegistry;
 
-    private static EntityNames entityMap;
-    private static MenuRegistry menuRegistry;
-    private static ItemRegistry itemRegistry;
+    private BlockColors blockColors;
 
-    private static BlockColors blockColors;
+    private boolean markNewChunks;
 
-    private static boolean markNewChunks;
+    private boolean writeChunks;
 
-    private static boolean writeChunks;
+    private boolean isStarted;
 
-    private static boolean isPaused;
+    private boolean isPaused;
 
-    private static boolean isSaving;
+    private boolean isSaving;
 
-    private static ContainerManager containerManager;
+    private ContainerManager containerManager;
 
-    private static DimensionCodec dimensionCodec;
+    private DimensionCodec dimensionCodec;
 
     private WorldManager() {
-
+        this.isStarted = false;
     }
+
+    private static WorldManager instance;
+
+    public static WorldManager getInstance() {
+        if (instance == null) {
+            instance = new WorldManager();
+        }
+        return instance;
+    }
+
+    public static void setInstance(WorldManager worldManager) {
+        instance = worldManager;
+    }
+
 
     /**
      * Set the dimension codec, used to store information about the dimensions that this server supports.
      */
-    public static void setDimensionCodec(DimensionCodec codec) {
+    public void setDimensionCodec(DimensionCodec codec) {
         dimensionCodec = codec;
 
         // We can immediately try to write the dimension data to the proper directory.
@@ -104,23 +120,23 @@ public class WorldManager {
         }
     }
 
-    public static void outlineExistingChunks() throws IOException {
+    public void outlineExistingChunks() throws IOException {
         Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, true);
 
         GuiManager.drawExistingChunks(
-            files.flatMap(el -> el.getChunkPositions(dimension).stream()).collect(Collectors.toList())
+                files.flatMap(el -> el.getChunkPositions(dimension).stream()).collect(Collectors.toList())
         );
     }
 
-    public static void drawExistingChunks() throws IOException {
+    public void drawExistingChunks() throws IOException {
         Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, false);
 
         // Step 1: parse all the chunks
         Set<Map.Entry<CoordinateDim2D, Chunk>> parsedChunks = files.parallel()
-            .flatMap(el -> el.getParsedChunks(dimension).entrySet().stream())
-            .collect(Collectors.toSet());
+                .flatMap(el -> el.getParsedChunks(dimension).entrySet().stream())
+                .collect(Collectors.toSet());
 
         // Step 2: add all chunks to the WorldManager if it doesn't have them yet
         Set<CoordinateDim2D> toDelete = new HashSet<>();
@@ -135,13 +151,13 @@ public class WorldManager {
         parsedChunks.forEach(entry -> GuiManager.setChunkLoaded(entry.getKey(), entry.getValue()));
 
         // Step 4: delete the newly added chunks
-        toDelete.forEach(WorldManager::unloadChunk);
+        toDelete.forEach(this::unloadChunk);
     }
 
     /**
      * Read from the save path to see which chunks have been saved already.
      */
-    private static Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
+    private Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
         Path exportDir = Paths.get(Config.getExportDirectory(), dimension.getPath(), "region");
 
         if (!exportDir.toFile().exists()) {
@@ -149,30 +165,30 @@ public class WorldManager {
         }
 
         Stream<File> stream = Files.walk(exportDir)
-            .filter(el -> el.getFileName().toString().endsWith(".mca"))
-            .map(Path::toFile);
+                .filter(el -> el.getFileName().toString().endsWith(".mca"))
+                .map(Path::toFile);
 
         if (limit) {
             stream = stream.limit(100); // don't load more than 100 region files
         }
 
         return stream.filter(el -> el.length() > 0)
-            .map(el -> {
-                try {
-                    return new McaFile(el);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            })
-            .filter(Objects::nonNull);
+                .map(el -> {
+                    try {
+                        return new McaFile(el);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull);
     }
 
     /**
      * Save the level.dat file so the world can be easily opened. If one doesn't exist, use the default one from
      * the resource folder.
      */
-    private static void saveLevelData() throws IOException {
+    private void saveLevelData() throws IOException {
         // make sure the folder exists
         File directory = Paths.get(Config.getExportDirectory()).toFile();
         if (!directory.exists()) {
@@ -192,7 +208,7 @@ public class WorldManager {
 
         // get default level.dat
         Tag root = NamedTag.read(
-            new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
+                new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
         );
 
         CompoundTag data = (CompoundTag) root.unpack().get("Data");
@@ -210,9 +226,9 @@ public class WorldManager {
             }
 
             player.add("Pos", new ListTag(Tag.TAG_DOUBLE, Arrays.asList(
-                new DoubleTag(playerPosition.getX() * 1.0),
-                new DoubleTag(playerPosition.getY() * 1.0),
-                new DoubleTag(playerPosition.getZ() * 1.0)
+                    new DoubleTag(playerPosition.getX() * 1.0),
+                    new DoubleTag(playerPosition.getY() * 1.0),
+                    new DoubleTag(playerPosition.getZ() * 1.0)
             )));
 
             // set the world spawn to match the last known player location
@@ -250,7 +266,7 @@ public class WorldManager {
     /**
      * Set world type to a superflat void world.
      */
-    private static void disableWorldGeneration(CompoundTag data) {
+    private void disableWorldGeneration(CompoundTag data) {
         data.add("generatorName", new StringTag("flat"));
 
         // this is the 1.12.2 superflat format, but it still works in later versions.
@@ -260,9 +276,9 @@ public class WorldManager {
     /**
      * Set the config variables for the save service.
      */
-    public static void setSaveServiceVariables(boolean markNewChunks, Boolean writeChunks) {
-        WorldManager.markNewChunks = markNewChunks;
-        WorldManager.writeChunks = writeChunks;
+    public void setSaveServiceVariables(boolean markNewChunks, Boolean writeChunks) {
+        this.markNewChunks = markNewChunks;
+        this.writeChunks = writeChunks;
 
         blockColors = BlockColors.create();
     }
@@ -270,13 +286,12 @@ public class WorldManager {
     /**
      * Start the periodic saving service.
      */
-    public static void startSaveService() {
-        if (writer != null) {
+    public void startSaveService() {
+        if (isStarted) {
             return;
         }
 
-        writer = new WorldManager();
-        writer.start();
+        instance.start();
 
         ChunkFactory.getInstance().parseEntities();
     }
@@ -285,7 +300,7 @@ public class WorldManager {
      * Add a parsed chunk to the correct region.
      * @param chunk      the chunk
      */
-    public static void loadChunk(Chunk chunk, boolean drawInGui) {
+    public void loadChunk(Chunk chunk, boolean drawInGui) {
         if (!drawInGui || writeChunks) {
             CoordinateDim2D regionCoordinates = chunk.location.chunkToDimRegion();
 
@@ -307,22 +322,22 @@ public class WorldManager {
      * @param coordinate the global chunk coordinates
      * @return the chunk
      */
-    public static Chunk getChunk(CoordinateDim2D coordinate) {
+    public Chunk getChunk(CoordinateDim2D coordinate) {
         if (!regions.containsKey(coordinate.chunkToDimRegion())) {
             return null;
         }
         return regions.get(coordinate.chunkToDimRegion()).getChunk(coordinate);
     }
 
-    public static void unloadChunk(CoordinateDim2D coordinate) {
+    public void unloadChunk(CoordinateDim2D coordinate) {
         Region r = regions.get(coordinate.chunkToDimRegion());
         if (r != null) {
             r.removeChunk(coordinate);
         }
     }
 
-    public static BlockState blockStateAt(Coordinate3D coordinate3D) {
-        Chunk c = WorldManager.getChunk(coordinate3D.globalToChunk().addDimension(Config.getDimension()));
+    public BlockState blockStateAt(Coordinate3D coordinate3D) {
+        Chunk c = this.getChunk(coordinate3D.globalToChunk().addDimension(Config.getDimension()));
 
         if (c == null) { return null; }
 
@@ -330,48 +345,77 @@ public class WorldManager {
         return c.getBlockStateAt(pos);
     }
 
-    public static void setEntityMap(EntityNames names) {
+    public void setEntityMap(EntityNames names) {
         entityMap = names;
     }
 
-    public static void setMenuRegistry(MenuRegistry menus) {
+    public void setMenuRegistry(MenuRegistry menus) {
         menuRegistry = menus;
     }
 
-    public static EntityNames getEntityMap() {
+    public EntityNames getEntityMap() {
         return entityMap;
     }
 
-    public static BlockColors getBlockColors() {
+    public BlockColors getBlockColors() {
         return blockColors;
     }
 
-    public static boolean markNewChunks() {
+    public boolean markNewChunks() {
         return markNewChunks;
     }
 
-    public static MenuRegistry getMenuRegistry() {
+    public MenuRegistry getMenuRegistry() {
         return menuRegistry;
     }
 
-    public static ItemRegistry getItemRegistry() {
+    public ItemRegistry getItemRegistry() {
         return itemRegistry;
     }
 
-    public static void setItemRegistry(ItemRegistry items) {
+    public void setItemRegistry(ItemRegistry items) {
         itemRegistry = items;
     }
 
     /**
      * Mark a chunk and it's region as having unsaved changes.
      */
-    public static void touchChunk(Chunk c) {
+    public void touchChunk(Chunk c) {
         c.touch();
         regions.get(c.location.chunkToDimRegion()).touch();
     }
 
-    public static DimensionCodec getDimensionCodec() {
+    public DimensionCodec getDimensionCodec() {
         return dimensionCodec;
+    }
+
+    public void test() throws IOException {
+        Path p = Paths.get(Config.getExportDirectory(), Config.getDimension().getPath(), "region", "r.0.0.mca");
+        McaFile m = new McaFile(p.toFile());
+
+        Map<CoordinateDim2D, Chunk> x = m.getParsedChunks(Config.getDimension());
+        Chunk c = x.get(new CoordinateDim2D(0, 0, Config.getDimension()));
+        Config.getPacketInjector().accept(c.toPacket());
+
+        c = x.get(new CoordinateDim2D(0, 1, Config.getDimension()));
+        Config.getPacketInjector().accept(c.toPacket());
+
+        c = x.get(new CoordinateDim2D(1, 0, Config.getDimension()));
+        Config.getPacketInjector().accept(c.toPacket());
+
+        PacketBuilder curPos = new PacketBuilder(0x40);
+        Coordinate2D coord = Config.getPlayerPosition().globalToChunk();
+        curPos.writeVarInt(coord.getX());
+        curPos.writeVarInt(coord.getZ());
+        Config.getPacketInjector().accept(curPos);
+    }
+
+    public void test2() {
+        PacketBuilder unload = new PacketBuilder(0x1C);
+        Coordinate2D coord = Config.getPlayerPosition().globalToChunk();
+        unload.writeInt(0);
+        unload.writeInt(0);
+        Config.getPacketInjector().accept(unload);
     }
 
     /**
@@ -379,13 +423,13 @@ public class WorldManager {
      */
     public void start() {
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleWithFixedDelay(WorldManager::save, SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
+        executor.scheduleWithFixedDelay(this::save, SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
     /**
      * Save the world. Will tell all regions to save their chunks.
      */
-    public static void save() {
+    public void save() {
         if (!writeChunks) {
             return;
         }
@@ -426,22 +470,22 @@ public class WorldManager {
         isSaving = false;
     }
 
-    public static ContainerManager getContainerManager() {
+    public ContainerManager getContainerManager() {
         if (containerManager == null) {
             containerManager = new ContainerManager();
         }
         return containerManager;
     }
 
-    public static void pauseSaving() {
+    public void pauseSaving() {
         isPaused = true;
     }
 
-    public static void resumeSaving() {
+    public void resumeSaving() {
         isPaused = false;
     }
 
-    public static void deleteAllExisting() {
+    public void deleteAllExisting() {
         regions = new HashMap<>();
         ChunkFactory.getInstance().clear();
 
@@ -458,10 +502,9 @@ public class WorldManager {
         GuiManager.clearChunks();
     }
 
-    public static boolean isPaused() {
+    public boolean isPaused() {
         return isPaused;
     }
-
 
 }
 

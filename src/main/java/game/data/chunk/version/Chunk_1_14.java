@@ -3,9 +3,13 @@ package game.data.chunk.version;
 import game.data.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.StringTag;
+import se.llbit.nbt.Tag;
+
+import java.util.Objects;
 
 /**
  * In 1.14 the chunks are now given a heightmap in the packet. They also no longer contain light information, as
@@ -41,8 +45,37 @@ public class Chunk_1_14 extends Chunk_1_13 {
         // no lights here in 1.14+
     }
 
+
     @Override
     protected void parseHeightMaps(DataTypeProvider dataProvider) {
         heightMap = dataProvider.readNbtTag();
+    }
+
+    @Override
+    protected void parseHeightMaps(Tag tag) {
+        heightMap = tag.get("Level").asCompound().get("Heightmaps").asCompound();
+    }
+
+    @Override
+    protected void writeHeightMaps(PacketBuilder packet) {
+        packet.writeNbt(heightMap);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Chunk_1_14 that = (Chunk_1_14) o;
+
+        return Objects.equals(heightMap, that.heightMap);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (heightMap != null ? heightMap.hashCode() : 0);
+        return result;
     }
 }

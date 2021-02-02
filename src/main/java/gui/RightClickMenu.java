@@ -20,13 +20,13 @@ public class RightClickMenu extends JPopupMenu {
         togglePause.addActionListener(new AbstractAction("Pause chunk saving") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (WorldManager.isPaused()) {
+                if (WorldManager.getInstance().isPaused()) {
                     System.out.println("Resuming");
-                    WorldManager.resumeSaving();
+                    WorldManager.getInstance().resumeSaving();
                     togglePause.setText(PROMPT_PAUSE);
                 } else {
                     System.out.println("Pausing");
-                    WorldManager.pauseSaving();
+                    WorldManager.getInstance().pauseSaving();
                     togglePause.setText(PROMPT_RESUME);
                 }
             }
@@ -36,7 +36,7 @@ public class RightClickMenu extends JPopupMenu {
         add(new JMenuItem(new AbstractAction("Delete all downloaded chunks") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                WorldManager.deleteAllExisting();
+                WorldManager.getInstance().deleteAllExisting();
             }
         }));
 
@@ -55,7 +55,7 @@ public class RightClickMenu extends JPopupMenu {
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    WorldManager.drawExistingChunks();
+                    WorldManager.getInstance().drawExistingChunks();
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -65,8 +65,26 @@ public class RightClickMenu extends JPopupMenu {
         add(new JMenuItem(new AbstractAction("Save & Exit") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                WorldManager.save();
+                WorldManager.getInstance().save();
                 System.exit(0);
+            }
+        }));
+
+        add(new JMenuItem(new AbstractAction("Send chunks") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    WorldManager.getInstance().test();
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+            }
+        }));
+
+        add(new JMenuItem(new AbstractAction("Unload chunks") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                WorldManager.getInstance().test2();
             }
         }));
     }

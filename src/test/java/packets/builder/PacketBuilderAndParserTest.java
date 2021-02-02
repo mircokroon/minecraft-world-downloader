@@ -12,25 +12,25 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class PacketBuilderAndParserTest {
+public class PacketBuilderAndParserTest {
 
-    PacketBuilder builder;
-    DataTypeProvider parser;
+    protected PacketBuilder builder;
+    protected DataTypeProvider parser;
 
     @BeforeEach
-    void beforeEach() {
+    public void beforeEach() {
         builder = new PacketBuilder(0x00);
     }
 
     @AfterEach
-    void afterEach() {
+    public void afterEach() {
         assertThat(parser.hasNext()).isFalse();
     }
 
     /**
      * Get a DataTypeProvider built from the exiting packet builder.
      */
-    private DataTypeProvider getParser() {
+    protected DataTypeProvider getParser() {
         ByteQueue built = builder.build();
         byte[] arr = new byte[built.size()];
         built.copyTo(arr);
@@ -40,7 +40,6 @@ class PacketBuilderAndParserTest {
         assertThat(length).isGreaterThan(0);
 
         int packetId = parser.readVarInt();
-        assertThat(packetId).isEqualTo(0x00);
         return parser;
     }
 

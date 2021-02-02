@@ -67,7 +67,7 @@ public class ContainerManager {
     }
 
     private void closeWindow(InventoryWindow window) {
-        Chunk c = WorldManager.getChunk(window.containerLocation.globalToChunk().addDimension(Config.getDimension()));
+        Chunk c = WorldManager.getInstance().getChunk(window.containerLocation.globalToChunk().addDimension(Config.getDimension()));
 
         if (c == null) { return; }
 
@@ -75,7 +75,7 @@ public class ContainerManager {
 
         if (block == null) { return; }
 
-        WorldManager.touchChunk(c);
+        WorldManager.getInstance().touchChunk(c);
 
         if (window.getSlotList().size() == 54 && block.hasProperty("type") && block.isDoubleChest()) {
             addDoubleChestInventory(block, window);
@@ -95,7 +95,7 @@ public class ContainerManager {
         Coordinate3D pos = window.getContainerLocation();
 
         Coordinate3D beforePos = pos.add(facing.clockwise().toCoordinate());
-        BlockState blockBefore = WorldManager.blockStateAt(beforePos);
+        BlockState blockBefore = WorldManager.getInstance().blockStateAt(beforePos);
 
         InventoryWindow[] chests = window.split();
 

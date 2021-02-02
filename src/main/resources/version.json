@@ -140,7 +140,8 @@
 				"0x39": "respawn",
 				"0x2D": "open_window",
                 "0x12": "close_window",
-				"0x13": "window_items"
+				"0x13": "window_items",
+				"0x41": "update_view_distance"
 			},
 			"serverbound": {
 				"0x12": "player_position",

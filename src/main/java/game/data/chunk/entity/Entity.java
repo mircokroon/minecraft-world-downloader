@@ -29,7 +29,7 @@ public abstract class Entity {
 
         ent.uuid = provider.readUUID();
         ent.type = provider.readVarInt();
-        ent.typeName = WorldManager.getEntityMap().getName(ent.type);
+        ent.typeName = WorldManager.getInstance().getEntityMap().getName(ent.type);
 
         // unknown entity - don't bother parsing the rest
         if (ent.typeName == null) {

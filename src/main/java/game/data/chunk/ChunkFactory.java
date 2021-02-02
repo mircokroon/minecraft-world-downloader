@@ -63,7 +63,7 @@ public class ChunkFactory extends Thread {
      * Add an unparsed entity.
      */
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
-        if (WorldManager.getEntityMap() != null) {
+        if (WorldManager.getInstance().getEntityMap() != null) {
             addEntity(parser.apply(provider), Config.getDimension());
         } else {
             this.unparsedEntities.add(new EntityParser(provider, Config.getDimension(), parser));
@@ -85,7 +85,7 @@ public class ChunkFactory extends Thread {
         if (ent == null) { return; }
 
         CoordinateDim2D chunkPos = ent.getPosition().globalToChunk().addDimension(dimension);
-        Chunk chunk = WorldManager.getChunk(chunkPos);
+        Chunk chunk = WorldManager.getInstance().getChunk(chunkPos);
 
         entities.put(ent.getId(), ent);
 
@@ -112,7 +112,7 @@ public class ChunkFactory extends Thread {
         position.offsetGlobal();
         CoordinateDim2D chunkPos = position.globalToChunk().addDimension(Config.getDimension());
 
-        Chunk chunk = WorldManager.getChunk(chunkPos);
+        Chunk chunk = WorldManager.getInstance().getChunk(chunkPos);
 
         // if the chunk doesn't exist yet, add it to the queue to process later
         if (chunk == null) {
@@ -131,7 +131,7 @@ public class ChunkFactory extends Thread {
      */
     public synchronized void addChunk(DataTypeProvider provider) {
         // if the world manager is currently paused, discard this chunk
-        if (WorldManager.isPaused()) {
+        if (WorldManager.getInstance().isPaused()) {
             return;
         }
 
@@ -188,10 +188,7 @@ public class ChunkFactory extends Thread {
         return unparsedChunks.remove();
     }
 
-    /**
-     * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
-     */
-    private void readChunkDataPacket(ChunkParserPair parser) {
+    public static Chunk parseChunk(ChunkParserPair parser, WorldManager worldManager) {
         DataTypeProvider dataProvider = parser.provider;
 
         CoordinateDim2D chunkPos = new CoordinateDim2D(dataProvider.readInt(), dataProvider.readInt(), parser.dimension);
@@ -202,9 +199,9 @@ public class ChunkFactory extends Thread {
         if (full) {
             chunk = getVersionedChunk(chunkPos);
 
-            WorldManager.loadChunk(chunk, true);
+            worldManager.loadChunk(chunk, true);
         } else {
-            chunk = WorldManager.getChunk(new CoordinateDim2D(chunkPos.getX(), chunkPos.getZ(), parser.dimension));
+            chunk = worldManager.getChunk(new CoordinateDim2D(chunkPos.getX(), chunkPos.getZ(), parser.dimension));
 
             // if we don't have the partial chunk (anymore?), just make one from scratch
             if (chunk == null) {
@@ -217,17 +214,25 @@ public class ChunkFactory extends Thread {
 
         chunk.parse(dataProvider, full);
 
+        return chunk;
+    }
+    /**
+     * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
+     */
+    private void readChunkDataPacket(ChunkParserPair parser) {
+        Chunk chunk = parseChunk(parser, WorldManager.getInstance());
+
         // Add any tile entities that were sent before the chunk was parsed. We cannot delete the tile entities yet
         // (so we cannot remove them from the queue) as they are not always re-sent when the chunk is re-sent. (?)
-        if (tileEntities.containsKey(chunkPos)) {
-            Queue<TileEntity> queue = tileEntities.get(chunkPos);
+        if (tileEntities.containsKey(chunk.location)) {
+            Queue<TileEntity> queue = tileEntities.get(chunk.location);
             for (TileEntity ent : queue) {
                 chunk.addTileEntity(ent.getPosition(), ent.getTag());
             }
         }
 
-        if (chunkEntities.containsKey(chunkPos)) {
-            Queue<Integer> queue = chunkEntities.get(chunkPos);
+        if (chunkEntities.containsKey(chunk.location)) {
+            Queue<Integer> queue = chunkEntities.get(chunk.location);
             for (Integer entId : queue) {
                 chunk.addEntity(entities.get(entId));
             }

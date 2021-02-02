@@ -101,7 +101,7 @@ public abstract class Config {
 
         Palette.setMaskBedrock(args.getBoolean("mask-bedrock"));
 
-        WorldManager.setSaveServiceVariables(args.getBoolean("mark-new-chunks"), args.getBoolean("write-chunks"));
+        WorldManager.getInstance().setSaveServiceVariables(args.getBoolean("mark-new-chunks"), args.getBoolean("write-chunks"));
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
         }
@@ -140,11 +140,11 @@ public abstract class Config {
         try {
             RegistryLoader loader = RegistryLoader.forVersion(p.getVersion());
 
-            WorldManager.setEntityMap(loader.generateEntityNames());
-            WorldManager.setMenuRegistry(loader.generateMenuRegistry());
-            WorldManager.setItemRegistry(loader.generateItemRegistry());
+            WorldManager.getInstance().setEntityMap(loader.generateEntityNames());
+            WorldManager.getInstance().setMenuRegistry(loader.generateMenuRegistry());
+            WorldManager.getInstance().setItemRegistry(loader.generateItemRegistry());
 
-            WorldManager.startSaveService();
+            WorldManager.getInstance().startSaveService();
             ChunkFactory.startChunkParserService();
 
             loader.clean();

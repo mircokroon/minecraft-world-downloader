@@ -66,7 +66,7 @@ public class BlockState {
      * @return the color of the block in integer format, one byte per color.
      */
     public int getColor() {
-        return WorldManager.getBlockColors().getColor(name);
+        return WorldManager.getInstance().getBlockColors().getColor(name);
     }
 
     public boolean isWater() {
@@ -74,7 +74,7 @@ public class BlockState {
     }
 
     public boolean isSolid() {
-        return WorldManager.getBlockColors().isSolid(name);
+        return WorldManager.getInstance().getBlockColors().isSolid(name);
     }
 
     public int getNumericId() {

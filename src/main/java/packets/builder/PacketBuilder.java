@@ -19,6 +19,14 @@ public class PacketBuilder {
         writeVarInt(packetId);
     }
 
+    public PacketBuilder() {
+        this.bytes = new ByteQueue();
+    }
+
+    public byte[] toArray() {
+        return bytes.toArray();
+    }
+
     /**
      * Construct a message packet for the client.
      */
@@ -188,7 +196,7 @@ public class PacketBuilder {
         writeLong(uuid.getUpper());
     }
 
-    void writeLong(long val) {
+    public void writeLong(long val) {
         byte[] bytes = new byte[8];
         bytes[7] = (byte) (val & 0xFF);
         bytes[6] = (byte) (val >> 8 & 0xFF);
@@ -200,5 +208,23 @@ public class PacketBuilder {
         bytes[0] = (byte) (val >> 56 & 0xFF);
 
         writeByteArray(bytes);
+    }
+
+    public void writeVarIntArray(int[] arr) {
+        for (int val : arr) {
+            writeVarInt(val);
+        }
+    }
+
+    public void writeLongArray(long[] arr) {
+        for (long val : arr) {
+            writeLong(val);
+        }
+    }
+
+    public void writeStringArray(String[] arr) {
+        for (String val : arr) {
+            writeString(val);
+        }
     }
 }

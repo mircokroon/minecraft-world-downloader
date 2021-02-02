@@ -35,12 +35,12 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
                 provider.readVarInt();
             }
 
-            WorldManager.getContainerManager().lastInteractedWith(provider.readCoordinates());
+            WorldManager.getInstance().getContainerManager().lastInteractedWith(provider.readCoordinates());
 
             return true;
         });
         operations.put("close_window", provider -> {
-            WorldManager.getContainerManager().closeWindow(provider.readNext());
+            WorldManager.getInstance().getContainerManager().closeWindow(provider.readNext());
             return true;
         });
     }

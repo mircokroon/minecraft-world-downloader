@@ -12,15 +12,11 @@ import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
 import game.data.container.InventoryWindow;
+import org.apache.commons.lang3.ArrayUtils;
 import packets.DataTypeProvider;
-import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.IntTag;
-import se.llbit.nbt.ListTag;
-import se.llbit.nbt.LongTag;
-import se.llbit.nbt.NamedTag;
-import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.StringTag;
-import se.llbit.nbt.Tag;
+import packets.builder.PacketBuilder;
+import packets.lib.ByteQueue;
+import se.llbit.nbt.*;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -110,7 +106,7 @@ public abstract class Chunk {
 
         // check for inventory contents we previously saved
         CoordinateDim3D pos = location.addDimension3D(this.location.getDimension());
-        WorldManager.getContainerManager().loadPreviousInventoriesAt(this, pos);
+        WorldManager.getInstance().getContainerManager().loadPreviousInventoriesAt(this, pos);
     }
 
     /**
@@ -168,7 +164,7 @@ public abstract class Chunk {
     protected void readIgnoreOldData(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
     protected abstract ChunkSection createNewChunkSection(byte y, Palette palette);
-    protected abstract SpecificTag getBiomes();
+    protected abstract SpecificTag getNbtBiomes();
 
     protected void parse2DBiomeData(DataTypeProvider provider) { }
     protected void parse3DBiomeData(DataTypeProvider provider) { }
@@ -232,7 +228,7 @@ public abstract class Chunk {
         map.add("LastUpdate", new LongTag(0));
         map.add("Entities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>()));
 
-        map.add("Biomes", getBiomes());
+        map.add("Biomes", getNbtBiomes());
         map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
         map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
         map.add("Entities", new ListTag(Tag.TAG_COMPOUND, getEntityList()));
@@ -311,12 +307,55 @@ public abstract class Chunk {
         return GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(id);
     }
 
+    public PacketBuilder toPacket() {
+        PacketBuilder packet = new PacketBuilder(0x20);
+        packet.writeInt(location.getX());
+        packet.writeInt(location.getZ());
+        packet.writeBoolean(true);
+
+        writeBitMask(packet);
+        writeHeightMaps(packet);
+        writeBiomes(packet);
+        writeSectionData(packet);
+
+        // we don't include block entities - these chunks will be far away so they shouldn't be rendered anyway
+        packet.writeVarInt(0);
+        return packet;
+    }
+
+    protected void writeHeightMaps(PacketBuilder packet) { }
+
+    protected void writeSectionData(PacketBuilder packet) {
+        PacketBuilder column = new PacketBuilder();
+        for (int y = 0; y < (CHUNK_HEIGHT / SECTION_HEIGHT); y++) {
+            if (chunkSections[y] != null) {
+                chunkSections[y].write(column);
+            }
+        }
+
+        byte[] bytes = column.toArray();
+        packet.writeVarInt(bytes.length);
+        packet.writeByteArray(bytes);
+    }
+
+    private void writeBitMask(PacketBuilder packet) {
+        int res = 0;
+        for (int i = 0; i < chunkSections.length; i++) {
+            if (chunkSections[i] != null) {
+                res |= 1 << i;
+            }
+        }
+        packet.writeVarInt(res);
+    }
+
+    protected void writeBiomes(PacketBuilder packet) { };
+
 
     /**
      * Mark this as a new chunk iff the
      */
     void markAsNew() {
-        if (WorldManager.markNewChunks()) {
+        if (WorldManager.getInstance().markNewChunks()) {
             this.isNewChunk = true;
         }
     }
@@ -420,7 +459,7 @@ public abstract class Chunk {
             CoordinateDim2D coordinate = location.copy();
             coordinate.offset(0, -1);
 
-            Chunk other = WorldManager.getChunk(coordinate);
+            Chunk other = WorldManager.getInstance().getChunk(coordinate);
 
             if (other == null) { return 1; }
             else { yNorth = other.heightAt(x, 15); }
@@ -447,9 +486,14 @@ public abstract class Chunk {
                 this.chunkSections[sectionY] = parseSection(sectionY, section);
             }
         });
+        parseHeightMaps(tag);
+        parseBiomes(tag);
+
         computeHeightMap();
     }
 
+    protected void parseHeightMaps(Tag tag) { }
+    protected void parseBiomes(Tag tag) { }
     protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
 
     /**
@@ -476,5 +520,25 @@ public abstract class Chunk {
      */
     public void touch() {
         this.setSaved(false);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Chunk chunk = (Chunk) o;
+
+        if (!Objects.equals(location, chunk.location)) return false;
+        if (!Arrays.deepEquals(chunkSections, chunk.chunkSections)) return false;
+        return Arrays.equals(heightMap, chunk.heightMap);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = location != null ? location.hashCode() : 0;
+        result = 31 * result + Arrays.hashCode(chunkSections);
+        result = 31 * result + Arrays.hashCode(heightMap);
+        return result;
     }
 }

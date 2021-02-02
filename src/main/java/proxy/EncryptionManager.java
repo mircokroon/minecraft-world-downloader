@@ -1,10 +1,16 @@
 package proxy;
 
 import game.Config;
+import game.data.WorldManager;
+import game.data.dimension.Dimension;
+import game.data.dimension.DimensionCodec;
+import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
+import packets.builder.PacketCopier;
 import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
+import se.llbit.nbt.SpecificTag;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -355,4 +361,44 @@ public class EncryptionManager {
         this.username = username;
     }
 
+    public void handleJoinPacket(DataTypeProvider provider) {
+        PacketBuilder replacement = new PacketBuilder(0x24);
+        replacement.writeInt(provider.readInt());
+        replacement.writeBoolean(provider.readBoolean());
+        replacement.writeByte(provider.readNext());
+        replacement.writeByte(provider.readNext());
+
+        int numDimensions = provider.readVarInt();
+        String[] dimensionNames = provider.readStringArray(numDimensions);
+
+
+        SpecificTag dimensionCodec = provider.readNbtTag();
+        WorldManager.getInstance().setDimensionCodec(DimensionCodec.fromNbt(dimensionNames, dimensionCodec));
+
+        SpecificTag dimensionNbt = provider.readNbtTag();
+
+        String worldName = provider.readString();
+        Dimension dimension = Dimension.fromString(worldName);
+        dimension.registerType(dimensionNbt);
+        Config.setDimension(dimension);
+
+        replacement.writeVarInt(numDimensions);
+        replacement.writeStringArray(dimensionNames);
+        replacement.writeNbt(dimensionCodec);
+        replacement.writeNbt(dimensionNbt);
+        replacement.writeString(worldName);
+        replacement.writeLong(provider.readLong());
+        replacement.writeVarInt(provider.readVarInt());
+
+        int viewDist = provider.readVarInt();
+        replacement.writeVarInt(viewDist + 3);
+        System.out.println("View distance: " + viewDist);
+
+        replacement.writeBoolean(provider.readBoolean());
+        replacement.writeBoolean(provider.readBoolean());
+        replacement.writeBoolean(provider.readBoolean());
+        replacement.writeBoolean(provider.readBoolean());
+
+        attempt(() -> streamToClient(replacement.build(compressionManager)));
+    }
 }

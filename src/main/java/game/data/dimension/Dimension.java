@@ -51,7 +51,7 @@ public class Dimension {
             case "minecraft:the_nether": return NETHER;
             case "minecraft:overworld": return OVERWORLD;
             default: {
-                Dimension dim = WorldManager.getDimensionCodec().getDimension(readString);
+                Dimension dim = WorldManager.getInstance().getDimensionCodec().getDimension(readString);
                 if (dim == null) { return OVERWORLD; }
 
                 return dim;
@@ -93,7 +93,7 @@ public class Dimension {
      */
     public void registerType(SpecificTag dimensionNbt) {
         int hash = dimensionNbt.hashCode();
-        DimensionType type = WorldManager.getDimensionCodec().getDimensionType(hash);
+        DimensionType type = WorldManager.getInstance().getDimensionCodec().getDimensionType(hash);
         if (type != null) {
             this.type = type.getName();
 

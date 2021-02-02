@@ -30,10 +30,10 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             ent.parseMetadata(provider);
 
             // mark chunk as unsaved
-            Chunk c = WorldManager.getChunk(ent.getPosition().globalToChunk().addDimension(Config.getDimension()));
+            Chunk c = WorldManager.getInstance().getChunk(ent.getPosition().globalToChunk().addDimension(Config.getDimension()));
             if (c == null) { return true; }
 
-            WorldManager.touchChunk(c);
+            WorldManager.getInstance().touchChunk(c);
             return true;
         });
 
@@ -50,32 +50,20 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         });
 
         operations.put("join_game", provider -> {
-            provider.readInt();
-            provider.readNext();
-
             // older versions
             if (Config.getProtocolVersion() < 735) {
+                provider.readInt();
+                provider.readNext();
                 int dimensionEnum = provider.readInt();
 
                 Config.setDimension(Dimension.fromId(dimensionEnum));
 
+                return true;
                 // > 1.16
             } else {
-                provider.readNext();
-                provider.readNext();
-
-                int numDimensions = provider.readVarInt();
-                String[] dimensionNames = provider.readStringArray(numDimensions);
-
-                WorldManager.setDimensionCodec(DimensionCodec.fromNbt(dimensionNames, provider.readNbtTag()));
-
-                SpecificTag dimensionNbt = provider.readNbtTag();
-
-                Dimension dimension = Dimension.fromString(provider.readString());
-                dimension.registerType(dimensionNbt);
-                Config.setDimension(dimension);
+                getConnectionManager().getEncryptionManager().handleJoinPacket(provider);
+                return false;
             }
-            return true;
         });
 
         operations.put("respawn", provider -> {
@@ -98,12 +86,14 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
         operations.put("chunk_unload", provider -> {
-            WorldManager.unloadChunk(new CoordinateDim2D(provider.readInt(), provider.readInt(), Config.getDimension()));
+            CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), Config.getDimension());
+            System.out.println(co);
+            WorldManager.getInstance().unloadChunk(co);
             return true;
         });
         operations.put("chunk_update_light", provider -> {
             // TODO: update chunk light for 1.14
-            return true;
+            return false;
         });
         operations.put("update_block_entity", provider -> {
             Coordinate3D position = provider.readCoordinates();
@@ -139,17 +129,17 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
                 int numSlots = provider.readNext() & 0xFF;
 
-                WorldManager.getContainerManager().openWindow_1_12(windowId, numSlots, windowTitle);
+                WorldManager.getInstance().getContainerManager().openWindow_1_12(windowId, numSlots, windowTitle);
             } else {
                 int windowType = provider.readVarInt();
                 String windowTitle = provider.readChat();
 
-                WorldManager.getContainerManager().openWindow(windowId, windowType, windowTitle);
+                WorldManager.getInstance().getContainerManager().openWindow(windowId, windowType, windowTitle);
             }
             return true;
         });
         operations.put("close_window", provider -> {
-            WorldManager.getContainerManager().closeWindow(provider.readNext());
+            WorldManager.getInstance().getContainerManager().closeWindow(provider.readNext());
             return true;
         });
 
@@ -158,9 +148,14 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             int count = provider.readShort();
             List<Slot> slots = provider.readSlots(count);
 
-            WorldManager.getContainerManager().items(windowId, slots);
+            WorldManager.getInstance().getContainerManager().items(windowId, slots);
 
             return true;
+        });
+
+        operations.put("update_view_distance", provider -> {
+            System.out.println("Server tried to change view distance to " + provider.readVarInt());
+           return false;
         });
     }
 

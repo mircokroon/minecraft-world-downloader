@@ -20,4 +20,5 @@ public class Chunk_1_15 extends Chunk_1_14 {
     protected void parse3DBiomeData(DataTypeProvider provider) {
         setBiomes(provider.readIntArray(1024));
     }
+
 }

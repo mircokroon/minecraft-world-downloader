@@ -58,7 +58,7 @@ public class Chunk_1_12 extends Chunk {
         return new ChunkSection_1_12(sectionY, section);
     }
 
-    protected SpecificTag getBiomes() {
+    protected SpecificTag getNbtBiomes() {
         return new ByteArrayTag(biomes);
     }
 
