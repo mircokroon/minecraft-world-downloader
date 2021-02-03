@@ -75,7 +75,7 @@ public class GuiManager {
         }
     }
 
-    public static void drawExistingChunks(List<CoordinateDim2D> existing) {
+    public static void outlineExistingChunks(List<CoordinateDim2D> existing) {
         if (chunkGraphicsHandler != null) {
             existing.forEach(chunkGraphicsHandler::setChunkExists);
         }

@@ -207,11 +207,22 @@ public class McaFile {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Convert integer position of chunk to global coordinates.
+     */
     private Coordinate2D intToCoordinate(int i) {
         int offset = i / 4;
         int localX = offset & 0x1F;
         int localZ = offset >>> 5;
         return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
+    }
+
+    /**
+     * Convert global coordinates to integer position.
+     */
+    private int coordinateToInt(Coordinate2D c) {
+        Coordinate2D regionLocal = c.toRegionLocal();
+        return 4 * ((regionLocal.getX() % 32) + (regionLocal.getZ() % 32) * 32);
     }
 
     public Map<CoordinateDim2D, Chunk> getParsedChunks(Dimension dimension) {
@@ -224,11 +235,6 @@ public class McaFile {
     }
 
     public ChunkBinary getChunkBinary(CoordinateDim2D coord) {
-        Map<CoordinateDim2D, ChunkBinary> res = new HashMap<>();
-        chunkMap.forEach((key, value) -> res.put(
-                new CoordinateDim2D(intToCoordinate(key), coord.getDimension()),
-                value
-        ));
-        return res.get(coord);
+        return chunkMap.get(coordinateToInt(coord));
     }
 }

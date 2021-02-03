@@ -82,13 +82,12 @@ public class Region {
      * been saved. Will update the Gui with the chunk that's about to be saved.
      * @return the McaFile corresponding to this region
      */
-    public McaFile toFile() {
+    public McaFile toFile(Coordinate2D playerPos) {
         if (!updatedSinceLastWrite) {
             return null;
         }
 
         updatedSinceLastWrite = false;
-        Coordinate2D playerPos = Config.getPlayerPosition().globalToChunk();
 
         Map<Integer, ChunkBinary> chunkBinaryMap = new HashMap<>();
         chunks.keySet().forEach(coordinate -> {

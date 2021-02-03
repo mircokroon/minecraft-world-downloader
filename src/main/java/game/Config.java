@@ -22,7 +22,6 @@ import java.util.function.Consumer;
 public abstract class Config {
     private static final int DEFAULT_VERSION = 340;
     private static Dimension dimension = Dimension.OVERWORLD;
-    private static Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
     private static Consumer<PacketBuilder> injector;
 
     private static ProtocolVersionHandler versionHandler;
@@ -34,6 +33,8 @@ public abstract class Config {
     private static boolean enableWorldGen;
 
     public static ConnectionDetails connectionDetails;
+    private static int serverRenderDistance;
+    private static int extendedRenderDistance;
 
     // basic getters
     public static int getDataVersion() {
@@ -46,10 +47,6 @@ public abstract class Config {
 
     public static Dimension getDimension() {
         return dimension;
-    }
-
-    public static Coordinate3D getPlayerPosition() {
-        return playerPosition;
     }
 
     public static int getProtocolVersion() {
@@ -65,8 +62,16 @@ public abstract class Config {
         return args.getString("minecraft");
     }
 
-    public static int getRenderDistance() {
-        return args.getInt("render-distance");
+    public static int getOverviewZoomDistance() {
+        return args.getInt("overview-zoom");
+    }
+
+    public static int getExtendedRenderDistance() {
+        return extendedRenderDistance;
+    }
+
+    public static int getServerRenderDistance() {
+        return serverRenderDistance;
     }
 
     public static boolean markUnsavedChunks() {
@@ -87,8 +92,9 @@ public abstract class Config {
         Config.dimension = dimension;
     }
 
-    public static void setPlayerPosition(Coordinate3D newPos) {
-        Config.playerPosition = newPos;
+    public static void setServerRenderDistance(int viewDist) {
+        Config.serverRenderDistance = viewDist;
+        WorldManager.getInstance().getRenderDistanceExtender().setServerDistance(viewDist);
     }
 
     /**
@@ -96,6 +102,15 @@ public abstract class Config {
      */
     public static void init(Namespace args) {
         Config.args = args;
+        enableWorldGen = args.getBoolean("enable-world-gen");
+        extendedRenderDistance = args.getInt("extended-distance");
+        versionHandler = ProtocolVersionHandler.getInstance();
+        connectionDetails = new ConnectionDetails(
+                args.getString("server"),
+                args.getInt("port"),
+                args.getInt("local-port"),
+                args.getBoolean("enable-srv-lookup")
+        );
 
         Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
 
@@ -105,16 +120,6 @@ public abstract class Config {
         if (args.getBoolean("gui")) {
             GuiManager.showGui();
         }
-        enableWorldGen = args.getBoolean("enable-world-gen");
-
-        versionHandler = ProtocolVersionHandler.getInstance();
-
-        connectionDetails = new ConnectionDetails(
-                args.getString("server"),
-                args.getInt("port"),
-                args.getInt("local-port"),
-                args.getBoolean("enable-srv-lookup")
-        );
     }
 
     public static String getExportDirectory() {

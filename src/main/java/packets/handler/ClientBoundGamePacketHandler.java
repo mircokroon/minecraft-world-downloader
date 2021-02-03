@@ -61,8 +61,11 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
                 return true;
                 // > 1.16
             } else {
-                getConnectionManager().getEncryptionManager().handleJoinPacket(provider);
-                return false;
+                if (Config.getExtendedRenderDistance() > 0) {
+                    getConnectionManager().getEncryptionManager().handleJoinPacket(provider);
+                    return false;
+                }
+                return true;
             }
         });
 
@@ -87,7 +90,6 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         });
         operations.put("chunk_unload", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), Config.getDimension());
-            System.out.println(co);
             WorldManager.getInstance().unloadChunk(co);
             return true;
         });
@@ -112,7 +114,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
             Coordinate3D playerPos = new Coordinate3D(x, y, z);
             playerPos.offsetGlobal();
-            Config.setPlayerPosition(playerPos);
+            WorldManager.getInstance().setPlayerPosition(playerPos);
 
             return true;
         };

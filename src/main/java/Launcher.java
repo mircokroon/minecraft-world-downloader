@@ -39,12 +39,12 @@ public class Launcher {
             .setDefault(false)
             .type(boolean.class)
             .help("Convert all bedrock to stone to make world locations harder to find. Currently only for 1.12.2.");
-        parser.addArgument("-x", "--center-x")
+        parser.addArgument("--center-x")
             .setDefault(0)
             .type(Integer.class)
             .dest("center-x")
             .help("Center for x-coordinate. World will be offset by this coordinate so that its centered around 0.");
-        parser.addArgument("-z", "--center-z")
+        parser.addArgument("--center-z")
             .setDefault(0)
             .type(Integer.class)
             .dest("center-z")
@@ -60,7 +60,7 @@ public class Launcher {
         parser.addArgument("-m", "--minecraft")
             .setDefault(getDefaultPath())
             .help("Path to your Minecraft installation, used to authenticate with Mojang servers.");
-        parser.addArgument("-r", "--render-distance").dest("render-distance")
+        parser.addArgument("-z", "--overview-zoom").dest("overview-zoom")
             .setDefault(75)
             .type(Integer.class)
             .help("Render distance of (in chunks) of the overview map.");
@@ -84,6 +84,10 @@ public class Launcher {
             .setDefault(true)
             .type(boolean.class)
             .help("When true, marks chunks red in the overview until they are written to the disk.");
+        parser.addArgument("-r", "--extended-render-distance").dest("extended-distance")
+                .setDefault(0)
+                .type(Integer.class)
+                .help("When set, send downloaded chunks to client to extend render distance to given amount.");
 
         Namespace ns = null;
         try {

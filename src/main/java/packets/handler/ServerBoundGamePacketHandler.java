@@ -20,7 +20,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
             Coordinate3D playerPos = new Coordinate3D(x, y, z);
             playerPos.offsetGlobal();
-            Config.setPlayerPosition(playerPos);
+            WorldManager.getInstance().setPlayerPosition(playerPos);
 
             return true;
         };

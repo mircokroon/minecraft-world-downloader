@@ -17,7 +17,6 @@ import game.data.region.Region;
 import gui.GuiManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import packets.builder.PacketBuilder;
 import proxy.CompressionManager;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -41,15 +40,12 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static util.ExceptionHandling.attempt;
 
 /**
  * Manage the world, including saving, parsing and updating the GUI.
@@ -79,8 +75,21 @@ public class WorldManager {
 
     private DimensionCodec dimensionCodec;
 
+    private RenderDistanceExtender renderDistanceExtender;
+    private Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
+
     private WorldManager() {
         this.isStarted = false;
+
+        System.out.println(Config.getExtendedRenderDistance());
+        if (Config.getExtendedRenderDistance() > 0) {
+            System.out.println("Extended set to " + Config.getExtendedRenderDistance());
+            this.renderDistanceExtender = new RenderDistanceExtender(this, Config.getExtendedRenderDistance());
+        }
+    }
+
+    public RenderDistanceExtender getRenderDistanceExtender() {
+        return renderDistanceExtender;
     }
 
     private static WorldManager instance;
@@ -124,11 +133,16 @@ public class WorldManager {
         Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, true);
 
-        GuiManager.drawExistingChunks(
+        GuiManager.outlineExistingChunks(
                 files.flatMap(el -> el.getChunkPositions(dimension).stream()).collect(Collectors.toList())
         );
     }
 
+    /**
+     * Draw all previously-downloaded chunks in the GUI. We can't just load them all and immediately draw them to the
+     * GUI, as the shading requires that we look at neighbouring chunks. We first add them all to the world manager,
+     * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
+     */
     public void drawExistingChunks() throws IOException {
         Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, false);
@@ -214,7 +228,6 @@ public class WorldManager {
         CompoundTag data = (CompoundTag) root.unpack().get("Data");
 
         // add the player's position
-        Coordinate3D playerPosition = Config.getPlayerPosition();
         if (playerPosition != null) {
             Tag playerTag = data.get("Player");
             CompoundTag player;
@@ -389,35 +402,6 @@ public class WorldManager {
         return dimensionCodec;
     }
 
-    public void test() throws IOException {
-        Path p = Paths.get(Config.getExportDirectory(), Config.getDimension().getPath(), "region", "r.0.0.mca");
-        McaFile m = new McaFile(p.toFile());
-
-        Map<CoordinateDim2D, Chunk> x = m.getParsedChunks(Config.getDimension());
-        Chunk c = x.get(new CoordinateDim2D(0, 0, Config.getDimension()));
-        Config.getPacketInjector().accept(c.toPacket());
-
-        c = x.get(new CoordinateDim2D(0, 1, Config.getDimension()));
-        Config.getPacketInjector().accept(c.toPacket());
-
-        c = x.get(new CoordinateDim2D(1, 0, Config.getDimension()));
-        Config.getPacketInjector().accept(c.toPacket());
-
-        PacketBuilder curPos = new PacketBuilder(0x40);
-        Coordinate2D coord = Config.getPlayerPosition().globalToChunk();
-        curPos.writeVarInt(coord.getX());
-        curPos.writeVarInt(coord.getZ());
-        Config.getPacketInjector().accept(curPos);
-    }
-
-    public void test2() {
-        PacketBuilder unload = new PacketBuilder(0x1C);
-        Coordinate2D coord = Config.getPlayerPosition().globalToChunk();
-        unload.writeInt(0);
-        unload.writeInt(0);
-        Config.getPacketInjector().accept(unload);
-    }
-
     /**
      * Periodically save the world.
      */
@@ -445,7 +429,7 @@ public class WorldManager {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[0]);
             for (Region region : r) {
-                McaFile file = region.toFile();
+                McaFile file = region.toFile(playerPosition);
                 if (file == null) { continue; }
 
                 try {
@@ -506,5 +490,54 @@ public class WorldManager {
         return isPaused;
     }
 
+
+    public void setPlayerPosition(Coordinate3D newPos) {
+        this.playerPosition = newPos;
+
+        if (this.renderDistanceExtender != null) {
+            //this.renderDistanceExtender.updatePlayerPos(newPos);
+        }
+    }
+
+    public Coordinate3D getPlayerPosition() {
+        return playerPosition;
+    }
+
+
+    public void unloadChunks(Set<Coordinate2D> toUnload) {
+        // TODO
+    }
+
+    public Set<Coordinate2D> loadChunks(Set<Coordinate2D> desired) {
+        Set<Coordinate2D> loaded = new HashSet<>();
+
+        // separate into McaFiles
+        Map<Coordinate2D, List<Coordinate2D>> mcaFiles = desired.stream().collect(Collectors.groupingBy(Coordinate2D::chunkToRegion));
+
+        mcaFiles.forEach((key, value) -> attempt(() -> {
+            String filename = "r." + key.getX() + "." + key.getZ() + ".mca";
+            File f = Paths.get(Config.getExportDirectory(), Config.getDimension().getPath(), "region", filename).toFile();
+
+            if (!f.exists()) {
+                return;
+            }
+            McaFile m = new McaFile(f);
+
+            for (Coordinate2D coord : value) {
+                CoordinateDim2D withDim = coord.addDimension(Config.getDimension());
+                ChunkBinary chunkBinary = m.getChunkBinary(withDim);
+                if (chunkBinary == null) {
+                    continue;
+                }
+                Chunk chunk = chunkBinary.toChunk(withDim);
+                Config.getPacketInjector().accept(chunk.toPacket());
+                loaded.add(coord);
+
+                // draw in GUI
+                GuiManager.setChunkLoaded(chunk.location, chunk);
+            }
+        }));
+        return loaded;
+    }
 }
 

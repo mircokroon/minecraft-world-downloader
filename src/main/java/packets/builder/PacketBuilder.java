@@ -127,7 +127,6 @@ public class PacketBuilder {
 
             this.bytes.prepend(prefix);
         } else {
-            System.out.println( "compressed" );
             // with compression we need to first prefix a varInt of the uncompressed data length
             ByteQueue dataLen = createVarInt(original.length);
 

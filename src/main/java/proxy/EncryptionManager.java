@@ -390,9 +390,10 @@ public class EncryptionManager {
         replacement.writeLong(provider.readLong());
         replacement.writeVarInt(provider.readVarInt());
 
+        // extend view distance communicated to the client to the given value
         int viewDist = provider.readVarInt();
-        replacement.writeVarInt(viewDist + 3);
-        System.out.println("View distance: " + viewDist);
+        Config.setServerRenderDistance(viewDist);
+        replacement.writeVarInt(Math.max(viewDist, Config.getExtendedRenderDistance()));
 
         replacement.writeBoolean(provider.readBoolean());
         replacement.writeBoolean(provider.readBoolean());
