@@ -92,6 +92,10 @@ public class Dimension {
      * type in the codec.
      */
     public void registerType(SpecificTag dimensionNbt) {
+        if (this.type != null) {
+            return;
+        }
+
         int hash = dimensionNbt.hashCode();
         DimensionType type = WorldManager.getInstance().getDimensionCodec().getDimensionType(hash);
         if (type != null) {

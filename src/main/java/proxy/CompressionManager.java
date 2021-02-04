@@ -15,7 +15,6 @@ public class CompressionManager {
     private boolean compressionEnabled = false;
 
     public void enableCompression(int limit) {
-        System.out.println("Enabled compression");
         this.compressionLimit = limit;
         compressionEnabled = true;
     }

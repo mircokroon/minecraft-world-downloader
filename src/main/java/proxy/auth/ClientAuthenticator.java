@@ -51,8 +51,6 @@ public class ClientAuthenticator {
             return;
         }
 
-        System.out.println("Reading account information from " + p.toString());
-
         String path =  String.join("\n", Files.readAllLines(p));
 
         accounts = g.fromJson(path, LauncherAccounts.class);
@@ -60,9 +58,6 @@ public class ClientAuthenticator {
 
     private void readProfiles(Gson g) throws IOException {
         Path p = Paths.get(getMinecraftPath(), "launcher_profiles.json");
-
-        System.out.println("Reading profile information from " + p.toString());
-
         String path =  String.join("\n", Files.readAllLines(p));
 
         profiles = g.fromJson(path, LauncherProfiles.class);

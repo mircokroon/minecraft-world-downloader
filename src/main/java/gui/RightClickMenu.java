@@ -69,12 +69,5 @@ public class RightClickMenu extends JPopupMenu {
                 System.exit(0);
             }
         }));
-
-        add(new JMenuItem(new AbstractAction("Send chunks") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                WorldManager.getInstance().getRenderDistanceExtender().updatePlayerPos(WorldManager.getInstance().getPlayerPosition());
-            }
-        }));
     }
 }

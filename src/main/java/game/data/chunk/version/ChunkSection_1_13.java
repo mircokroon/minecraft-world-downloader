@@ -13,7 +13,6 @@ import se.llbit.nbt.Tag;
  * convert the palette from the packet to an NBT palette.
  */
 public class ChunkSection_1_13 extends ChunkSection {
-
     @Override
     public int getDataVersion() {
         return Chunk_1_13.DATA_VERSION;
@@ -29,6 +28,7 @@ public class ChunkSection_1_13 extends ChunkSection {
         this.setSkyLight(nbt.get("SkyLight").byteArray());
         this.palette = new Palette(getDataVersion(), nbt.get("Palette").asList());
     }
+
 
     @Override
     protected void addNbtTags(CompoundTag map) {

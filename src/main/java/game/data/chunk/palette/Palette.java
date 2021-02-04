@@ -17,6 +17,8 @@ public class Palette {
     protected int bitsPerBlock;
     private int[] palette;
 
+    private int dv;
+
     protected Palette() { }
 
     private Palette(int bitsPerBlock, int[] palette) {
@@ -47,9 +49,10 @@ public class Palette {
         this.bitsPerBlock = computeBitsPerBlock(nbt.size() - 1);
         this.palette = new int[nbt.size()];
 
+        this.dv = dataVersion;
         GlobalPalette global = GlobalPaletteProvider.getGlobalPalette(dataVersion);
         for (int i = 0; i < nbt.size(); i++) {
-            BlockState bs = global.getState(nbt.get(i).get("Name").stringValue());
+            BlockState bs = global.getState(nbt.get(i).asCompound());
 
             // if a block is unknown, just leave it at 0
             if (bs != null) {
@@ -157,5 +160,14 @@ public class Palette {
         int result = bitsPerBlock;
         result = 31 * result + Arrays.hashCode(palette);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Palette{" +
+                "bitsPerBlock=" + bitsPerBlock +
+                ", palette=" + Arrays.toString(palette) +
+                ", dv=" + dv +
+                '}';
     }
 }

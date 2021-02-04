@@ -90,7 +90,6 @@ public class WorldManager {
     private WorldManager() {
         this.isStarted = false;
 
-        System.out.println(Config.getExtendedRenderDistance());
         if (Config.getExtendedRenderDistance() > 0) {
             this.renderDistanceExtender = new RenderDistanceExtender(this, Config.getExtendedRenderDistance());
         }
@@ -503,7 +502,7 @@ public class WorldManager {
         this.playerPosition = newPos;
 
         if (this.renderDistanceExtender != null) {
-            //this.renderDistanceExtender.updatePlayerPos(newPos);
+            this.renderDistanceExtender.updatePlayerPos(newPos);
         }
     }
 
@@ -512,39 +511,69 @@ public class WorldManager {
     }
 
 
-    public void unloadChunks(Set<Coordinate2D> toUnload) {
+    public void unloadChunks(Collection<Coordinate2D> toUnload) {
         // TODO
     }
 
-    public Set<Coordinate2D> loadChunks(Set<Coordinate2D> desired) {
+    public Set<Coordinate2D> loadChunks(Collection<Coordinate2D> desired) {
         Set<Coordinate2D> loaded = new HashSet<>();
 
         // separate into McaFiles
         Map<Coordinate2D, List<Coordinate2D>> mcaFiles = desired.stream().collect(Collectors.groupingBy(Coordinate2D::chunkToRegion));
 
-        mcaFiles.forEach((key, value) -> attempt(() -> {
+        // we need to avoid overwhelming the client with tons of chunks all at once, so we insert a small delay every
+        // few chunks to avoid this.
+        int chunksSent = 0;
+        for (Map.Entry<Coordinate2D, List<Coordinate2D>> entry : mcaFiles.entrySet()) {
+            Coordinate2D key = entry.getKey();
+            List<Coordinate2D> value = entry.getValue();
+
             String filename = "r." + key.getX() + "." + key.getZ() + ".mca";
             File f = Paths.get(Config.getExportDirectory(), Config.getDimension().getPath(), "region", filename).toFile();
 
             if (!f.exists()) {
-                return;
+                continue;
             }
-            McaFile m = new McaFile(f);
 
+            // Load the MCA file - if it cannot be loaded for any reason it's skipped.
+            McaFile m;
+            try {
+                m = new McaFile(f);
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            // loop through the list of chunks we want to load from this file
             for (Coordinate2D coord : value) {
                 CoordinateDim2D withDim = coord.addDimension(Config.getDimension());
                 ChunkBinary chunkBinary = m.getChunkBinary(withDim);
+
+                // skip any chunks not in the MCA file
                 if (chunkBinary == null) {
                     continue;
                 }
+
+                // send a packet with the chunk to the client
                 Chunk chunk = chunkBinary.toChunk(withDim);
                 Config.getPacketInjector().accept(chunk.toPacket());
                 loaded.add(coord);
 
                 // draw in GUI
                 GuiManager.setChunkLoaded(chunk.location, chunk);
+
+                // periodically sleep so the client doesn't stutter from receiving too many chunks
+                chunksSent = (chunksSent + 1) % 5;
+                if (chunksSent == 0) {
+                    try {
+                        Thread.sleep(24);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-        }));
+
+        }
         return loaded;
     }
 }

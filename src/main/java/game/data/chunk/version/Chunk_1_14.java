@@ -2,6 +2,7 @@ package game.data.chunk.version;
 
 import game.data.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
+import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.CompoundTag;
@@ -77,5 +78,15 @@ public class Chunk_1_14 extends Chunk_1_13 {
         int result = super.hashCode();
         result = 31 * result + (heightMap != null ? heightMap.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    protected ChunkSection createNewChunkSection(byte y, Palette palette) {
+        return new ChunkSection_1_14(y, palette);
+    }
+
+    @Override
+    protected ChunkSection parseSection(int sectionY, SpecificTag section) {
+        return new ChunkSection_1_14(sectionY, section);
     }
 }

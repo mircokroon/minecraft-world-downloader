@@ -1,5 +1,6 @@
 package game.data.chunk.palette;
 
+import com.google.gson.JsonPrimitive;
 import game.data.WorldManager;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.StringTag;
@@ -12,16 +13,16 @@ import java.util.Map;
 public class BlockState {
     private final String name;
     private final int id;
-    private final Map<String, String> properties;
+    private final CompoundTag properties;
 
-    public BlockState(String name, int id, Map<String, String> properties) {
+    public BlockState(String name, int id, CompoundTag properties) {
         this.name = name;
         this.id = id;
         this.properties = properties;
     }
 
     public String getProperty(String name) {
-        return properties.get(name);
+        return properties.get(name).stringValue();
     }
 
     public boolean isChest() {
@@ -32,12 +33,12 @@ public class BlockState {
             return false;
         }
 
-        String type = properties.get("type");
+        String type = properties.get("type").stringValue();
         return type != null && (type.equals("left") || type.equals("right"));
     }
 
     public boolean hasProperty(String property) {
-        return properties.containsKey(property);
+        return !properties.get(property).isError();
     }
 
     /**
@@ -49,12 +50,7 @@ public class BlockState {
 
         // only add the properties tag if there are any
         if (properties != null && !properties.isEmpty())  {
-            CompoundTag propertyTag = new CompoundTag();
-            this.properties.forEach((propertyName, propertyValue) -> {
-                propertyTag.add(propertyName, new StringTag(propertyValue));
-            });
-
-            rootTag.add("Properties", propertyTag);
+            rootTag.add("Properties", properties);
         }
 
 

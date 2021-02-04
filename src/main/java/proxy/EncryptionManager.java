@@ -6,7 +6,6 @@ import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
-import packets.builder.PacketCopier;
 import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
@@ -147,9 +146,11 @@ public class EncryptionManager {
     public void streamToClient(ByteQueue bytes) throws IOException {
         streamTo(streamToClient, bytes, this::clientBoundEncrypt);
 
-        while (!insertedPackets.isEmpty()) {
+        // if we inject a lot of packets important other stuff could be delayed, so
+        if (!insertedPackets.isEmpty()) {
             streamTo(streamToClient, insertedPackets.remove(), this::clientBoundEncrypt);
         }
+
     }
 
     /**
@@ -288,7 +289,6 @@ public class EncryptionManager {
             serverBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
             encryptionEnabled = true;
-            System.out.println("Enabled encryption");
         });
     }
 

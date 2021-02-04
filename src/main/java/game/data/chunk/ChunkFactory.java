@@ -17,9 +17,7 @@ import packets.DataTypeProvider;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -36,7 +34,7 @@ public class ChunkFactory extends Thread {
     private ConcurrentMap<CoordinateDim2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
     private ConcurrentMap<Integer, Entity> entities;
 
-    private List<EntityParser> unparsedEntities;
+    private Collection<EntityParser> unparsedEntities;
 
     private boolean threadStarted = false;
 
@@ -56,7 +54,7 @@ public class ChunkFactory extends Thread {
         this.chunkEntities = new ConcurrentHashMap<>();
         this.entities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
-        this.unparsedEntities = new LinkedList<>();
+        this.unparsedEntities = new ArrayDeque<>();
     }
 
     /**

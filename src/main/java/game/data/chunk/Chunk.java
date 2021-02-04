@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
  */
 public abstract class Chunk {
-    private ColorTransformer colorTransformer;
+    private final ColorTransformer colorTransformer;
 
     protected static final int LIGHT_SIZE = 2048;
     protected static final int CHUNK_HEIGHT = 256;
@@ -44,14 +44,14 @@ public abstract class Chunk {
     public static final int SECTION_WIDTH = 16;
 
     public CoordinateDim2D location;
-    private Map<Coordinate3D, SpecificTag> tileEntities;
-    private Set<Entity> entities;
+    private final Map<Coordinate3D, SpecificTag> tileEntities;
+    private final Set<Entity> entities;
 
     protected ChunkSection[] getChunkSections() {
         return chunkSections;
     }
 
-    private ChunkSection[] chunkSections;
+    private final ChunkSection[] chunkSections;
 
     private Runnable afterParse;
     private boolean isNewChunk;

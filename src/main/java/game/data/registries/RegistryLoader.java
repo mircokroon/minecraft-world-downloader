@@ -22,6 +22,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Download the relevant server.jar file and generate the reports, including entity IDs and block IDs.
@@ -42,7 +44,7 @@ public class RegistryLoader {
     private Path registryPath;
     private Path blocksPath;
 
-    private static HashMap<String, RegistryLoader> knownLoaders = new HashMap<>();
+    private static Map<String, RegistryLoader> knownLoaders = new ConcurrentHashMap<>();
 
     public static RegistryLoader forVersion(String version) {
         return knownLoaders.computeIfAbsent(version, (v) -> {

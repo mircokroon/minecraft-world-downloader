@@ -74,8 +74,10 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
                 int dimensionEnum = provider.readInt();
                 Config.setDimension(Dimension.fromId(dimensionEnum));
             } else {
-                SpecificTag dimension = provider.readNbtTag();
-                Config.setDimension(Dimension.fromString(provider.readString()));
+                SpecificTag dimensionNbt = provider.readNbtTag();
+                Dimension dimension = Dimension.fromString(provider.readString());
+                dimension.registerType(dimensionNbt);
+                Config.setDimension(dimension);
             }
             return true;
         });
@@ -91,7 +93,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("chunk_unload", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), Config.getDimension());
             WorldManager.getInstance().unloadChunk(co);
-            return true;
+            return false;
         });
         operations.put("chunk_update_light", provider -> {
             // TODO: update chunk light for 1.14
