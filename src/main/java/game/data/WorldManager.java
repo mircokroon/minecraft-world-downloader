@@ -7,6 +7,7 @@ import game.data.chunk.ChunkFactory;
 import game.data.chunk.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.version.Chunk_1_14;
 import game.data.container.ContainerManager;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
@@ -87,7 +88,7 @@ public class WorldManager {
         this.playerRotation = playerRotation;
     }
 
-    private WorldManager() {
+    protected WorldManager() {
         this.isStarted = false;
 
         if (Config.getExtendedRenderDistance() > 0) {
@@ -103,7 +104,11 @@ public class WorldManager {
 
     public static WorldManager getInstance() {
         if (instance == null) {
-            instance = new WorldManager();
+            if (Config.getDataVersion() < Chunk_1_14.DATA_VERSION && Config.getExtendedRenderDistance() > 0) {
+                instance = new WorldManager_1_13();
+            } else {
+                instance = new WorldManager();
+            }
         }
         return instance;
     }

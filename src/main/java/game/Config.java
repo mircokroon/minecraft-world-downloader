@@ -1,17 +1,16 @@
 package game;
 
 import game.data.Coordinate2D;
-import game.data.Coordinate3D;
 import game.data.dimension.Dimension;
 import game.data.registries.RegistryLoader;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.palette.Palette;
 import game.protocol.Protocol;
+import game.protocol.ProtocolVersionHandler;
 import gui.GuiManager;
 import net.sourceforge.argparse4j.inf.Namespace;
 import packets.builder.PacketBuilder;
-import packets.lib.ByteQueue;
 import proxy.ConnectionDetails;
 
 import java.util.function.Consumer;

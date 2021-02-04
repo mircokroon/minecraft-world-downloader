@@ -1,7 +1,7 @@
 package game.data.chunk.palette;
 
 import game.Config;
-import game.ProtocolVersionHandler;
+import game.protocol.ProtocolVersionHandler;
 import game.data.registries.RegistryLoader;
 import game.protocol.Protocol;
 

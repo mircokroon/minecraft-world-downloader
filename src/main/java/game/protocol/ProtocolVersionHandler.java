@@ -1,11 +1,9 @@
-package game;
+package game.protocol;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
-import game.protocol.Protocol;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,10 +14,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Class to handle versions from version.json file.
+ * Class to handle versions from protocol-versions.json file.
  */
 public class ProtocolVersionHandler {
-    private static final String VERSION_PATH = "version.json";
+    private static final String VERSION_PATH = "protocol-versions.json";
     private static ProtocolVersionHandler instance;
 
     private HashMap<Integer, Integer> dataVersions;
@@ -31,7 +29,7 @@ public class ProtocolVersionHandler {
     private ProtocolVersionHandler() {}
 
     /**
-     * Create a new version handler by reading from version.json file. This file contains the packet IDs for each
+     * Create a new version handler by reading from protocol-versions.json file. This file contains the packet IDs for each
      * of the supported protocol versions.
      */
     public static ProtocolVersionHandler getInstance() {
@@ -40,12 +38,12 @@ public class ProtocolVersionHandler {
         }
 
         GsonBuilder g = new GsonBuilder();
-        g.registerTypeAdapter(Integer.class, new TypeAdapter() {
+        g.registerTypeAdapter(Integer.class, new TypeAdapter<Integer>() {
             @Override
-            public void write(JsonWriter jsonWriter, Object o) { }
+            public void write(JsonWriter jsonWriter, Integer o) { }
 
             @Override
-            public Object read(JsonReader jsonReader) throws IOException {
+            public Integer read(JsonReader jsonReader) throws IOException {
                 // use decode instead of parse so that we can use hex values to display the packet ID
                 return Integer.decode(jsonReader.nextString());
             }
@@ -62,6 +60,7 @@ public class ProtocolVersionHandler {
         dataVersions = new HashMap<>();
         protocols.forEach((protocolVersion, protocol) -> {
             dataVersions.put(protocol.getDataVersion(), protocolVersion);
+            protocol.generateInverse();
         });
     }
 

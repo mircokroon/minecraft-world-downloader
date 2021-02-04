@@ -110,4 +110,8 @@ public class Coordinate2D {
     public CoordinateDim2D addDimension(Dimension dimension) {
         return new CoordinateDim2D(this, dimension);
     }
+
+    public int blockDistance(Coordinate2D globalToChunk) {
+        return Math.max(Math.abs(this.x - globalToChunk.x), Math.abs(this.z - globalToChunk.z));
+    }
 }
