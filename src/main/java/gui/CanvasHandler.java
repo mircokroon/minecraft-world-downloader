@@ -17,6 +17,7 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -274,7 +275,9 @@ public class CanvasHandler extends JPanel implements ActionListener {
 
 
         try {
-            ImageIO.write((RenderedImage) img, "png", new File(Config.getExportDirectory() + "/rendered.png"));
+            File dest = Paths.get(Config.getExportDirectory(), "rendered.png").toFile();
+            ImageIO.write((RenderedImage) img, "png", dest);
+            System.out.println("Saved overview to " + dest.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }

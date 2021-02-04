@@ -11,12 +11,7 @@ import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.apache.commons.io.FileUtils;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -133,16 +128,26 @@ public class RegistryLoader {
     private void generateReports() throws IOException, InterruptedException {
         System.out.println("We'll generate some reports now, this may take a minute.");
         System.out.println("Starting output of Minecraft server.jar:");
-        System.out.println("=\t=\t=\t=\t=\t=\t=\t=");
 
         ProcessBuilder pb = new ProcessBuilder(
-            "java", "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
-        ).inheritIO();
+                "java", "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
+        );
         pb.directory(new File(CACHE));
         Process p = pb.start();
+
+        // instead of directly forwarding the output, we handle it manually. This way we can indent it and get rid
+        // of the annoying teleport command spam.
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            if (line.contains("Ambiguity between arguments")) {
+                continue;
+            }
+            System.out.println("\t" + line);
+        }
+
         p.waitFor();
 
-        System.out.println("=\t=\t=\t=\t=\t=\t=\t=");
         System.out.println("Completed generating reports!");
     }
 

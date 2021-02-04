@@ -39,8 +39,7 @@ public class RightClickMenu extends JPopupMenu {
                 WorldManager.getInstance().deleteAllExisting();
             }
         }));
-
-
+        
         add(new Separator());
 
         add(new JMenuItem(new AbstractAction("Save overview to file") {
@@ -49,7 +48,6 @@ public class RightClickMenu extends JPopupMenu {
                 handler.export();
             }
         }));
-
 
         add(new JMenuItem(new AbstractAction("Draw all existing chunks") {
             @Override
