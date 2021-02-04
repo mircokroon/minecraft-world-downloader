@@ -77,13 +77,21 @@ public class WorldManager {
 
     private RenderDistanceExtender renderDistanceExtender;
     private Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
+    private double playerRotation = 0;
+
+    public double getPlayerRotation() {
+        return playerRotation;
+    }
+
+    public void setPlayerRotation(double playerRotation) {
+        this.playerRotation = playerRotation;
+    }
 
     private WorldManager() {
         this.isStarted = false;
 
         System.out.println(Config.getExtendedRenderDistance());
         if (Config.getExtendedRenderDistance() > 0) {
-            System.out.println("Extended set to " + Config.getExtendedRenderDistance());
             this.renderDistanceExtender = new RenderDistanceExtender(this, Config.getExtendedRenderDistance());
         }
     }

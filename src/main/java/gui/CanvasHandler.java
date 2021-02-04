@@ -32,6 +32,7 @@ import javax.swing.Timer;
  */
 public class CanvasHandler extends JPanel implements ActionListener {
     private final Supplier<Coordinate3D> playerPosition;
+    private final Supplier<Double> playerRotation;
     private static final Image NONE = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
     private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
     private final Color BACKGROUND_COLOR = Color.decode("#292929");
@@ -51,6 +52,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
     CanvasHandler() {
         this.bounds = new Bounds();
         this.playerPosition = WorldManager.getInstance()::getPlayerPosition;
+        this.playerRotation = WorldManager.getInstance()::getPlayerRotation;
 
         replaceChunkImage();
         computeRenderDistance();
@@ -194,11 +196,20 @@ public class CanvasHandler extends JPanel implements ActionListener {
         double playerX = ((playerPos.getX() / 16.0 - bounds.getMinX()) * gridSize);
         double playerZ = ((playerPos.getZ() / 16.0 - bounds.getMinZ()) * gridSize);
 
+        // direction pointer
+        double yaw = Math.toRadians(this.playerRotation.get() + 45);
+        double pointerX = (playerX + (3)*Math.cos(yaw) - (3)*Math.sin(yaw));
+        double pointerZ = (playerZ + (3)*Math.sin(yaw) + (3)*Math.cos(yaw));
+
         g.setColor(Color.BLACK);
         g.fillOval((int) playerX - 6, (int) playerZ - 6, 12, 12);
+        g.fillOval((int) pointerX - 4, (int) pointerZ - 4, 8, 8);
+
         g.setColor(Color.WHITE);
         g.fillOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
+        g.fillOval((int) pointerX - 2, (int) pointerZ - 2, 4, 4);
 
+        // indicator circle
         g.setColor(Color.RED);
         g.drawOval((int) playerX - 16, (int) playerZ - 16, 32, 32);
     }

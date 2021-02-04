@@ -25,8 +25,19 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             return true;
         };
 
+        PacketOperator updatePlayerRotation = provider -> {
+            double yaw = provider.readFloat() % 360;
+            WorldManager.getInstance().setPlayerRotation(yaw);
+            return true;
+        };
+
         operations.put("player_position", updatePlayerPosition);
-        operations.put("player_position_look", updatePlayerPosition);
+        operations.put("player_look", updatePlayerRotation);
+        operations.put("player_position_look", (provider) -> {
+            updatePlayerPosition.apply(provider);
+            updatePlayerRotation.apply(provider);
+            return true;
+        });
         operations.put("player_vehicle_move", updatePlayerPosition);
 
         operations.put("right_click", provider -> {

@@ -146,6 +146,7 @@
 			"serverbound": {
 				"0x12": "player_position",
 				"0x13": "player_position_look",
+				"0x14": "player_look",
 				"0x16": "player_vehicle_move",
 				"0x2E": "right_click",
                 "0x0A": "close_window"
