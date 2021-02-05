@@ -21,6 +21,7 @@
 			"serverBound": {
 				"0x0D": "player_position",
 				"0x0E": "player_position_look",
+				"0x0F": "player_rotation",
 				"0x10": "vehicle_move",
 				"0x1F": "right_click",
 				"0x08": "close_window"

@@ -93,7 +93,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("chunk_unload", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), Config.getDimension());
             WorldManager.getInstance().unloadChunk(co);
-            return false;
+            return Config.getExtendedRenderDistance() == 0;
         });
         operations.put("chunk_update_light", provider -> {
             // TODO: update chunk light for 1.14

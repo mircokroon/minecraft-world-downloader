@@ -12,11 +12,15 @@ import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
 import game.data.container.InventoryWindow;
+import game.protocol.Protocol;
+import game.protocol.ProtocolVersionHandler;
 import org.apache.commons.lang3.ArrayUtils;
 import packets.DataTypeProvider;
+import packets.builder.DebugPacketBuilder;
 import packets.builder.PacketBuilder;
 import packets.lib.ByteQueue;
 import se.llbit.nbt.*;
+import util.ToString;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -125,33 +129,38 @@ public abstract class Chunk {
      * Read a chunk column. Largely based on: https://wiki.vg/Protocol
      */
     public void readChunkColumn(boolean full, int mask, DataTypeProvider dataProvider) {
-        for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT); sectionY++) {
-            if ((mask & (1 << sectionY)) != 0) {  // Is the given bit set in the mask?
-                readBlockCount(dataProvider);
+        // We shift the mask left each iteration and check the unit bit. If the mask is 0, there will be no more chunks
+        // so can stop the loop early.
+        for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT) && mask != 0; sectionY++, mask >>>= 1) {
 
-                byte bitsPerBlock = dataProvider.readNext();
+            // Mask tells us if a section is present or not
+            if ((mask & 1) == 0) {
+                continue;
+            }
 
-                Palette palette = Palette.readPalette(bitsPerBlock, dataProvider);
+            readBlockCount(dataProvider);
 
-                // A bitmask that contains bitsPerBlock set bits
-                int dataArrayLength = dataProvider.readVarInt();
+            byte bitsPerBlock = dataProvider.readNext();
+            Palette palette = Palette.readPalette(bitsPerBlock, dataProvider);
 
-                ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette);
+            // A bitmask that contains bitsPerBlock set bits
+            int dataArrayLength = dataProvider.readVarInt();
 
-                // if the chunk has no blocks
-                if (dataArrayLength == 0) {
-                    return;
-                }
-                // parse blocks
-                section.setBlocks(dataProvider.readLongArray(dataArrayLength));
+            ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette);
 
-                parseLights(section, dataProvider);
+            // if the section has no blocks
+            if (dataArrayLength == 0) {
+                continue;
+            }
+            // parse blocks
+            section.setBlocks(dataProvider.readLongArray(dataArrayLength));
 
-                // dont set section if it only has air or nothing at all
-                if (!palette.isEmpty()) {
-                    // May replace an existing section or a null one
-                    setSection(sectionY, section);
-                }
+            parseLights(section, dataProvider);
+
+            // don't set section if it only has air or nothing at all
+            if (!palette.isEmpty()) {
+                // May replace an existing section or a null one
+                setSection(sectionY, section);
             }
         }
 
@@ -172,7 +181,7 @@ public abstract class Chunk {
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
 
-        if (Config.getDimension() == Dimension.OVERWORLD) {
+        if (Config.getDimension() != Dimension.NETHER) {
             section.setSkyLight(dataProvider.readByteArray(LIGHT_SIZE));
         }
     }
@@ -268,8 +277,7 @@ public abstract class Chunk {
         }
 
         int size = dataProvider.readVarInt();
-
-        readChunkColumn(full, mask, dataProvider);
+        readChunkColumn(full, mask, dataProvider.ofLength(size));
 
         // Used to generate overview, not replaced by 1.14 NBT height maps
         computeHeightMap();
@@ -308,7 +316,10 @@ public abstract class Chunk {
     }
 
     public PacketBuilder toPacket() {
-        PacketBuilder packet = new PacketBuilder(0x20);
+        Protocol p = ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(Config.getProtocolVersion());
+        PacketBuilder packet = new PacketBuilder();
+        packet.writeVarInt(p.clientBound("chunk_data"));
+
         packet.writeInt(location.getX());
         packet.writeInt(location.getZ());
         packet.writeBoolean(true);
@@ -316,7 +327,14 @@ public abstract class Chunk {
         writeBitMask(packet);
         writeHeightMaps(packet);
         writeBiomes(packet);
-        writeSectionData(packet);
+
+        // sections
+        PacketBuilder columns = writeSectionData();
+        byte[] columnArr = columns.toArray();
+        packet.writeVarInt(columnArr.length);
+        packet.writeByteArray(columnArr);
+
+        columns.build();
 
         // we don't include block entities - these chunks will be far away so they shouldn't be rendered anyway
         packet.writeVarInt(0);
@@ -325,7 +343,7 @@ public abstract class Chunk {
 
     protected void writeHeightMaps(PacketBuilder packet) { }
 
-    protected void writeSectionData(PacketBuilder packet) {
+    protected PacketBuilder writeSectionData() {
         PacketBuilder column = new PacketBuilder();
         for (int y = 0; y < (CHUNK_HEIGHT / SECTION_HEIGHT); y++) {
             if (chunkSections[y] != null) {
@@ -333,9 +351,7 @@ public abstract class Chunk {
             }
         }
 
-        byte[] bytes = column.toArray();
-        packet.writeVarInt(bytes.length);
-        packet.writeByteArray(bytes);
+        return column;
     }
 
     private void writeBitMask(PacketBuilder packet) {
@@ -388,6 +404,7 @@ public abstract class Chunk {
             if (cs == null) { continue; }
 
             int height = cs.height(x, z);
+
             if (height < 0) { continue; }
 
             return (chunkSection * SECTION_HEIGHT) + height;
@@ -540,5 +557,16 @@ public abstract class Chunk {
         result = 31 * result + Arrays.hashCode(chunkSections);
         result = 31 * result + Arrays.hashCode(heightMap);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Chunk{" +
+                "location=" + location +
+                ", tileEntities=" + tileEntities +
+                ", entities=" + entities +
+                ", chunkSections=" + Arrays.toString(chunkSections) +
+                ", heightMap=" + ToString.array(heightMap) +
+                '}';
     }
 }

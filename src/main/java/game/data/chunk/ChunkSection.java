@@ -85,6 +85,7 @@ public abstract class ChunkSection {
             int blockStateId = getNumericBlockStateAt(x, y, z);
 
             BlockState state = GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(blockStateId);
+
             if (state == null || !state.isSolid()) {
                 continue;
             }
@@ -96,12 +97,15 @@ public abstract class ChunkSection {
     public int getNumericBlockStateAt(int x, int y, int z) {
         return palette.stateFromId(getPaletteIndex(x, y, z));
     }
-    
+
     public int getPaletteIndex(int x, int y, int z) {
+        return getPaletteIndex(x, y, z, palette.getBitsPerBlock());
+    }
+
+    public int getPaletteIndex(int x, int y, int z, int bitsPerBlock) {
         if (blocks.length == 0) {
             return 0;
         }
-        int bitsPerBlock = palette.getBitsPerBlock();
 
         int individualValueMask = (1 << bitsPerBlock) - 1;
 
@@ -140,11 +144,8 @@ public abstract class ChunkSection {
 
         if (y != that.y) return false;
         if (!Arrays.equals(blocks, that.blocks)) return false;
-        System.out.println("Blocks same");
         if (!Arrays.equals(blockLight, that.blockLight)) return false;
-        System.out.println("Blocklight same");
         if (!Arrays.equals(skyLight, that.skyLight)) return false;
-        System.out.println("Skylight same");
         return Objects.equals(palette, that.palette);
     }
 

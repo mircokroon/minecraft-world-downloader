@@ -1,9 +1,19 @@
 package gui;
 
+import game.Config;
+import game.data.CoordinateDim2D;
 import game.data.WorldManager;
+import game.data.chunk.ChunkBinary;
+import game.data.dimension.Dimension;
+import game.data.region.McaFile;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.swing.AbstractAction;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -65,6 +75,27 @@ public class RightClickMenu extends JPopupMenu {
             public void actionPerformed(ActionEvent e) {
                 WorldManager.getInstance().save();
                 System.exit(0);
+            }
+        }));
+
+        add(new JMenuItem(new AbstractAction("Write chunk 0 0") {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    Path p = Paths.get(Config.getExportDirectory(), "", "region", "r.0.0.mca");
+                    ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
+
+                    FileOutputStream f = new FileOutputStream("chunkdata");
+                    ObjectOutputStream o = new ObjectOutputStream(f);
+                    o.writeObject(cb);
+
+
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                }
+
+
+
             }
         }));
     }

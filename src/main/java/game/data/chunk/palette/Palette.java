@@ -1,13 +1,12 @@
 package game.data.chunk.palette;
 
+import game.data.chunk.Chunk;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class to hold a palette of a chunk.
@@ -17,8 +16,6 @@ public class Palette {
     protected int bitsPerBlock;
     private int[] palette;
 
-    private int dv;
-
     protected Palette() { }
 
     private Palette(int bitsPerBlock, int[] palette) {
@@ -27,6 +24,12 @@ public class Palette {
 
         synchronizeBitsPerBlock();
     }
+
+    Palette(int[] arr) {
+        this.palette = arr;
+        this.bitsPerBlock = computeBitsPerBlock(arr.length - 1);
+    }
+
 
     /**
      * Some non-vanilla servers will use more bits per block than needed, which will cause
@@ -49,7 +52,6 @@ public class Palette {
         this.bitsPerBlock = computeBitsPerBlock(nbt.size() - 1);
         this.palette = new int[nbt.size()];
 
-        this.dv = dataVersion;
         GlobalPalette global = GlobalPaletteProvider.getGlobalPalette(dataVersion);
         for (int i = 0; i < nbt.size(); i++) {
             BlockState bs = global.getState(nbt.get(i).asCompound());
@@ -77,6 +79,9 @@ public class Palette {
      * @param dataTypeProvider network stream reader
      */
     public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
+        if (bitsPerBlock > 8) {
+            return new DummyPalette();
+        }
         int size = dataTypeProvider.readVarInt();
 
         int[] palette = dataTypeProvider.readVarIntArray(size);
@@ -139,7 +144,7 @@ public class Palette {
     }
 
     public void write(PacketBuilder packet) {
-        packet.writeVarInt(bitsPerBlock);
+        packet.writeByte((byte) bitsPerBlock);
         packet.writeVarInt(palette.length);
         packet.writeVarIntArray(palette);
     }
@@ -167,7 +172,8 @@ public class Palette {
         return "Palette{" +
                 "bitsPerBlock=" + bitsPerBlock +
                 ", palette=" + Arrays.toString(palette) +
-                ", dv=" + dv +
                 '}';
     }
+
+
 }

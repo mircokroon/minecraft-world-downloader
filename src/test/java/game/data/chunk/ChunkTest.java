@@ -24,18 +24,24 @@ class ChunkTest extends PacketBuilderAndParserTest {
     public void afterEach() {
     }
 
-    @Test
-    void x() throws IOException, ClassNotFoundException {
-        // set up mock
+    private WorldManager setupMocks(int version) {
         WorldManager mock = mock(WorldManager.class);
         when(mock.getBlockColors()).thenReturn(mock(BlockColors.class));
 
         WorldManager.setInstance(mock);
 
-        Config.setProtocolVersion(751);
+        Config.setProtocolVersion(version);
+
+        return mock;
+    }
+
+    @Test
+    void chunk_1_16() throws IOException, ClassNotFoundException {
+        // set up mock
+        WorldManager mock = setupMocks(751);
 
         // load chunk
-        ObjectInputStream in = new ObjectInputStream(ChunkTest.class.getClassLoader().getResourceAsStream("chunkdata"));
+        ObjectInputStream in = new ObjectInputStream(ChunkTest.class.getClassLoader().getResourceAsStream("chunkdata_1_16"));
         ChunkBinary chunkBinary = (ChunkBinary) in.readObject();
 
         CoordinateDim2D pos = new CoordinateDim2D(0, 0, Dimension.OVERWORLD);
@@ -46,4 +52,22 @@ class ChunkTest extends PacketBuilderAndParserTest {
         assertThat(ChunkFactory.parseChunk(new ChunkParserPair(getParser(), pos.getDimension()), mock)).isEqualTo(c);
     }
 
+    @Test
+    void chunk_1_12() throws IOException, ClassNotFoundException {
+        // set up mock
+        WorldManager mock = setupMocks(340);
+
+        // load chunk
+        ObjectInputStream in = new ObjectInputStream(ChunkTest.class.getClassLoader().getResourceAsStream("chunkdata_1_12"));
+        ChunkBinary chunkBinary = (ChunkBinary) in.readObject();
+
+        CoordinateDim2D pos = new CoordinateDim2D(0, 0, Dimension.OVERWORLD);
+        Chunk c = chunkBinary.toChunk(pos);
+
+        builder = c.toPacket();
+
+        assertThat(ChunkFactory.parseChunk(new ChunkParserPair(getParser(), pos.getDimension()), mock)).isEqualTo(c);
+
+        //System.out.println(c.getBlockStateAt(0, 0, 0));
+    }
 }

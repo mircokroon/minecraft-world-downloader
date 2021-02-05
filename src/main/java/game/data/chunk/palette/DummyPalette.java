@@ -1,5 +1,6 @@
 package game.data.chunk.palette;
 
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.List;
@@ -16,6 +17,11 @@ public class DummyPalette extends Palette {
     }
 
     @Override
+    public int getBitsPerBlock() {
+        return 12;
+    }
+
+    @Override
     public boolean isEmpty() {
         return false;
     }
@@ -23,5 +29,10 @@ public class DummyPalette extends Palette {
     @Override
     public List<SpecificTag> toNbt() {
         throw new UnsupportedOperationException("Cannot convert a dummy palette to NBT");
+    }
+
+    @Override
+    public void write(PacketBuilder packet) {
+        packet.writeByte((byte) 12);
     }
 }

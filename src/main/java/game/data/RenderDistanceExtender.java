@@ -10,7 +10,7 @@ public class RenderDistanceExtender extends Thread {
     private static final Coordinate2D POS_INIT = new Coordinate2D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
     private final int extendedDistance;
-    private int serverDistance = 32;
+    public int serverDistance = 32;
     private int perRow = 0;
 
     private Coordinate2D playerChunk = POS_INIT;

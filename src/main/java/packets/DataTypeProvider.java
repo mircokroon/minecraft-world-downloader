@@ -245,4 +245,8 @@ public class DataTypeProvider {
         }
         return res;
     }
+
+    public int remaining() {
+        return this.finalFullPacket.length - pos;
+    }
 }

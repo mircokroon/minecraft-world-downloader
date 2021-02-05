@@ -24,8 +24,6 @@ public class GlobalPalette {
      */
     public GlobalPalette(String version) {
         this(GlobalPalette.class.getClassLoader().getResourceAsStream("blocks-" + version + ".json"));
-        System.out.println("Generating palette for " + version);
-
     }
 
     /**

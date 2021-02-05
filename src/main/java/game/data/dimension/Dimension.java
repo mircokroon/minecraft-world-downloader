@@ -109,6 +109,11 @@ public class Dimension {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return namespace + ":" + name;
+    }
 }
 
 /**

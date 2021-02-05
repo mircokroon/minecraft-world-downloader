@@ -419,7 +419,7 @@ public class WorldManager {
      */
     public void start() {
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleWithFixedDelay(this::save, SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
+        executor.scheduleWithFixedDelay(this::save, 5000, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
     /**
