@@ -52,7 +52,8 @@ import static util.ExceptionHandling.attempt;
  * Manage the world, including saving, parsing and updating the GUI.
  */
 public class WorldManager {
-    private static final int SAVE_DELAY = 20 * 1000;
+    private static final int INIT_SAVE_DELAY = 5 * 1000;
+    private static final int SAVE_DELAY = 15 * 1000;
 
     private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
 
@@ -431,7 +432,7 @@ public class WorldManager {
      */
     public void start() {
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-        executor.scheduleWithFixedDelay(this::save, 5000, SAVE_DELAY, TimeUnit.MILLISECONDS);
+        executor.scheduleWithFixedDelay(this::save, INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
     /**

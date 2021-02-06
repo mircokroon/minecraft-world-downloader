@@ -97,7 +97,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         });
         operations.put("chunk_update_light", provider -> {
             // TODO: update chunk light for 1.14
-            return false;
+            return true;
         });
         operations.put("update_block_entity", provider -> {
             Coordinate3D position = provider.readCoordinates();

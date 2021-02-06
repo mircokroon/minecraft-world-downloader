@@ -9,9 +9,7 @@ import game.data.chunk.Chunk;
  * the class is the same as it's parent.
  */
 public class WorldManager_1_13 extends WorldManager {
-    public WorldManager_1_13() {
-        System.out.println("Server render distance will be measured before render distance is extended.");
-    }
+    public WorldManager_1_13() { }
 
     boolean measuringRenderDistance = true;
     int maxDistance = 0;

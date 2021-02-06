@@ -121,7 +121,7 @@ public class RenderDistanceExtender extends Thread {
 
 
     /**
-     * In case of teleports or spawns we will have to consider all the chunks instead.
+     * In case of teleports or spawns we will have to consider all the chunks.
      */
     private void updateFull() {
         invalidated = false;
@@ -133,9 +133,9 @@ public class RenderDistanceExtender extends Thread {
                 if (inServerDistance(x, z)) { continue; }
 
                 Coordinate2D chunkCoords = playerChunk.add(x, z);
-                if (!activeChunks.contains(chunkCoords))
-
-                desired.add(chunkCoords);
+                if (!activeChunks.contains(chunkCoords)) {
+                    desired.add(chunkCoords);
+                }
                 toUnload.remove(chunkCoords);
             }
         }
@@ -146,6 +146,9 @@ public class RenderDistanceExtender extends Thread {
         activeChunks.removeAll(toUnload);
     }
 
+    /**
+     * Checks if a given chunk coordinate is within the server's render distance.
+     */
     private boolean inServerDistance(int x, int z) {
         return x >= -serverDistance && z >= -serverDistance && x <= serverDistance && z <= serverDistance;
     }
