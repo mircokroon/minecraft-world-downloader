@@ -8,6 +8,7 @@ import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
@@ -86,17 +87,17 @@ public class ProtocolVersionHandler {
     /**
      * Given a set of version numbers and a target, find (in order of priority):
      *  - The version given
-     *  - The closest version that's still lower than the requested version
+     *  - The closest version that's above the requested version
      *  - The lowest version number
      */
     private int bestMatch(Set<Integer> values, int target) {
         if (values.contains(target)) { return target; }
 
-        List<Integer> sorted = values.stream().sorted().collect(Collectors.toList());
+        List<Integer> sorted = values.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
 
         int chosenVersion = sorted.get(0);
         for (Integer currentVersion : sorted) {
-            if (currentVersion < target) {
+            if (currentVersion > target) {
                 chosenVersion = currentVersion;
             }
         }
