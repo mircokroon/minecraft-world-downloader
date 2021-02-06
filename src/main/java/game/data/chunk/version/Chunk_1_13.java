@@ -90,6 +90,13 @@ public class Chunk_1_13 extends Chunk {
     }
 
     @Override
+    protected PacketBuilder writeSectionData() {
+        PacketBuilder parent = super.writeSectionData();
+        parent.writeIntArray(getBiomes());
+        return parent;
+    }
+
+    @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + Arrays.hashCode(biomes);

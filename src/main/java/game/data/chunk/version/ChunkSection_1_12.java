@@ -186,7 +186,7 @@ public class ChunkSection_1_12 extends ChunkSection {
     @Override
     public String toString() {
         return "ChunkSection_1_12{" +
-                "blockStates=" + ToString.array(blockStates[0][0]) +
+                "blockStates=" + (Arrays.toString(blockStates[0][0])) +
                 '}';
     }
 }

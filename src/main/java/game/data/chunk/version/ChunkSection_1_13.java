@@ -1,7 +1,11 @@
 package game.data.chunk.version;
 
+import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.palette.PaletteBuilder;
+import game.data.dimension.Dimension;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.LongArrayTag;
@@ -29,6 +33,19 @@ public class ChunkSection_1_13 extends ChunkSection {
         this.palette = new Palette(getDataVersion(), nbt.get("Palette").asList());
     }
 
+    @Override
+    public void write(PacketBuilder packet) {
+        palette.write(packet);
+
+        packet.writeVarInt(blocks.length);
+        packet.writeLongArray(blocks);
+
+        packet.writeByteArray(this.blockLight);
+
+        if (WorldManager.getInstance().getDimension() != Dimension.NETHER) {
+            packet.writeByteArray(this.skyLight);
+        }
+    }
 
     @Override
     protected void addNbtTags(CompoundTag map) {

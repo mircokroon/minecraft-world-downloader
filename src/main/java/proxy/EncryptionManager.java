@@ -347,11 +347,10 @@ public class EncryptionManager {
             builder.writeVarInt(nextMode);
 
             System.out.format(
-                    "Performed handshake with %s:%d, protocol version %d :: next state: %s\n",
+                    "Performed handshake with %s:%d, protocol version %d\n",
                     connectionDetails.getHost(),
                     connectionDetails.getPortRemote(),
-                    protocolVersion,
-                    nextMode == 1 ? "status" : "login"
+                    protocolVersion
             );
 
             streamToServer(builder.build());

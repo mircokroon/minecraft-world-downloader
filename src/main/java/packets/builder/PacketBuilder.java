@@ -226,4 +226,10 @@ public class PacketBuilder {
             writeString(val);
         }
     }
+
+    public void writeIntArray(int[] arr) {
+        for (int i : arr) {
+            writeInt(i);
+        }
+    }
 }

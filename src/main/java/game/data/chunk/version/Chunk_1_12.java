@@ -75,6 +75,7 @@ public class Chunk_1_12 extends Chunk {
         return column;
     }
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

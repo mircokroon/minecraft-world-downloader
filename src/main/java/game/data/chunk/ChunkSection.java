@@ -143,10 +143,9 @@ public abstract class ChunkSection {
         ChunkSection that = (ChunkSection) o;
 
         if (y != that.y) return false;
-        if (!Arrays.equals(blocks, that.blocks)) return false;
         if (!Arrays.equals(blockLight, that.blockLight)) return false;
         if (!Arrays.equals(skyLight, that.skyLight)) return false;
-        return Objects.equals(palette, that.palette);
+        return true;
     }
 
     @Override

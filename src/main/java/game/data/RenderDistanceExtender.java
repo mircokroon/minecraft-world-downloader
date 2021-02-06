@@ -19,6 +19,7 @@ public class RenderDistanceExtender extends Thread {
     private final Set<Coordinate2D> activeChunks;
     private final WorldManager worldManager;
     private boolean invalidated = false;
+    private boolean active = false;
 
     public RenderDistanceExtender(WorldManager worldManager, int extendedDistance) {
         this.worldManager = worldManager;
@@ -36,6 +37,9 @@ public class RenderDistanceExtender extends Thread {
         this.perRow = extendedDistance * 2 + 1;
         this.activeChunks.clear();
         this.playerChunk = POS_INIT;
+
+        // only set active to true if the extended distance is actually greater than the server distance
+        this.active = this.serverDistance < this.extendedDistance;
     }
 
     @Override
@@ -61,14 +65,16 @@ public class RenderDistanceExtender extends Thread {
         }
     }
 
-    public void setServerRenderDistance(int distance) {
-        this.serverDistance = distance;
-    }
-
     public void updatePlayerPos(Coordinate2D newPos) {
         Coordinate2D newChunkPos = newPos.globalToChunk();
         if (!playerChunk.equals(newChunkPos)) {
             this.newPlayerChunk = newChunkPos;
+
+            // don't start sending chunks before we know the server distance (and its actually smaller than the
+            // extended distance)
+            if (!active) {
+                return;
+            }
 
             synchronized (this) {
                 this.notify();
