@@ -9,6 +9,9 @@ import java.util.function.Function;
 public class RenderDistanceExtender extends Thread {
     private static final Coordinate2D POS_INIT = new Coordinate2D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
+    boolean measuringRenderDistance = true;
+    int maxDistance = 0;
+
     private final int extendedDistance;
     public int serverDistance = 32;
     private int perRow = 0;
@@ -37,6 +40,7 @@ public class RenderDistanceExtender extends Thread {
         this.perRow = extendedDistance * 2 + 1;
         this.activeChunks.clear();
         this.playerChunk = POS_INIT;
+        this.measuringRenderDistance = false;
 
         // only set active to true if the extended distance is actually greater than the server distance
         this.active = this.serverDistance < this.extendedDistance;
@@ -157,5 +161,28 @@ public class RenderDistanceExtender extends Thread {
      */
     private boolean inServerDistance(int x, int z) {
         return x >= -serverDistance && z >= -serverDistance && x <= serverDistance && z <= serverDistance;
+    }
+
+    public void checkDistance() {
+        if (!measuringRenderDistance || maxDistance == 0) {
+            return;
+        }
+        System.out.println("Server render distance seems to be " + maxDistance + ". Sending chunks from beyond that range.");
+        setServerDistance(maxDistance);
+    }
+
+    public void updateDistance(CoordinateDim2D location) {
+        if (!measuringRenderDistance) {
+            return;
+        }
+
+        if (playerChunk.getX() == 0 && playerChunk.getZ() == 0) {
+            return;
+        }
+
+        int dist = location.blockDistance(playerChunk);
+        if (dist > maxDistance && maxDistance < 32) {
+            maxDistance = dist;
+        }
     }
 }

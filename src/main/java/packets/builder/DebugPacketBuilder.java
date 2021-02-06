@@ -135,4 +135,12 @@ public class DebugPacketBuilder extends PacketBuilder {
             parts.add(part);
         }
     }
+
+    @Override
+    public void writeIntArray(int[] arr) {
+        add("IntArr[" + arr.length + "]");
+        doPrint = false;
+        super.writeIntArray(arr);
+        doPrint = true;
+    }
 }

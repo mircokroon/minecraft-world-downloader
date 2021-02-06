@@ -45,6 +45,7 @@
 			"serverBound": {
 				"0x10": "player_position",
 				"0x11": "player_position_look",
+				"0x12": "player_look",
 				"0x13": "vehicle_move",
 				"0x29": "right_click"
 			}
@@ -99,6 +100,7 @@
 			"serverBound": {
 				"0x11": "player_position",
 				"0x12": "player_position_look",
+				"0x13": "player_look",
 				"0x15": "player_vehicle_move",
 				"0x2C": "right_click",
                 "0x0A": "close_window"

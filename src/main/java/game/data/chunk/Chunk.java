@@ -132,7 +132,6 @@ public abstract class Chunk {
         // We shift the mask left each iteration and check the unit bit. If the mask is 0, there will be no more chunks
         // so can stop the loop early.
         for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT) && mask != 0; sectionY++, mask >>>= 1) {
-
             // Mask tells us if a section is present or not
             if ((mask & 1) == 0) {
                 continue;

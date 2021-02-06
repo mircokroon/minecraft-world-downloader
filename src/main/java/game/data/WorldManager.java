@@ -119,11 +119,7 @@ public class WorldManager {
 
     public static WorldManager getInstance() {
         if (instance == null) {
-            if (Config.getDataVersion() < Chunk_1_14.DATA_VERSION && Config.getExtendedRenderDistance() > 0) {
-                instance = new WorldManager_1_13();
-            } else {
-                instance = new WorldManager();
-            }
+            instance = new WorldManager();
         }
         return instance;
     }
@@ -353,6 +349,10 @@ public class WorldManager {
             // draw the chunk once its been parsed
             chunk.whenParsed(() -> GuiManager.setChunkLoaded(chunk.location, chunk));
         }
+
+        if (this.renderDistanceExtender != null) {
+            this.renderDistanceExtender.updateDistance(chunk.location);
+        }
     }
 
     /**
@@ -435,6 +435,7 @@ public class WorldManager {
         executor.scheduleWithFixedDelay(this::save, INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
+
     /**
      * Save the world. Will tell all regions to save their chunks.
      */
@@ -477,6 +478,10 @@ public class WorldManager {
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
 
         isSaving = false;
+
+        if (this.renderDistanceExtender != null) {
+            this.renderDistanceExtender.checkDistance();
+        }
     }
 
     public ContainerManager getContainerManager() {

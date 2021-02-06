@@ -51,6 +51,11 @@ class ChunkTest extends PacketBuilderAndParserTest {
     }
 
     @Test
+    void chunk_1_14() throws IOException, ClassNotFoundException {
+        testFor(498, "chunkdata_1_14");
+    }
+
+    @Test
     void chunk_1_16() throws IOException, ClassNotFoundException {
         testFor(751, "chunkdata_1_16");
     }

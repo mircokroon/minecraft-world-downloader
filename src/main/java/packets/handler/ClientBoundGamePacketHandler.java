@@ -58,6 +58,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
                 WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
 
+                if (Config.getProtocolVersion() >= 498) {
+                    provider.readNext();
+                    provider.readString();
+                    WorldManager.getInstance().getRenderDistanceExtender().setServerDistance(provider.readVarInt());
+                }
+
                 return true;
                 // > 1.16
             } else {
