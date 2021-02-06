@@ -30,7 +30,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             ent.parseMetadata(provider);
 
             // mark chunk as unsaved
-            Chunk c = WorldManager.getInstance().getChunk(ent.getPosition().globalToChunk().addDimension(Config.getDimension()));
+            Chunk c = WorldManager.getInstance().getChunk(ent.getPosition().globalToChunk().addDimension(WorldManager.getInstance().getDimension()));
             if (c == null) { return true; }
 
             WorldManager.getInstance().touchChunk(c);
@@ -56,7 +56,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
                 provider.readNext();
                 int dimensionEnum = provider.readInt();
 
-                Config.setDimension(Dimension.fromId(dimensionEnum));
+                WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
 
                 return true;
                 // > 1.16
@@ -72,12 +72,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("respawn", provider -> {
             if (Config.getProtocolVersion() < 735) {
                 int dimensionEnum = provider.readInt();
-                Config.setDimension(Dimension.fromId(dimensionEnum));
+                WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
             } else {
                 SpecificTag dimensionNbt = provider.readNbtTag();
                 Dimension dimension = Dimension.fromString(provider.readString());
                 dimension.registerType(dimensionNbt);
-                Config.setDimension(dimension);
+                WorldManager.getInstance().setDimension(dimension);
             }
             return true;
         });
@@ -91,7 +91,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
         operations.put("chunk_unload", provider -> {
-            CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), Config.getDimension());
+            CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), WorldManager.getInstance().getDimension());
             WorldManager.getInstance().unloadChunk(co);
             return Config.getExtendedRenderDistance() == 0;
         });

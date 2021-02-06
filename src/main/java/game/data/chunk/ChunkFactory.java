@@ -62,9 +62,9 @@ public class ChunkFactory extends Thread {
      */
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
         if (WorldManager.getInstance().getEntityMap() != null) {
-            addEntity(parser.apply(provider), Config.getDimension());
+            addEntity(parser.apply(provider), WorldManager.getInstance().getDimension());
         } else {
-            this.unparsedEntities.add(new EntityParser(provider, Config.getDimension(), parser));
+            this.unparsedEntities.add(new EntityParser(provider, WorldManager.getInstance().getDimension(), parser));
         }
     }
 
@@ -108,7 +108,7 @@ public class ChunkFactory extends Thread {
      */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
         position.offsetGlobal();
-        CoordinateDim2D chunkPos = position.globalToChunk().addDimension(Config.getDimension());
+        CoordinateDim2D chunkPos = position.globalToChunk().addDimension(WorldManager.getInstance().getDimension());
 
         Chunk chunk = WorldManager.getInstance().getChunk(chunkPos);
 
@@ -133,7 +133,7 @@ public class ChunkFactory extends Thread {
             return;
         }
 
-        unparsedChunks.add(new ChunkParserPair(provider, Config.getDimension()));
+        unparsedChunks.add(new ChunkParserPair(provider, WorldManager.getInstance().getDimension()));
         notify();
     }
 

@@ -1,10 +1,13 @@
 package game.data.chunk.version;
 
+import game.Config;
+import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.DummyPalette;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.palette.PaletteBuilder;
+import game.data.dimension.Dimension;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.CompoundTag;
@@ -151,7 +154,10 @@ public class ChunkSection_1_12 extends ChunkSection {
 
         packet.writeLongArray(blocks);
         packet.writeByteArray(this.blockLight);
-        packet.writeByteArray(this.skyLight);
+
+        if (WorldManager.getInstance().getDimension() != Dimension.NETHER) {
+            packet.writeByteArray(this.skyLight);
+        }
     }
 
     @Override

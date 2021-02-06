@@ -18,6 +18,7 @@ public class RenderDistanceExtender extends Thread {
 
     private final Set<Coordinate2D> activeChunks;
     private final WorldManager worldManager;
+    private boolean invalidated = false;
 
     public RenderDistanceExtender(WorldManager worldManager, int extendedDistance) {
         this.worldManager = worldManager;
@@ -52,7 +53,7 @@ public class RenderDistanceExtender extends Thread {
             Coordinate2D difference = this.newPlayerChunk.subtract(this.playerChunk);
             this.playerChunk = this.newPlayerChunk;
 
-            if (Math.abs(difference.getX()) + Math.abs(difference.getZ()) == 1) {
+            if (!invalidated && Math.abs(difference.getX()) + Math.abs(difference.getZ()) == 1) {
                 updateSingleRow(difference);
             } else {
                 updateFull();
@@ -109,11 +110,21 @@ public class RenderDistanceExtender extends Thread {
         activeChunks.addAll(worldManager.loadChunks(desired));
     }
 
+    public void invalidateChunks() {
+        invalidated = true;
+        this.activeChunks.clear();
+
+        synchronized (this) {
+            notify();
+        }
+    }
+
 
     /**
      * In case of teleports or spawns we will have to consider all the chunks instead.
      */
     private void updateFull() {
+        invalidated = false;
         Collection<Coordinate2D> desired = new HashSet<>();
         Collection<Coordinate2D> toUnload = new HashSet<>(activeChunks);
 

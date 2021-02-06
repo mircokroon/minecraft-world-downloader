@@ -67,7 +67,7 @@ public class ContainerManager {
     }
 
     private void closeWindow(InventoryWindow window) {
-        Chunk c = WorldManager.getInstance().getChunk(window.containerLocation.globalToChunk().addDimension(Config.getDimension()));
+        Chunk c = WorldManager.getInstance().getChunk(window.containerLocation.globalToChunk().addDimension(WorldManager.getInstance().getDimension()));
 
         if (c == null) { return; }
 
@@ -83,7 +83,7 @@ public class ContainerManager {
             handleChest1_12(block, window);
         } else {
             c.addInventory(window);
-            storedWindows.put(window.containerLocation.addDimension3D(Config.getDimension()), window);
+            storedWindows.put(window.containerLocation.addDimension3D(WorldManager.getInstance().getDimension()), window);
         }
     }
 

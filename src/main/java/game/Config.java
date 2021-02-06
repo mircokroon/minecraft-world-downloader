@@ -20,7 +20,6 @@ import java.util.function.Consumer;
  */
 public abstract class Config {
     private static final int DEFAULT_VERSION = 340;
-    private static Dimension dimension = Dimension.OVERWORLD;
     private static Consumer<PacketBuilder> injector;
 
     private static ProtocolVersionHandler versionHandler;
@@ -42,10 +41,6 @@ public abstract class Config {
 
     public static String getGameVersion() {
         return gameVersion;
-    }
-
-    public static Dimension getDimension() {
-        return dimension;
     }
 
     public static int getProtocolVersion() {
@@ -85,10 +80,6 @@ public abstract class Config {
     // setters
     public static void setProtocolVersion(int protocolVersion) {
         Config.protocolVersion = protocolVersion;
-    }
-
-    public static void setDimension(Dimension dimension) {
-        Config.dimension = dimension;
     }
 
     public static void setServerRenderDistance(int viewDist) {

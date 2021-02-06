@@ -80,6 +80,20 @@ public class WorldManager {
     private Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
     private double playerRotation = 0;
 
+    private Dimension dimension = Dimension.OVERWORLD;
+
+    public Dimension getDimension() {
+        return dimension;
+    }
+
+    public void setDimension(Dimension dimension) {
+        this.dimension = dimension;
+
+        if (this.renderDistanceExtender != null) {
+            this.renderDistanceExtender.invalidateChunks();
+        }
+    }
+
     public double getPlayerRotation() {
         return playerRotation;
     }
@@ -142,11 +156,10 @@ public class WorldManager {
     }
 
     public void outlineExistingChunks() throws IOException {
-        Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, true);
 
         GuiManager.outlineExistingChunks(
-                files.flatMap(el -> el.getChunkPositions(dimension).stream()).collect(Collectors.toList())
+                files.flatMap(el -> el.getChunkPositions(this.dimension).stream()).collect(Collectors.toList())
         );
     }
 
@@ -156,12 +169,11 @@ public class WorldManager {
      * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
      */
     public void drawExistingChunks() throws IOException {
-        Dimension dimension = Config.getDimension();
         Stream<McaFile> files = getMcaFiles(dimension, false);
 
         // Step 1: parse all the chunks
         Set<Map.Entry<CoordinateDim2D, Chunk>> parsedChunks = files.parallel()
-                .flatMap(el -> el.getParsedChunks(dimension).entrySet().stream())
+                .flatMap(el -> el.getParsedChunks(this.dimension).entrySet().stream())
                 .collect(Collectors.toSet());
 
         // Step 2: add all chunks to the WorldManager if it doesn't have them yet
@@ -362,7 +374,7 @@ public class WorldManager {
     }
 
     public BlockState blockStateAt(Coordinate3D coordinate3D) {
-        Chunk c = this.getChunk(coordinate3D.globalToChunk().addDimension(Config.getDimension()));
+        Chunk c = this.getChunk(coordinate3D.globalToChunk().addDimension(this.dimension));
 
         if (c == null) { return null; }
 
@@ -486,7 +498,7 @@ public class WorldManager {
         ChunkFactory.getInstance().clear();
 
         try {
-            File dir = Paths.get(Config.getExportDirectory(), Config.getDimension().getPath(), "region").toFile();
+            File dir = Paths.get(Config.getExportDirectory(), this.dimension.getPath(), "region").toFile();
 
             if (dir.isDirectory()) {
                 FileUtils.cleanDirectory(dir);
@@ -534,7 +546,7 @@ public class WorldManager {
             List<Coordinate2D> value = entry.getValue();
 
             String filename = "r." + key.getX() + "." + key.getZ() + ".mca";
-            File f = Paths.get(Config.getExportDirectory(), Config.getDimension().getPath(), "region", filename).toFile();
+            File f = Paths.get(Config.getExportDirectory(), this.dimension.getPath(), "region", filename).toFile();
 
             if (!f.exists()) {
                 continue;
@@ -551,7 +563,7 @@ public class WorldManager {
 
             // loop through the list of chunks we want to load from this file
             for (Coordinate2D coord : value) {
-                CoordinateDim2D withDim = coord.addDimension(Config.getDimension());
+                CoordinateDim2D withDim = coord.addDimension(this.dimension);
                 ChunkBinary chunkBinary = m.getChunkBinary(withDim);
 
                 // skip any chunks not in the MCA file

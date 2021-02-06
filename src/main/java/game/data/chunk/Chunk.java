@@ -181,7 +181,7 @@ public abstract class Chunk {
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
 
-        if (Config.getDimension() != Dimension.NETHER) {
+        if (WorldManager.getInstance().getDimension() != Dimension.NETHER) {
             section.setSkyLight(dataProvider.readByteArray(LIGHT_SIZE));
         }
     }

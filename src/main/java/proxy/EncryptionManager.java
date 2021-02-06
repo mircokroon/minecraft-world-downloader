@@ -380,7 +380,7 @@ public class EncryptionManager {
         String worldName = provider.readString();
         Dimension dimension = Dimension.fromString(worldName);
         dimension.registerType(dimensionNbt);
-        Config.setDimension(dimension);
+        WorldManager.getInstance().setDimension(dimension);
 
         replacement.writeVarInt(numDimensions);
         replacement.writeStringArray(dimensionNames);

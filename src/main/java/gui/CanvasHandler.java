@@ -167,7 +167,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
      * @return the set of chunks actually in range.
      */
     private Collection<CoordinateDim2D> getChunksInRange(Collection<CoordinateDim2D> coords, int rangeX, int rangeZ) {
-        game.data.dimension.Dimension dimension = Config.getDimension();
+        game.data.dimension.Dimension dimension = WorldManager.getInstance().getDimension();
         if (playerPosition.get() == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
