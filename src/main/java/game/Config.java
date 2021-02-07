@@ -77,6 +77,8 @@ public abstract class Config {
         return args.getLong("seed");
     }
 
+    public static boolean isInDevMode() { return args.getBoolean("dev-mode"); }
+
 
     // setters
     public static void setProtocolVersion(int protocolVersion) {

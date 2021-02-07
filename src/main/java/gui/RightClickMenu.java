@@ -78,6 +78,15 @@ public class RightClickMenu extends JPopupMenu {
             }
         }));
 
+        if (Config.isInDevMode()) {
+            addDevOptions();
+        }
+    }
+
+    private void addDevOptions() {
+        add(new Separator());
+        
+        // write chunk 0 0 to a file so that it can be used to run tests.
         add(new JMenuItem(new AbstractAction("Write chunk 0 0") {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -85,17 +94,15 @@ public class RightClickMenu extends JPopupMenu {
                     Path p = Paths.get(Config.getExportDirectory(), "", "region", "r.0.0.mca");
                     ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
 
-                    FileOutputStream f = new FileOutputStream("chunkdata");
+                    String filename = "chunkdata.bin";
+                    FileOutputStream f = new FileOutputStream(filename);
                     ObjectOutputStream o = new ObjectOutputStream(f);
                     o.writeObject(cb);
 
-
+                    System.out.println("Write chunk (0, 0) to " + filename);
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
-
-
-
             }
         }));
     }
