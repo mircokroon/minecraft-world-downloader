@@ -28,11 +28,6 @@ public class ChunkBinary implements Serializable {
         this.chunkData = chunkData;
     }
 
-    public void st() throws IOException {
-        ObjectOutputStream o = new ObjectOutputStream(new FileOutputStream(new File("chunkdata")));
-        o.writeObject(this);
-    }
-
     /**
      * Convert a chunk to a ChunkBinary object.
      * @param chunk the chunk

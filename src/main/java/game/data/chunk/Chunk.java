@@ -310,6 +310,9 @@ public abstract class Chunk {
         return GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(id);
     }
 
+    /**
+     * Generate network packet for this chunk.
+     */
     public PacketBuilder toPacket() {
         Protocol p = ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(Config.getProtocolVersion());
         PacketBuilder packet = new PacketBuilder();
@@ -412,6 +415,9 @@ public abstract class Chunk {
     }
 
 
+    /**
+     * Generate and return the overview image for this chunk.
+     */
     public Image getImage() {
         BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
 

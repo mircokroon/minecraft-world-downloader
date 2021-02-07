@@ -534,10 +534,20 @@ public class WorldManager {
     }
 
 
+    /**
+     * Send unload chunk packets to the client for each of the coordinates. Currently not used as chunk unloading is
+     * not really important, the client can figure it out.
+     * @param toUnload the set of chunks to unload.
+     */
     public void unloadChunks(Collection<Coordinate2D> toUnload) {
         // TODO
     }
 
+    /**
+     * Load chunks from their MCA files and send them to the client.
+     * @param desired the set of chunk coordinates which we want to send to the client.
+     * @return the set of chunks that was actually sent to the client.
+     */
     public Set<Coordinate2D> loadChunks(Collection<Coordinate2D> desired) {
         Set<Coordinate2D> loaded = new HashSet<>();
 
