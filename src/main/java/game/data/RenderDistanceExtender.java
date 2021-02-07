@@ -9,8 +9,9 @@ import java.util.function.Function;
 public class RenderDistanceExtender extends Thread {
     private static final Coordinate2D POS_INIT = new Coordinate2D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
-    boolean measuringRenderDistance = true;
-    int maxDistance = 0;
+    // for distance measuring
+    private boolean measuringRenderDistance = true;
+    private int maxDistance = 0;
 
     private final int extendedDistance;
     public int serverDistance = 32;
@@ -61,6 +62,7 @@ public class RenderDistanceExtender extends Thread {
             Coordinate2D difference = this.newPlayerChunk.subtract(this.playerChunk);
             this.playerChunk = this.newPlayerChunk;
 
+            // if we moved just 1 chunk from the previous one
             if (!invalidated && Math.abs(difference.getX()) + Math.abs(difference.getZ()) == 1) {
                 updateSingleRow(difference);
             } else {
@@ -71,7 +73,9 @@ public class RenderDistanceExtender extends Thread {
 
     public void updatePlayerPos(Coordinate2D newPos) {
         Coordinate2D newChunkPos = newPos.globalToChunk();
-        if (!playerChunk.equals(newChunkPos)) {
+        if (measuringRenderDistance) {
+            this.playerChunk = newChunkPos;
+        } else if (!playerChunk.equals(newChunkPos)) {
             this.newPlayerChunk = newChunkPos;
 
             // don't start sending chunks before we know the server distance (and its actually smaller than the
@@ -120,6 +124,9 @@ public class RenderDistanceExtender extends Thread {
         activeChunks.addAll(worldManager.loadChunks(desired));
     }
 
+    /**
+     * If called, the server changed dimension and will need all chunks to be sent.
+     */
     public void invalidateChunks() {
         invalidated = true;
         this.activeChunks.clear();
@@ -163,6 +170,9 @@ public class RenderDistanceExtender extends Thread {
         return x >= -serverDistance && z >= -serverDistance && x <= serverDistance && z <= serverDistance;
     }
 
+    /**
+     * Checks whether we have found a suitable distance measure for the server render distance.
+     */
     public void checkDistance() {
         if (!measuringRenderDistance || maxDistance == 0) {
             return;
@@ -171,6 +181,9 @@ public class RenderDistanceExtender extends Thread {
         setServerDistance(maxDistance);
     }
 
+    /**
+     * Notifies of newly loaded chunks so we can measure the server render distance.
+     */
     public void updateDistance(CoordinateDim2D location) {
         if (!measuringRenderDistance) {
             return;
