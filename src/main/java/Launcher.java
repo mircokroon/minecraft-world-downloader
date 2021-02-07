@@ -35,7 +35,7 @@ public class Launcher {
         parser.addArgument("-o", "--output")
                 .setDefault("world")
                 .help("The world output directory. If the world already exists, it will attempt to merge with it.");
-        parser.addArgument("-r", "--extended-render-distance").dest("extended-distance")
+        parser.addArgument("-r", "--render-distance").dest("extended-distance")
                 .setDefault(0)
                 .type(Integer.class)
                 .help("When set, send downloaded chunks to client to extend render distance to given amount.");
@@ -61,13 +61,13 @@ public class Launcher {
                 .setDefault(0L)
                 .type(Long.class)
                 .help("Level seed for output file, as a long.");
-        parser.addArgument("-m", "--minecraft")
+        parser.addArgument("-m", "--minecraft-dir").dest("minecraft-dir")
                 .setDefault(getDefaultPath())
                 .help("Path to your Minecraft installation, used to authenticate with Mojang servers.");
         parser.addArgument("-z", "--overview-zoom").dest("overview-zoom")
                 .setDefault(75)
                 .type(Integer.class)
-                .help("Render distance of (in chunks) of the overview map.");
+                .help("Render distance of (in chunks) of the overview map. Can also be changed by scrolling on GUI.");
         parser.addArgument("--mark-new-chunks").dest("mark-new-chunks")
                 .setDefault(false)
                 .type(boolean.class)

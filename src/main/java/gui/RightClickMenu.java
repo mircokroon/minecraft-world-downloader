@@ -85,7 +85,7 @@ public class RightClickMenu extends JPopupMenu {
 
     private void addDevOptions() {
         add(new Separator());
-        
+
         // write chunk 0 0 to a file so that it can be used to run tests.
         add(new JMenuItem(new AbstractAction("Write chunk 0 0") {
             @Override

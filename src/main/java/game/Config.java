@@ -54,7 +54,7 @@ public abstract class Config {
 
     // args getters
     public static String getGamePath() {
-        return args.getString("minecraft");
+        return args.getString("minecraft-dir");
     }
 
     public static int getOverviewZoomDistance() {
