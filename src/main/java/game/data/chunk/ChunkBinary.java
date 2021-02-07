@@ -11,6 +11,8 @@ import java.io.*;
  * Binary (raw NBT) version of a chunk.
  */
 public class ChunkBinary implements Serializable {
+    private static final long serialVersionUID = 4723655497132229129L;
+
     private final static byte COMPRESSION_TYPE = 2;
     private int timestamp;
     private int location;
