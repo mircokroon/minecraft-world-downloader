@@ -4,7 +4,7 @@ import game.data.chunk.Chunk;
 import game.data.chunk.palette.Palette;
 import se.llbit.nbt.Tag;
 
-public class ChunkSection_1_16 extends ChunkSection_1_13 {
+public class ChunkSection_1_16 extends ChunkSection_1_15 {
     public ChunkSection_1_16(byte y, Palette palette) {
         super(y, palette);
     }
@@ -44,5 +44,4 @@ public class ChunkSection_1_16 extends ChunkSection_1_13 {
 
         return data;
     }
-
 }

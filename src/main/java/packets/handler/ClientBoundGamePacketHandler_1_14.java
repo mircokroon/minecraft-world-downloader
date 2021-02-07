@@ -15,7 +15,7 @@ import static packets.builder.NetworkType.*;
 public class ClientBoundGamePacketHandler_1_14 extends ClientBoundGamePacketHandler {
     public ClientBoundGamePacketHandler_1_14(ConnectionManager connectionManager) {
         super(connectionManager);
-        
+
         Protocol protocol = ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(Config.getProtocolVersion());
 
         Map<String, PacketOperator> operators = getOperators();

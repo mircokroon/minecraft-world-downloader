@@ -169,7 +169,6 @@ public abstract class Chunk {
         }
     }
     protected void parseHeightMaps(DataTypeProvider dataProvider) { }
-    protected void readIgnoreOldData(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
     protected abstract ChunkSection createNewChunkSection(byte y, Palette palette);
     protected abstract SpecificTag getNbtBiomes();
@@ -263,9 +262,6 @@ public abstract class Chunk {
      * @param full indicates if its the full chunk or a part of it
      */
     void parse(DataTypeProvider dataProvider, boolean full) {
-        // for 1.16+
-        readIgnoreOldData(dataProvider);
-
         int mask = dataProvider.readVarInt();
 
         // for 1.14+

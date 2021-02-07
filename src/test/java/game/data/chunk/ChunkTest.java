@@ -19,6 +19,11 @@ class ChunkTest extends PacketBuilderAndParserTest {
     public void afterEach() {
     }
 
+    /**
+     * Tests that reading in binary chunk data (as stored in MCA Files), writing it to a network packet and parsing the
+     * network packet leads to the same block states. Note that this does not ensure that the client is necessarily able
+     * to understand the chunk, just that it is internally consistent.
+     */
     private void testFor(int protocolVersion, String dataFile) throws IOException, ClassNotFoundException {
         // set up mock
         WorldManager mock = mock(WorldManager.class);
