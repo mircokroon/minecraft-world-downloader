@@ -88,7 +88,7 @@ public class ProtocolVersionHandler {
      * Given a set of version numbers and a target, find (in order of priority):
      *  - The version given
      *  - The closest version that's above the requested version
-     *  - The lowest version number
+     *  - The highest version number
      */
     private int bestMatch(Set<Integer> values, int target) {
         if (values.contains(target)) { return target; }

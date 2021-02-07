@@ -92,8 +92,12 @@ public class Chunk_1_13 extends Chunk {
     @Override
     protected PacketBuilder writeSectionData() {
         PacketBuilder parent = super.writeSectionData();
-        parent.writeIntArray(getBiomes());
+        writeSectionDataBiomes(parent);
         return parent;
+    }
+
+    protected void writeSectionDataBiomes(PacketBuilder builder) {
+        builder.writeIntArray(getBiomes());
     }
 
     @Override

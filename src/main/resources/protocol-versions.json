@@ -72,13 +72,14 @@
 			"serverBound": {
 				"0x11": "player_position",
 				"0x12": "player_position_look",
+				"0x13": "player_look",
 				"0x15": "player_vehicle_move",
 				"0x2C": "right_click",
 				"0x0A": "close_window"
 			}
 		},
-		"573":  {
-			"version": "1.15.0",
+		"578":  {
+			"version": "1.15.2",
 			"dataVersion": 2225,
 			"clientBound": {
 				"0x22": "chunk_data",
@@ -95,7 +96,6 @@
 				"0x2F": "open_window",
                 "0x14": "close_window",
                 "0x15": "window_items"
-
 			},
 			"serverBound": {
 				"0x11": "player_position",
@@ -106,7 +106,7 @@
                 "0x0A": "close_window"
 			}
 		},
-		"735":  {
+		"731":  {
 			"version": "1.16.0",
 			"dataVersion": 2556,
 			"clientBound": {
@@ -126,7 +126,7 @@
 				"0x16": "player_vehicle_move"
 			}
 		},
-		"751":  {
+		"754":  {
 			"version": "1.16.2",
 			"dataVersion": 2578,
 			"clientBound": {

@@ -41,7 +41,7 @@ public class ConnectionManager {
             case GAME:
                 PacketHandler.setProtocol(Config.getGameProtocol());
                 serverBoundDataReader.setPacketHandler(new ServerBoundGamePacketHandler(this));
-                clientBoundDataReader.setPacketHandler(new ClientBoundGamePacketHandler(this));
+                clientBoundDataReader.setPacketHandler(ClientBoundGamePacketHandler.of(this));
                 break;
             case HANDSHAKE:
                 PacketHandler.setProtocol(new HandshakeProtocol());

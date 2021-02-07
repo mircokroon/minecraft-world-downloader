@@ -204,7 +204,7 @@ public class CanvasHandler extends JPanel implements ActionListener {
 
         g.setColor(Color.BLACK);
         g.fillOval((int) playerX - 6, (int) playerZ - 6, 12, 12);
-        g.fillOval((int) pointerX - 4, (int) pointerZ - 4, 8, 8);
+        //g.fillOval((int) pointerX - 4, (int) pointerZ - 4, 8, 8);
 
         g.setColor(Color.WHITE);
         g.fillOval((int) playerX - 4, (int) playerZ - 4, 8, 8);

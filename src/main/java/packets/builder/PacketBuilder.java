@@ -1,5 +1,6 @@
 package packets.builder;
 
+import packets.DataTypeProvider;
 import packets.UUID;
 import packets.lib.ByteQueue;
 import proxy.CompressionManager;
@@ -26,6 +27,12 @@ public class PacketBuilder {
     public byte[] toArray() {
         return bytes.toArray();
     }
+
+    public void copy(DataTypeProvider provider, NetworkType... types) {
+        for (NetworkType type : types) {
+            type.copy(provider, this);
+        }
+    };
 
     /**
      * Construct a message packet for the client.

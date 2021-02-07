@@ -20,7 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ClientBoundGamePacketHandler extends PacketHandler {
-    private HashMap<String, PacketOperator> operations = new HashMap<>();
+    private final HashMap<String, PacketOperator> operations = new HashMap<>();
     public ClientBoundGamePacketHandler(ConnectionManager connectionManager) {
         super(connectionManager);
 
@@ -50,41 +50,19 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         });
 
         operations.put("join_game", provider -> {
-            // older versions
-            if (Config.getProtocolVersion() < 735) {
-                provider.readInt();
-                provider.readNext();
-                int dimensionEnum = provider.readInt();
+            provider.readInt();
+            provider.readNext();
+            int dimensionEnum = provider.readInt();
 
-                WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
+            WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
 
-                if (Config.getProtocolVersion() >= 498) {
-                    provider.readNext();
-                    provider.readString();
-                    WorldManager.getInstance().getRenderDistanceExtender().setServerDistance(provider.readVarInt());
-                }
-
-                return true;
-                // > 1.16
-            } else {
-                if (Config.getExtendedRenderDistance() > 0) {
-                    getConnectionManager().getEncryptionManager().handleJoinPacket(provider);
-                    return false;
-                }
-                return true;
-            }
+            return true;
         });
 
         operations.put("respawn", provider -> {
-            if (Config.getProtocolVersion() < 735) {
-                int dimensionEnum = provider.readInt();
-                WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
-            } else {
-                SpecificTag dimensionNbt = provider.readNbtTag();
-                Dimension dimension = Dimension.fromString(provider.readString());
-                dimension.registerType(dimensionNbt);
-                WorldManager.getInstance().setDimension(dimension);
-            }
+            int dimensionEnum = provider.readInt();
+            WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
+
             return true;
         });
 
@@ -96,15 +74,13 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             }
             return true;
         });
+
         operations.put("chunk_unload", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), WorldManager.getInstance().getDimension());
             WorldManager.getInstance().unloadChunk(co);
             return Config.getExtendedRenderDistance() == 0;
         });
-        operations.put("chunk_update_light", provider -> {
-            // TODO: update chunk light for 1.14
-            return true;
-        });
+
         operations.put("update_block_entity", provider -> {
             Coordinate3D position = provider.readCoordinates();
             byte action = provider.readNext();
@@ -132,20 +108,13 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
         operations.put("open_window", provider -> {
             int windowId = provider.readNext();
+            String windowType = provider.readString();
+            String windowTitle = provider.readChat();
 
-            if (Config.getProtocolVersion() < 477) {
-                String windowType = provider.readString();
-                String windowTitle = provider.readChat();
+            int numSlots = provider.readNext() & 0xFF;
 
-                int numSlots = provider.readNext() & 0xFF;
+            WorldManager.getInstance().getContainerManager().openWindow_1_12(windowId, numSlots, windowTitle);
 
-                WorldManager.getInstance().getContainerManager().openWindow_1_12(windowId, numSlots, windowTitle);
-            } else {
-                int windowType = provider.readVarInt();
-                String windowTitle = provider.readChat();
-
-                WorldManager.getInstance().getContainerManager().openWindow(windowId, windowType, windowTitle);
-            }
             return true;
         });
         operations.put("close_window", provider -> {
@@ -167,6 +136,23 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             System.out.println("Server tried to change view distance to " + provider.readVarInt());
            return false;
         });
+    }
+
+    public static PacketHandler of(ConnectionManager connectionManager) {
+        final int VERSION_1_14 = 441;
+        final int VERSION_1_15 = 573;
+        final int VERSION_1_16 = 701;
+
+        int protocolVersion = Config.getProtocolVersion();
+        if (protocolVersion >= VERSION_1_16) {
+            return new ClientBoundGamePacketHandler_1_16(connectionManager);
+        } else if (protocolVersion >= VERSION_1_15) {
+            return new ClientBoundGamePacketHandler_1_15(connectionManager);
+        } else if (protocolVersion >= VERSION_1_14) {
+            return new ClientBoundGamePacketHandler_1_14(connectionManager);
+        } else {
+            return new ClientBoundGamePacketHandler(connectionManager);
+        }
     }
 
     @Override

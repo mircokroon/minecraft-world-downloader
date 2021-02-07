@@ -1,6 +1,7 @@
 package game;
 
 import game.data.Coordinate2D;
+import game.data.RenderDistanceExtender;
 import game.data.dimension.Dimension;
 import game.data.registries.RegistryLoader;
 import game.data.WorldManager;
@@ -84,7 +85,12 @@ public abstract class Config {
 
     public static void setServerRenderDistance(int viewDist) {
         Config.serverRenderDistance = viewDist;
-        WorldManager.getInstance().getRenderDistanceExtender().setServerDistance(viewDist);
+
+        RenderDistanceExtender renderDistanceExtender = WorldManager.getInstance().getRenderDistanceExtender();
+        if (renderDistanceExtender != null) {
+            renderDistanceExtender.setServerDistance(viewDist);
+        }
+
     }
 
     /**

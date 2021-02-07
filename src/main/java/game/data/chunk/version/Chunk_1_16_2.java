@@ -29,13 +29,6 @@ public class Chunk_1_16_2 extends Chunk_1_16 {
     }
 
     @Override
-    protected void writeBiomes(PacketBuilder packet) {
-        int[] biomes = getBiomes();
-        packet.writeVarInt(biomes.length);
-        packet.writeVarIntArray(biomes);
-    }
-
-    @Override
     protected ChunkSection createNewChunkSection(byte y, Palette palette) {
         return new ChunkSection_1_16_2(y, palette);
     }

@@ -4,6 +4,7 @@ import game.data.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
 
 public class Chunk_1_15 extends Chunk_1_14 {
@@ -34,4 +35,12 @@ public class Chunk_1_15 extends Chunk_1_14 {
         return new ChunkSection_1_15(sectionY, section);
     }
 
+    @Override
+    protected void writeSectionDataBiomes(PacketBuilder builder) { }
+
+    @Override
+    protected void writeBiomes(PacketBuilder packet) {
+        int[] biomes = getBiomes();
+        packet.writeIntArray(biomes);
+    }
 }

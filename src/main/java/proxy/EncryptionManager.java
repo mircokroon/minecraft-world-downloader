@@ -360,45 +360,7 @@ public class EncryptionManager {
         this.username = username;
     }
 
-    public void handleJoinPacket(DataTypeProvider provider) {
-        PacketBuilder replacement = new PacketBuilder(0x24);
-        replacement.writeInt(provider.readInt());
-        replacement.writeBoolean(provider.readBoolean());
-        replacement.writeByte(provider.readNext());
-        replacement.writeByte(provider.readNext());
-
-        int numDimensions = provider.readVarInt();
-        String[] dimensionNames = provider.readStringArray(numDimensions);
-
-
-        SpecificTag dimensionCodec = provider.readNbtTag();
-        WorldManager.getInstance().setDimensionCodec(DimensionCodec.fromNbt(dimensionNames, dimensionCodec));
-
-        SpecificTag dimensionNbt = provider.readNbtTag();
-
-        String worldName = provider.readString();
-        Dimension dimension = Dimension.fromString(worldName);
-        dimension.registerType(dimensionNbt);
-        WorldManager.getInstance().setDimension(dimension);
-
-        replacement.writeVarInt(numDimensions);
-        replacement.writeStringArray(dimensionNames);
-        replacement.writeNbt(dimensionCodec);
-        replacement.writeNbt(dimensionNbt);
-        replacement.writeString(worldName);
-        replacement.writeLong(provider.readLong());
-        replacement.writeVarInt(provider.readVarInt());
-
-        // extend view distance communicated to the client to the given value
-        int viewDist = provider.readVarInt();
-        Config.setServerRenderDistance(viewDist);
-        replacement.writeVarInt(Math.max(viewDist, Config.getExtendedRenderDistance()));
-
-        replacement.writeBoolean(provider.readBoolean());
-        replacement.writeBoolean(provider.readBoolean());
-        replacement.writeBoolean(provider.readBoolean());
-        replacement.writeBoolean(provider.readBoolean());
-
-        attempt(() -> streamToClient(replacement.build(compressionManager)));
+    public void sendImmediately(PacketBuilder builder) {
+        attempt(() -> streamToClient(builder.build(compressionManager)));
     }
 }

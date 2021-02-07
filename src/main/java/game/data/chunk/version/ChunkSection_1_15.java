@@ -1,6 +1,7 @@
 package game.data.chunk.version;
 
 import game.data.chunk.palette.Palette;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.Tag;
 
 public class ChunkSection_1_15 extends ChunkSection_1_14 {
@@ -15,5 +16,14 @@ public class ChunkSection_1_15 extends ChunkSection_1_14 {
     @Override
     public int getDataVersion() {
         return Chunk_1_15.DATA_VERSION;
+    }
+
+    @Override
+    public void write(PacketBuilder packet) {
+        packet.writeShort(4096);
+        palette.write(packet);
+
+        packet.writeVarInt(blocks.length);
+        packet.writeLongArray(blocks);
     }
 }
