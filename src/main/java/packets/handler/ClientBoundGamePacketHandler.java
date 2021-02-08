@@ -26,6 +26,8 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
     public ClientBoundGamePacketHandler(ConnectionManager connectionManager) {
         super(connectionManager);
 
+        WorldManager.getInstance().resetConnection();
+
         operations.put("entity_metadata", provider -> {
             Entity ent = ChunkFactory.getInstance().getEntity(provider.readVarInt());
             if (ent == null) { return true; }

@@ -608,5 +608,11 @@ public class WorldManager {
         }
         return loaded;
     }
+
+    public void resetConnection() {
+        if (this.renderDistanceExtender != null) {
+            this.renderDistanceExtender.resetConnection();
+        }
+    }
 }
 

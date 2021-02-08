@@ -1,5 +1,7 @@
 package game.data;
 
+import game.Config;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,12 +12,12 @@ public class RenderDistanceExtender extends Thread {
     private static final Coordinate2D POS_INIT = new Coordinate2D(Integer.MAX_VALUE, Integer.MAX_VALUE);
 
     // for distance measuring
-    private boolean measuringRenderDistance = true;
-    private int maxDistance = 0;
+    private boolean measuringRenderDistance;
+    private int maxDistance;
 
     private final int extendedDistance;
-    public int serverDistance = 32;
-    private int perRow = 0;
+    public int serverDistance;
+    private int perRow;
 
     private Coordinate2D playerChunk = POS_INIT;
     private Coordinate2D newPlayerChunk = new Coordinate2D(0, 0);
@@ -26,6 +28,8 @@ public class RenderDistanceExtender extends Thread {
     private boolean active = false;
 
     public RenderDistanceExtender(WorldManager worldManager, int extendedDistance) {
+        this.reset();
+
         this.worldManager = worldManager;
         this.extendedDistance = extendedDistance;
 
@@ -33,10 +37,31 @@ public class RenderDistanceExtender extends Thread {
         this.start();
     }
 
+    private void reset() {
+        this.serverDistance = 32;
+        this.perRow = 0;
+        this.measuringRenderDistance = true;
+        this.maxDistance = 0;
+    }
+
+    public void setServerReportedRenderDistance(int serverDistance) {
+        if (Config.measureRenderDistance()) {
+            System.out.println("Ignored server reported render distance of " + serverDistance);
+            return;
+        }
+
+        if (serverDistance >= 28) {
+            System.out.println("Server seems to be running at abnormally high render distance of " + serverDistance
+                    + ". Run with --measure-render-distance to ignore this value.");
+        }
+
+        this.setServerDistance(serverDistance);
+    }
+
     /**
      * When the server connects it will set the render distance.
      */
-    public void setServerDistance(int serverDistance) {
+    private void setServerDistance(int serverDistance) {
         this.serverDistance = serverDistance;
         this.perRow = extendedDistance * 2 + 1;
         this.activeChunks.clear();
@@ -131,6 +156,10 @@ public class RenderDistanceExtender extends Thread {
         invalidated = true;
         this.activeChunks.clear();
 
+        if (measuringRenderDistance) {
+            return;
+        }
+
         synchronized (this) {
             notify();
         }
@@ -197,5 +226,10 @@ public class RenderDistanceExtender extends Thread {
         if (dist > maxDistance && maxDistance < 32) {
             maxDistance = dist;
         }
+    }
+
+    public void resetConnection() {
+        this.reset();
+        this.invalidateChunks();
     }
 }

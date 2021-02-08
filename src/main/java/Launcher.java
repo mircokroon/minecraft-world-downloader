@@ -1,5 +1,6 @@
 import game.Config;
 import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
@@ -39,9 +40,15 @@ public class Launcher {
                 .setDefault(0)
                 .type(Integer.class)
                 .help("When set, send downloaded chunks to client to extend render distance to given amount.");
+        parser.addArgument("--measure-render-distance").dest("measure-render-distance")
+                .setDefault(false)
+                .action(Arguments.storeTrue())
+                .type(Boolean.class)
+                .help("When set, ignores the server's render distance value and measure it by looking at loaded chunks.");
         parser.addArgument("-b", "--mask-bedrock").dest("mask-bedrock")
                 .setDefault(false)
                 .type(boolean.class)
+                .action(Arguments.storeTrue())
                 .help("Convert all bedrock to stone to make world locations harder to find. Currently only for 1.12.2.");
         parser.addArgument("--center-x")
                 .setDefault(0)
@@ -71,6 +78,7 @@ public class Launcher {
         parser.addArgument("--mark-new-chunks").dest("mark-new-chunks")
                 .setDefault(false)
                 .type(boolean.class)
+                .action(Arguments.storeTrue())
                 .help("Mark new chunks in an orange outline.");
         parser.addArgument("--write-chunks").dest("write-chunks")
                 .setDefault(true)
@@ -91,6 +99,7 @@ public class Launcher {
         parser.addArgument("--dev-mode").dest("dev-mode")
                 .setDefault(false)
                 .type(Boolean.class)
+                .action(Arguments.storeTrue())
                 .help("Enables developer mode.");
 
         Namespace ns = null;

@@ -90,9 +90,13 @@ public abstract class Config {
 
         RenderDistanceExtender renderDistanceExtender = WorldManager.getInstance().getRenderDistanceExtender();
         if (renderDistanceExtender != null) {
-            renderDistanceExtender.setServerDistance(viewDist);
+            renderDistanceExtender.setServerReportedRenderDistance(viewDist);
         }
 
+    }
+
+    public static boolean measureRenderDistance() {
+        return args.getBoolean("measure-render-distance");
     }
 
     /**
