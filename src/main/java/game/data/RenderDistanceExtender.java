@@ -223,7 +223,7 @@ public class RenderDistanceExtender extends Thread {
         }
 
         int dist = location.blockDistance(playerChunk);
-        if (dist > maxDistance && maxDistance < 32) {
+        if (dist > maxDistance && maxDistance < 32 && dist < 32) {
             maxDistance = dist;
         }
     }

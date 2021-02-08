@@ -573,6 +573,7 @@ public class WorldManager {
                 m = new McaFile(f);
             } catch (IOException e) {
                 e.printStackTrace();
+                System.out.println("Skipping invalid MCA file.");
                 continue;
             }
 
