@@ -14,10 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -44,6 +41,11 @@ public class McaFile {
      */
     private Map<Integer, ChunkBinary> readFile(File mca) throws IOException {
         byte[] bytes = IOUtils.toByteArray(new FileInputStream(mca));
+
+        // ensure that the data is not empty
+        if (bytes.length == 0) {
+            return new HashMap<>();
+        }
 
         byte[] locations = Arrays.copyOfRange(bytes, 0, SECTOR_SIZE);
         byte[] timestamps = Arrays.copyOfRange(bytes, SECTOR_SIZE, SECTOR_SIZE * 2);
