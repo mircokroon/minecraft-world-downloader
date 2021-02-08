@@ -15,6 +15,8 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
+import static util.PrintUtils.devPrint;
+
 public class ClientAuthenticator {
     private static int STATUS_SUCCESS = 204;
     private static String UUID_URL = "https://api.mojang.com/users/profiles/minecraft/";
@@ -203,7 +205,7 @@ public class ClientAuthenticator {
         if (str.getStatus() != STATUS_SUCCESS) {
             throw new RuntimeException("Client not authenticated! " + str.getBody());
         } else {
-            System.out.println("Successfully authenticated user with Mojang session server.");
+            devPrint("Successfully authenticated user with Mojang session server.");
         }
     }
 }

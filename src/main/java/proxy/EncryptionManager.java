@@ -29,6 +29,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
 
+import static util.PrintUtils.devPrintFormat;
+
 /**
  * Class to handle encryption, decryption and related masking of the proxy server.
  */
@@ -346,7 +348,7 @@ public class EncryptionManager {
             builder.writeShort(connectionDetails.getPortRemote());
             builder.writeVarInt(nextMode);
 
-            System.out.format(
+            devPrintFormat(
                     "Performed handshake with %s:%d, protocol version %d\n",
                     connectionDetails.getHost(),
                     connectionDetails.getPortRemote(),

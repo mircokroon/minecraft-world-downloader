@@ -17,7 +17,7 @@ import game.protocol.ProtocolVersionHandler;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
-import util.ToString;
+import util.PrintUtils;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -564,7 +564,7 @@ public abstract class Chunk {
                 ", tileEntities=" + tileEntities +
                 ", entities=" + entities +
                 ", chunkSections=" + Arrays.toString(chunkSections) +
-                ", heightMap=" + ToString.array(heightMap) +
+                ", heightMap=" + PrintUtils.array(heightMap) +
                 '}';
     }
 }

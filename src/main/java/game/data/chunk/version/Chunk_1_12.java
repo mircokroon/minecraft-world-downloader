@@ -7,7 +7,7 @@ import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
-import util.ToString;
+import util.PrintUtils;
 
 import java.util.Arrays;
 
@@ -98,7 +98,7 @@ public class Chunk_1_12 extends Chunk {
     public String toString() {
         return "Chunk_1_12{" + super.toString() +
                 "\nlocation=" + location +
-                "\nbiomes=" + ToString.array(biomes) +
+                "\nbiomes=" + PrintUtils.array(biomes) +
                 '}';
     }
 }

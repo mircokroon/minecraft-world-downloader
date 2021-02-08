@@ -1,9 +1,12 @@
 package packets.handler;
 
+import game.Config;
 import proxy.ConnectionManager;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static util.PrintUtils.devPrint;
 
 public class ServerBoundLoginPacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
@@ -12,7 +15,8 @@ public class ServerBoundLoginPacketHandler extends PacketHandler {
 
         operations.put("login_start", provider -> {
             String username = provider.readString();
-            System.out.println("Login by: " + username);
+
+            devPrint("Login by: " + username);
 
             getConnectionManager().getEncryptionManager().setUsername(username);
             return true;

@@ -1,6 +1,5 @@
 package game.data.chunk.version;
 
-import game.Config;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
@@ -12,11 +11,8 @@ import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.Tag;
-import util.ToString;
 
 import java.util.Arrays;
-import java.util.function.IntFunction;
-import java.util.function.IntSupplier;
 import java.util.function.IntUnaryOperator;
 
 /**

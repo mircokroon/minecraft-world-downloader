@@ -1,8 +1,22 @@
 package util;
 
+import game.Config;
+
 import java.util.Arrays;
 
-public class ToString {
+public class PrintUtils {
+    public static void devPrint(String out) {
+        if (Config.isInDevMode()) {
+            System.out.println(out);
+        }
+    }
+
+    public static void devPrintFormat(String out, Object... args) {
+        if (Config.isInDevMode()) {
+            System.out.format(out, args);
+        }
+    }
+
     public static String array(Object[] arr) {
         if (arr.length < 4) {
             return Arrays.toString(arr);

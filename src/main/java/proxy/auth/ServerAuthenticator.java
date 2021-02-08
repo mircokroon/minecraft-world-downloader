@@ -6,6 +6,8 @@ import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
 
+import static util.PrintUtils.devPrint;
+
 public class ServerAuthenticator {
     private static String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/hasJoined";
     private final String username;
@@ -31,7 +33,7 @@ public class ServerAuthenticator {
             System.out.println("WARNING: Connection attempt by using pretending to be you! Closing connection.");
             throw new RuntimeException("Server could not authenticate client! " + str.getBody());
         } else {
-            System.out.println("User identity confirmed with Mojang.");
+            devPrint("User identity confirmed with Mojang.");
         }
     }
 }
