@@ -36,7 +36,7 @@ public class InventoryWindow {
         this.windowTitle = windowTitle;
         this.containerLocation = containerLocation;
 
-        this.slotCount = WorldManager.getMenuRegistry().getSlotCount(windowType);
+        this.slotCount = WorldManager.getInstance().getMenuRegistry().getSlotCount(windowType);
     }
 
     private InventoryWindow(InventoryWindow other) {

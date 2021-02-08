@@ -1,9 +1,8 @@
 package game.data.container;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
-import game.data.CoordinateDim2D;
 import game.data.CoordinateDim3D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
@@ -68,7 +67,7 @@ public class ContainerManager {
     }
 
     private void closeWindow(InventoryWindow window) {
-        Chunk c = WorldManager.getChunk(window.containerLocation.globalToChunk().addDimension(Game.getDimension()));
+        Chunk c = WorldManager.getInstance().getChunk(window.containerLocation.globalToChunk().addDimension(WorldManager.getInstance().getDimension()));
 
         if (c == null) { return; }
 
@@ -76,7 +75,7 @@ public class ContainerManager {
 
         if (block == null) { return; }
 
-        WorldManager.touchChunk(c);
+        WorldManager.getInstance().touchChunk(c);
 
         if (window.getSlotList().size() == 54 && block.hasProperty("type") && block.isDoubleChest()) {
             addDoubleChestInventory(block, window);
@@ -84,7 +83,7 @@ public class ContainerManager {
             handleChest1_12(block, window);
         } else {
             c.addInventory(window);
-            storedWindows.put(window.containerLocation.addDimension3D(Game.getDimension()), window);
+            storedWindows.put(window.containerLocation.addDimension3D(WorldManager.getInstance().getDimension()), window);
         }
     }
 
@@ -96,7 +95,7 @@ public class ContainerManager {
         Coordinate3D pos = window.getContainerLocation();
 
         Coordinate3D beforePos = pos.add(facing.clockwise().toCoordinate());
-        BlockState blockBefore = WorldManager.blockStateAt(beforePos);
+        BlockState blockBefore = WorldManager.getInstance().blockStateAt(beforePos);
 
         InventoryWindow[] chests = window.split();
 

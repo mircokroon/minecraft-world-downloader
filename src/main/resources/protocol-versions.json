@@ -1,0 +1,139 @@
+{
+	"protocols": {
+		"340": {
+			"version": "1.12.2",
+			"dataVersion": 1343,
+			"clientBound": {
+				"0x20": "chunk_data",
+				"0x1D": "chunk_unload",
+				"0x2F": "player_position_look",
+				"0x29": "player_vehicle_move",
+				"0x09": "update_block_entity",
+				"0x03": "spawn_mob",
+				"0x00": "spawn_object",
+				"0x3C": "entity_data",
+				"0x23": "join_game",
+				"0x35": "respawn",
+				"0x13": "open_window",
+				"0x12": "close_window",
+				"0x14": "window_items"
+			},
+			"serverBound": {
+				"0x0D": "player_position",
+				"0x0E": "player_position_look",
+				"0x0F": "player_look",
+				"0x10": "vehicle_move",
+				"0x1F": "right_click",
+				"0x08": "close_window"
+			}
+		},		
+		"404": {
+			"version": "1.13.2",
+			"dataVersion": 1631,
+			"clientBound": {
+				"0x22": "chunk_data",
+				"0x1F": "chunk_unload",
+				"0x32": "player_position_look",
+				"0x2B": "player_vehicle_move",
+				"0x09": "update_block_entity",
+				"0x25": "join_game",
+				"0x38": "respawn",
+				"0x03": "spawn_mob",
+				"0x00": "spawn_object",
+				"0x3F": "entity_data"
+			},
+			"serverBound": {
+				"0x10": "player_position",
+				"0x11": "player_position_look",
+				"0x12": "player_look",
+				"0x13": "vehicle_move",
+				"0x29": "right_click"
+			}
+		},
+		"498": {
+			"version": "1.14.4",
+			"dataVersion": 1976,
+			"clientBound": {
+				"0x21": "chunk_data",
+				"0x1D": "chunk_unload",
+				"0x35": "player_position_look",
+				"0x2C": "player_vehicle_move",
+				"0x24": "chunk_update_light",
+				"0x09": "update_block_entity",
+				"0x25": "join_game",
+				"0x3A": "respawn",
+				"0x03": "spawn_mob",
+				"0x00": "spawn_object",
+				"0x43": "entity_data",
+				"0x2E": "open_window",
+				"0x13": "close_window",
+				"0x14": "window_items"
+			},
+			"serverBound": {
+				"0x11": "player_position",
+				"0x12": "player_position_look",
+				"0x13": "player_look",
+				"0x15": "player_vehicle_move",
+				"0x2C": "right_click",
+				"0x0A": "close_window"
+			}
+		},
+		"578":  {
+			"version": "1.15.2",
+			"dataVersion": 2225,
+			"clientBound": {
+				"0x22": "chunk_data",
+				"0x1E": "chunk_unload",
+				"0x36": "player_position_look",
+				"0x2D": "player_vehicle_move",
+				"0x25": "chunk_update_light",
+				"0x0A": "update_block_entity",
+				"0x03": "spawn_mob",
+				"0x00": "spawn_object",
+				"0x26": "join_game",
+				"0x3B": "respawn",
+				"0x44": "entity_data",
+				"0x2F": "open_window",
+                "0x14": "close_window",
+                "0x15": "window_items"
+			},
+			"serverBound": {
+				"0x11": "player_position",
+				"0x12": "player_position_look",
+				"0x13": "player_look",
+				"0x15": "player_vehicle_move",
+				"0x2C": "right_click",
+                "0x0A": "close_window"
+			}
+		},
+		"754":  {
+			"version": "1.16.2",
+			"dataVersion": 2578,
+			"clientBound": {
+				"0x20": "chunk_data",
+				"0x1C": "chunk_unload",
+				"0x34": "player_position_look",
+				"0x2B": "player_vehicle_move",
+				"0x23": "chunk_update_light",
+				"0x09": "update_block_entity",
+				"0x02": "spawn_mob",
+				"0x00": "spawn_object",
+				"0x44": "entity_data",
+                "0x24": "join_game",
+				"0x39": "respawn",
+				"0x2D": "open_window",
+                "0x12": "close_window",
+				"0x13": "window_items"
+			},
+			"serverBound": {
+				"0x12": "player_position",
+				"0x13": "player_position_look",
+				"0x14": "player_look",
+				"0x16": "player_vehicle_move",
+				"0x2E": "right_click",
+                "0x0A": "close_window"
+			}
+		}
+		
+	}
+}

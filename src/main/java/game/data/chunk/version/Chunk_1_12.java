@@ -5,10 +5,11 @@ import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
-import se.llbit.nbt.ByteArrayTag;
-import se.llbit.nbt.ByteTag;
-import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.SpecificTag;
+import packets.builder.PacketBuilder;
+import se.llbit.nbt.*;
+import util.PrintUtils;
+
+import java.util.Arrays;
 
 /**
  * Chunks in the 1.12(.2) format. Biomes were a byte array in this version.
@@ -16,7 +17,7 @@ import se.llbit.nbt.SpecificTag;
 public class Chunk_1_12 extends Chunk {
     public static final int DATA_VERSION = 1132;
 
-    private final byte[] biomes;
+    private byte[] biomes;
 
     public Chunk_1_12(CoordinateDim2D location) {
         super(location);
@@ -58,9 +59,46 @@ public class Chunk_1_12 extends Chunk {
         return new ChunkSection_1_12(sectionY, section);
     }
 
-    protected SpecificTag getBiomes() {
+    protected SpecificTag getNbtBiomes() {
         return new ByteArrayTag(biomes);
     }
 
+    @Override
+    protected void parseBiomes(Tag tag) {
+        this.biomes = tag.get("Level").asCompound().get("Biomes").byteArray();
+    }
 
+    @Override
+    protected PacketBuilder writeSectionData() {
+        PacketBuilder column = super.writeSectionData();
+        column.writeByteArray(biomes);
+        return column;
+    }
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Chunk_1_12 that = (Chunk_1_12) o;
+
+        return Arrays.equals(biomes, that.biomes);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(biomes);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Chunk_1_12{" + super.toString() +
+                "\nlocation=" + location +
+                "\nbiomes=" + PrintUtils.array(biomes) +
+                '}';
+    }
 }

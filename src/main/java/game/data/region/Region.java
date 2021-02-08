@@ -1,6 +1,6 @@
 package game.data.region;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.CoordinateDim2D;
 import game.data.chunk.Chunk;
@@ -9,10 +9,8 @@ import game.data.chunk.ChunkFactory;
 import gui.GuiManager;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -84,13 +82,12 @@ public class Region {
      * been saved. Will update the Gui with the chunk that's about to be saved.
      * @return the McaFile corresponding to this region
      */
-    public McaFile toFile() {
+    public McaFile toFile(Coordinate2D playerPos) {
         if (!updatedSinceLastWrite) {
             return null;
         }
 
         updatedSinceLastWrite = false;
-        Coordinate2D playerPos = Game.getPlayerPosition().globalToChunk();
 
         Map<Integer, ChunkBinary> chunkBinaryMap = new HashMap<>();
         chunks.keySet().forEach(coordinate -> {

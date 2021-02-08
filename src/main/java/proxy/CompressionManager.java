@@ -15,7 +15,6 @@ public class CompressionManager {
     private boolean compressionEnabled = false;
 
     public void enableCompression(int limit) {
-        System.out.println("Enabled compression");
         this.compressionLimit = limit;
         compressionEnabled = true;
     }
@@ -83,6 +82,22 @@ public class CompressionManager {
     }
 
 
+    /**
+     * Compressed a packet if it's over the limit. Otherwise, the original is returned. Will also return
+     * the original if something goes wrong during compression, but that will surely never happen.
+     */
+    public byte[] compressPacket(byte[] input) {
+        if (!compressionEnabled || input.length <= compressionLimit) {
+            return input;
+        }
+
+        try {
+            return zlibCompress(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return input;
+        }
+    }
 
     /**
      * Decompress the given input.

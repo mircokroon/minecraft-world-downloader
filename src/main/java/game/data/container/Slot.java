@@ -21,7 +21,7 @@ public class Slot {
     public String toString() {
         return "Slot{" +
             "itemId=" + itemId +
-            ", Name=" + WorldManager.getItemRegistry().getItemName(itemId) +
+            ", Name=" + WorldManager.getInstance().getItemRegistry().getItemName(itemId) +
             ", count=" + count +
             ", nbt=" + nbt +
             '}';
@@ -29,7 +29,7 @@ public class Slot {
 
     public CompoundTag toNbt(int index) {
         CompoundTag tag = new CompoundTag();
-        tag.add("id", new StringTag(WorldManager.getItemRegistry().getItemName(itemId)));
+        tag.add("id", new StringTag(WorldManager.getInstance().getItemRegistry().getItemName(itemId)));
         tag.add("Count", new ByteTag(count));
         tag.add("Slot", new ByteTag(index));
 

@@ -1,9 +1,10 @@
 package gui;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
+import game.data.WorldManager;
 import game.data.chunk.Chunk;
 
 import java.awt.Color;
@@ -16,10 +17,12 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
@@ -29,12 +32,14 @@ import javax.swing.Timer;
  * The panel with the canvas we can draw to.
  */
 public class CanvasHandler extends JPanel implements ActionListener {
+    private final Supplier<Coordinate3D> playerPosition;
+    private final Supplier<Double> playerRotation;
     private static final Image NONE = new BufferedImage(1, 1, BufferedImage.TYPE_3BYTE_BGR);
     private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
     private final Color BACKGROUND_COLOR = Color.decode("#292929");
     private final Color UNSAVED_COLOR = new Color(255, 0, 0, 100);
-    private int renderDistance = Game.getRenderDistance();
-    private boolean markUnsaved = Game.markUnsavedChunks();
+    private int renderDistance = Config.getOverviewZoomDistance();
+    private boolean markUnsaved = Config.markUnsavedChunks();
     private int renderDistanceX;
     private int renderDistanceZ;
     private Bounds bounds;
@@ -47,6 +52,8 @@ public class CanvasHandler extends JPanel implements ActionListener {
 
     CanvasHandler() {
         this.bounds = new Bounds();
+        this.playerPosition = WorldManager.getInstance()::getPlayerPosition;
+        this.playerRotation = WorldManager.getInstance()::getPlayerRotation;
 
         replaceChunkImage();
         computeRenderDistance();
@@ -160,12 +167,12 @@ public class CanvasHandler extends JPanel implements ActionListener {
      * @return the set of chunks actually in range.
      */
     private Collection<CoordinateDim2D> getChunksInRange(Collection<CoordinateDim2D> coords, int rangeX, int rangeZ) {
-        game.data.dimension.Dimension dimension = Game.getDimension();
-        if (Game.getPlayerPosition() == null) {
+        game.data.dimension.Dimension dimension = WorldManager.getInstance().getDimension();
+        if (playerPosition.get() == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
         }
-        Coordinate2D player = Game.getPlayerPosition().globalToChunk();
+        Coordinate2D player = playerPosition.get().globalToChunk();
 
         return coords.parallelStream()
             .filter(coordinateDim2D -> coordinateDim2D.getDimension().equals(dimension))
@@ -182,23 +189,30 @@ public class CanvasHandler extends JPanel implements ActionListener {
         g.clearRect(0, 0, GuiManager.width, GuiManager.height);
         if (chunkImage != null) {
             g.drawImage(chunkImage, 0, 0, GuiManager.width, GuiManager.height,
-                        (im, infoflags, x, y, width, height) -> false);
+                    (im, infoflags, x, y, width, height) -> false);
         }
 
-        if (Game.getPlayerPosition() != null) {
-            Coordinate3D playerPosition = Game.getPlayerPosition();
+        Coordinate3D playerPos = playerPosition.get();
 
-            double playerX = ((playerPosition.getX() / 16.0 - bounds.getMinX()) * gridSize);
-            double playerZ = ((playerPosition.getZ() / 16.0 - bounds.getMinZ()) * gridSize);
+        double playerX = ((playerPos.getX() / 16.0 - bounds.getMinX()) * gridSize);
+        double playerZ = ((playerPos.getZ() / 16.0 - bounds.getMinZ()) * gridSize);
 
-            g.setColor(Color.BLACK);
-            g.fillOval((int) playerX - 6, (int) playerZ - 6, 12, 12);
-            g.setColor(Color.WHITE);
-            g.fillOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
+        // direction pointer
+        double yaw = Math.toRadians(this.playerRotation.get() + 45);
+        double pointerX = (playerX + (3)*Math.cos(yaw) - (3)*Math.sin(yaw));
+        double pointerZ = (playerZ + (3)*Math.sin(yaw) + (3)*Math.cos(yaw));
 
-            g.setColor(Color.RED);
-            g.drawOval((int) playerX - 16, (int) playerZ - 16, 32, 32);
-        }
+        g.setColor(Color.BLACK);
+        g.fillOval((int) playerX - 6, (int) playerZ - 6, 12, 12);
+        //g.fillOval((int) pointerX - 4, (int) pointerZ - 4, 8, 8);
+
+        g.setColor(Color.WHITE);
+        g.fillOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
+        g.fillOval((int) pointerX - 2, (int) pointerZ - 2, 4, 4);
+
+        // indicator circle
+        g.setColor(Color.RED);
+        g.drawOval((int) playerX - 16, (int) playerZ - 16, 32, 32);
     }
 
     private void drawChunksToImage() {
@@ -261,7 +275,9 @@ public class CanvasHandler extends JPanel implements ActionListener {
 
 
         try {
-            ImageIO.write((RenderedImage) img, "png", new File(Game.getExportDirectory() + "/rendered.png"));
+            File dest = Paths.get(Config.getExportDirectory(), "rendered.png").toFile();
+            ImageIO.write((RenderedImage) img, "png", dest);
+            System.out.println("Saved overview to " + dest.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }

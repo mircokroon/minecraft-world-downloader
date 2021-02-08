@@ -5,16 +5,14 @@ import game.data.region.McaFile;
 import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Binary (raw NBT) version of a chunk.
  */
-public class ChunkBinary {
+public class ChunkBinary implements Serializable {
+    private static final long serialVersionUID = 4723655497132229129L;
+
     private final static byte COMPRESSION_TYPE = 2;
     private int timestamp;
     private int location;

@@ -1,11 +1,12 @@
 package game.data.chunk.palette;
 
+import game.data.chunk.Chunk;
 import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class to hold a palette of a chunk.
@@ -23,6 +24,12 @@ public class Palette {
 
         synchronizeBitsPerBlock();
     }
+
+    Palette(int[] arr) {
+        this.palette = arr;
+        this.bitsPerBlock = computeBitsPerBlock(arr.length - 1);
+    }
+
 
     /**
      * Some non-vanilla servers will use more bits per block than needed, which will cause
@@ -47,7 +54,7 @@ public class Palette {
 
         GlobalPalette global = GlobalPaletteProvider.getGlobalPalette(dataVersion);
         for (int i = 0; i < nbt.size(); i++) {
-            BlockState bs = global.getState(nbt.get(i).get("Name").stringValue());
+            BlockState bs = global.getState(nbt.get(i).asCompound());
 
             // if a block is unknown, just leave it at 0
             if (bs != null) {
@@ -72,6 +79,9 @@ public class Palette {
      * @param dataTypeProvider network stream reader
      */
     public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
+        if (bitsPerBlock > 8) {
+            return new DummyPalette();
+        }
         int size = dataTypeProvider.readVarInt();
 
         int[] palette = dataTypeProvider.readVarIntArray(size);
@@ -132,4 +142,38 @@ public class Palette {
     public int getBitsPerBlock() {
         return bitsPerBlock;
     }
+
+    public void write(PacketBuilder packet) {
+        packet.writeByte((byte) bitsPerBlock);
+        packet.writeVarInt(palette.length);
+        packet.writeVarIntArray(palette);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Palette palette1 = (Palette) o;
+
+        if (bitsPerBlock != palette1.bitsPerBlock) return false;
+        return Arrays.equals(palette, palette1.palette);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = bitsPerBlock;
+        result = 31 * result + Arrays.hashCode(palette);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Palette{" +
+                "bitsPerBlock=" + bitsPerBlock +
+                ", palette=" + Arrays.toString(palette) +
+                '}';
+    }
+
+
 }

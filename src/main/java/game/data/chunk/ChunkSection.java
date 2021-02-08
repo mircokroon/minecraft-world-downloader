@@ -4,10 +4,15 @@ import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
+import packets.builder.PacketBuilder;
+import packets.lib.ByteQueue;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.Tag;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * Class to hold a 16 block tall chunk section.
@@ -80,6 +85,7 @@ public abstract class ChunkSection {
             int blockStateId = getNumericBlockStateAt(x, y, z);
 
             BlockState state = GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(blockStateId);
+
             if (state == null || !state.isSolid()) {
                 continue;
             }
@@ -91,12 +97,15 @@ public abstract class ChunkSection {
     public int getNumericBlockStateAt(int x, int y, int z) {
         return palette.stateFromId(getPaletteIndex(x, y, z));
     }
-    
+
     public int getPaletteIndex(int x, int y, int z) {
+        return getPaletteIndex(x, y, z, palette.getBitsPerBlock());
+    }
+
+    public int getPaletteIndex(int x, int y, int z, int bitsPerBlock) {
         if (blocks.length == 0) {
             return 0;
         }
-        int bitsPerBlock = palette.getBitsPerBlock();
 
         int individualValueMask = (1 << bitsPerBlock) - 1;
 
@@ -116,4 +125,35 @@ public abstract class ChunkSection {
 
         return data;
     }
+
+    public void write(PacketBuilder packet) {
+        packet.writeShort(4096);
+
+        palette.write(packet);
+
+        packet.writeVarInt(blocks.length);
+        packet.writeLongArray(blocks);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ChunkSection that = (ChunkSection) o;
+
+        if (y != that.y) return false;
+        if (!Arrays.equals(blockLight, that.blockLight)) return false;
+        if (!Arrays.equals(skyLight, that.skyLight)) return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Arrays.hashCode(blocks);
+        result = 31 * result + (int) y;
+        result = 31 * result + (palette != null ? palette.hashCode() : 0);
+        return result;
+    }
 }
+

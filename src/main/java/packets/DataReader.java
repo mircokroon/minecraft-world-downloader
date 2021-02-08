@@ -1,7 +1,6 @@
 package packets;
 
-import game.Game;
-import packets.builder.PacketBuilder;
+import packets.handler.PacketHandler;
 import packets.lib.ByteQueue;
 import proxy.ByteConsumer;
 import proxy.EncryptionManager;
@@ -10,15 +9,18 @@ import java.io.IOException;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+/**
+ * This class takes care of reading in bytes from the network steam and turning it into individual packets.
+ */
 public class DataReader {
     private static final int QUEUE_INIT_SIZE = 2 << 15 - 1;
     private ByteQueue queue;
     private ByteQueue currentPacket;
-    private PacketBuilder builder;
+    private PacketHandler packetHandler;
 
-    private EncryptionManager encryptionManager;
-    private UnaryOperator<byte[]> decrypt;
-    private ByteConsumer transmit;
+    private final Supplier<Boolean> encryptionStatus;
+    private final UnaryOperator<byte[]> decrypt;
+    private final ByteConsumer transmit;
 
     private VarIntResult varIntPacketSize;
 
@@ -28,8 +30,8 @@ public class DataReader {
      * @param decrypt  the decryptor operator
      * @param transmit the transmit function
      */
-    private DataReader(UnaryOperator<byte[]> decrypt, ByteConsumer transmit) {
-        this.encryptionManager = Game.getEncryptionManager();
+    private DataReader(Supplier<Boolean> encryptionStatus, UnaryOperator<byte[]> decrypt, ByteConsumer transmit) {
+        this.encryptionStatus = encryptionStatus;
         this.decrypt = decrypt;
         this.transmit = transmit;
 
@@ -49,14 +51,14 @@ public class DataReader {
      * Initialise a client-bound data reader.
      */
     public static DataReader clientBound(EncryptionManager manager) {
-        return new DataReader(manager::clientBoundDecrypt, manager::streamToClient);
+        return new DataReader(manager::isEncryptionEnabled, manager::clientBoundDecrypt, manager::streamToClient);
     }
 
     /**
      * Initialise a server-bound data reader.
      */
     public static DataReader serverBound(EncryptionManager manager) {
-        return new DataReader(manager::serverBoundDecrypt, manager::streamToServer);
+        return new DataReader(manager::isEncryptionEnabled, manager::serverBoundDecrypt, manager::streamToServer);
     }
 
     /**
@@ -65,7 +67,7 @@ public class DataReader {
     public static int readVarInt(Supplier<Boolean> hasNext, Supplier<Byte> readNext) {
         VarIntResult res = readVarInt(hasNext, readNext, new VarIntResult(false, 0, 0));
         if (!res.isComplete()) {
-            throw new RuntimeException("VarInt lacks bytes! We may be out of sync now.");
+            throw new RuntimeException("Invalid VarInt found! Packet structure may have changed.");
         }
         return res.getResult();
     }
@@ -106,7 +108,7 @@ public class DataReader {
     public void pushData(byte[] b, int amount) throws IOException {
         if (amount == 0) { return; }
 
-        if (encryptionManager.isEncryptionEnabled()) {
+        if (encryptionStatus.get()) {
             decryptPacket(b, amount);
         } else {
             for (int i = 0; i < amount; i++) {
@@ -158,7 +160,7 @@ public class DataReader {
             // parse the packet (including decompression)
             boolean forwardPacket = true;
             try {
-                forwardPacket = getBuilder().build(nextPacketSize);
+                forwardPacket = getPacketHandler().handle(nextPacketSize);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -207,13 +209,13 @@ public class DataReader {
     }
 
 
-    private PacketBuilder getBuilder() {
-        return builder;
+    private PacketHandler getPacketHandler() {
+        return packetHandler;
     }
 
-    public void setBuilder(PacketBuilder builder) {
-        this.builder = builder;
-        builder.setReader(new DataProvider(this));
+    public void setPacketHandler(PacketHandler packetHandler) {
+        this.packetHandler = packetHandler;
+        packetHandler.setReader(new DataProvider(this));
     }
 
     /**

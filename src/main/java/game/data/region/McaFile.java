@@ -1,6 +1,6 @@
 package game.data.region;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.CoordinateDim2D;
 import game.data.dimension.Dimension;
@@ -14,10 +14,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -44,6 +41,11 @@ public class McaFile {
      */
     private Map<Integer, ChunkBinary> readFile(File mca) throws IOException {
         byte[] bytes = IOUtils.toByteArray(new FileInputStream(mca));
+
+        // ensure that the data is not empty
+        if (bytes.length == 0) {
+            return new HashMap<>();
+        }
 
         byte[] locations = Arrays.copyOfRange(bytes, 0, SECTOR_SIZE);
         byte[] timestamps = Arrays.copyOfRange(bytes, SECTOR_SIZE, SECTOR_SIZE * 2);
@@ -95,7 +97,7 @@ public class McaFile {
      */
     public McaFile(CoordinateDim2D pos, Map<Integer, ChunkBinary> chunkMap) {
         regionLocation = pos;
-        Path filePath = Paths.get(Game.getExportDirectory(), pos.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
+        Path filePath = Paths.get(Config.getExportDirectory(), pos.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
 
         this.chunkMap = new HashMap<>();
         if (filePath.toFile().exists()) {
@@ -207,11 +209,22 @@ public class McaFile {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Convert integer position of chunk to global coordinates.
+     */
     private Coordinate2D intToCoordinate(int i) {
         int offset = i / 4;
         int localX = offset & 0x1F;
         int localZ = offset >>> 5;
         return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
+    }
+
+    /**
+     * Convert global coordinates to integer position.
+     */
+    private int coordinateToInt(Coordinate2D c) {
+        Coordinate2D regionLocal = c.toRegionLocal();
+        return 4 * ((regionLocal.getX() % 32) + (regionLocal.getZ() % 32) * 32);
     }
 
     public Map<CoordinateDim2D, Chunk> getParsedChunks(Dimension dimension) {
@@ -221,5 +234,9 @@ public class McaFile {
             value.toChunk(intToCoordinate(key).addDimension(dimension))
         ));
         return res;
+    }
+
+    public ChunkBinary getChunkBinary(CoordinateDim2D coord) {
+        return chunkMap.get(coordinateToInt(coord));
     }
 }

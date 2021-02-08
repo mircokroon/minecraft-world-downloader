@@ -1,6 +1,6 @@
 package packets;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate3D;
 import game.data.container.Slot;
 import game.data.container.Slot_1_12;
@@ -29,9 +29,9 @@ public class DataTypeProvider {
     }
 
     public static DataTypeProvider ofPacket(byte[] finalFullPacket) {
-        if (Game.getProtocolVersion() >= 477) {
+        if (Config.getProtocolVersion() >= 477) {
             return new DataTypeProvider_1_14(finalFullPacket);
-        } else if (Game.getProtocolVersion() >= 404) {
+        } else if (Config.getProtocolVersion() >= 404) {
             return new DataTypeProvider_1_13(finalFullPacket);
         } else {
             return new DataTypeProvider(finalFullPacket);
@@ -48,7 +48,7 @@ public class DataTypeProvider {
         byte read;
         do {
             if (!hasNext()) {
-                throw new RuntimeException("VarLong lacks bytes! We may be out of sync now.");
+                throw new RuntimeException("Invalid VarLong found! Packet structure may have changed.");
             }
             read = readNext();
             int value = (read & 0b01111111);
@@ -244,5 +244,9 @@ public class DataTypeProvider {
             res[i] = readString();
         }
         return res;
+    }
+
+    public int remaining() {
+        return this.finalFullPacket.length - pos;
     }
 }

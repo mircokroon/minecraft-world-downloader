@@ -1,7 +1,7 @@
 package game.data.chunk.palette;
 
-import game.Game;
-import game.ProtocolVersionHandler;
+import game.Config;
+import game.protocol.ProtocolVersionHandler;
 import game.data.registries.RegistryLoader;
 import game.protocol.Protocol;
 
@@ -32,7 +32,7 @@ public final class GlobalPaletteProvider {
      * If no data version is specified, the current game version is used instead.
      */
     public static GlobalPalette getGlobalPalette() {
-        return getGlobalPalette(Game.getDataVersion());
+        return getGlobalPalette(Config.getDataVersion());
     }
 
     /**

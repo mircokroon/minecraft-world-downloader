@@ -1,25 +1,26 @@
 package game.protocol;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class StatusProtocol extends Protocol {
-    String version;
-    HashMap<Integer, String> clientbound;
-    HashMap<Integer, String> severbound;
+    private String version;
+    private Map<Integer, String> clientBound;
+    private Map<Integer, String> serverBound;
 
     public StatusProtocol() {
         version = "LOGIN";
-        clientbound = new HashMap<>();
-        severbound = new HashMap<>();
+        clientBound = new HashMap<>();
+        serverBound = new HashMap<>();
     }
 
     @Override
     protected String clientBound(int packet) {
-        return clientbound.getOrDefault(packet, "UNKNOWN");
+        return clientBound.getOrDefault(packet, "UNKNOWN");
     }
 
     @Override
     protected String serverBound(int packet) {
-        return severbound.getOrDefault(packet, "UNKNOWN");
+        return serverBound.getOrDefault(packet, "UNKNOWN");
     }
 }

@@ -1,26 +1,23 @@
 package game.data.chunk;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
 import game.data.CoordinateDim3D;
 import game.data.dimension.Dimension;
 import game.data.WorldManager;
-import game.data.chunk.entity.Entity;
+import game.data.entity.Entity;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.version.ColorTransformer;
 import game.data.container.InventoryWindow;
+import game.protocol.Protocol;
+import game.protocol.ProtocolVersionHandler;
 import packets.DataTypeProvider;
-import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.IntTag;
-import se.llbit.nbt.ListTag;
-import se.llbit.nbt.LongTag;
-import se.llbit.nbt.NamedTag;
-import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.StringTag;
-import se.llbit.nbt.Tag;
+import packets.builder.PacketBuilder;
+import se.llbit.nbt.*;
+import util.PrintUtils;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -40,7 +37,7 @@ import java.util.stream.Collectors;
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
  */
 public abstract class Chunk {
-    private ColorTransformer colorTransformer;
+    private final ColorTransformer colorTransformer;
 
     protected static final int LIGHT_SIZE = 2048;
     protected static final int CHUNK_HEIGHT = 256;
@@ -48,14 +45,14 @@ public abstract class Chunk {
     public static final int SECTION_WIDTH = 16;
 
     public CoordinateDim2D location;
-    private Map<Coordinate3D, SpecificTag> tileEntities;
-    private Set<Entity> entities;
+    private final Map<Coordinate3D, SpecificTag> tileEntities;
+    private final Set<Entity> entities;
 
     protected ChunkSection[] getChunkSections() {
         return chunkSections;
     }
 
-    private ChunkSection[] chunkSections;
+    private final ChunkSection[] chunkSections;
 
     private Runnable afterParse;
     private boolean isNewChunk;
@@ -110,7 +107,7 @@ public abstract class Chunk {
 
         // check for inventory contents we previously saved
         CoordinateDim3D pos = location.addDimension3D(this.location.getDimension());
-        WorldManager.getContainerManager().loadPreviousInventoriesAt(this, pos);
+        WorldManager.getInstance().getContainerManager().loadPreviousInventoriesAt(this, pos);
     }
 
     /**
@@ -129,33 +126,37 @@ public abstract class Chunk {
      * Read a chunk column. Largely based on: https://wiki.vg/Protocol
      */
     public void readChunkColumn(boolean full, int mask, DataTypeProvider dataProvider) {
-        for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT); sectionY++) {
-            if ((mask & (1 << sectionY)) != 0) {  // Is the given bit set in the mask?
-                readBlockCount(dataProvider);
+        // We shift the mask left each iteration and check the unit bit. If the mask is 0, there will be no more chunks
+        // so can stop the loop early.
+        for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT) && mask != 0; sectionY++, mask >>>= 1) {
+            // Mask tells us if a section is present or not
+            if ((mask & 1) == 0) {
+                continue;
+            }
 
-                byte bitsPerBlock = dataProvider.readNext();
+            readBlockCount(dataProvider);
 
-                Palette palette = Palette.readPalette(bitsPerBlock, dataProvider);
+            byte bitsPerBlock = dataProvider.readNext();
+            Palette palette = Palette.readPalette(bitsPerBlock, dataProvider);
 
-                // A bitmask that contains bitsPerBlock set bits
-                int dataArrayLength = dataProvider.readVarInt();
+            // A bitmask that contains bitsPerBlock set bits
+            int dataArrayLength = dataProvider.readVarInt();
 
-                ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette);
+            ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette);
 
-                // if the chunk has no blocks
-                if (dataArrayLength == 0) {
-                    return;
-                }
-                // parse blocks
-                section.setBlocks(dataProvider.readLongArray(dataArrayLength));
+            // if the section has no blocks
+            if (dataArrayLength == 0) {
+                continue;
+            }
+            // parse blocks
+            section.setBlocks(dataProvider.readLongArray(dataArrayLength));
 
-                parseLights(section, dataProvider);
+            parseLights(section, dataProvider);
 
-                // dont set section if it only has air or nothing at all
-                if (!palette.isEmpty()) {
-                    // May replace an existing section or a null one
-                    setSection(sectionY, section);
-                }
+            // don't set section if it only has air or nothing at all
+            if (!palette.isEmpty()) {
+                // May replace an existing section or a null one
+                setSection(sectionY, section);
             }
         }
 
@@ -165,10 +166,9 @@ public abstract class Chunk {
         }
     }
     protected void parseHeightMaps(DataTypeProvider dataProvider) { }
-    protected void readIgnoreOldData(DataTypeProvider dataProvider) { }
     protected void readBlockCount(DataTypeProvider provider) { }
     protected abstract ChunkSection createNewChunkSection(byte y, Palette palette);
-    protected abstract SpecificTag getBiomes();
+    protected abstract SpecificTag getNbtBiomes();
 
     protected void parse2DBiomeData(DataTypeProvider provider) { }
     protected void parse3DBiomeData(DataTypeProvider provider) { }
@@ -176,7 +176,7 @@ public abstract class Chunk {
     protected void parseLights(ChunkSection section, DataTypeProvider dataProvider) {
         section.setBlockLight(dataProvider.readByteArray(LIGHT_SIZE));
 
-        if (Game.getDimension() == Dimension.OVERWORLD) {
+        if (WorldManager.getInstance().getDimension() != Dimension.NETHER) {
             section.setSkyLight(dataProvider.readByteArray(LIGHT_SIZE));
         }
     }
@@ -232,7 +232,7 @@ public abstract class Chunk {
         map.add("LastUpdate", new LongTag(0));
         map.add("Entities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>()));
 
-        map.add("Biomes", getBiomes());
+        map.add("Biomes", getNbtBiomes());
         map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
         map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
         map.add("Entities", new ListTag(Tag.TAG_COMPOUND, getEntityList()));
@@ -259,9 +259,6 @@ public abstract class Chunk {
      * @param full indicates if its the full chunk or a part of it
      */
     void parse(DataTypeProvider dataProvider, boolean full) {
-        // for 1.16+
-        readIgnoreOldData(dataProvider);
-
         int mask = dataProvider.readVarInt();
 
         // for 1.14+
@@ -272,8 +269,7 @@ public abstract class Chunk {
         }
 
         int size = dataProvider.readVarInt();
-
-        readChunkColumn(full, mask, dataProvider);
+        readChunkColumn(full, mask, dataProvider.ofLength(size));
 
         // Used to generate overview, not replaced by 1.14 NBT height maps
         computeHeightMap();
@@ -311,12 +307,66 @@ public abstract class Chunk {
         return GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(id);
     }
 
+    /**
+     * Generate network packet for this chunk.
+     */
+    public PacketBuilder toPacket() {
+        Protocol p = ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(Config.getProtocolVersion());
+        PacketBuilder packet = new PacketBuilder();
+        packet.writeVarInt(p.clientBound("chunk_data"));
+
+        packet.writeInt(location.getX());
+        packet.writeInt(location.getZ());
+        packet.writeBoolean(true);
+
+        writeBitMask(packet);
+        writeHeightMaps(packet);
+        writeBiomes(packet);
+
+        // sections
+        PacketBuilder columns = writeSectionData();
+        byte[] columnArr = columns.toArray();
+        packet.writeVarInt(columnArr.length);
+        packet.writeByteArray(columnArr);
+
+        columns.build();
+
+        // we don't include block entities - these chunks will be far away so they shouldn't be rendered anyway
+        packet.writeVarInt(0);
+        return packet;
+    }
+
+    protected void writeHeightMaps(PacketBuilder packet) { }
+
+    protected PacketBuilder writeSectionData() {
+        PacketBuilder column = new PacketBuilder();
+        for (int y = 0; y < (CHUNK_HEIGHT / SECTION_HEIGHT); y++) {
+            if (chunkSections[y] != null) {
+                chunkSections[y].write(column);
+            }
+        }
+
+        return column;
+    }
+
+    private void writeBitMask(PacketBuilder packet) {
+        int res = 0;
+        for (int i = 0; i < chunkSections.length; i++) {
+            if (chunkSections[i] != null) {
+                res |= 1 << i;
+            }
+        }
+        packet.writeVarInt(res);
+    }
+
+    protected void writeBiomes(PacketBuilder packet) { };
+
 
     /**
      * Mark this as a new chunk iff the
      */
     void markAsNew() {
-        if (WorldManager.markNewChunks()) {
+        if (WorldManager.getInstance().markNewChunks()) {
             this.isNewChunk = true;
         }
     }
@@ -349,6 +399,7 @@ public abstract class Chunk {
             if (cs == null) { continue; }
 
             int height = cs.height(x, z);
+
             if (height < 0) { continue; }
 
             return (chunkSection * SECTION_HEIGHT) + height;
@@ -361,6 +412,9 @@ public abstract class Chunk {
     }
 
 
+    /**
+     * Generate and return the overview image for this chunk.
+     */
     public Image getImage() {
         BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
 
@@ -420,7 +474,7 @@ public abstract class Chunk {
             CoordinateDim2D coordinate = location.copy();
             coordinate.offset(0, -1);
 
-            Chunk other = WorldManager.getChunk(coordinate);
+            Chunk other = WorldManager.getInstance().getChunk(coordinate);
 
             if (other == null) { return 1; }
             else { yNorth = other.heightAt(x, 15); }
@@ -447,9 +501,14 @@ public abstract class Chunk {
                 this.chunkSections[sectionY] = parseSection(sectionY, section);
             }
         });
+        parseHeightMaps(tag);
+        parseBiomes(tag);
+
         computeHeightMap();
     }
 
+    protected void parseHeightMaps(Tag tag) { }
+    protected void parseBiomes(Tag tag) { }
     protected abstract ChunkSection parseSection(int sectionY, SpecificTag section);
 
     /**
@@ -476,5 +535,36 @@ public abstract class Chunk {
      */
     public void touch() {
         this.setSaved(false);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Chunk chunk = (Chunk) o;
+
+        if (!Objects.equals(location, chunk.location)) return false;
+        if (!Arrays.deepEquals(chunkSections, chunk.chunkSections)) return false;
+        return Arrays.equals(heightMap, chunk.heightMap);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = location != null ? location.hashCode() : 0;
+        result = 31 * result + Arrays.hashCode(chunkSections);
+        result = 31 * result + Arrays.hashCode(heightMap);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Chunk{" +
+                "location=" + location +
+                ", tileEntities=" + tileEntities +
+                ", entities=" + entities +
+                ", chunkSections=" + Arrays.toString(chunkSections) +
+                ", heightMap=" + PrintUtils.array(heightMap) +
+                '}';
     }
 }

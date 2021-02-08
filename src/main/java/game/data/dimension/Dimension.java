@@ -1,7 +1,7 @@
 package game.data.dimension;
 
 import com.google.gson.Gson;
-import game.Game;
+import game.Config;
 import game.data.WorldManager;
 import se.llbit.nbt.SpecificTag;
 
@@ -51,7 +51,7 @@ public class Dimension {
             case "minecraft:the_nether": return NETHER;
             case "minecraft:overworld": return OVERWORLD;
             default: {
-                Dimension dim = WorldManager.getDimensionCodec().getDimension(readString);
+                Dimension dim = WorldManager.getInstance().getDimensionCodec().getDimension(readString);
                 if (dim == null) { return OVERWORLD; }
 
                 return dim;
@@ -92,18 +92,27 @@ public class Dimension {
      * type in the codec.
      */
     public void registerType(SpecificTag dimensionNbt) {
+        if (this.type != null) {
+            return;
+        }
+
         int hash = dimensionNbt.hashCode();
-        DimensionType type = WorldManager.getDimensionCodec().getDimensionType(hash);
+        DimensionType type = WorldManager.getInstance().getDimensionCodec().getDimensionType(hash);
         if (type != null) {
             this.type = type.getName();
 
             // re-write since we write the dimension information on join otherwise
             try {
-                write(Paths.get(Game.getExportDirectory(), "datapacks", "downloaded", "data"));
+                write(Paths.get(Config.getExportDirectory(), "datapacks", "downloaded", "data"));
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return namespace + ":" + name;
     }
 }
 

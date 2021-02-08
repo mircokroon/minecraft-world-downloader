@@ -1,25 +1,22 @@
 package game.data.chunk;
 
-import game.Game;
+import game.Config;
 import game.data.Coordinate2D;
 import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.WorldManager;
-import game.data.chunk.entity.Entity;
+import game.data.entity.Entity;
 import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
 import game.data.chunk.version.Chunk_1_15;
 import game.data.chunk.version.Chunk_1_16;
-import game.data.chunk.version.Chunk_1_16_2;
 import packets.DataTypeProvider;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -36,7 +33,7 @@ public class ChunkFactory extends Thread {
     private ConcurrentMap<CoordinateDim2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
     private ConcurrentMap<Integer, Entity> entities;
 
-    private List<EntityParser> unparsedEntities;
+    private Collection<EntityParser> unparsedEntities;
 
     private boolean threadStarted = false;
 
@@ -56,17 +53,22 @@ public class ChunkFactory extends Thread {
         this.chunkEntities = new ConcurrentHashMap<>();
         this.entities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
-        this.unparsedEntities = new LinkedList<>();
+        this.unparsedEntities = new ArrayDeque<>();
     }
 
     /**
      * Add an unparsed entity.
      */
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
-        if (WorldManager.getEntityMap() != null) {
-            addEntity(parser.apply(provider), Game.getDimension());
-        } else {
-            this.unparsedEntities.add(new EntityParser(provider, Game.getDimension(), parser));
+        try {
+            if (WorldManager.getInstance().getEntityMap() != null) {
+                addEntity(parser.apply(provider), WorldManager.getInstance().getDimension());
+            } else {
+                this.unparsedEntities.add(new EntityParser(provider, WorldManager.getInstance().getDimension(), parser));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("Skipping entity that could not be parsed.");
         }
     }
 
@@ -85,7 +87,7 @@ public class ChunkFactory extends Thread {
         if (ent == null) { return; }
 
         CoordinateDim2D chunkPos = ent.getPosition().globalToChunk().addDimension(dimension);
-        Chunk chunk = WorldManager.getChunk(chunkPos);
+        Chunk chunk = WorldManager.getInstance().getChunk(chunkPos);
 
         entities.put(ent.getId(), ent);
 
@@ -110,9 +112,9 @@ public class ChunkFactory extends Thread {
      */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
         position.offsetGlobal();
-        CoordinateDim2D chunkPos = position.globalToChunk().addDimension(Game.getDimension());
+        CoordinateDim2D chunkPos = position.globalToChunk().addDimension(WorldManager.getInstance().getDimension());
 
-        Chunk chunk = WorldManager.getChunk(chunkPos);
+        Chunk chunk = WorldManager.getInstance().getChunk(chunkPos);
 
         // if the chunk doesn't exist yet, add it to the queue to process later
         if (chunk == null) {
@@ -131,11 +133,11 @@ public class ChunkFactory extends Thread {
      */
     public synchronized void addChunk(DataTypeProvider provider) {
         // if the world manager is currently paused, discard this chunk
-        if (WorldManager.isPaused()) {
+        if (WorldManager.getInstance().isPaused()) {
             return;
         }
 
-        unparsedChunks.add(new ChunkParserPair(provider, Game.getDimension()));
+        unparsedChunks.add(new ChunkParserPair(provider, WorldManager.getInstance().getDimension()));
         notify();
     }
 
@@ -188,10 +190,7 @@ public class ChunkFactory extends Thread {
         return unparsedChunks.remove();
     }
 
-    /**
-     * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
-     */
-    private void readChunkDataPacket(ChunkParserPair parser) {
+    public static Chunk parseChunk(ChunkParserPair parser, WorldManager worldManager) {
         DataTypeProvider dataProvider = parser.provider;
 
         CoordinateDim2D chunkPos = new CoordinateDim2D(dataProvider.readInt(), dataProvider.readInt(), parser.dimension);
@@ -202,9 +201,9 @@ public class ChunkFactory extends Thread {
         if (full) {
             chunk = getVersionedChunk(chunkPos);
 
-            WorldManager.loadChunk(chunk, true);
+            worldManager.loadChunk(chunk, true);
         } else {
-            chunk = WorldManager.getChunk(new CoordinateDim2D(chunkPos.getX(), chunkPos.getZ(), parser.dimension));
+            chunk = worldManager.getChunk(new CoordinateDim2D(chunkPos.getX(), chunkPos.getZ(), parser.dimension));
 
             // if we don't have the partial chunk (anymore?), just make one from scratch
             if (chunk == null) {
@@ -217,17 +216,25 @@ public class ChunkFactory extends Thread {
 
         chunk.parse(dataProvider, full);
 
+        return chunk;
+    }
+    /**
+     * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
+     */
+    private void readChunkDataPacket(ChunkParserPair parser) {
+        Chunk chunk = parseChunk(parser, WorldManager.getInstance());
+
         // Add any tile entities that were sent before the chunk was parsed. We cannot delete the tile entities yet
         // (so we cannot remove them from the queue) as they are not always re-sent when the chunk is re-sent. (?)
-        if (tileEntities.containsKey(chunkPos)) {
-            Queue<TileEntity> queue = tileEntities.get(chunkPos);
+        if (tileEntities.containsKey(chunk.location)) {
+            Queue<TileEntity> queue = tileEntities.get(chunk.location);
             for (TileEntity ent : queue) {
                 chunk.addTileEntity(ent.getPosition(), ent.getTag());
             }
         }
 
-        if (chunkEntities.containsKey(chunkPos)) {
-            Queue<Integer> queue = chunkEntities.get(chunkPos);
+        if (chunkEntities.containsKey(chunk.location)) {
+            Queue<Integer> queue = chunkEntities.get(chunk.location);
             for (Integer entId : queue) {
                 chunk.addEntity(entities.get(entId));
             }
@@ -240,15 +247,13 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
-        if (Game.getProtocolVersion() >= 751) {
-            return new Chunk_1_16_2(chunkPos);
-        } else if (Game.getProtocolVersion() >= 735) {
+        if (Config.getProtocolVersion() >= 751) {
             return new Chunk_1_16(chunkPos);
-        } else  if (Game.getProtocolVersion() >= 550) {
+        } else  if (Config.getProtocolVersion() >= 550) {
             return new Chunk_1_15(chunkPos);
-        } else if (Game.getProtocolVersion() >= 440) {
+        } else if (Config.getProtocolVersion() >= 440) {
             return new Chunk_1_14(chunkPos);
-        } else if (Game.getProtocolVersion() >= 341) {
+        } else if (Config.getProtocolVersion() >= 341) {
             return new Chunk_1_13(chunkPos);
         } else {
             return new Chunk_1_12(chunkPos);
@@ -261,9 +266,7 @@ public class ChunkFactory extends Thread {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
-        if (dataVersion >= Chunk_1_16_2.DATA_VERSION) {
-            return new Chunk_1_16_2(chunkPos);
-        } else if (dataVersion >= Chunk_1_16.DATA_VERSION) {
+        if (dataVersion >= Chunk_1_16.DATA_VERSION) {
             return new Chunk_1_16(chunkPos);
         } else if (dataVersion >= Chunk_1_15.DATA_VERSION) {
             return new Chunk_1_15(chunkPos);

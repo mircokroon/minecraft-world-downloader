@@ -1,11 +1,6 @@
 package proxy;
 
-import game.Game;
 import game.NetworkMode;
-import org.xbill.DNS.Lookup;
-import org.xbill.DNS.Record;
-import org.xbill.DNS.SRVRecord;
-import org.xbill.DNS.Type;
 import packets.DataReader;
 
 import java.io.InputStream;
@@ -14,28 +9,21 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static util.ExceptionHandling.attempt;
+
 /**
  * Proxy server class, handles receiving of data and forwarding it to the right places.
  */
 public class ProxyServer extends Thread {
-    private final int DEFAULT_PORT = 25565;
-    private int portRemote;
-    private int portLocal;
-    private String host;
+    private final ConnectionDetails connectionDetails;
+    private final ConnectionManager connectionManager;
 
     private DataReader onServerBoundPacket;
     private DataReader onClientBoundPacket;
 
-    /**
-     * Initialise the proxy server class.
-     * @param portRemote the port of the remote server (the 'real' server)
-     * @param portLocal  the port of the local server (the proxy server)
-     * @param host       the address of the remote server (the 'real' server)
-     */
-    public ProxyServer(int portRemote, int portLocal, String host) {
-        this.portRemote = portRemote;
-        this.portLocal = portLocal;
-        this.host = host;
+    public ProxyServer(ConnectionManager connectionManager, ConnectionDetails connectionDetails) {
+        this.connectionDetails = connectionDetails;
+        this.connectionManager = connectionManager;
     }
 
     /**
@@ -52,16 +40,12 @@ public class ProxyServer extends Thread {
 
     @Override
     public void run() {
-        if (Game.isSrvLookupEnabled()) {
-            performSrvLookup();
-        }
-
-        String friendlyHost = host + (portRemote == DEFAULT_PORT ? "" : ":" + portRemote);
-        System.out.println("Starting proxy for " + friendlyHost + ". Make sure to connect to localhost:" + portLocal + " instead of the regular server address.");
+        String friendlyHost = connectionDetails.getFriendlyHost();
+        System.out.println("Starting proxy for " + friendlyHost + ". Make sure to connect to localhost:" + connectionDetails.getPortLocal() + " instead of the regular server address.");
 
         // Create a ServerSocket to listen for connections with
         AtomicReference<ServerSocket> ss = new AtomicReference<>();
-        attempt(() -> ss.set(new ServerSocket(portLocal)), (ex) -> {
+        attempt(() -> ss.set(connectionDetails.getServerSocket()), (ex) -> {
             ex.printStackTrace();
             System.exit(1);
         });
@@ -79,21 +63,21 @@ public class ProxyServer extends Thread {
 
                 final InputStream streamFromClient = client.get().getInputStream();
                 final OutputStream streamToClient = client.get().getOutputStream();
-                Game.getEncryptionManager().setStreamToClient(streamToClient);
+                connectionManager.getEncryptionManager().setStreamToClient(streamToClient);
 
                 // If the server cannot connect, close client connection
-                attempt(() -> server.set(new Socket(host, portRemote)), (ex) -> {
+                attempt(() -> server.set(connectionDetails.getClientSocket()), (ex) -> {
                     System.out.println("Cannot connect to " + friendlyHost + ". The server may be down or on a different address. (" + ex.getClass().getCanonicalName() + ")");
                     attempt(client.get()::close);
                 });
 
                 final InputStream streamFromServer = server.get().getInputStream();
                 final OutputStream streamToServer = server.get().getOutputStream();
-                Game.getEncryptionManager().setStreamToServer(streamToServer);
+                connectionManager.getEncryptionManager().setStreamToServer(streamToServer);
 
                 // start client listener thread
                 Thread clientListener = new Thread(() -> {
-                    Game.setMode(NetworkMode.HANDSHAKE);
+                    connectionManager.setMode(NetworkMode.HANDSHAKE);
                     attempt(() -> {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
@@ -105,7 +89,7 @@ public class ProxyServer extends Thread {
                             cause.printStackTrace();
                         }
                         System.out.println("Server probably disconnected. Waiting for new connection...");
-                        Game.reset();
+                        connectionManager.reset();
                     });
                     // the client closed the connection to us, so close our connection to the server.
                     attempt(streamToServer::close);
@@ -125,7 +109,7 @@ public class ProxyServer extends Thread {
                         cause.printStackTrace();
                     }
                     System.out.println("Client probably disconnected. Waiting for new connection...");
-                    Game.reset();
+                    connectionManager.reset();
                 });
 
                 // The server closed its connection to us, so we close our connection to our client.
@@ -135,43 +119,5 @@ public class ProxyServer extends Thread {
                 if (client.get() != null) { attempt(client.get()::close); }
             });
         }
-    }
-
-    /**
-     * Checks for DNS service records of the form _minecraft._tcp.example.com. If they exist, we will replace the
-     * current host and port with the ones found there.
-     */
-    private void performSrvLookup() {
-        attempt(() -> {
-            Record[] records = new Lookup("_minecraft._tcp." + host, Type.SRV).run();
-
-            // no records were found
-            if (records == null || records.length == 0) {
-                return;
-            }
-
-            // if there's multiple records, we'll just take the first one
-            SRVRecord srvRecord = (SRVRecord) records[0];
-            portRemote = srvRecord.getPort();
-            host = srvRecord.getTarget().toString(true);
-        });
-    }
-
-    /**
-     * Simple method to make exception handling cleaner.
-     */
-    public static void attempt(IExceptionHandler r, IExceptionConsumer failure) {
-        try {
-            r.run();
-        } catch (Exception ex) {
-            failure.consume(ex);
-        }
-    }
-
-    /**
-     * Simple method to make exception handling cleaner.
-     */
-    public static void attempt(IExceptionHandler r) {
-        attempt(r, Throwable::printStackTrace);
     }
 }

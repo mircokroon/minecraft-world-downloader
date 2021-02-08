@@ -1,7 +1,7 @@
 package proxy.auth;
 
 import com.google.gson.Gson;
-import game.Game;
+import game.Config;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
@@ -14,6 +14,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+
+import static util.PrintUtils.devPrint;
 
 public class ClientAuthenticator {
     private static int STATUS_SUCCESS = 204;
@@ -51,8 +53,6 @@ public class ClientAuthenticator {
             return;
         }
 
-        System.out.println("Reading account information from " + p.toString());
-
         String path =  String.join("\n", Files.readAllLines(p));
 
         accounts = g.fromJson(path, LauncherAccounts.class);
@@ -60,9 +60,6 @@ public class ClientAuthenticator {
 
     private void readProfiles(Gson g) throws IOException {
         Path p = Paths.get(getMinecraftPath(), "launcher_profiles.json");
-
-        System.out.println("Reading profile information from " + p.toString());
-
         String path =  String.join("\n", Files.readAllLines(p));
 
         profiles = g.fromJson(path, LauncherProfiles.class);
@@ -149,7 +146,7 @@ public class ClientAuthenticator {
      * @return the contents of the file
      */
     private String getMinecraftPath() {
-        String path = Game.getGamePath();
+        String path = Config.getGamePath();
 
         // handle common %APPDATA% env variable for Windows
         if (path.toUpperCase().contains("%APPDATA%") && System.getenv("appdata") != null) {
@@ -208,7 +205,7 @@ public class ClientAuthenticator {
         if (str.getStatus() != STATUS_SUCCESS) {
             throw new RuntimeException("Client not authenticated! " + str.getBody());
         } else {
-            System.out.println("Successfully authenticated user with Mojang session server.");
+            devPrint("Successfully authenticated user with Mojang session server.");
         }
     }
 }

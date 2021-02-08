@@ -49,6 +49,18 @@ public class Coordinate2D {
         return isInRange(other, distance, distance);
     }
 
+    public Coordinate2D subtract(Coordinate2D other) {
+        return new Coordinate2D(this.x - other.x, this.z - other.z);
+    }
+
+    public Coordinate2D add(int x, int z) {
+        return new Coordinate2D(this.x + x, this.z + z);
+    }
+
+    public Coordinate2D add(Coordinate2D other) {
+        return add(other.x, other.z);
+    }
+
     public Coordinate2D globalToChunk() {
         return new Coordinate2D(x >> 4, z >> 4);
     }
@@ -66,7 +78,7 @@ public class Coordinate2D {
 
     @Override
     public int hashCode() {
-        return Objects.hash(x, z);
+        return 31 * z + x;
     }
 
     @Override
@@ -97,5 +109,9 @@ public class Coordinate2D {
 
     public CoordinateDim2D addDimension(Dimension dimension) {
         return new CoordinateDim2D(this, dimension);
+    }
+
+    public int blockDistance(Coordinate2D globalToChunk) {
+        return Math.max(Math.abs(this.x - globalToChunk.x), Math.abs(this.z - globalToChunk.z));
     }
 }

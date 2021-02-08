@@ -5,11 +5,10 @@ import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;
-import se.llbit.nbt.ByteArrayTag;
-import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.IntArrayTag;
-import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.StringTag;
+import packets.builder.PacketBuilder;
+import se.llbit.nbt.*;
+
+import java.util.Arrays;
 
 /**
  * Chunk format for 1.13+. Now includes a status tag and the biomes are integers.
@@ -65,7 +64,46 @@ public class Chunk_1_13 extends Chunk {
     }
 
 
-    protected SpecificTag getBiomes() {
+    protected SpecificTag getNbtBiomes() {
         return new IntArrayTag(biomes);
+    }
+
+    @Override
+    protected void parseBiomes(Tag tag) {
+        IntArrayTag intArr = (IntArrayTag) tag.get("Level").asCompound().get("Biomes");
+        this.biomes = intArr.value;
+    }
+
+    protected int[] getBiomes() {
+        return biomes;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        Chunk_1_13 that = (Chunk_1_13) o;
+
+        return Arrays.equals(biomes, that.biomes);
+    }
+
+    @Override
+    protected PacketBuilder writeSectionData() {
+        PacketBuilder parent = super.writeSectionData();
+        writeSectionDataBiomes(parent);
+        return parent;
+    }
+
+    protected void writeSectionDataBiomes(PacketBuilder builder) {
+        builder.writeIntArray(getBiomes());
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + Arrays.hashCode(biomes);
+        return result;
     }
 }

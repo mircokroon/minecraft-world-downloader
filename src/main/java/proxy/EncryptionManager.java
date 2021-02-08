@@ -1,10 +1,19 @@
 package proxy;
 
-import game.Game;
+import game.Config;
+import game.data.WorldManager;
+import game.data.dimension.Dimension;
+import game.data.dimension.DimensionCodec;
+import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
+import se.llbit.nbt.SpecificTag;
 
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -15,14 +24,12 @@ import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
+
+import static util.PrintUtils.devPrintFormat;
 
 /**
  * Class to handle encryption, decryption and related masking of the proxy server.
@@ -39,9 +46,11 @@ public class EncryptionManager {
     private OutputStream streamToServer;
     private KeyPair serverKeyPair;
     private String username;
+    private ConcurrentLinkedQueue<ByteQueue> insertedPackets;
+    private CompressionManager compressionManager;
 
     {
-        // generate the keypair for the fake server
+        // generate the keypair for the local server
         attempt(() -> {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
             keyGen.initialize(1024);
@@ -49,10 +58,21 @@ public class EncryptionManager {
         });
     }
 
-    public EncryptionManager() {  }
+    public EncryptionManager(CompressionManager compressionManager) {
+        this.compressionManager = compressionManager;
+        this.insertedPackets = new ConcurrentLinkedQueue<>();
+    }
 
     public boolean isEncryptionEnabled() {
         return encryptionEnabled;
+    }
+
+    /**
+     * Adds a packet to the queue. This queue is checked whenever a packet is sent, and they will be sent to the
+     * client after.
+     */
+    public void enqueuePacket(PacketBuilder packet) {
+        insertedPackets.add(packet.build(compressionManager));
     }
 
     /**
@@ -108,77 +128,31 @@ public class EncryptionManager {
      * to decrypt the client's shared secret key later on and use this to decrypt all the traffic.
      */
     private void sendReplacementEncryptionRequest() {
-        List<Byte> bytes = new ArrayList<>();
+        PacketBuilder builder = new PacketBuilder(0x01);
+
         byte[] encoded = serverKeyPair.getPublic().getEncoded();
-        writeVarInt(bytes, 0x01);   // packet ID
-        writeString(bytes, serverId);    // server ID
-        writeVarInt(bytes, encoded.length); // pub key len
-        writeByteArray(bytes, encoded); // pub key
-        writeVarInt(bytes, serverVerifyToken.length); // verify token len
-        writeByteArray(bytes, serverVerifyToken);  // verify token
-        prependPacketLength(bytes);
+        builder.writeString(serverId);    // server ID
+        builder.writeVarInt(encoded.length); // pub key len
+        builder.writeByteArray(encoded); // pub key
+        builder.writeVarInt(serverVerifyToken.length); // verify token len
+        builder.writeByteArray(serverVerifyToken);  // verify token
 
-        attempt(() -> streamToClient(new ByteQueue(bytes)));
+        attempt(() -> streamToClient(builder.build()));
     }
 
     /**
-     * Method to write a varInt to the given list. Based on: https://wiki.vg/Protocol
-     * @param bytes the current list of bytes
-     * @param value the value to write
-     */
-    private static void writeVarInt(List<Byte> bytes, int value) {
-        do {
-            byte temp = (byte) (value & 0b01111111);
-            // Note: >>> means that the sign bit is shifted with the rest of the number rather than being left alone
-            value >>>= 7;
-            if (value != 0) {
-                temp |= 0b10000000;
-            }
-            bytes.add(temp);
-        } while (value != 0);
-    }
-
-    /**
-     * Method to write a string to the given list.
-     * @param bytes the current list of bytes
-     * @param str   the string to write
-     */
-    private static void writeString(List<Byte> bytes, String str) {
-        final byte[][] stringBytes = {null};
-        attempt(() -> stringBytes[0] = str.getBytes(StandardCharsets.UTF_8));
-        writeVarInt(bytes, stringBytes[0].length);
-        writeByteArray(bytes, stringBytes[0]);
-    }
-
-    /**
-     * Method to write a byte array to the given list.
-     * @param list  the current list of bytes
-     * @param bytes the bytes to write
-     */
-    private static void writeByteArray(List<Byte> list, byte[] bytes) {
-        for (byte b : bytes) {
-            list.add(b);
-        }
-    }
-
-    /**
-     * Method to write a the packet length to the start of the given list.
-     * @param bytes the current list of bytes
-     */
-    private static void prependPacketLength(List<Byte> bytes) {
-        int len = bytes.size();
-
-        List<Byte> varIntLen = new ArrayList<>(5);
-        writeVarInt(varIntLen, len);
-        bytes.addAll(0, varIntLen);
-    }
-
-    /**
-     * Method to stream a given queue of bytes to the client.
+     * Method to stream a given queue of bytes to the client. Whenever this is called it also checks whether we have
+     * any injected packets queued to be sent to the client.
      * @param bytes the bytes to stream
      */
     public void streamToClient(ByteQueue bytes) throws IOException {
         streamTo(streamToClient, bytes, this::clientBoundEncrypt);
+
+        // if we inject a lot of packets important other stuff could be delayed, so
+        if (!insertedPackets.isEmpty()) {
+            streamTo(streamToClient, insertedPackets.remove(), this::clientBoundEncrypt);
+        }
+
     }
 
     /**
@@ -189,8 +163,7 @@ public class EncryptionManager {
      * @param encrypt the encryption operator
      */
     private void streamTo(OutputStream stream, ByteQueue bytes, UnaryOperator<byte[]> encrypt) throws IOException {
-        byte[] b = new byte[bytes.size()];
-        bytes.copyTo(b);
+        byte[] b = bytes.toArray();
 
         byte[] encrypted = encrypt.apply(b);
 
@@ -258,21 +231,19 @@ public class EncryptionManager {
 
         // encryption confirmation
         attempt(() -> {
-            List<Byte> bytes = new ArrayList<>();
+            PacketBuilder builder = new PacketBuilder(0x01);
 
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, serverRealPublicKey);
             byte[] sharedSecret = cipher.doFinal(clientSharedSecret);
             byte[] verifyToken = cipher.doFinal(serverVerifyToken);
 
-            writeVarInt(bytes, 0x01);
-            writeVarInt(bytes, sharedSecret.length);
-            writeByteArray(bytes, sharedSecret);
-            writeVarInt(bytes, verifyToken.length);
-            writeByteArray(bytes, verifyToken);
-            prependPacketLength(bytes);
+            builder.writeVarInt(sharedSecret.length);
+            builder.writeByteArray(sharedSecret);
+            builder.writeVarInt(verifyToken.length);
+            builder.writeByteArray(verifyToken);
 
-            streamToServer(new ByteQueue(bytes));
+            streamToServer(builder.build());
 
             enableEncryption();
         });
@@ -320,7 +291,6 @@ public class EncryptionManager {
             serverBoundDecryptor.init(Cipher.DECRYPT_MODE, k, ivspec);
 
             encryptionEnabled = true;
-            System.out.println("Enabled encryption");
         });
     }
 
@@ -370,39 +340,29 @@ public class EncryptionManager {
      */
     public void sendMaskedHandshake(int protocolVersion, int nextMode, String hostExtension) {
         attempt(() -> {
-            List<Byte> bytes = new ArrayList<>();
+            ConnectionDetails connectionDetails = Config.getConnectionDetails();
+            PacketBuilder builder = new PacketBuilder(0);
 
-            writeVarInt(bytes, 0);
-            writeVarInt(bytes, protocolVersion);
-            writeString(bytes, Game.getHost() + hostExtension);
-            writeShort(bytes, Game.getPortRemote());
-            writeVarInt(bytes, nextMode);
-            prependPacketLength(bytes);
+            builder.writeVarInt(protocolVersion);
+            builder.writeString(connectionDetails.getHost() + hostExtension);
+            builder.writeShort(connectionDetails.getPortRemote());
+            builder.writeVarInt(nextMode);
 
-            System.out.format(
-                "Performed handshake with %s:%d, protocol version %d :: next state: %s\n",
-                Game.getHost(),
-                Game.getPortRemote(),
-                protocolVersion,
-                nextMode == 1 ? "status" : "login"
+            devPrintFormat(
+                    "Performed handshake with %s:%d, protocol version %d\n",
+                    connectionDetails.getHost(),
+                    connectionDetails.getPortRemote(),
+                    protocolVersion
             );
 
-            streamToServer(new ByteQueue(bytes));
+            streamToServer(builder.build());
         });
     }
-
-    /**
-     * Write a short to the given byte list.
-     * @param bytes    the list to write to
-     * @param shortVal the value of the short
-     */
-    private static void writeShort(List<Byte> bytes, int shortVal) {
-        bytes.add((byte) ((shortVal >>> 8) & 0xFF));
-        bytes.add((byte) ((shortVal) & 0xFF));
-    }
-
     public void setUsername(String username) {
         this.username = username;
     }
 
+    public void sendImmediately(PacketBuilder builder) {
+        attempt(() -> streamToClient(builder.build(compressionManager)));
+    }
 }
