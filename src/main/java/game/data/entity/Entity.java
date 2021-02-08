@@ -1,4 +1,4 @@
-package game.data.chunk.entity;
+package game.data.entity;
 
 import game.data.Coordinate3D;
 import game.data.WorldManager;

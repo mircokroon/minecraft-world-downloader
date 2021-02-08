@@ -1,4 +1,4 @@
-package packets.handler;
+package packets.handler.version;
 
 import game.Config;
 import game.data.WorldManager;
@@ -6,6 +6,7 @@ import game.data.dimension.Dimension;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
 import packets.builder.PacketBuilder;
+import packets.handler.PacketOperator;
 import proxy.ConnectionManager;
 
 import java.util.Map;

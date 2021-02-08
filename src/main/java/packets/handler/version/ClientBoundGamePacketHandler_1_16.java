@@ -1,4 +1,4 @@
-package packets.handler;
+package packets.handler.version;
 
 import game.Config;
 import game.data.WorldManager;
@@ -7,6 +7,7 @@ import game.data.dimension.DimensionCodec;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
 import packets.builder.PacketBuilder;
+import packets.handler.PacketOperator;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 

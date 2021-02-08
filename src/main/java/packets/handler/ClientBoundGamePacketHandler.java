@@ -7,11 +7,13 @@ import game.data.dimension.Dimension;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkFactory;
-import game.data.chunk.entity.Entity;
-import game.data.chunk.entity.MobEntity;
-import game.data.chunk.entity.ObjectEntity;
+import game.data.entity.Entity;
+import game.data.entity.MobEntity;
+import game.data.entity.ObjectEntity;
 import game.data.container.Slot;
-import game.data.dimension.DimensionCodec;
+import packets.handler.version.ClientBoundGamePacketHandler_1_14;
+import packets.handler.version.ClientBoundGamePacketHandler_1_15;
+import packets.handler.version.ClientBoundGamePacketHandler_1_16;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 

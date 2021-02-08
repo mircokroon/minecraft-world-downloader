@@ -1,4 +1,4 @@
-package game.data.chunk.entity.metadata;
+package game.data.entity.metadata;
 
 import game.Config;
 import packets.DataTypeProvider;

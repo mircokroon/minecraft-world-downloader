@@ -3,7 +3,7 @@ package game.data.registries;
 import com.google.gson.Gson;
 
 import game.UnsupportedMinecraftVersionException;
-import game.data.chunk.entity.EntityNames;
+import game.data.entity.EntityNames;
 import game.data.chunk.palette.GlobalPalette;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;

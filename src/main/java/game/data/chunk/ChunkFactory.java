@@ -6,7 +6,7 @@ import game.data.Coordinate3D;
 import game.data.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.WorldManager;
-import game.data.chunk.entity.Entity;
+import game.data.entity.Entity;
 import game.data.chunk.version.Chunk_1_12;
 import game.data.chunk.version.Chunk_1_13;
 import game.data.chunk.version.Chunk_1_14;
@@ -60,10 +60,15 @@ public class ChunkFactory extends Thread {
      * Add an unparsed entity.
      */
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
-        if (WorldManager.getInstance().getEntityMap() != null) {
-            addEntity(parser.apply(provider), WorldManager.getInstance().getDimension());
-        } else {
-            this.unparsedEntities.add(new EntityParser(provider, WorldManager.getInstance().getDimension(), parser));
+        try {
+            if (WorldManager.getInstance().getEntityMap() != null) {
+                addEntity(parser.apply(provider), WorldManager.getInstance().getDimension());
+            } else {
+                this.unparsedEntities.add(new EntityParser(provider, WorldManager.getInstance().getDimension(), parser));
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("Skipping entity that could not be parsed.");
         }
     }
 
