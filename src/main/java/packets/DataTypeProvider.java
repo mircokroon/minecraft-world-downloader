@@ -11,6 +11,7 @@ import se.llbit.nbt.SpecificTag;
 
 import java.io.DataInputStream;
 import java.io.InputStream;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +76,7 @@ public class DataTypeProvider {
         byte[] bytes = readByteArray(4);
         ByteBuffer buffer = ByteBuffer.allocate(Integer.BYTES);
         buffer.put(bytes);
-        buffer.flip();
+        ((Buffer) buffer).flip();
         return buffer.getInt();
     }
 
@@ -136,7 +137,7 @@ public class DataTypeProvider {
         byte[] bytes = readByteArray(8);
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
         buffer.put(bytes);
-        buffer.flip();
+        ((Buffer) buffer).flip();
         return buffer.getLong();
     }
 
@@ -182,7 +183,7 @@ public class DataTypeProvider {
         byte[] bytes = readByteArray(4);
         ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
         buffer.put(bytes);
-        buffer.flip();
+        ((Buffer) buffer).flip();
         return buffer.getFloat();
     }
 
@@ -190,7 +191,7 @@ public class DataTypeProvider {
         byte[] bytes = readByteArray(8);
         ByteBuffer buffer = ByteBuffer.allocate(Double.BYTES);
         buffer.put(bytes);
-        buffer.flip();
+        ((Buffer) buffer).flip();
         return buffer.getDouble();
     }
 
