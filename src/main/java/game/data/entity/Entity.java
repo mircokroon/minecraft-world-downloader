@@ -11,6 +11,7 @@ import se.llbit.nbt.LongTag;
 import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.StringTag;
 
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class Entity {
@@ -49,10 +50,10 @@ public abstract class Entity {
     public SpecificTag toNbt() {
         CompoundTag root = new CompoundTag();
 
-        List<DoubleTag> pos = List.of(new DoubleTag(x), new DoubleTag(y), new DoubleTag(z));
+        List<DoubleTag> pos = Arrays.asList(new DoubleTag(x), new DoubleTag(y), new DoubleTag(z));
         root.add("Pos", new ListTag(ListTag.TAG_DOUBLE, pos));
 
-        List<DoubleTag> motion = List.of(new DoubleTag(velX), new DoubleTag(velY), new DoubleTag(velZ));
+        List<DoubleTag> motion = Arrays.asList(new DoubleTag(velX), new DoubleTag(velY), new DoubleTag(velZ));
         root.add("Motion", new ListTag(ListTag.TAG_DOUBLE, motion));
 
         root.add("UUIDLeast", new LongTag(uuid.getLower()));

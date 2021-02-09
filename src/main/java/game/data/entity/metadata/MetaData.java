@@ -23,9 +23,13 @@ public abstract class MetaData {
             Consumer<DataTypeProvider> indexHandler = getIndexHandler(index);
             Consumer<DataTypeProvider> typeHandler = getTypeHandler(type);
 
-            if (indexHandler == null || typeHandler == null) { break; }
+            if (indexHandler == null && typeHandler == null) { break; }
 
-            Objects.requireNonNullElse(indexHandler, typeHandler).accept(provider);
+            if (indexHandler != null) {
+                indexHandler.accept(provider);
+            } else {
+                typeHandler.accept(provider);
+            }
         }
     }
 
