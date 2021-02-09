@@ -6,6 +6,7 @@ import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.FloatTag;
 import se.llbit.nbt.ListTag;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class MobEntity extends Entity {
@@ -19,7 +20,7 @@ public class MobEntity extends Entity {
 
     @Override
     protected void addNbtData(CompoundTag root) {
-        List<FloatTag> pos = List.of(new FloatTag(pitch), new FloatTag(yaw));
+        List<FloatTag> pos = Arrays.asList(new FloatTag(pitch), new FloatTag(yaw));
         root.add("Rotation", new ListTag(ListTag.TAG_FLOAT, pos));
 
         metaData.addNbtTags(root);

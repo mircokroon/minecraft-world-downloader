@@ -8,6 +8,7 @@ import packets.UUID;
 import packets.lib.ByteQueue;
 import se.llbit.nbt.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -139,7 +140,7 @@ public class PacketBuilderAndParserTest {
 
     @Test
     void nbtListTest() {
-        ListTag before = new ListTag(Tag.TAG_STRING, List.of(
+        ListTag before = new ListTag(Tag.TAG_STRING, Arrays.asList(
                 new StringTag("a"),
                 new StringTag("b"),
                 new StringTag("c")
