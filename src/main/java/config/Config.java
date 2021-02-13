@@ -6,12 +6,14 @@ import game.data.registries.RegistryLoader;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
 import gui.GuiManager;
+import javafx.fxml.FXML;
 import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
+import proxy.ConnectionManager;
 
 import java.nio.file.Paths;
 import java.util.function.Consumer;
@@ -27,6 +29,7 @@ public class Config {
     private int dataVersion;
     private ConnectionDetails connectionDetails;
 
+    private boolean isStarted = false;
 
     public static void init(String[] args) {
         instance = new Config();
@@ -38,7 +41,7 @@ public class Config {
             System.err.println(e.getMessage());
             parser.printUsage(System.err);
         }
-        instance.afterInit();
+        instance.settingsComplete();
     }
 
     public static ConnectionDetails getConnectionDetails() {
@@ -49,23 +52,44 @@ public class Config {
         instance.protocolVersion = protocolVersion;
     }
 
-    private void afterInit() {
+    public static Config getInstance() {
+        return instance;
+    }
+
+    public void settingsComplete() {
+        GuiManager.setConfig(this);
+
         if (server == null) {
-            GuiManager.showGUI(true);
-            System.out.println("Hello");
+            GuiManager.loadSceneSettings();
+            return;
         }
-
-        versionHandler = ProtocolVersionHandler.getInstance();
-        connectionDetails = new ConnectionDetails(server, remotePort, portLocal, !disableSrvLookup);
-
-        // TODO: fix
-        // Coordinate2D.setOffset(-args.getInt("center-x"), -args.getInt("center-z"));
-        // Palette.setMaskBedrock(args.getBoolean("mask-bedrock"));
 
         WorldManager.getInstance().setSaveServiceVariables(markNewChunks, writeChunks());
-        if (!disableGui) {
-            GuiManager.showGUI(false);
+        WorldManager.getInstance().updateExtendedRenderDistance(extendedRenderDistance);
+
+        if (isStarted) {
+            return;
         }
+
+        isStarted = true;
+
+        versionHandler = ProtocolVersionHandler.getInstance();
+        connectionDetails = new ConnectionDetails(server, portRemote, portLocal, !disableSrvLookup);
+
+        if (!disableGui) {
+            GuiManager.loadSceneMap();
+        }
+
+        new ConnectionManager().startProxy();
+
+    }
+
+    public boolean isStarted() {
+        return isStarted;
+    }
+
+    public boolean isValid() {
+        return this.server != null;
     }
 
     /**
@@ -128,78 +152,79 @@ public class Config {
         return injector;
     }
 
+    @FXML
     // parameters
     @Option(name = "--server", aliases = "-s",
             usage = "The address of the remote server to connect to. Hostname or IP address (without port).")
-    String server;
+    public String server;
 
     @Option(name = "--port", aliases = "-p",
             usage = "The port on which the remote server runs.")
-    int remotePort = 25565;
+    public int portRemote = 25565;
 
     @Option(name = "--local-port", aliases = "-l",
             usage = "The port on which the world downloader's server will run.")
-    int portLocal = 25565;
+    public int portLocal = 25565;
 
     @Option(name = "--extended-render-distance", aliases = "-r",
             usage = "When set, send downloaded chunks to client to extend render distance to given amount.")
-    int extendedRenderDistance = 0;
+    public int extendedRenderDistance = 0;
 
     @Option(name = "--measure-render-distance", depends = "--extended-render-distance",
             usage = "When set, ignores the server's render distance value and measure it by looking at loaded chunks.")
-    boolean measureRenderDistance = false;
+    public boolean measureRenderDistance = false;
 
     @Option(name = "--seed",
             usage = "Numeric level seed for output world.")
-    long levelSeed = 0;
+    public long levelSeed = 0;
 
     @Option(name = "--minecraft-dir", aliases = "-m",
             usage = "Path to your Minecraft installation, used to retrieve Minecraft authentication details.")
-    String minecraftDir = getDefaultPath();
+    public String minecraftDir = getDefaultPath();
 
     @Option(name = "--output", aliases = "-o",
             usage = "The world output directory. If the world already exists, it will be updated.")
-    String worldOutputDir = "world";
+    public String worldOutputDir = "world";
 
     @Option(name = "--center-x", depends = "--center-z",
             usage = "Offsets output world. Given center X coordinate will be put at world origin (0, 0).")
-    int centerX = 0;
+    public int centerX = 0;
 
     @Option(name = "--center-z", depends = "--center-x",
             usage = "Offsets output world. Given center Z coordinate will be put at world origin (0, 0).")
-    int centerZ = 0;
+    public int centerZ = 0;
 
     @Option(name = "--overview-zoom", depends = "-z",
             usage = "Render distance of (in chunks) of the overview map. Can also be changed by scrolling on GUI.")
-    int zoomLevel = 75;
+    public int zoomLevel = 75;
 
     @Option(name = "--no-gui", depends = "--server",
             usage = "Disable the GUI")
-    boolean disableGui = false;
+    public boolean disableGui = false;
 
     @Option(name = "--mark-new-chunks",
             usage = "Mark new chunks in an orange outline.")
-    boolean markNewChunks = false;
+    public boolean markNewChunks = false;
 
     @Option(name = "--disable-chunk-saving",
             usage = "Disable writing chunks to disk, mostly for debugging purposes.")
-    boolean disableWriteChunks = false;
+    public  boolean disableWriteChunks = false;
 
     @Option(name = "--disable-world-gen",
             usage = "Set world type to a superflat void to prevent new chunks from being added.")
-    boolean disableWorldGen = false;
+    public boolean disableWorldGen = false;
 
     @Option(name = "--disable-srv-lookup",
             usage = "Disable checking for true address using DNS service records")
-    boolean disableSrvLookup = false;
+    public boolean disableSrvLookup = false;
 
     @Option(name = "--disable-mark-unsaved",
             usage = "Disable marking unsaved chunks in red on the map")
-    boolean disableMarkUnsavedChunks = false;
+    public boolean disableMarkUnsavedChunks = false;
 
     @Option(name = "--dev-mode",
             usage = "Enable developer mode")
-    boolean devMode = false;
+    private boolean devMode = false;
 
 
     // getters
@@ -292,5 +317,9 @@ public class Config {
         return !instance.disableMarkUnsavedChunks;
     }
 
+    // setters
+    public static void setZoomLevel(int val) {
+        instance.zoomLevel = val;
+    }
 }
 

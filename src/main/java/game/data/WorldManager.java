@@ -115,9 +115,17 @@ public class WorldManager {
 
     protected WorldManager() {
         this.isStarted = false;
+    }
 
-        if (Config.getExtendedRenderDistance() > 0) {
-            this.renderDistanceExtender = new RenderDistanceExtender(this, Config.getExtendedRenderDistance());
+    public void updateExtendedRenderDistance(int val) {
+        if (val == 0 && this.renderDistanceExtender == null) {
+            return;
+        }
+
+        if (val > 0 && this.renderDistanceExtender == null) {
+            this.renderDistanceExtender = new RenderDistanceExtender(this, val);
+        } else {
+            this.renderDistanceExtender.setExtendedDistance(val);
         }
     }
 

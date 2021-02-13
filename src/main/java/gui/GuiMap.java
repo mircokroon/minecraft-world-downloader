@@ -18,6 +18,7 @@ import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
@@ -35,16 +36,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 /**
- * Controller for the map scene.
+ * Controller for the map scene. Contains a canvas for chunks which is redrawn only when required, and one for entities
+ * which can be redrawn any moment.
  */
 public class GuiMap {
-    // chunk canvas is redrawn minimally
-    @FXML
     public Canvas chunkCanvas;
-
-    // entity canvas is redrawn as soon as there are updates
-    @FXML
     public Canvas entityCanvas;
+    public Label helpLabel;
+    private boolean playerHasConnected = false;
 
     private CoordinateDouble3D playerPos;
     private double playerRotation;
@@ -54,8 +53,6 @@ public class GuiMap {
     private final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
     private final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
     private final Color UNSAVED_COLOR = new Color(1, 0, 0, .4);
-    private int renderDistance = Config.getZoomLevel();
-    private boolean markUnsaved = Config.markUnsavedChunks();
     private int renderDistanceX;
     private int renderDistanceZ;
     private Bounds bounds;
@@ -80,6 +77,24 @@ public class GuiMap {
         setupContextMenu();
         bindScroll();
 
+        setupHelpLabel();
+
+    }
+
+    private void setupHelpLabel() {
+        if (!playerHasConnected) {
+            helpLabel.setText(Config.getConnectionDetails().getConnectionHint());
+        }
+        entityCanvas.setOnMouseEntered(e -> {
+            if (playerHasConnected) {
+                helpLabel.setText("Right-click to open context menu. Scroll to zoom.");
+            }
+        });
+        entityCanvas.setOnMouseExited(e -> {
+            if (playerHasConnected) {
+                helpLabel.setText("");
+            }
+        });
     }
 
     private void setupCanvasProperties() {
@@ -126,13 +141,16 @@ public class GuiMap {
 
     private void bindScroll() {
         entityCanvas.setOnScroll(scrollEvent -> {
+            int zoom = Config.getZoomLevel();
             if (scrollEvent.getDeltaY() > 0) {
-                this.renderDistance /= 2;
+                zoom /= 2;
             } else {
-                this.renderDistance *= 2;
+                zoom *= 2;
             }
-            if (this.renderDistance < 2) { renderDistance = 2; }
-            if (this.renderDistance > 1000) { renderDistance = 1000; }
+            if (zoom < 2) { zoom = 2; }
+            if (zoom > 1000) { zoom = 1000; }
+
+            Config.setZoomLevel(zoom);
             redrawAll();
         });
     }
@@ -144,8 +162,9 @@ public class GuiMap {
     private void computeRenderDistance() {
         double ratio = (height.get() / width.get());
 
-        renderDistanceX =  (int) Math.ceil(renderDistance / ratio);
-        renderDistanceZ = (int) Math.ceil(renderDistance * ratio);
+        int zoom = Config.getZoomLevel();
+        renderDistanceX =  (int) Math.ceil(zoom / ratio);
+        renderDistanceZ = (int) Math.ceil(zoom * ratio);
     }
 
     void setChunkExists(CoordinateDim2D coord) {
@@ -163,6 +182,11 @@ public class GuiMap {
     }
 
     void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
+        if (!playerHasConnected) {
+            playerHasConnected = true;
+            helpLabel.setText("");
+        }
+
         Image image = chunk.getImage();
 
         if (image == null) {
@@ -300,7 +324,7 @@ public class GuiMap {
             graphics.drawImage(chunkImage.getImage(), drawX, drawY, gridSize, gridSize);
 
             // if the chunk wasn't saved yet, mark it as such
-            if (markUnsaved && !chunkImage.isSaved) {
+            if (Config.markUnsavedChunks() && !chunkImage.isSaved) {
                 graphics.setFill(UNSAVED_COLOR);
                 graphics.setStroke(Color.TRANSPARENT);
                 graphics.fillRect(drawX, drawY, gridSize, gridSize);

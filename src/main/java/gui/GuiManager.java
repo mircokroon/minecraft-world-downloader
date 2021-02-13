@@ -1,6 +1,7 @@
 package gui;
 
 
+import config.Config;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import javafx.application.Application;
@@ -9,34 +10,91 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.List;
+
+import static util.ExceptionHandling.attempt;
 
 /**
  * Class to the handle the GUI.
  */
 public class GuiManager extends Application {
     private static GuiMap chunkGraphicsHandler;
+    private static Config config;
+    private static GuiManager instance;
 
-    private static boolean startSettings;
-    public static void showGUI(boolean startSettings) {
-        GuiManager.startSettings = startSettings;
-        new Thread(Application::launch).start();
+    private static String activeScene = "";
+    private Stage stage;
+
+    private Stage settingsStage;
+
+
+    public static void setConfig(Config config) {
+        GuiManager.config = config;
     }
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        Parent root;
-        if (startSettings) {
-            root = FXMLLoader.load(getClass().getResource("/ui/Settings.fxml"));
-        } else {
-            root = FXMLLoader.load(getClass().getResource("/ui/Map.fxml"));
+    public static void loadSceneMap() {
+        activeScene = "Map";
+        loadSceneOrLaunch();
+    }
+
+    public static void loadSceneSettings() {
+        activeScene = "Settings";
+        loadSceneOrLaunch();
+    }
+
+    public static void loadWindowSettings() {
+        instance.loadSettingsInWindow();
+    }
+
+    private void loadSettingsInWindow() {
+        if (settingsStage != null) {
+            settingsStage.requestFocus();
+            return;
         }
+
+        settingsStage = new Stage();
+        settingsStage.setOnCloseRequest(e -> settingsStage = null);
+        attempt(() -> loadScene("Settings", settingsStage));
+    }
+
+    private static void loadSceneOrLaunch() {
+        if (instance == null) {
+            new Thread(Application::launch).start();
+        } else {
+            try {
+                instance.loadScene(activeScene, instance.stage);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+    }
+
+    private void loadScene(String name, Stage stage) throws IOException {
+        Parent root = FXMLLoader.load(getClass().getResource("/ui/" + name + ".fxml"));
 
         Scene scene = new Scene(root);
 
         stage.setTitle("World Downloader");
         stage.setScene(scene);
         stage.show();
+    }
+
+    static Config getConfig() {
+        return config;
+    }
+
+    @Override
+    public void start(Stage stage) throws Exception {
+        instance = this;
+        this.stage = stage;
+
+        if (config.isValid()) {
+            loadSceneMap();
+        } else {
+            loadSceneSettings();
+        }
     }
 
     static void setGraphicsHandler(GuiMap map) {

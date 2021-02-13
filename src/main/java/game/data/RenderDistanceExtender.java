@@ -17,7 +17,7 @@ public class RenderDistanceExtender extends Thread {
     private boolean measuringRenderDistance;
     private int maxDistance;
 
-    private final int extendedDistance;
+    private int extendedDistance;
     public int serverDistance;
     private int perRow;
 
@@ -233,5 +233,11 @@ public class RenderDistanceExtender extends Thread {
     public void resetConnection() {
         this.reset();
         this.invalidateChunks();
+    }
+
+    public void setExtendedDistance(int val) {
+        this.extendedDistance = val;
+
+        invalidateChunks();
     }
 }

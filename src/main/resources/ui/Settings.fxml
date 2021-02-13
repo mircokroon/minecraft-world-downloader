@@ -3,9 +3,141 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
+<AnchorPane prefHeight="233.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings" stylesheets="/ui/dark.css">
    <children>
-      <Button layoutX="268.0" layoutY="175.0" mnemonicParsing="false" onAction="#pressButton" text="Press me!" />
+      <Button fx:id="saveButton" layoutX="492.0" layoutY="200.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
+      <TabPane prefHeight="181.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
+        <tabs>
+          <Tab text="Connection">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="254.0" prefWidth="600.0">
+                     <children>
+                        <GridPane layoutX="14.0" layoutY="6.0" prefHeight="128.0" prefWidth="404.0">
+                          <columnConstraints>
+                            <ColumnConstraints prefWidth="90.0" />
+                            <ColumnConstraints prefWidth="300.0" />
+                          </columnConstraints>
+                          <rowConstraints>
+                              <RowConstraints prefHeight="32.0" />
+                              <RowConstraints prefHeight="32.0" />
+                              <RowConstraints prefHeight="32.0" />
+                              <RowConstraints prefHeight="32.0" />
+                          </rowConstraints>
+                           <children>
+                              <TextField fx:id="server" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" />
+                              <TextField fx:id="portRemote" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                              <Label text="Server address" />
+                              <Label text="Server port" GridPane.rowIndex="1" />
+                              <Label text="Local port" GridPane.rowIndex="2" />
+                              <TextField fx:id="portLocal" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                           </children>
+                        </GridPane>
+                     </children>
+                  </AnchorPane>
+            </content>
+          </Tab>
+            <Tab text="General">
+                   <content>
+                       <AnchorPane>
+                           <GridPane layoutX="14.0" layoutY="6.0" prefHeight="147.0" prefWidth="404.0">
+                               <columnConstraints>
+                                   <ColumnConstraints prefWidth="200.0" />
+                                   <ColumnConstraints prefWidth="300.0" />
+                               </columnConstraints>
+                               <rowConstraints>
+                                   <RowConstraints prefHeight="32.0" />
+                                   <RowConstraints prefHeight="32.0" />
+                                   <RowConstraints prefHeight="32.0" />
+                                   <RowConstraints prefHeight="32.0" />
+                               </rowConstraints>
+                               <children>
+                                   <TextField fx:id="extendedDistance" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" />
+                                   <Label text="Extended render distance" GridPane.rowIndex="0" />
+
+                                   <CheckBox fx:id="measureRenderDistance" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                   <Label text="Measure render distance" GridPane.rowIndex="1" />
+
+                                   <CheckBox fx:id="markUnsaved" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                   <Label text="Mark unsaved chunks" GridPane.rowIndex="2" />
+
+                                   <TextField fx:id="overviewZoom" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                   <Label text="Overview zoom radius" GridPane.rowIndex="3" />
+
+
+                               </children>
+                           </GridPane>
+                       </AnchorPane>
+                   </content>
+            </Tab>
+          <Tab text="Output">
+            <content>
+              <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
+                  <GridPane layoutX="14.0" layoutY="6.0" prefHeight="128.0" prefWidth="404.0">
+                      <columnConstraints>
+                          <ColumnConstraints prefWidth="90.0" />
+                          <ColumnConstraints prefWidth="300.0" />
+                      </columnConstraints>
+                      <rowConstraints>
+                          <RowConstraints prefHeight="32.0" />
+                          <RowConstraints prefHeight="32.0" />
+                          <RowConstraints prefHeight="32.0" />
+                          <RowConstraints prefHeight="32.0" />
+                      </rowConstraints>
+                      <children>
+                          <TextField fx:id="worldOutputDir" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" />
+                          <TextField fx:id="levelSeed" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                          <Label text="World output" />
+                          <Label text="Level seed" GridPane.rowIndex="1" />
+                          <Label text="Offset" GridPane.rowIndex="2" />
+                           <GridPane GridPane.columnIndex="1" GridPane.rowIndex="2">
+                             <columnConstraints>
+                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                               <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                             </columnConstraints>
+                             <rowConstraints>
+                               <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                             </rowConstraints>
+                              <children>
+                                 <GridPane GridPane.columnIndex="0">
+                                   <columnConstraints>
+                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                   </columnConstraints>
+                                   <rowConstraints>
+                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                   </rowConstraints>
+                                     <children>
+                                         <AnchorPane>
+                                             <Label text="X: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                         </AnchorPane>
+                                         <TextField fx:id="centerX" prefWidth="50.0" GridPane.columnIndex="1" />
+                                     </children>
+                                 </GridPane>
+                                 <GridPane GridPane.columnIndex="1">
+                                   <columnConstraints>
+                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                     <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                   </columnConstraints>
+                                   <rowConstraints>
+                                     <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                   </rowConstraints>
+                                     <children>
+                                         <AnchorPane>
+                                             <Label text="Z: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                         </AnchorPane>
+                                         <TextField fx:id="centerZ" prefWidth="50.0" GridPane.columnIndex="1" />
+                                     </children>
+                                 </GridPane>
+                              </children>
+                           </GridPane>
+                      </children>
+                  </GridPane>
+
+              </AnchorPane>
+
+            </content>
+          </Tab>
+        </tabs>
+      </TabPane>
    </children>
 </AnchorPane>
