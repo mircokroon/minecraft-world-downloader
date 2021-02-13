@@ -1,6 +1,7 @@
 package game.data.chunk.palette;
 
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -10,7 +11,7 @@ import java.util.HashMap;
  * Holds a map of block colors for colouring the overview map.
  */
 public class BlockColors {
-    private HashMap<String, Integer> colors;
+    private HashMap<String, SimpleColor> colors;
 
     private BlockColors() { }
 
@@ -21,14 +22,18 @@ public class BlockColors {
         String file = "block-colors.json";
         InputStream input = BlockColors.class.getClassLoader().getResourceAsStream(file);
 
-        return new Gson().fromJson(new InputStreamReader(input), BlockColors.class);
+        GsonBuilder builder = new GsonBuilder();
+        builder.registerTypeAdapter(SimpleColor.class, (JsonDeserializer<SimpleColor>)
+                (el, type, ctx) -> new SimpleColor(el.getAsInt()));
+
+        return builder.create().fromJson(new InputStreamReader(input), BlockColors.class);
     }
 
     /**
      * Get a block color from a given block name.
      */
-    public int getColor(String key) {
-        return colors.getOrDefault(key, 0);
+    public SimpleColor getColor(String key) {
+        return colors.getOrDefault(key, SimpleColor.BLACK);
     }
 
     /**

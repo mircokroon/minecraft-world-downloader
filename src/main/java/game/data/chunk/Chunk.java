@@ -1,6 +1,7 @@
 package game.data.chunk;
 
 import config.Config;
+import game.data.chunk.palette.SimpleColor;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
@@ -10,7 +11,6 @@ import game.data.entity.Entity;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
-import game.data.chunk.version.ColorTransformer;
 import game.data.container.InventoryWindow;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
  */
 public abstract class Chunk {
-    private final ColorTransformer colorTransformer;
-
     protected static final int LIGHT_SIZE = 2048;
     protected static final int CHUNK_HEIGHT = 256;
     public static final int SECTION_HEIGHT = 16;
@@ -71,7 +69,6 @@ public abstract class Chunk {
         chunkSections = new ChunkSection[16];
         tileEntities = new HashMap<>();
         entities = new HashSet<>();
-        colorTransformer = new ColorTransformer();
     }
     public abstract int getDataVersion();
 
@@ -377,10 +374,6 @@ public abstract class Chunk {
         return isNewChunk;
     }
 
-    public ColorTransformer getColorTransformer() {
-        return colorTransformer;
-    }
-
     protected void computeHeightMap() {
         heightMap = new int[SECTION_WIDTH * SECTION_WIDTH];
 
@@ -428,9 +421,9 @@ public abstract class Chunk {
                     int y = heightAt(x, z);
                     BlockState blockState = getBlockStateAt(x, heightAt(x, z), z);
 
-                    int color;
+                    SimpleColor color;
                     if (blockState == null) {
-                        color = 0;
+                        color = SimpleColor.BLACK;
                     } else {
                         color = blockState.getColor();
                         for (int offset = 1; offset < 24 && blockState.isWater(); offset++) {
@@ -443,17 +436,17 @@ public abstract class Chunk {
                             if (blockState == null) {
                                 break;
                             }
-                            color = getColorTransformer().blendWith(color, blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
+                            color = color.blendWith(blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
                         }
                     }
 
-                    color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
+                    color = color.shaderMultiply(getColorShader(x, z));
 
-                    writer.setColor(x, z, getColorTransformer().toColor(color));
+                    writer.setColor(x, z, color.toJavaFxColor());
 
                     // mark new chunks in a red-ish outline
                     if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
-                        writer.setColor(x, z, getColorTransformer().highlight(reader.getColor(x, z)));
+                        writer.setColor(x, z, color.highlight().toJavaFxColor());
                     }
                 }
             }

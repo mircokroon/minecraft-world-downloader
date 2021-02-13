@@ -61,7 +61,7 @@ public class BlockState {
      * Gets the color of this block using the BlockColors object from the world manager.
      * @return the color of the block in integer format, one byte per color.
      */
-    public int getColor() {
+    public SimpleColor getColor() {
         return WorldManager.getInstance().getBlockColors().getColor(name);
     }
 
