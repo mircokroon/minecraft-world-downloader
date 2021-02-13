@@ -6,7 +6,6 @@ import game.data.registries.RegistryLoader;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
 import gui.GuiManager;
-import javafx.fxml.FXML;
 import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -31,6 +30,10 @@ public class Config {
 
     private boolean isStarted = false;
 
+    public static void setInstance(Config config) {
+        instance = config;
+    }
+
     public static void init(String[] args) {
         instance = new Config();
         CmdLineParser parser = new CmdLineParser(instance);
@@ -39,8 +42,19 @@ public class Config {
         } catch (CmdLineException e) {
             // handling of wrong arguments
             System.err.println(e.getMessage());
-            parser.printUsage(System.err);
+
+            instance.showHelp = true;
         }
+
+        if (instance.showHelp) {
+            System.out.println("When running this application without the -s parameter, the settings UI will be \n" +
+                                "shown on startup. When running with --no-gui, the -s parameter is required.\n");
+
+            System.out.println("Available parameters:");
+            parser.printUsage(System.out);
+            System.exit(1);
+        }
+
         instance.settingsComplete();
     }
 
@@ -60,6 +74,8 @@ public class Config {
         GuiManager.setConfig(this);
 
         if (server == null) {
+            handleGuiOnlyMode();
+
             GuiManager.loadSceneSettings();
             return;
         }
@@ -82,6 +98,19 @@ public class Config {
 
         new ConnectionManager().startProxy();
 
+    }
+
+    private void handleGuiOnlyMode() {
+        if (System.console() != null) {
+            return;
+        }
+
+        if (!devMode && !forceConsoleOutput) {
+            System.out.println("Application seems to be running without console. Redirecting error output to GUI. " +
+                    "If this is not desired, run with --force-console.");
+
+            GuiManager.redirectErrorOutput();
+        }
     }
 
     public boolean isStarted() {
@@ -152,7 +181,11 @@ public class Config {
         return injector;
     }
 
-    @FXML
+
+    @Option(name = "--help", aliases = {"-h", "help", "-help", "--h"},
+            usage = "Show this help message.")
+    public boolean showHelp;
+
     // parameters
     @Option(name = "--server", aliases = "-s",
             usage = "The address of the remote server to connect to. Hostname or IP address (without port).")
@@ -225,6 +258,11 @@ public class Config {
     @Option(name = "--dev-mode",
             usage = "Enable developer mode")
     private boolean devMode = false;
+
+    @Option(name = "--force-console",
+            usage = "Never redirect console output to GUI")
+    private boolean forceConsoleOutput = false;
+
 
 
     // getters

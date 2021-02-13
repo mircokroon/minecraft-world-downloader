@@ -6,12 +6,20 @@ import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.dimension.Dimension;
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.List;
 
 import static util.ExceptionHandling.attempt;
@@ -20,15 +28,18 @@ import static util.ExceptionHandling.attempt;
  * Class to the handle the GUI.
  */
 public class GuiManager extends Application {
+    private static boolean hasErrors;
+    private static ObservableList<String> messages;
+
     private static GuiMap chunkGraphicsHandler;
     private static Config config;
     private static GuiManager instance;
 
     private static String activeScene = "";
+    private static GuiSettings settingController;
     private Stage stage;
 
     private Stage settingsStage;
-
 
     public static void setConfig(Config config) {
         GuiManager.config = config;
@@ -46,11 +57,59 @@ public class GuiManager extends Application {
 
     public static void loadWindowSettings() {
         instance.loadSettingsInWindow();
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.hideErrorMessage();
+        }
     }
 
     public static void setDimension(Dimension dimension) {
         if (chunkGraphicsHandler != null) {
             chunkGraphicsHandler.setDimension(dimension);
+        }
+    }
+
+    public static void redirectErrorOutput() {
+        messages = FXCollections.observableArrayList();
+
+        System.setErr(new PrintStream(new ByteArrayOutputStream() {
+            @Override
+            public synchronized void write(byte[] b, int off, int len) {
+                Platform.runLater(() -> {
+                    notifyNewError();
+
+                    messages.add(this.toString());
+                    this.reset();
+                });
+                super.write(b, off, len);
+            }
+        }));
+    }
+
+    private static void notifyNewError() {
+        if (!GuiManager.hasErrors) {
+            GuiManager.hasErrors = true;
+            if (settingController != null) {
+                settingController.refreshErrorTab();
+            }
+        }
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.showErrorMessage();
+        }
+    }
+
+    public static boolean hasErrors() {
+        return hasErrors;
+    }
+
+    static ObservableList<String> getMessages() {
+        return messages;
+    }
+
+    public static Stage getStage() {
+        if (instance.settingsStage == null) {
+            return instance.stage;
+        } else {
+            return instance.settingsStage;
         }
     }
 
@@ -61,8 +120,15 @@ public class GuiManager extends Application {
         }
 
         settingsStage = new Stage();
-        settingsStage.setOnCloseRequest(e -> settingsStage = null);
+        settingsStage.setOnCloseRequest(e -> {
+            settingController = null;
+            settingsStage = null;
+        });
         attempt(() -> loadScene("Settings", settingsStage));
+    }
+
+    static void registerSettingController(GuiSettings settings) {
+        GuiManager.settingController = settings;
     }
 
     private static void loadSceneOrLaunch() {
@@ -138,4 +204,3 @@ public class GuiManager extends Application {
         }
     }
 }
-

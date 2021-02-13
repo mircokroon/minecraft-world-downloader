@@ -43,9 +43,13 @@ public class RightClickMenu extends ContextMenu {
         menu.add(new SeparatorMenuItem());
 
         menu.add(construct("Save overview to file", e -> handler.export()));
-        menu.add(construct("Draw all existing chunks", (HandleError) e -> WorldManager.getInstance().drawExistingChunks()));
+        menu.add(construct("Draw all existing chunks", e -> WorldManager.getInstance().drawExistingChunks()));
 
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
+
+        menu.add(construct("Trigger error", e -> {
+            throw new NullPointerException("oopsie whoopsie");
+        }));
 
         menu.add(construct("Save & Exit", e -> {
             WorldManager.getInstance().save();
@@ -60,7 +64,7 @@ public class RightClickMenu extends ContextMenu {
     private void addDevOptions(List<MenuItem> menu) {
         menu.add(new SeparatorMenuItem());
 
-        menu.add(construct("Write chunk 0, 0", (HandleError) e -> {
+        menu.add(construct("Write chunk 0, 0", e -> {
             Path p = Paths.get(Config.getWorldOutputDir(), "", "region", "r.0.0.mca");
             ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
 
@@ -73,20 +77,19 @@ public class RightClickMenu extends ContextMenu {
         }));
     }
 
-    private MenuItem construct(String name, EventHandler<Event> handler) {
+    private MenuItem construct(String name, HandleError handler) {
         MenuItem item = new MenuItem(name);
         item.addEventHandler(EventType.ROOT, handler);
         return item;
     }
 }
 
-interface Handler extends EventHandler<Event> {  }
-interface HandleError extends Handler {
+interface HandleError extends EventHandler<Event> {
     @Override
     default void handle(Event event) {
         try {
             handleErr(event);
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

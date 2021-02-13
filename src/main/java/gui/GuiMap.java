@@ -45,6 +45,7 @@ public class GuiMap {
     public Canvas entityCanvas;
     public Label helpLabel;
     private boolean playerHasConnected = false;
+    private boolean showErrorPrompt = false;
 
     private CoordinateDouble3D playerPos;
     private double playerRotation;
@@ -94,12 +95,12 @@ public class GuiMap {
             helpLabel.setText(Config.getConnectionDetails().getConnectionHint());
         }
         entityCanvas.setOnMouseEntered(e -> {
-            if (playerHasConnected) {
+            if (playerHasConnected && !showErrorPrompt) {
                 helpLabel.setText("Right-click to open context menu. Scroll to zoom.");
             }
         });
         entityCanvas.setOnMouseExited(e -> {
-            if (playerHasConnected) {
+            if (playerHasConnected && !showErrorPrompt) {
                 helpLabel.setText("");
             }
         });
@@ -379,6 +380,18 @@ public class GuiMap {
 
     public void setDimension(Dimension dimension) {
         this.chunkMap = chunkDimensions.getOrDefault(dimension, new ConcurrentHashMap<>());
+    }
+
+    public void showErrorMessage() {
+        this.helpLabel.setText("An error has occured. 'Right click' -> 'Settings' to view.");
+        this.helpLabel.setStyle("-fx-text-fill: red;");
+        this.showErrorPrompt = true;
+    }
+
+    public void hideErrorMessage() {
+        this.helpLabel.setText("");
+        this.helpLabel.setStyle("-fx-text-fill: white;");
+        this.showErrorPrompt = false;
     }
 }
 

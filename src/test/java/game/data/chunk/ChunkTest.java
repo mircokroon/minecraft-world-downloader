@@ -31,7 +31,9 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
         WorldManager.setInstance(mock);
 
+        Config.setInstance(new Config());
         Config.setProtocolVersion(protocolVersion);
+
 
         // load chunk
         ObjectInputStream in = new ObjectInputStream(ChunkTest.class.getClassLoader().getResourceAsStream(dataFile));

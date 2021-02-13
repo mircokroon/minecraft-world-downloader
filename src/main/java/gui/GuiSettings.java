@@ -2,11 +2,13 @@ package gui;
 
 
 import config.Config;
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,10 +29,14 @@ public class GuiSettings {
     public TextField overviewZoom;
 
     public Button saveButton;
+    public Tab errTab;
+    public TabPane tabPane;
+    public TextArea errOutput;
     Config config;
 
     public GuiSettings() {
         this.config = GuiManager.getConfig();
+        GuiManager.registerSettingController(this);
     }
 
     @FXML
@@ -58,6 +64,64 @@ public class GuiSettings {
 
         numeric(Arrays.asList(portRemote, portLocal, centerX, centerZ, levelSeed, extendedDistance, overviewZoom));
         disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
+
+        handleErrorTab();
+
+    }
+
+    public void refreshErrorTab() {
+        tabPane.getTabs().add(errTab);
+        handleErrorTab();
+    }
+
+    private void handleErrorTab() {
+        // remove error tag if there is no errors
+        if (!GuiManager.hasErrors()) {
+            tabPane.getTabs().remove(errTab);
+            return;
+        } else {
+            tabPane.getSelectionModel().select(errTab);
+        }
+        errOutput.setWrapText(true);
+
+        // make sure the error output resizes with the window
+        Platform.runLater(() -> {
+            GuiManager.getStage().heightProperty().addListener((ov, oldVal, newVal) -> {
+                double delta = newVal.doubleValue() - oldVal.doubleValue();
+                tabPane.setPrefHeight(tabPane.getPrefHeight() + delta);
+                saveButton.setLayoutY(saveButton.getLayoutY() + delta);
+            });
+
+            GuiManager.getStage().widthProperty().addListener((ov, oldVal, newVal) -> {
+                double delta = newVal.doubleValue() - oldVal.doubleValue();
+                tabPane.setPrefWidth(tabPane.getPrefWidth() + delta);
+                saveButton.setLayoutX(saveButton.getLayoutX() + delta);
+            });
+        });
+
+        ObservableList<String> messages = GuiManager.getMessages();
+        errOutput.setText(join(messages));
+
+        try {
+
+            GuiManager.getMessages().addListener((ListChangeListener<String>) change -> {
+                errOutput.setText(join(messages));
+            });
+        } catch (Exception ex) {
+            ex.printStackTrace(System.out);
+        }
+    }
+
+    private String join(ObservableList<String> list) {
+        return list.stream().reduce((a, b) -> {
+            if (a.length() == 0 || a.equals("\n")) {
+                return b;
+            } else if (b.length() == 0 || b.equals("\n")) {
+                return a;
+            } else {
+                return a + "\n " + b;
+            }
+        }).orElse("");
     }
 
     private void disableWhenRunning(List<TextField> numericFields) {
