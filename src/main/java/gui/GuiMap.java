@@ -6,6 +6,7 @@ import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
+import game.data.dimension.Dimension;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -48,6 +49,11 @@ public class GuiMap {
     private CoordinateDouble3D playerPos;
     private double playerRotation;
 
+    private static final WritableImage BLACK = new WritableImage(1, 1);
+    static {
+        BLACK.getPixelWriter().setColor(0, 0, Color.BLACK);
+    }
+
     private static final Image NONE = new WritableImage(1, 1);
     private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
     private final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
@@ -57,8 +63,9 @@ public class GuiMap {
     private int renderDistanceZ;
     private Bounds bounds;
     private int gridSize = 0;
-    private Map<CoordinateDim2D, ChunkImage> chunkMap = new ConcurrentHashMap<>();
-    private Collection<CoordinateDim2D> drawableChunks = new ConcurrentLinkedQueue<>();
+    private Map<Dimension, Map<Coordinate2D, ChunkImage>> chunkDimensions = new ConcurrentHashMap<>();
+    private Map<Coordinate2D, ChunkImage> chunkMap;
+    private Collection<Coordinate2D> drawableChunks = new ConcurrentLinkedQueue<>();
 
     ReadOnlyDoubleProperty width;
     ReadOnlyDoubleProperty height;
@@ -69,6 +76,7 @@ public class GuiMap {
     void initialize() {
         Platform.runLater(() -> WorldManager.getInstance().outlineExistingChunks());
 
+        setDimension(Dimension.OVERWORLD);
         setupCanvasProperties();
 
         GuiManager.setGraphicsHandler(this);
@@ -184,7 +192,7 @@ public class GuiMap {
     void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
         if (!playerHasConnected) {
             playerHasConnected = true;
-            helpLabel.setText("");
+            Platform.runLater(() -> helpLabel.setText(""));
         }
 
         Image image = chunk.getImage();
@@ -194,7 +202,7 @@ public class GuiMap {
         }
 
         chunkMap.put(coord, new ChunkImage(image, chunk.isSaved()));
-        drawChunk(coord);
+        drawChunkAsync(coord);
 
         hasChanged = true;
     }
@@ -220,7 +228,7 @@ public class GuiMap {
         hasChanged = false;
 
         this.drawableChunks = getChunksInRange(chunkMap.keySet(),renderDistanceX * 2, renderDistanceZ * 2);
-        Collection<CoordinateDim2D> inRangeChunks = getChunksInRange(drawableChunks, renderDistanceX, renderDistanceZ);
+        Collection<Coordinate2D> inRangeChunks = getChunksInRange(drawableChunks, renderDistanceX, renderDistanceZ);
 
         this.bounds = getOverviewBounds(inRangeChunks);
 
@@ -240,11 +248,11 @@ public class GuiMap {
         graphics.fillRect(0, 0, width.get(), height.get());
 
         for (Coordinate2D coord : drawableChunks) {
-            drawChunk(coord, this.bounds);
+            drawChunk(coord);
         }
     }
 
-    private Bounds getOverviewBounds(Collection<CoordinateDim2D> coordinates) {
+    private Bounds getOverviewBounds(Collection<Coordinate2D> coordinates) {
         Bounds bounds = new Bounds();
         for (Coordinate2D coordinate : coordinates) {
             bounds.update(coordinate);
@@ -257,8 +265,7 @@ public class GuiMap {
      * range due to pixels).
      * @return the set of chunks actually in range.
      */
-    private Collection<CoordinateDim2D> getChunksInRange(Collection<CoordinateDim2D> coords, int rangeX, int rangeZ) {
-        game.data.dimension.Dimension dimension = WorldManager.getInstance().getDimension();
+    private Collection<Coordinate2D> getChunksInRange(Collection<Coordinate2D> coords, int rangeX, int rangeZ) {
         if (this.playerPos == null) {
             drawableChunks = chunkMap.keySet();
             return drawableChunks;
@@ -266,7 +273,6 @@ public class GuiMap {
         Coordinate2D player = this.playerPos.discretize().globalToChunk();
 
         return coords.parallelStream()
-                .filter(coordinateDim2D -> coordinateDim2D.getDimension().equals(dimension))
                 .filter(coordinate2D -> coordinate2D.isInRange(player, rangeX, rangeZ))
                 .collect(Collectors.toSet());
     }
@@ -306,9 +312,12 @@ public class GuiMap {
         graphics.strokeOval((int) playerX - 16, (int) playerZ - 16, 32, 32);
     }
 
-    private void drawChunk(Coordinate2D pos, Bounds bounds) {
+    private void drawChunk(Coordinate2D pos) {
+        drawChunk(chunkCanvas.getGraphicsContext2D(), pos, this.bounds, true);
+    }
+
+    private void drawChunk(GraphicsContext graphics, Coordinate2D pos, Bounds bounds, boolean drawBlack) {
         ChunkImage chunkImage = chunkMap.get(pos);
-        GraphicsContext graphics = chunkCanvas.getGraphicsContext2D();
 
         int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
         int drawY = (pos.getZ() - bounds.getMinZ()) * gridSize;
@@ -321,6 +330,10 @@ public class GuiMap {
             graphics.strokeRect(drawX + 1, drawY + 1, gridSize - 1, gridSize - 1);
             graphics.fillRect(drawX, drawY,gridSize - 1, gridSize - 1);
         } else {
+            // draw black before drawing chunk so that we can tell void from missing chunks
+            if (drawBlack) {
+                graphics.drawImage(BLACK, drawX, drawY, gridSize, gridSize);
+            }
             graphics.drawImage(chunkImage.getImage(), drawX, drawY, gridSize, gridSize);
 
             // if the chunk wasn't saved yet, mark it as such
@@ -332,17 +345,28 @@ public class GuiMap {
         }
     }
 
-    private void drawChunk(Coordinate2D pos) {
-        Platform.runLater(() -> {
-            drawChunk(pos, this.bounds);
-        });
+    private void drawChunkAsync(Coordinate2D pos) {
+        Platform.runLater(() -> drawChunk(pos));
     }
 
     public void export() {
-        int width = (int) chunkCanvas.getWidth();
-        int height = (int) chunkCanvas.getHeight();
-        SnapshotParameters parameters = new SnapshotParameters();
-        WritableImage img = chunkCanvas.snapshot(parameters, new WritableImage(width, height));
+        Bounds fullBounds = getOverviewBounds(chunkMap.keySet());
+
+        int width = fullBounds.getWidth() * 16;
+        int height = fullBounds.getHeight() * 16;
+
+        Canvas temp = new Canvas(width, height);
+        GraphicsContext graphics = temp.getGraphicsContext2D();
+        graphics.setImageSmoothing(false);
+
+        // draw each chunk
+        for (Map.Entry<Coordinate2D, ChunkImage> entry : chunkMap.entrySet()) {
+            drawChunk(graphics, entry.getKey(), fullBounds, false);
+        }
+
+        SnapshotParameters snapshotParameters = new SnapshotParameters();
+        snapshotParameters.setFill(Color.TRANSPARENT);
+        WritableImage img = temp.snapshot(snapshotParameters, new WritableImage(width, height));
 
         try {
             File dest = Paths.get(Config.getWorldOutputDir(), "rendered.png").toFile();
@@ -351,6 +375,10 @@ public class GuiMap {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void setDimension(Dimension dimension) {
+        this.chunkMap = chunkDimensions.getOrDefault(dimension, new ConcurrentHashMap<>());
     }
 }
 

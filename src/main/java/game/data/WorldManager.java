@@ -99,6 +99,7 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.invalidateChunks();
         }
+        GuiManager.setDimension(this.dimension);
     }
 
     public double getPlayerRotation() {

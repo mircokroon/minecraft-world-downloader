@@ -4,6 +4,7 @@ package gui;
 import config.Config;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
+import game.data.dimension.Dimension;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -45,6 +46,12 @@ public class GuiManager extends Application {
 
     public static void loadWindowSettings() {
         instance.loadSettingsInWindow();
+    }
+
+    public static void setDimension(Dimension dimension) {
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.setDimension(dimension);
+        }
     }
 
     private void loadSettingsInWindow() {

@@ -7,6 +7,27 @@ import javafx.scene.paint.Color;
  */
 public class SimpleColor {
     public static final SimpleColor BLACK = new SimpleColor(0, 0, 0);
+    public static final SimpleColor TRANSPARENT = new SimpleColor(0, 0, 0) {
+        @Override
+        public SimpleColor blendWith(SimpleColor other, double ratio) {
+            return this;
+        }
+
+        @Override
+        public SimpleColor highlight() {
+            return this;
+        }
+
+        @Override
+        public SimpleColor shaderMultiply(double colorShader) {
+            return this;
+        }
+
+        @Override
+        public Color toJavaFxColor() {
+            return Color.TRANSPARENT;
+        }
+    };
 
     private final double r, g, b;
 

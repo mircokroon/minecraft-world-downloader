@@ -413,7 +413,6 @@ public abstract class Chunk {
     public Image getImage() {
         WritableImage i = new WritableImage(16, 16);
         PixelWriter writer = i.getPixelWriter();
-        PixelReader reader = i.getPixelReader();
 
         try {
             for (int x = 0; x < 16; x++) {
@@ -423,7 +422,7 @@ public abstract class Chunk {
 
                     SimpleColor color;
                     if (blockState == null) {
-                        color = SimpleColor.BLACK;
+                        color = SimpleColor.TRANSPARENT;
                     } else {
                         color = blockState.getColor();
                         for (int offset = 1; offset < 24 && blockState.isWater(); offset++) {
@@ -441,6 +440,8 @@ public abstract class Chunk {
                     }
 
                     color = color.shaderMultiply(getColorShader(x, z));
+
+
 
                     writer.setColor(x, z, color.toJavaFxColor());
 
