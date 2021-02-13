@@ -1,6 +1,8 @@
 package game.data;
 
-import game.Config;
+import config.Config;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.CoordinateDim2D;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +47,7 @@ public class RenderDistanceExtender extends Thread {
     }
 
     public void setServerReportedRenderDistance(int serverDistance) {
-        if (Config.measureRenderDistance()) {
+        if (Config.doMeasureRenderDistance()) {
             System.out.println("Ignored server reported render distance of " + serverDistance);
             return;
         }

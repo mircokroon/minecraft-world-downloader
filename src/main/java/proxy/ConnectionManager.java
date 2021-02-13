@@ -1,8 +1,7 @@
 package proxy;
 
-import game.Config;
+import config.Config;
 import game.NetworkMode;
-import game.data.WorldManager;
 import game.protocol.HandshakeProtocol;
 import game.protocol.LoginProtocol;
 import game.protocol.StatusProtocol;

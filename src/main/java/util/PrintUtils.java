@@ -1,6 +1,6 @@
 package util;
 
-import game.Config;
+import config.Config;
 
 import java.util.Arrays;
 

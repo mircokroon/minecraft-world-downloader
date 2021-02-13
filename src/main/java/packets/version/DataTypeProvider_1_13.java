@@ -1,6 +1,5 @@
 package packets.version;
 
-import game.data.Coordinate3D;
 import game.data.container.Slot;
 import packets.DataTypeProvider;
 

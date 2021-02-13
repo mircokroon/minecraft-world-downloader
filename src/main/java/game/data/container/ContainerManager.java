@@ -1,9 +1,8 @@
 package game.data.container;
 
-import game.Config;
-import game.data.Coordinate2D;
-import game.data.Coordinate3D;
-import game.data.CoordinateDim3D;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim3D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.BlockState;

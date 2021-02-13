@@ -1,11 +1,19 @@
 package game.data.chunk.version;
 
+import javafx.scene.paint.Color;
+
 public class ColorTransformer {
 
-    private static final int HIGHLIGHT_MASK = 210 << 16;
+    private static final int HIGHLIGHT_VAL = 210;
+    private static final int HIGHLIGHT_MASK = HIGHLIGHT_VAL << 16;
 
     public int highlight(int rgb) {
         return rgb ^ HIGHLIGHT_MASK;
+    }
+
+    public Color highlight(Color color) {
+        int red = (int) Math.round(color.getRed() * 255);
+        return Color.color((red ^ HIGHLIGHT_VAL) / 255.0f, color.getGreen(), color.getBlue());
     }
 
     public int blendWith(int base, int blender, double ratio) {
@@ -35,15 +43,19 @@ public class ColorTransformer {
     }
 
     private double getR(int color) {
-        return Math.pow((color >> 16) & 0xFF, 2);
+        return (color >> 16) & 0xFF;
     }
 
     private double getG(int color) {
-        return Math.pow((color >> 8) & 0xFF, 2);
+        return (color >> 8) & 0xFF;
     }
 
     private double getB(int color) {
-        return Math.pow((color & 0xFF), 2);
+        return (color & 0xFF);
+    }
+
+    public Color toColor(int v) {
+        return new Color(getR(v) / 255.0, getG(v) / 255.0, getB(v) / 255.0, 1);
     }
 
 

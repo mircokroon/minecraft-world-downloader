@@ -1,6 +1,6 @@
 package game.data.chunk.version;
 
-import game.data.CoordinateDim2D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
 import packets.DataTypeProvider;

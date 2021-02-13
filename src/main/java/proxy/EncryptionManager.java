@@ -1,15 +1,10 @@
 package proxy;
 
-import game.Config;
-import game.data.WorldManager;
-import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
-import packets.DataTypeProvider;
+import config.Config;
 import packets.builder.PacketBuilder;
 import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
-import se.llbit.nbt.SpecificTag;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;

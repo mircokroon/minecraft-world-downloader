@@ -1,6 +1,6 @@
 package game.data.entity;
 
-import game.data.Coordinate3D;
+import game.data.coordinates.Coordinate3D;
 import game.data.WorldManager;
 import packets.DataTypeProvider;
 import packets.UUID;

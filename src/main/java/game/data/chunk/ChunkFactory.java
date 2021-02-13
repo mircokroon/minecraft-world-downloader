@@ -1,9 +1,9 @@
 package game.data.chunk;
 
-import game.Config;
-import game.data.Coordinate2D;
-import game.data.Coordinate3D;
-import game.data.CoordinateDim2D;
+import config.Config;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.WorldManager;
 import game.data.entity.Entity;

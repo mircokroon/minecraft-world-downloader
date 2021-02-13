@@ -1,9 +1,9 @@
 package game.data.chunk;
 
-import game.Config;
-import game.data.Coordinate3D;
-import game.data.CoordinateDim2D;
-import game.data.CoordinateDim3D;
+import config.Config;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
+import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
 import game.data.WorldManager;
 import game.data.entity.Entity;
@@ -14,13 +14,15 @@ import game.data.chunk.version.ColorTransformer;
 import game.data.container.InventoryWindow;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelReader;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
 import util.PrintUtils;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -416,7 +418,9 @@ public abstract class Chunk {
      * Generate and return the overview image for this chunk.
      */
     public Image getImage() {
-        BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
+        WritableImage i = new WritableImage(16, 16);
+        PixelWriter writer = i.getPixelWriter();
+        PixelReader reader = i.getPixelReader();
 
         try {
             for (int x = 0; x < 16; x++) {
@@ -445,11 +449,11 @@ public abstract class Chunk {
 
                     color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
 
-                    i.setRGB(x, z, color);
+                    writer.setColor(x, z, getColorTransformer().toColor(color));
 
                     // mark new chunks in a red-ish outline
                     if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
-                        i.setRGB(x, z, getColorTransformer().highlight(i.getRGB(x, z)));
+                        writer.setColor(x, z, getColorTransformer().highlight(reader.getColor(x, z)));
                     }
                 }
             }

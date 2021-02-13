@@ -1,8 +1,6 @@
-package game.data;
+package game.data.coordinates;
 
 import game.data.dimension.Dimension;
-
-import java.util.Objects;
 
 public class Coordinate2D {
     private static int offsetX = 0;

@@ -1,6 +1,6 @@
 package game.data.chunk;
 
-import game.data.CoordinateDim2D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.region.McaFile;
 import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;

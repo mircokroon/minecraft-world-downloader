@@ -1,62 +1,48 @@
 package gui;
 
 
-import game.data.CoordinateDim2D;
-import game.data.WorldManager;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
+import javafx.application.Application;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
 
-import java.awt.Component;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.io.IOException;
 import java.util.List;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
 
 /**
  * Class to the handle the GUI.
  */
-public class GuiManager {
-    public static int width = 400;
-    public static int height = 400;
+public class GuiManager extends Application {
+    private static GuiMap chunkGraphicsHandler;
 
-    private static CanvasHandler chunkGraphicsHandler;
-
-    public static void showGui() {
-        SwingUtilities.invokeLater(GuiManager::createAndShowGUI);
+    private static boolean startSettings;
+    public static void showGUI(boolean startSettings) {
+        GuiManager.startSettings = startSettings;
+        new Thread(Application::launch).start();
     }
 
-    /**
-     * Initialised the GUI. Asks the world manager to provide provide the list of chunks that already exist so that we
-     * can draw those to the UI.
-     */
-    private static void createAndShowGUI() {
-        JFrame f = new JFrame("World Downloader");
-        f.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-        f.setSize(width, height);
-        f.addComponentListener(new ComponentAdapter() {
-            public void componentResized(ComponentEvent evt) {
-                Component c = (Component) evt.getSource();
-                height = c.getHeight();
-                width = c.getWidth();
-                chunkGraphicsHandler.computeBounds(true);
-            }
-        });
-
-        chunkGraphicsHandler = new CanvasHandler();
-        f.add(chunkGraphicsHandler);
-
-        f.pack();
-        f.setVisible(true);
-
-        chunkGraphicsHandler.setComponentPopupMenu(new RightClickMenu(chunkGraphicsHandler));
-
-        try {
-            WorldManager.getInstance().outlineExistingChunks();
-        } catch (IOException e) {
-            e.printStackTrace();
+    @Override
+    public void start(Stage stage) throws Exception {
+        Parent root;
+        if (startSettings) {
+            root = FXMLLoader.load(getClass().getResource("/ui/Settings.fxml"));
+        } else {
+            root = FXMLLoader.load(getClass().getResource("/ui/Map.fxml"));
         }
+
+        Scene scene = new Scene(root);
+
+        stage.setTitle("World Downloader");
+        stage.setScene(scene);
+        stage.show();
     }
+
+    static void setGraphicsHandler(GuiMap map) {
+        chunkGraphicsHandler = map;
+    }
+
 
     /**
      * Set a chunk to being loaded.

@@ -1,8 +1,7 @@
 package game.data.region;
 
-import game.Config;
-import game.data.Coordinate2D;
-import game.data.CoordinateDim2D;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;

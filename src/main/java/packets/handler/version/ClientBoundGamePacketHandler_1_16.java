@@ -1,6 +1,6 @@
 package packets.handler.version;
 
-import game.Config;
+import config.Config;
 import game.data.WorldManager;
 import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
@@ -52,7 +52,7 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
 
             // extend view distance communicated to the client to the given value
             int viewDist = provider.readVarInt();
-            Config.setServerRenderDistance(viewDist);
+            WorldManager.getInstance().setServerRenderDistance(viewDist);
             replacement.writeVarInt(Math.max(viewDist, Config.getExtendedRenderDistance()));
 
             replacement.copy(provider, BOOL, BOOL, BOOL, BOOL);
