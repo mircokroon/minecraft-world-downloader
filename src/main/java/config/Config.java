@@ -170,6 +170,23 @@ public class Config {
         return !disableWriteChunks;
     }
 
+
+    /**
+     * Get the contents of the Minecraft launcher_profiles.json from the given installation path.
+     * @return the contents of the file
+     */
+    public static String getMinecraftPath() {
+        String path = instance.minecraftDir;
+
+        // handle common %APPDATA% env variable for Windows
+        if (path.toUpperCase().contains("%APPDATA%") && System.getenv("appdata") != null) {
+            String appdataPath = System.getenv("appdata").replace("\\", "\\\\");
+            path = path.replaceAll("(?i)%APPDATA%", appdataPath);
+        }
+
+        return path;
+    }
+
     /**
      * Packet injector allows new packets to be sent to the client.
      */

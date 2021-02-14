@@ -14,7 +14,7 @@
                             <children>
                                 <GridPane layoutX="14.0" layoutY="6.0" prefHeight="128.0" prefWidth="404.0">
                                     <columnConstraints>
-                                        <ColumnConstraints prefWidth="90.0" />
+                                        <ColumnConstraints prefWidth="120.0" />
                                         <ColumnConstraints prefWidth="300.0" />
                                     </columnConstraints>
                                     <rowConstraints>
@@ -30,6 +30,8 @@
                                         <Label text="Server port" GridPane.rowIndex="1" />
                                         <Label text="Local port" GridPane.rowIndex="2" />
                                         <TextField fx:id="portLocal" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                              <TextField fx:id="minecraftDir" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                              <Label text="Minecraft location" GridPane.rowIndex="3" />
                                     </children>
                                 </GridPane>
                             </children>

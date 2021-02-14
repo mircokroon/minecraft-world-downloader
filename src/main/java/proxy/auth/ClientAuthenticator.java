@@ -46,7 +46,7 @@ public class ClientAuthenticator {
     }
 
     private void readAccounts(Gson g) throws IOException {
-        Path p = Paths.get(getMinecraftPath(), "launcher_accounts.json");
+        Path p = Paths.get(Config.getMinecraftPath(), "launcher_accounts.json");
 
         if (!p.toFile().exists()) {
             // probably not the right version of the launcher
@@ -59,7 +59,7 @@ public class ClientAuthenticator {
     }
 
     private void readProfiles(Gson g) throws IOException {
-        Path p = Paths.get(getMinecraftPath(), "launcher_profiles.json");
+        Path p = Paths.get(Config.getMinecraftPath(), "launcher_profiles.json");
         String path =  String.join("\n", Files.readAllLines(p));
 
         profiles = g.fromJson(path, LauncherProfiles.class);
@@ -139,22 +139,6 @@ public class ClientAuthenticator {
 
             return res.id;
         });
-    }
-
-    /**
-     * Get the contents of the Minecraft launcher_profiles.json from the given installation path.
-     * @return the contents of the file
-     */
-    private String getMinecraftPath() {
-        String path = Config.getMinecraftDir();
-
-        // handle common %APPDATA% env variable for Windows
-        if (path.toUpperCase().contains("%APPDATA%") && System.getenv("appdata") != null) {
-            String appdataPath = System.getenv("appdata").replace("\\", "\\\\");
-            path = path.replaceAll("(?i)%APPDATA%", appdataPath);
-        }
-
-        return path;
     }
 
     /**

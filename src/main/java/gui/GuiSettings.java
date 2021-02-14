@@ -32,6 +32,7 @@ public class GuiSettings {
     public Tab errTab;
     public TabPane tabPane;
     public TextArea errOutput;
+    public TextField minecraftDir;
     Config config;
 
     public GuiSettings() {
@@ -49,6 +50,7 @@ public class GuiSettings {
         server.setText(config.server);
         portRemote.setText("" + config.portRemote);
         portLocal.setText("" + config.portLocal);
+        minecraftDir.setText(Config.getMinecraftPath());
 
         // output tab
         worldOutputDir.setText(config.worldOutputDir);
@@ -144,6 +146,7 @@ public class GuiSettings {
         config.server = server.getText();
         config.portRemote = Integer.parseInt(portRemote.getText());
         config.portLocal = Integer.parseInt(portLocal.getText());
+        config.minecraftDir = minecraftDir.getText();
 
         // output tab
         config.worldOutputDir = worldOutputDir.getText();
