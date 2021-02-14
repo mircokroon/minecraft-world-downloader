@@ -15,7 +15,15 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 - Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+
 
 ### Basic usage
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the  latest release and execute the jar file using the commandline by running:
+[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the latest release and run it by double-clicking it. Enter the server address in the address field and press start. Then connect to address `localhost` in Minecraft to start downloading.
+
+<img src="https://i.imgur.com/bo3i1oA.png">
+
+Additional settings can be changed in the other tabs of the settings window.
+
+
+### Commandline
+Run `world-downloader.jar` using the commandline by running:
 
 ```
 java -jar world-downloader.jar -s address.to.server.com
@@ -23,24 +31,24 @@ java -jar world-downloader.jar -s address.to.server.com
 
 Then connect to ```localhost``` in Minecraft to start downloading the world. The world will be saved to the ```world/``` by default.
 
-### Extending render distance
-The downloader can be used to extend the render distance by sending chunks that were downloaded previously back to the client. For this, simply include the `-r [distance]` argument when running the program. For example:
+Other arguments can be specified to change the behaviour of the downloader. For example, render distance extending can be enabled by setting the render distance with `-r [distance]`:
 ```
 java -jar world-downloader.jar -s address.to.server.com -r 16
 ```
 
-
-### Options
+#### Options
 |  **Parameter** | **Default** | **Description** |
 | --- | --- | --- |
 |  --server | *required* | Server address |
 |  --port | 25565 | Server port |
 |  --local-port | 25565 | Port on which the downloader will run. |
 |  --output | world | World output director |
-|  --gui | true | Enable or disable the GUI, which shows an overview of all chunks known to the downloader |
+|  --no-gui | | Disable the GUI, useful for running in environments that don't support GUIs. |
 | --render-distance | 0 | When larger than the server's render distance, send known chunks back to the client |
-|  --minecraft-dir | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
 |  --mark-unsaved-chunks | true | When enabled, marks unsaved chunks red in the GUI. |
+|  --minecraft-dir | %appdata%/.minecraft | Path to your Minecraft installation, used for Mojang authentication |
+| --username | *none* | Set your Minecraft username, used instead of the Minecraft path for authentication |
+| --token | *none* | Set the Minecraft [access token](https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication), used instead of the Minecraft path for authentication |
 
 Additional options are available by running `java -jar world-downloader.jar --help`.
 
@@ -53,7 +61,7 @@ java -jar world-downloader.jar -s address.to.server.com
 
 When running headless Java, the GUI should be disabled by including the GUI option:
 ```
-java -jar world-downloader.jar -s address.to.server.com --gui=false
+java -jar world-downloader.jar -s address.to.server.com --no-gui
 ```
 
 ### Building from source
