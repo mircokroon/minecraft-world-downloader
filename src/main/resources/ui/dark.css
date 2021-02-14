@@ -29,6 +29,7 @@
 -fx-margin: 0px;
     -fx-background-color: transparent;
     -fx-text-base-color: #ffffff;
+     -fx-cursor: hand;
 
        -fx-border-color: transparent, transparent,  transparent;
         -fx-border-width: 0 0 3 0, 0 0 3 0, 0 0 3 0;
@@ -52,6 +53,10 @@
             -fx-background-radius: 0px;
             -fx-border-radius: 0px;
 }
+
+.check-box {
+    -fx-cursor: hand;
+ }
 
 .text-input:focused {
      -fx-background-color: #ffffff;
@@ -79,6 +84,8 @@
 
         -fx-background-radius: 1px;
         -fx-border-radius: 1px;
+
+        -fx-cursor: hand;
 }
 
 .label-valid {
