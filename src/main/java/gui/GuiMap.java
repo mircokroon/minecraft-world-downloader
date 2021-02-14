@@ -193,7 +193,10 @@ public class GuiMap {
     void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
         if (!playerHasConnected) {
             playerHasConnected = true;
-            Platform.runLater(() -> helpLabel.setText(""));
+
+            if (!showErrorPrompt) {
+                Platform.runLater(() -> helpLabel.setText(""));
+            }
         }
 
         Image image = chunk.getImage();
@@ -379,7 +382,7 @@ public class GuiMap {
     }
 
     public void setDimension(Dimension dimension) {
-        this.chunkMap = chunkDimensions.getOrDefault(dimension, new ConcurrentHashMap<>());
+        this.chunkMap = chunkDimensions.computeIfAbsent(dimension, (k) -> new ConcurrentHashMap<>());
     }
 
     public void showErrorMessage() {

@@ -5,19 +5,22 @@
 
 <AnchorPane prefHeight="265.0" prefWidth="600.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
     <children>
-        <Button fx:id="saveButton" layoutX="493.0" layoutY="232.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
+        <Button fx:id="saveButton" layoutX="491.0" layoutY="225.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
         <TabPane fx:id="tabPane" prefHeight="225.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
             <tabs>
                 <Tab text="Connection">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="254.0" prefWidth="600.0">
                             <children>
-                                <GridPane layoutX="14.0" layoutY="6.0" prefHeight="128.0" prefWidth="404.0">
+                                <GridPane layoutX="14.0" layoutY="6.0" prefHeight="187.0" prefWidth="579.0">
                                     <columnConstraints>
                                         <ColumnConstraints prefWidth="120.0" />
                                         <ColumnConstraints prefWidth="300.0" />
+                                        <ColumnConstraints prefWidth="150.0" />
                                     </columnConstraints>
                                     <rowConstraints>
+                                        <RowConstraints prefHeight="32.0" />
+                                        <RowConstraints prefHeight="32.0" />
                                         <RowConstraints prefHeight="32.0" />
                                         <RowConstraints prefHeight="32.0" />
                                         <RowConstraints prefHeight="32.0" />
@@ -30,8 +33,14 @@
                                         <Label text="Server port" GridPane.rowIndex="1" />
                                         <Label text="Local port" GridPane.rowIndex="2" />
                                         <TextField fx:id="portLocal" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                              <TextField fx:id="minecraftDir" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                              <Label text="Minecraft location" GridPane.rowIndex="3" />
+
+                                        <TextField fx:id="minecraftDir" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                         <Label text="Minecraft location" GridPane.rowIndex="4" />
+                              <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="4">
+                                 <children>
+                                              <Label fx:id="authDetailsVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" text="xxx" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
+                                 </children>
+                              </AnchorPane>
                                     </children>
                                 </GridPane>
                             </children>
@@ -71,13 +80,13 @@
                         </AnchorPane>
                     </content>
                 </Tab>
-                <Tab text="Output">
+                <Tab text="World">
                     <content>
                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
                             <GridPane layoutX="14.0" layoutY="6.0" prefHeight="128.0" prefWidth="404.0">
                                 <columnConstraints>
-                                    <ColumnConstraints prefWidth="90.0" />
-                                    <ColumnConstraints prefWidth="300.0" />
+                                    <ColumnConstraints prefWidth="150.0" />
+                                    <ColumnConstraints prefWidth="250.0" />
                                 </columnConstraints>
                                 <rowConstraints>
                                     <RowConstraints prefHeight="32.0" />
@@ -91,6 +100,8 @@
                                     <Label text="World output" />
                                     <Label text="Level seed" GridPane.rowIndex="1" />
                                     <Label text="Offset" GridPane.rowIndex="2" />
+                                    <Label text="Prevent chunk generation" GridPane.rowIndex="3" />
+                                    <CheckBox fx:id="disableWorldGen" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                                     <GridPane GridPane.columnIndex="1" GridPane.rowIndex="2">
                                         <columnConstraints>
                                             <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -110,7 +121,7 @@
                                                 </rowConstraints>
                                                 <children>
                                                     <AnchorPane>
-                                                        <Label text="X: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                        <Label text="X: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                                     </AnchorPane>
                                                     <TextField fx:id="centerX" prefWidth="50.0" GridPane.columnIndex="1" />
                                                 </children>
@@ -125,7 +136,7 @@
                                                 </rowConstraints>
                                                 <children>
                                                     <AnchorPane>
-                                                        <Label text="Z: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                                        <Label text="Z: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
                                                     </AnchorPane>
                                                     <TextField fx:id="centerZ" prefWidth="50.0" GridPane.columnIndex="1" />
                                                 </children>
@@ -138,6 +149,32 @@
                         </AnchorPane>
 
                     </content>
+                </Tab>
+                <Tab text="Authentication">
+                  <AnchorPane>
+                     <children>
+                             <Label layoutX="9.0" prefHeight="53.0" prefWidth="577.0" text="Authentication details are usually retrieved automatically. If you are using a custom launcher they can be entered here instead." wrapText="true" />
+                     </children>
+                      <GridPane layoutX="11.0" layoutY="53.0" prefHeight="187.0" prefWidth="579.0">
+                      <columnConstraints>
+                          <ColumnConstraints prefWidth="125.0" />
+                          <ColumnConstraints prefWidth="20.0" />
+                          <ColumnConstraints prefWidth="300.0" />
+                      </columnConstraints>
+                      <rowConstraints>
+                          <RowConstraints prefHeight="32.0" />
+                          <RowConstraints prefHeight="32.0" />
+                      </rowConstraints>
+                      <children>
+                          <Label text="Minecraft username" />
+                          <TextField fx:id="minecraftUsername" GridPane.columnIndex="2"/>
+
+                          <Label text="Access token" GridPane.rowIndex="1"/>
+                          <Hyperlink fx:id="authHelpLink" text="?" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                          <TextField fx:id="accessToken" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                      </children>
+                      </GridPane>
+                  </AnchorPane>
                 </Tab>
                 <Tab fx:id="errTab" text="Error output">
                     <TextArea fx:id="errOutput" prefHeight="174.0" prefWidth="600.0" />

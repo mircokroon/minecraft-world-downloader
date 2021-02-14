@@ -43,6 +43,7 @@ public class EncryptionManager {
     private String username;
     private ConcurrentLinkedQueue<ByteQueue> insertedPackets;
     private CompressionManager compressionManager;
+    private ClientAuthenticator clientAuthenticator;
 
     {
         // generate the keypair for the local server
@@ -56,6 +57,7 @@ public class EncryptionManager {
     public EncryptionManager(CompressionManager compressionManager) {
         this.compressionManager = compressionManager;
         this.insertedPackets = new ConcurrentLinkedQueue<>();
+        this.clientAuthenticator = new ClientAuthenticator();
     }
 
     public boolean isEncryptionEnabled() {
@@ -217,7 +219,7 @@ public class EncryptionManager {
      */
     private void sendReplacementEncryptionConfirmation() {
         // authenticate the client so that the remote server will accept us
-        boolean client = disconnectOnError(() -> new ClientAuthenticator().makeRequest(generateServerHash()));
+        boolean client = disconnectOnError(() -> clientAuthenticator.makeRequest(generateServerHash()));
         if (!client) { return; }
 
         // verify the connecting client connection is who he claims to be

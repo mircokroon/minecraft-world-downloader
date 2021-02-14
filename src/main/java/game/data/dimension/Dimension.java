@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Objects;
 
 /**
  * Class to hold both custom and default dimensions. For custom dimensions, it can write a partial definition file.
@@ -108,6 +109,24 @@ public class Dimension {
                 e.printStackTrace();
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Dimension dimension = (Dimension) o;
+
+        if (!Objects.equals(namespace, dimension.namespace)) return false;
+        return Objects.equals(name, dimension.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = namespace != null ? namespace.hashCode() : 0;
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        return result;
     }
 
     @Override

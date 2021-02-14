@@ -13,6 +13,7 @@ import org.kohsuke.args4j.Option;
 import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
+import proxy.auth.AuthDetails;
 
 import java.nio.file.Paths;
 import java.util.function.Consumer;
@@ -29,6 +30,7 @@ public class Config {
     private ConnectionDetails connectionDetails;
 
     private boolean isStarted = false;
+    private boolean guiOnlyMode = false;
 
     public static void setInstance(Config config) {
         instance = config;
@@ -66,6 +68,10 @@ public class Config {
         instance.protocolVersion = protocolVersion;
     }
 
+    public static boolean inGuiMode() {
+        return instance.guiOnlyMode;
+    }
+
     public static Config getInstance() {
         return instance;
     }
@@ -101,6 +107,7 @@ public class Config {
     }
 
     private void handleGuiOnlyMode() {
+        guiOnlyMode = true;
         if (System.console() != null) {
             return;
         }
@@ -208,6 +215,14 @@ public class Config {
             usage = "The address of the remote server to connect to. Hostname or IP address (without port).")
     public String server;
 
+    @Option(name = "--token", aliases = "-t",
+            usage = "Minecraft access token. Found in launcher_accounts.json by default.")
+    public String accessToken;
+
+    @Option(name = "--username", aliases = "-u",
+            usage = "Your Minecraft username.")
+    public String username;
+
     @Option(name = "--port", aliases = "-p",
             usage = "The port on which the remote server runs.")
     public int portRemote = 25565;
@@ -280,21 +295,7 @@ public class Config {
             usage = "Never redirect console output to GUI")
     private boolean forceConsoleOutput = false;
 
-
-
     // getters
-//    public static String getServer() {
-//        return instance.server;
-//    }
-//
-//    public static int getRemotePort() {
-//        return instance.remotePort;
-//    }
-//
-//    public static int getPortLocal() {
-//        return instance.portLocal;
-//    }
-
     public static int getExtendedRenderDistance() {
         return instance.extendedRenderDistance;
     }
@@ -307,44 +308,12 @@ public class Config {
         return instance.levelSeed;
     }
 
-    public static String getMinecraftDir() {
-        return instance.minecraftDir;
-    }
-
     public static String getWorldOutputDir() {
         return instance.worldOutputDir;
     }
 
-    public static int getCenterX() {
-        return instance.centerX;
-    }
-
-    public static int getCenterZ() {
-        return instance.centerZ;
-    }
-
     public static int getZoomLevel() {
         return instance.zoomLevel;
-    }
-
-    public static boolean isDisableGui() {
-        return instance.disableGui;
-    }
-
-    public static boolean isMarkNewChunks() {
-        return instance.markNewChunks;
-    }
-
-    public static boolean isDisableWriteChunks() {
-        return instance.disableWriteChunks;
-    }
-
-    public static boolean isDisableSrvLookup() {
-        return instance.disableSrvLookup;
-    }
-
-    public static boolean isDisableMarkUnsavedChunks() {
-        return instance.disableMarkUnsavedChunks;
     }
 
     public static boolean isInDevMode() {
@@ -361,6 +330,10 @@ public class Config {
 
     public static int getProtocolVersion() {
         return instance.protocolVersion;
+    }
+
+    public static AuthDetails getAuthDetails() {
+        return AuthDetails.fromUsername(instance.username, instance.accessToken);
     }
 
     // inverted boolean getters

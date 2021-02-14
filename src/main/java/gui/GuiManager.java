@@ -2,16 +2,11 @@ package gui;
 
 
 import config.Config;
-import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.value.ObservableBooleanValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
@@ -19,7 +14,9 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 
 import static util.ExceptionHandling.attempt;
@@ -113,6 +110,13 @@ public class GuiManager extends Application {
         }
     }
 
+    public static void closeSettings() {
+        if (instance.settingsStage != null) {
+            instance.settingsStage.close();
+            instance.settingsStage = null;
+        }
+    }
+
     private void loadSettingsInWindow() {
         if (settingsStage != null) {
             settingsStage.requestFocus();
@@ -152,6 +156,10 @@ public class GuiManager extends Application {
         stage.setTitle("World Downloader");
         stage.setScene(scene);
         stage.show();
+    }
+
+    public static void openLink(String text) {
+        instance.getHostServices().showDocument(text);
     }
 
     static Config getConfig() {

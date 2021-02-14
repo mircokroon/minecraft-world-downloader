@@ -6,6 +6,7 @@ import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
 
+import javax.security.sasl.AuthenticationException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,7 +24,8 @@ public class ClientAuthenticator {
     private static String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/join";
 
     private LauncherProfiles profiles;
-    private AuthDetails manualDetails;
+
+    private long authDetailsLastModified = 0;
 
     // for launcher versions 2.2+
     private LauncherAccounts accounts;
@@ -31,18 +33,27 @@ public class ClientAuthenticator {
     /**
      * Initialise the authenticator class by reading from the JSON file.
      */
-    public ClientAuthenticator() {
+    public ClientAuthenticator() { }
 
-        try {
-            Gson g = new Gson();
+    private void retrieveAuthDetails() throws IOException {
+        Gson g = new Gson();
 
+        readProfiles(g);
+        readAccounts(g);
+    }
 
-            readProfiles(g);
-            readAccounts(g);
-        } catch (IOException ex) {
-            startAuthDialogue();
+    private void printAuthErrorMessage() {
+        System.err.println("Something went wrong while trying to authenticate your Minecraft account.\n");
+
+        if (Config.inGuiMode()) {
+            System.err.println("Set the correct Minecraft installation path in the Connection tab.");
+            System.err.println("If you are using a custom launcher, set the correct username and token in the authentication tab.");
+        } else {
+            System.err.println("Use launch option \"-m /path/to/.minecraft/\" to indicate the location of your Minecraft installation.");
+            System.err.println("If you are using a custom launcher, use options --username and --token.");
         }
-
+        System.err.println("See https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication for more details.");
+        System.err.println();
     }
 
     private void readAccounts(Gson g) throws IOException {
@@ -52,6 +63,8 @@ public class ClientAuthenticator {
             // probably not the right version of the launcher
             return;
         }
+
+        authDetailsLastModified = p.toFile().lastModified();
 
         String path =  String.join("\n", Files.readAllLines(p));
 
@@ -65,87 +78,29 @@ public class ClientAuthenticator {
         profiles = g.fromJson(path, LauncherProfiles.class);
     }
 
-    /**
-     * Ask the user for their username and access token, not as nice as getting it from the file but it's better than
-     * not working at all.
-     */
-    private void startAuthDialogue() {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-
-        System.out.println("Cannot read or find launcher_profiles.json!\nYou can use launch option \"-m /path/to/.minecraft/\" to indicate the location of your Minecraft installation.");
-        System.out.println("Using manual authentication...");
-
-        String uuid = promptUuid(reader);
-        String token = promptAccessToken(reader);
-        this.manualDetails = new AuthDetails(uuid, token);
-    }
-
-    private static String retry(Prompt r) {
-        while (true) {
-            try {
-                return r.run();
-            } catch (IOException ex) { }
+    public static UuidNameResponse uuidFromUsername(String username) throws IOException {
+        HttpResponse<String> str = Unirest.get(UUID_URL + username).asString();
+        if (!str.isSuccess() || str.getStatus() != 200) {
+            System.err.println("Could not get UUID for user '" + username + "'. Status: " + str.getStatus());
+            throw new IOException("Cannot find username");
         }
-    }
 
-    /**
-     * Ask the user for their access token, retry if they don't input one that looks correct.
-     */
-    private String promptAccessToken(BufferedReader reader) {
-        System.out.println();
-        System.out.println("Your access token is needed for authentication. It...");
-        System.out.println("\t- Can be found in launcher_accounts.json, inside your .minecraft directory (for the default launcher)");
-        System.out.println("\t- Can be found in launcher_profiles.json, if launcher_accounts.json does not exist");
-        System.out.println("\t- Should be named 'accessToken'");
-        System.out.println("\t- Is quite long (over 300 characters)");
-        System.out.println("\t- Can change when starting the game, so launch Minecraft before entering it");
-        System.out.println("If you have multiple accounts, make sure to pick the one matching the given username.");
-
-        return retry(() -> {
-            System.out.print("Access token: ");
-
-            // remove trailing spaces and quotes, some people will probably copy those by accident
-            String token = reader.readLine().trim().replaceAll("^\"|\"$", "");
-
-            if (token.length() != 308) {
-                System.out.println("The given access token is too " + (token.length() > 308 ? "long" : "short") + "!" +
-                                       " Make sure you are using the correct token.");
-                throw new IOException("Token too short");
-            }
-
-            return token;
-        });
-    }
-
-    /**
-     * Ask the user for their username and use it to retrieve the UUID. Retry if the username cannot be found.
-     */
-    private String promptUuid(BufferedReader reader) {
-        Gson g = new Gson();
-
-        return retry(() -> {
-            System.out.print("\nMinecraft username: ");
-            String username = reader.readLine().trim();
-
-            HttpResponse<String> str = Unirest.get(UUID_URL + username).asString();
-
-            if (!str.isSuccess() || str.getStatus() != 200) {
-                System.out.println("Could not get UUID for user '" + username + "'. Status: " + str.getStatus());
-                throw new IOException("Cannot find username");
-            }
-
-            UuidNameResponse res = g.fromJson(str.getBody(), UuidNameResponse.class);
-            System.out.println("Found user '" + res.name + "' with UUID '" + res.id + "'");
-
-            return res.id;
-        });
+        return new Gson().fromJson(str.getBody(), UuidNameResponse.class);
     }
 
     /**
      * Get the auth details from the profiles file. If launcher_accounts.json exists, we use that accessToken instead
      * because the other one won't be valid in this case.
      */
-    private AuthDetails getAuthDetails() {
+    private AuthDetails getAuthDetails() throws IOException {
+        AuthDetails manualDetails = Config.getAuthDetails();
+
+        if (manualDetails != AuthDetails.INVALID) {
+            return manualDetails;
+        }
+
+        retrieveAuthDetails();
+
         // Launcher after version 2.2
         if (accounts != null) {
             AuthDetails details = accounts.getAuthDetails();
@@ -162,7 +117,7 @@ public class ClientAuthenticator {
             }
         }
 
-        return manualDetails;
+        throw new AuthenticationException("Cannot find authentication details.");
     }
 
     /**
@@ -171,8 +126,14 @@ public class ClientAuthenticator {
      * not accept the connection.
      * @param hash hash based on the server information.
      */
-    public void makeRequest(String hash) throws UnirestException {
-        AuthDetails details = getAuthDetails();
+    public void makeRequest(String hash) throws UnirestException, AuthenticationException {
+        AuthDetails details;
+        try {
+            details = getAuthDetails();
+        } catch (IOException e) {
+            printAuthErrorMessage();
+            throw new AuthenticationException("Cannot get valid authentication details.", e);
+        }
 
         Map<String, String> body = new HashMap<>();
 
@@ -187,10 +148,43 @@ public class ClientAuthenticator {
             .asString();
 
         if (str.getStatus() != STATUS_SUCCESS) {
+            if (authDetailsLastModified != 0 && hasProbablyExpired(authDetailsLastModified)) {
+                System.err.println("WARNING: authentication details seem to be outdated. " +
+                        "Run with --manual-auth if you are using a custom launcher.");
+            }
             throw new RuntimeException("Client not authenticated! " + str.getBody());
         } else {
             devPrint("Successfully authenticated user with Mojang session server.");
         }
+    }
+
+    public static boolean hasProbablyExpired(Path p) {
+        return hasProbablyExpired(p.toFile().lastModified());
+    }
+
+    public static boolean hasProbablyExpired(long time) {
+        long oneDay = 24 * 60 * 60 * 1000;
+        return time + oneDay < System.currentTimeMillis();
+    }
+
+    public static AuthStatus authDetailsValid(String path) {
+        Path profiles = Paths.get(path, "launcher_profiles.json");
+        Path accounts = Paths.get(path, "launcher_accounts.json");
+
+        if (!profiles.toFile().exists()) {
+            return new AuthStatus(false, "Cannot find profiles");
+        }
+        if (!accounts.toFile().exists()) {
+            return new AuthStatus(false, "Cannot find accounts");
+        }
+
+        AuthStatus status = new AuthStatus(true, "");
+
+        if (hasProbablyExpired(accounts) || hasProbablyExpired(profiles)) {
+            status.isProbablyExpired = true;
+        }
+
+        return status;
     }
 }
 
