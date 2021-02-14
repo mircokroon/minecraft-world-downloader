@@ -50,7 +50,7 @@ public class RightClickMenu extends ContextMenu {
 
         menu.add(construct("Save & Exit", e -> {
             WorldManager.getInstance().save();
-            Platform.exit();
+            System.exit(0);
         }));
 
         if (Config.isInDevMode()) {

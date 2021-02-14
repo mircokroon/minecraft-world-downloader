@@ -2,18 +2,17 @@ package gui;
 
 
 import config.Config;
-import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.util.Duration;
 import proxy.auth.AuthStatus;
 import proxy.auth.ClientAuthenticator;
 
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.List;
 
@@ -43,7 +42,9 @@ public class GuiSettings {
     public TextField minecraftUsername;
     public TextField accessToken;
     public Hyperlink authHelpLink;
+    public Label portVerifyLabel;
     Config config;
+    private boolean portInUse;
 
     public GuiSettings() {
         this.config = GuiManager.getConfig();
@@ -101,9 +102,8 @@ public class GuiSettings {
     private void handleDataValidation() {
         // disable button when field is empty
         server.textProperty().addListener((ov, oldV, newV) -> {
-            saveButton.setDisable(newV.length() == 0);
+            updateSaveButtonState();
         });
-        saveButton.setDisable(server.getText() == null || server.getText().length() == 0);
 
         // verify auth details on focus loss
         minecraftDir.focusedProperty().addListener((ov, oldVal, newVal) -> {
@@ -112,6 +112,17 @@ public class GuiSettings {
             }
         });
         verifyAuthDetails();
+
+        // verify port on focus loss
+        portLocal.focusedProperty().addListener((ov, oldVal, newVal) -> {
+            verifyLocalPort();
+        });
+        verifyLocalPort();
+    }
+
+    private void updateSaveButtonState() {
+        int len = server.getText() == null ? 0 : server.getText().length();
+        saveButton.setDisable(len == 0 || portInUse);
     }
 
 
@@ -130,6 +141,17 @@ public class GuiSettings {
                 saveButton.setLayoutX(saveButton.getLayoutX() + delta);
             });
         });
+    }
+
+    private void verifyLocalPort() {
+        if (!isPortAvailable(Integer.parseInt(portLocal.getText()))) {
+            portVerifyLabel.setText("Port in use!");
+            portInUse = true;
+        } else {
+            portVerifyLabel.setText("");
+            portInUse = false;
+        }
+        updateSaveButtonState();
     }
 
     private void verifyAuthDetails() {
@@ -230,7 +252,23 @@ public class GuiSettings {
         config.username = minecraftUsername.getText();
         config.accessToken = accessToken.getText();
 
+        if (!config.isStarted()) {
+            if (!isPortAvailable(config.portLocal)) {
+                System.err.println("Port in use");
+                return;
+            }
+        }
         config.settingsComplete();
         GuiManager.closeSettings();
+    }
+
+    public boolean isPortAvailable(int port) {
+        if (config.isStarted()) { return true; }
+
+        try (ServerSocket ss = new ServerSocket(port)) {
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

@@ -239,8 +239,7 @@ public class GuiMap {
         double gridWidth = width.get() / bounds.getWidth();
         double gridHeight = height.get() / bounds.getHeight();
 
-        gridSize = (int) Math.round(Math.min(gridWidth, gridHeight));
-
+        gridSize = (int) Math.max(1, Math.round(Math.min(gridWidth, gridHeight)));
         redrawCanvas();
     }
 
@@ -270,14 +269,16 @@ public class GuiMap {
      * @return the set of chunks actually in range.
      */
     private Collection<Coordinate2D> getChunksInRange(Collection<Coordinate2D> coords, int rangeX, int rangeZ) {
-        if (this.playerPos == null) {
-            drawableChunks = chunkMap.keySet();
-            return drawableChunks;
+        Coordinate2D center;
+        if (this.playerPos != null) {
+            center = this.playerPos.discretize().globalToChunk();
+        } else {
+            // if no player position is known, calculate the average coordinate
+            center = coords.stream().reduce(Coordinate2D::add).orElse(new Coordinate2D(0, 0)).divide(coords.size());
         }
-        Coordinate2D player = this.playerPos.discretize().globalToChunk();
 
         return coords.parallelStream()
-                .filter(coordinate2D -> coordinate2D.isInRange(player, rangeX, rangeZ))
+                .filter(coordinate2D -> coordinate2D.isInRange(center, rangeX, rangeZ))
                 .collect(Collectors.toSet());
     }
 
@@ -317,10 +318,10 @@ public class GuiMap {
     }
 
     private void drawChunk(Coordinate2D pos) {
-        drawChunk(chunkCanvas.getGraphicsContext2D(), pos, this.bounds, true);
+        drawChunk(chunkCanvas.getGraphicsContext2D(), pos, this.bounds, this.gridSize, true);
     }
 
-    private void drawChunk(GraphicsContext graphics, Coordinate2D pos, Bounds bounds, boolean drawBlack) {
+    private void drawChunk(GraphicsContext graphics, Coordinate2D pos, Bounds bounds, int gridSize, boolean drawBlack) {
         ChunkImage chunkImage = chunkMap.get(pos);
 
         int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
@@ -356,8 +357,19 @@ public class GuiMap {
     public void export() {
         Bounds fullBounds = getOverviewBounds(chunkMap.keySet());
 
+        // set size limit so that we don't have memory issues with the output image
+        int MAX_SIZE = 2 << 12;
+
         int width = fullBounds.getWidth() * 16;
         int height = fullBounds.getHeight() * 16;
+
+        // half the size of the output so we keep nice round numbers, until the grid size is down to 1px/chunk
+        int gridSize = 16;
+        while (gridSize > 1 && (width > MAX_SIZE || height > MAX_SIZE)) {
+            width /= 2;
+            height /= 2;
+            gridSize /= 2;
+        }
 
         Canvas temp = new Canvas(width, height);
         GraphicsContext graphics = temp.getGraphicsContext2D();
@@ -365,7 +377,7 @@ public class GuiMap {
 
         // draw each chunk
         for (Map.Entry<Coordinate2D, ChunkImage> entry : chunkMap.entrySet()) {
-            drawChunk(graphics, entry.getKey(), fullBounds, false);
+            drawChunk(graphics, entry.getKey(), fullBounds, gridSize, false);
         }
 
         SnapshotParameters snapshotParameters = new SnapshotParameters();

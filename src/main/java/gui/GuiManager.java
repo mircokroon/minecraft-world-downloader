@@ -179,8 +179,7 @@ public class GuiManager extends Application {
         // when in GUI mode, close the application when the main stage is closed.
         if (Config.inGuiMode()) {
             this.stage.setOnCloseRequest(e -> {
-                WorldManager.getInstance().save();
-                Platform.exit();
+                System.exit(0);
             });
         }
 

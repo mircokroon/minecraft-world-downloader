@@ -38,9 +38,14 @@
                                          <Label text="Minecraft location" GridPane.rowIndex="4" />
                               <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="4">
                                  <children>
-                                              <Label fx:id="authDetailsVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" text="xxx" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
+                                              <Label fx:id="authDetailsVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
                                  </children>
                               </AnchorPane>
+                                        <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                                            <children>
+                                                <Label styleClass="label-err" fx:id="portVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
+                                            </children>
+                                        </AnchorPane>
                                     </children>
                                 </GridPane>
                             </children>
@@ -167,11 +172,11 @@
                       </rowConstraints>
                       <children>
                           <Label text="Minecraft username" />
-                          <TextField fx:id="minecraftUsername" GridPane.columnIndex="2"/>
+                          <TextField fx:id="minecraftUsername" GridPane.columnIndex="2" />
 
-                          <Label text="Access token" GridPane.rowIndex="1"/>
-                          <Hyperlink fx:id="authHelpLink" text="?" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
-                          <TextField fx:id="accessToken" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                          <Label text="Access token" GridPane.rowIndex="1" />
+                          <Hyperlink fx:id="authHelpLink" text="?" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                          <TextField fx:id="accessToken" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                       </children>
                       </GridPane>
                   </AnchorPane>

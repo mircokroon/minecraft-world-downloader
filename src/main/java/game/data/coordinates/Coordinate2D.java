@@ -112,4 +112,11 @@ public class Coordinate2D {
     public int blockDistance(Coordinate2D globalToChunk) {
         return Math.max(Math.abs(this.x - globalToChunk.x), Math.abs(this.z - globalToChunk.z));
     }
+
+    public Coordinate2D divide(int size) {
+        if (size == 0) {
+            return this;
+        }
+        return new Coordinate2D(this.x / size, this.z / size);
+    }
 }
