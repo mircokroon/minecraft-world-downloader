@@ -2,6 +2,7 @@ package gui;
 
 
 import config.Config;
+import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
@@ -9,9 +10,13 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Tooltip;
+import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
 import java.io.ByteArrayOutputStream;
@@ -171,6 +176,14 @@ public class GuiManager extends Application {
         instance = this;
         this.stage = stage;
 
+        // when in GUI mode, close the application when the main stage is closed.
+        if (Config.inGuiMode()) {
+            this.stage.setOnCloseRequest(e -> {
+                WorldManager.getInstance().save();
+                Platform.exit();
+            });
+        }
+
         if (config.isValid()) {
             loadSceneMap();
         } else {
@@ -180,6 +193,15 @@ public class GuiManager extends Application {
 
     static void setGraphicsHandler(GuiMap map) {
         chunkGraphicsHandler = map;
+    }
+
+    /**
+     * Bind a tooltip that shows up immediately, since we cannot use setShowDelay in Java 8.
+     * Source: https://stackoverflow.com/a/36408705
+     */
+    public static void bindTooltip(final Node node, final Tooltip tooltip){
+        node.setOnMouseMoved(event -> tooltip.show(node, event.getScreenX(), event.getScreenY() + 15));
+        node.setOnMouseExited(event -> tooltip.hide());
     }
 
 

@@ -6,6 +6,7 @@ import game.data.WorldManager;
 import game.data.chunk.ChunkBinary;
 import game.data.dimension.Dimension;
 import game.data.region.McaFile;
+import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
@@ -47,13 +48,9 @@ public class RightClickMenu extends ContextMenu {
 
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
 
-        menu.add(construct("Trigger error", e -> {
-            throw new NullPointerException("oopsie whoopsie");
-        }));
-
         menu.add(construct("Save & Exit", e -> {
             WorldManager.getInstance().save();
-            System.exit(0);
+            Platform.exit();
         }));
 
         if (Config.isInDevMode()) {

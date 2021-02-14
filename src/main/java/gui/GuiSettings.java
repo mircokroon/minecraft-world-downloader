@@ -82,8 +82,7 @@ public class GuiSettings {
         disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
 
         authTooltip = new Tooltip("");
-        authTooltip.setShowDelay(Duration.ZERO);
-        authDetailsVerifyLabel.setTooltip(authTooltip);
+        GuiManager.bindTooltip(authDetailsVerifyLabel, authTooltip);
 
         authHelpLink.setOnAction(actionEvent -> GuiManager.openLink("https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication"));
 
