@@ -101,3 +101,7 @@
     -fx-text-fill: #ffbaba;
     -fx-font-weight: bold;
 }
+
+.field-nonempty:empty {
+    -fx-background-color: #ffbaba;
+}

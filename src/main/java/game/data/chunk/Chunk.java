@@ -1,21 +1,21 @@
 package game.data.chunk;
 
 import config.Config;
+import game.data.WorldManager;
+import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.GlobalPaletteProvider;
+import game.data.chunk.palette.Palette;
 import game.data.chunk.palette.SimpleColor;
+import game.data.container.InventoryWindow;
+import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
-import game.data.WorldManager;
 import game.data.entity.Entity;
-import game.data.chunk.palette.BlockState;
-import game.data.chunk.palette.GlobalPaletteProvider;
-import game.data.chunk.palette.Palette;
-import game.data.container.InventoryWindow;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelReader;
 import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
 import packets.DataTypeProvider;
@@ -23,16 +23,7 @@ import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
 import util.PrintUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -90,17 +81,23 @@ public abstract class Chunk {
     public void addTileEntity(Coordinate3D location, SpecificTag tag) {
         CompoundTag entity = (CompoundTag) tag;
 
-        // remove existing coordinates
-        Iterator<NamedTag> it = entity.iterator();
-        while (it.hasNext()) {
-            NamedTag t = it.next();
-            if (t.isNamed("x") || t.isNamed("y") || t.isNamed("z")) { it.remove(); }
+        // validate entity identifer
+        if (!entity.get("id").isError()) {
+            String id = entity.get("id").stringValue();
+
+            // invalid identifier - some servers will send these and it makes Minecraft angry when we load the world
+            if (!id.matches("^[a-z0-9/._-]*$")) {
+                entity.add("id", new StringTag(id.toLowerCase()));
+            }
         }
 
+        // get offset location
+        Coordinate3D offset = location.offsetGlobal();
+
         // insert new coordinates (offset)
-        entity.add("x", new IntTag(location.getX()));
-        entity.add("y", new IntTag(location.getY()));
-        entity.add("z", new IntTag(location.getZ()));
+        entity.add("x", new IntTag(offset.getX()));
+        entity.add("y", new IntTag(offset.getY()));
+        entity.add("z", new IntTag(offset.getZ()));
 
         tileEntities.put(location, tag);
 
@@ -116,7 +113,6 @@ public abstract class Chunk {
     private void addTileEntity(SpecificTag nbtTag) {
         CompoundTag entity = (CompoundTag) nbtTag;
         Coordinate3D position = new Coordinate3D(entity.get("x").intValue(), entity.get("y").intValue(), entity.get("z").intValue());
-        position.offsetGlobal();
 
         addTileEntity(position, nbtTag);
     }
@@ -224,8 +220,9 @@ public abstract class Chunk {
      * call this (super) method.
      */
     protected void addLevelNbtTags(CompoundTag map) {
-        map.add("xPos", new IntTag(this.location.getX()));
-        map.add("zPos", new IntTag(this.location.getZ()));
+        Coordinate2D location = this.location.offsetChunk();
+        map.add("xPos", new IntTag(location.getX()));
+        map.add("zPos", new IntTag(location.getZ()));
 
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));

@@ -72,6 +72,10 @@ public class RightClickMenu extends ContextMenu {
 
             System.out.println("Write chunk (0, 0) to " + filename);
         }));
+
+        menu.add(construct("Write all chunks as text", e -> {
+           Config.toggleWriteChunkNbt();
+        }));
     }
 
     private MenuItem construct(String name, HandleError handler) {

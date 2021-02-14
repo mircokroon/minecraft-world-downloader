@@ -283,7 +283,7 @@ public class WorldManager {
                 data.add("Player", player);
             }
 
-            Coordinate3D playerPosition = getPlayerPosition();
+            Coordinate3D playerPosition = getPlayerPosition().offsetGlobal();
             player.add("Pos", new ListTag(Tag.TAG_DOUBLE, Arrays.asList(
                     new DoubleTag(playerPosition.getX() * 1.0),
                     new DoubleTag(playerPosition.getY() * 1.0),
@@ -598,7 +598,7 @@ public class WorldManager {
         // few chunks to avoid this.
         int chunksSent = 0;
         for (Map.Entry<Coordinate2D, List<Coordinate2D>> entry : mcaFiles.entrySet()) {
-            Coordinate2D key = entry.getKey();
+            Coordinate2D key = entry.getKey().offsetRegion();
             List<Coordinate2D> value = entry.getValue();
 
             String filename = "r." + key.getX() + "." + key.getZ() + ".mca";

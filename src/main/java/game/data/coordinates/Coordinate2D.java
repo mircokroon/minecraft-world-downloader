@@ -1,11 +1,12 @@
 package game.data.coordinates;
 
+import config.Config;
 import game.data.dimension.Dimension;
 
 public class Coordinate2D {
-    private static int offsetX = 0;
-    private static int offsetZ = 0;
-
+    private static final int CHUNK_SHIFT = 4;
+    private static final int REGION_SHIFT = 5;
+    private static final int REGION_TOTAL_SHIFT = CHUNK_SHIFT + REGION_SHIFT;
     int x;
     int z;
 
@@ -24,19 +25,25 @@ public class Coordinate2D {
         this.z += z;
     }
 
-    public static void setOffset(int x, int z) {
-        offsetX = x >> 4 << 4;
-        offsetZ = z >> 4 << 4;
+    public Coordinate2D offsetChunk() {
+        return new Coordinate2D(
+                x - (Config.getCenterX() >> CHUNK_SHIFT),
+                z - (Config.getCenterZ() >> CHUNK_SHIFT)
+        );
     }
 
-    public void offsetGlobal() {
-        this.x += offsetX;
-        this.z += offsetZ;
+    public Coordinate2D offsetRegion() {
+        return new Coordinate2D(
+                x - (Config.getCenterX() >> REGION_TOTAL_SHIFT),
+                z - (Config.getCenterZ() >> REGION_TOTAL_SHIFT)
+        );
     }
 
-    public void offsetChunk() {
-        this.x += offsetX >> 4;
-        this.z += offsetZ >> 4;
+    public Coordinate2D offsetRegionToActual() {
+        return new Coordinate2D(
+                x + (Config.getCenterX() >> REGION_TOTAL_SHIFT),
+                z + (Config.getCenterZ() >> REGION_TOTAL_SHIFT)
+        );
     }
 
     public boolean isInRange(Coordinate2D other, int distanceX, int distanceZ) {
@@ -60,10 +67,10 @@ public class Coordinate2D {
     }
 
     public Coordinate2D globalToChunk() {
-        return new Coordinate2D(x >> 4, z >> 4);
+        return new Coordinate2D(x >> CHUNK_SHIFT, z >> CHUNK_SHIFT);
     }
     public Coordinate2D chunkToRegion() {
-        return new Coordinate2D(x >> 5, z >> 5);
+        return new Coordinate2D(x >> REGION_SHIFT, z >> REGION_SHIFT);
     }
 
     public int getX() {

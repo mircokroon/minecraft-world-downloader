@@ -5,6 +5,7 @@ import config.Config;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -104,6 +105,13 @@ public class GuiSettings {
         server.textProperty().addListener((ov, oldV, newV) -> {
             updateSaveButtonState();
         });
+
+        // register empty pseudoclass to color field when its empty
+        PseudoClass empty = PseudoClass.getPseudoClass("empty");
+        server.textProperty().addListener((obs, oldText, newText) -> {
+            server.pseudoClassStateChanged(empty, newText.isEmpty());
+        });
+        server.pseudoClassStateChanged(empty, true);
 
         // verify auth details on focus loss
         minecraftDir.focusedProperty().addListener((ov, oldVal, newVal) -> {

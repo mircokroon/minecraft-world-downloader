@@ -27,7 +27,7 @@
                                         <RowConstraints prefHeight="32.0" />
                                     </rowConstraints>
                                     <children>
-                                        <TextField fx:id="server" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" />
+                                        <TextField styleClass="field-nonempty" fx:id="server" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" />
                                         <TextField fx:id="portRemote" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                                         <Label text="Server address" />
                                         <Label text="Server port" GridPane.rowIndex="1" />
@@ -43,7 +43,7 @@
                               </AnchorPane>
                                         <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
                                             <children>
-                                                <Label styleClass="label-err" fx:id="portVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
+                                                <Label fx:id="portVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" styleClass="label-err" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
                                             </children>
                                         </AnchorPane>
                                     </children>

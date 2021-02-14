@@ -32,6 +32,8 @@ public class Config {
     private boolean isStarted = false;
     private boolean guiOnlyMode = false;
 
+    private boolean debugWriteChunkNbt;
+
     public static void setInstance(Config config) {
         instance = config;
     }
@@ -74,6 +76,21 @@ public class Config {
 
     public static Config getInstance() {
         return instance;
+    }
+
+    public static int getCenterX() {
+        return instance.centerX;
+    }
+    public static int getCenterZ() {
+        return instance.centerZ;
+    }
+
+    public static boolean writeChunksAsNbt() {
+        return instance.debugWriteChunkNbt;
+    }
+
+    public static void toggleWriteChunkNbt() {
+        instance.debugWriteChunkNbt = !instance.debugWriteChunkNbt;
     }
 
     public void settingsComplete() {
@@ -252,11 +269,11 @@ public class Config {
     public String worldOutputDir = "world";
 
     @Option(name = "--center-x", depends = "--center-z",
-            usage = "Offsets output world. Given center X coordinate will be put at world origin (0, 0).")
+            usage = "Offsets output world. Given center X coordinate will be put at world origin (0, 0). Rounded to multiples of 512 blocks.")
     public int centerX = 0;
 
     @Option(name = "--center-z", depends = "--center-x",
-            usage = "Offsets output world. Given center Z coordinate will be put at world origin (0, 0).")
+            usage = "Offsets output world. Given center Z coordinate will be put at world origin (0, 0). Rounded to multiples of 512 blocks.")
     public int centerZ = 0;
 
     @Option(name = "--overview-zoom", depends = "-z",
