@@ -1,6 +1,6 @@
 package gui;
 
-import game.data.Coordinate2D;
+import game.data.coordinates.Coordinate2D;
 
 public class Bounds {
     private int minX, maxX, minZ, maxZ;

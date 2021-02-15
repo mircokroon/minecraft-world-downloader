@@ -1,15 +1,10 @@
 package proxy;
 
-import game.Config;
-import game.data.WorldManager;
-import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
-import packets.DataTypeProvider;
+import config.Config;
 import packets.builder.PacketBuilder;
 import packets.lib.ByteQueue;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
-import se.llbit.nbt.SpecificTag;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -48,6 +43,7 @@ public class EncryptionManager {
     private String username;
     private ConcurrentLinkedQueue<ByteQueue> insertedPackets;
     private CompressionManager compressionManager;
+    private ClientAuthenticator clientAuthenticator;
 
     {
         // generate the keypair for the local server
@@ -61,6 +57,7 @@ public class EncryptionManager {
     public EncryptionManager(CompressionManager compressionManager) {
         this.compressionManager = compressionManager;
         this.insertedPackets = new ConcurrentLinkedQueue<>();
+        this.clientAuthenticator = new ClientAuthenticator();
     }
 
     public boolean isEncryptionEnabled() {
@@ -222,7 +219,7 @@ public class EncryptionManager {
      */
     private void sendReplacementEncryptionConfirmation() {
         // authenticate the client so that the remote server will accept us
-        boolean client = disconnectOnError(() -> new ClientAuthenticator().makeRequest(generateServerHash()));
+        boolean client = disconnectOnError(() -> clientAuthenticator.makeRequest(generateServerHash()));
         if (!client) { return; }
 
         // verify the connecting client connection is who he claims to be

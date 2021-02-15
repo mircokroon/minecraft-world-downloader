@@ -1,6 +1,6 @@
 package packets.handler.version;
 
-import game.Config;
+import config.Config;
 import game.data.WorldManager;
 import game.data.dimension.Dimension;
 import game.protocol.Protocol;
@@ -34,7 +34,7 @@ public class ClientBoundGamePacketHandler_1_14 extends ClientBoundGamePacketHand
 
             // view distance
             int viewDist = provider.readVarInt();
-            Config.setServerRenderDistance(viewDist);
+            WorldManager.getInstance().setServerRenderDistance(viewDist);
             replacement.writeVarInt(Math.max(viewDist, Config.getExtendedRenderDistance()));
 
             replacement.copy(provider, BOOL);

@@ -52,6 +52,10 @@ public class ConnectionDetails {
         return new Socket(host, portRemote);
     }
 
+    public String getConnectionHint() {
+        return "Connect to address localhost:" + portLocal + " to start downloading.";
+    }
+
 
     /**
      * Checks for DNS service records of the form _minecraft._tcp.example.com. If they exist, we will replace the

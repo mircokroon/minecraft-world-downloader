@@ -1,109 +1,99 @@
 package gui;
 
-import game.Config;
-import game.data.CoordinateDim2D;
+import config.Config;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.ChunkBinary;
 import game.data.dimension.Dimension;
 import game.data.region.McaFile;
+import javafx.application.Platform;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.SeparatorMenuItem;
 
-import java.awt.event.ActionEvent;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import javax.swing.AbstractAction;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
+import java.util.List;
 
-public class RightClickMenu extends JPopupMenu {
+public class RightClickMenu extends ContextMenu {
     final static String PROMPT_PAUSE = "Pause chunk saving";
     final static String PROMPT_RESUME = "Resume chunk saving";
 
-    public RightClickMenu(CanvasHandler handler) {
 
-        JMenuItem togglePause = new JMenuItem(PROMPT_PAUSE);
+    public RightClickMenu(GuiMap handler) {
+        List<MenuItem> menu = this.getItems();
 
-        togglePause.addActionListener(new AbstractAction("Pause chunk saving") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (WorldManager.getInstance().isPaused()) {
-                    System.out.println("Resuming");
-                    WorldManager.getInstance().resumeSaving();
-                    togglePause.setText(PROMPT_PAUSE);
-                } else {
-                    System.out.println("Pausing");
-                    WorldManager.getInstance().pauseSaving();
-                    togglePause.setText(PROMPT_RESUME);
-                }
-            }
-        });
-        add(togglePause);
-
-        add(new JMenuItem(new AbstractAction("Delete all downloaded chunks") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                WorldManager.getInstance().deleteAllExisting();
-            }
-        }));
-        
-        add(new Separator());
-
-        add(new JMenuItem(new AbstractAction("Save overview to file") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                handler.export();
+        menu.add(construct(PROMPT_PAUSE, event -> {
+            MenuItem item =  ((MenuItem) event.getTarget());
+            if (WorldManager.getInstance().isPaused()) {
+                WorldManager.getInstance().resumeSaving();
+                item.setText(PROMPT_PAUSE);
+            } else {
+                WorldManager.getInstance().pauseSaving();
+                item.setText(PROMPT_RESUME);
             }
         }));
 
-        add(new JMenuItem(new AbstractAction("Draw all existing chunks") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    WorldManager.getInstance().drawExistingChunks();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-            }
-        }));
+        menu.add(construct("Delete all downloaded chunks", e -> WorldManager.getInstance().deleteAllExisting()));
+        menu.add(new SeparatorMenuItem());
 
-        add(new JMenuItem(new AbstractAction("Save & Exit") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                WorldManager.getInstance().save();
-                System.exit(0);
-            }
+        menu.add(construct("Save overview to file", e -> handler.export()));
+        menu.add(construct("Draw all existing chunks", e -> WorldManager.getInstance().drawExistingChunks()));
+
+        menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
+
+        menu.add(construct("Save & Exit", e -> {
+            WorldManager.getInstance().save();
+            System.exit(0);
         }));
 
         if (Config.isInDevMode()) {
-            addDevOptions();
+            addDevOptions(menu);
         }
     }
 
-    private void addDevOptions() {
-        add(new Separator());
+    private void addDevOptions(List<MenuItem> menu) {
+        menu.add(new SeparatorMenuItem());
 
-        // write chunk 0 0 to a file so that it can be used to run tests.
-        add(new JMenuItem(new AbstractAction("Write chunk 0 0") {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    Path p = Paths.get(Config.getExportDirectory(), "", "region", "r.0.0.mca");
-                    ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
+        menu.add(construct("Write chunk 0, 0", e -> {
+            Path p = Paths.get(Config.getWorldOutputDir(), "", "region", "r.0.0.mca");
+            ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
 
-                    String filename = "chunkdata.bin";
-                    FileOutputStream f = new FileOutputStream(filename);
-                    ObjectOutputStream o = new ObjectOutputStream(f);
-                    o.writeObject(cb);
+            String filename = "chunkdata.bin";
+            FileOutputStream f = new FileOutputStream(filename);
+            ObjectOutputStream o = new ObjectOutputStream(f);
+            o.writeObject(cb);
 
-                    System.out.println("Write chunk (0, 0) to " + filename);
-                } catch (IOException ioException) {
-                    ioException.printStackTrace();
-                }
-            }
+            System.out.println("Write chunk (0, 0) to " + filename);
+        }));
+
+        menu.add(construct("Write all chunks as text", e -> {
+           Config.toggleWriteChunkNbt();
         }));
     }
+
+    private MenuItem construct(String name, HandleError handler) {
+        MenuItem item = new MenuItem(name);
+        item.addEventHandler(EventType.ROOT, handler);
+        return item;
+    }
+}
+
+interface HandleError extends EventHandler<Event> {
+    @Override
+    default void handle(Event event) {
+        try {
+            handleErr(event);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void handleErr(Event event) throws IOException;
 }

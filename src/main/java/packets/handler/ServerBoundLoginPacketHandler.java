@@ -1,6 +1,5 @@
 package packets.handler;
 
-import game.Config;
 import proxy.ConnectionManager;
 
 import java.util.HashMap;

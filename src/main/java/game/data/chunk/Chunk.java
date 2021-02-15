@@ -1,44 +1,35 @@
 package game.data.chunk;
 
-import game.Config;
-import game.data.Coordinate3D;
-import game.data.CoordinateDim2D;
-import game.data.CoordinateDim3D;
-import game.data.dimension.Dimension;
+import config.Config;
 import game.data.WorldManager;
-import game.data.entity.Entity;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
-import game.data.chunk.version.ColorTransformer;
+import game.data.chunk.palette.SimpleColor;
 import game.data.container.InventoryWindow;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
+import game.data.coordinates.CoordinateDim3D;
+import game.data.dimension.Dimension;
+import game.data.entity.Entity;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
+import javafx.scene.image.Image;
+import javafx.scene.image.PixelWriter;
+import javafx.scene.image.WritableImage;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
 import util.PrintUtils;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
  */
 public abstract class Chunk {
-    private final ColorTransformer colorTransformer;
-
     protected static final int LIGHT_SIZE = 2048;
     protected static final int CHUNK_HEIGHT = 256;
     public static final int SECTION_HEIGHT = 16;
@@ -69,7 +60,6 @@ public abstract class Chunk {
         chunkSections = new ChunkSection[16];
         tileEntities = new HashMap<>();
         entities = new HashSet<>();
-        colorTransformer = new ColorTransformer();
     }
     public abstract int getDataVersion();
 
@@ -91,17 +81,23 @@ public abstract class Chunk {
     public void addTileEntity(Coordinate3D location, SpecificTag tag) {
         CompoundTag entity = (CompoundTag) tag;
 
-        // remove existing coordinates
-        Iterator<NamedTag> it = entity.iterator();
-        while (it.hasNext()) {
-            NamedTag t = it.next();
-            if (t.isNamed("x") || t.isNamed("y") || t.isNamed("z")) { it.remove(); }
+        // validate entity identifer
+        if (!entity.get("id").isError()) {
+            String id = entity.get("id").stringValue();
+
+            // invalid identifier - some servers will send these and it makes Minecraft angry when we load the world
+            if (!id.matches("^[a-z0-9/._-]*$")) {
+                entity.add("id", new StringTag(id.toLowerCase()));
+            }
         }
 
+        // get offset location
+        Coordinate3D offset = location.offsetGlobal();
+
         // insert new coordinates (offset)
-        entity.add("x", new IntTag(location.getX()));
-        entity.add("y", new IntTag(location.getY()));
-        entity.add("z", new IntTag(location.getZ()));
+        entity.add("x", new IntTag(offset.getX()));
+        entity.add("y", new IntTag(offset.getY()));
+        entity.add("z", new IntTag(offset.getZ()));
 
         tileEntities.put(location, tag);
 
@@ -117,7 +113,6 @@ public abstract class Chunk {
     private void addTileEntity(SpecificTag nbtTag) {
         CompoundTag entity = (CompoundTag) nbtTag;
         Coordinate3D position = new Coordinate3D(entity.get("x").intValue(), entity.get("y").intValue(), entity.get("z").intValue());
-        position.offsetGlobal();
 
         addTileEntity(position, nbtTag);
     }
@@ -225,8 +220,9 @@ public abstract class Chunk {
      * call this (super) method.
      */
     protected void addLevelNbtTags(CompoundTag map) {
-        map.add("xPos", new IntTag(this.location.getX()));
-        map.add("zPos", new IntTag(this.location.getZ()));
+        Coordinate2D location = this.location.offsetChunk();
+        map.add("xPos", new IntTag(location.getX()));
+        map.add("zPos", new IntTag(location.getZ()));
 
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));
@@ -363,7 +359,8 @@ public abstract class Chunk {
 
 
     /**
-     * Mark this as a new chunk iff the
+     * Mark this as a new chunk if it's sent in parts, which non-vanilla servers will do to send chunks to the client
+     * before they are fully generated.
      */
     void markAsNew() {
         if (WorldManager.getInstance().markNewChunks()) {
@@ -373,10 +370,6 @@ public abstract class Chunk {
 
     protected boolean isNewChunk() {
         return isNewChunk;
-    }
-
-    public ColorTransformer getColorTransformer() {
-        return colorTransformer;
     }
 
     protected void computeHeightMap() {
@@ -416,7 +409,8 @@ public abstract class Chunk {
      * Generate and return the overview image for this chunk.
      */
     public Image getImage() {
-        BufferedImage i = new BufferedImage(16, 16, BufferedImage.TYPE_3BYTE_BGR);
+        WritableImage i = new WritableImage(16, 16);
+        PixelWriter writer = i.getPixelWriter();
 
         try {
             for (int x = 0; x < 16; x++) {
@@ -424,9 +418,9 @@ public abstract class Chunk {
                     int y = heightAt(x, z);
                     BlockState blockState = getBlockStateAt(x, heightAt(x, z), z);
 
-                    int color;
+                    SimpleColor color;
                     if (blockState == null) {
-                        color = 0;
+                        color = SimpleColor.TRANSPARENT;
                     } else {
                         color = blockState.getColor();
                         for (int offset = 1; offset < 24 && blockState.isWater(); offset++) {
@@ -439,17 +433,19 @@ public abstract class Chunk {
                             if (blockState == null) {
                                 break;
                             }
-                            color = getColorTransformer().blendWith(color, blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
+                            color = color.blendWith(blockState.getColor(), 1.1 - (0.6 / Math.sqrt(offset)));
                         }
                     }
 
-                    color = getColorTransformer().shaderMultiply(color, getColorShader(x, z));
+                    color = color.shaderMultiply(getColorShader(x, z));
 
-                    i.setRGB(x, z, color);
+
+
+                    writer.setColor(x, z, color.toJavaFxColor());
 
                     // mark new chunks in a red-ish outline
                     if (isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
-                        i.setRGB(x, z, getColorTransformer().highlight(i.getRGB(x, z)));
+                        writer.setColor(x, z, color.highlight().toJavaFxColor());
                     }
                 }
             }

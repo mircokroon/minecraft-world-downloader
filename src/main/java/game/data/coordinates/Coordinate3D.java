@@ -1,5 +1,6 @@
-package game.data;
+package game.data.coordinates;
 
+import config.Config;
 import game.data.dimension.Dimension;
 
 public class Coordinate3D extends Coordinate2D {
@@ -22,6 +23,14 @@ public class Coordinate3D extends Coordinate2D {
         this.x = x;
         this.y = y;
         this.z = z;
+    }
+
+    public Coordinate3D offsetGlobal() {
+        return new Coordinate3D(
+                x - Config.getCenterX(),
+                y,
+                z - Config.getCenterZ()
+        );
     }
 
     public int getY() {

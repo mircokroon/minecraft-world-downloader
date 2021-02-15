@@ -1,6 +1,8 @@
 package game.data;
 
-import game.Config;
+import config.Config;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.CoordinateDim2D;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -15,7 +17,7 @@ public class RenderDistanceExtender extends Thread {
     private boolean measuringRenderDistance;
     private int maxDistance;
 
-    private final int extendedDistance;
+    private int extendedDistance;
     public int serverDistance;
     private int perRow;
 
@@ -45,13 +47,13 @@ public class RenderDistanceExtender extends Thread {
     }
 
     public void setServerReportedRenderDistance(int serverDistance) {
-        if (Config.measureRenderDistance()) {
+        if (Config.doMeasureRenderDistance()) {
             System.out.println("Ignored server reported render distance of " + serverDistance);
             return;
         }
 
         if (serverDistance >= 28) {
-            System.out.println("Server seems to be running at abnormally high render distance of " + serverDistance
+            System.err.println("Server seems to be running at abnormally high render distance of " + serverDistance
                     + ". Run with --measure-render-distance to ignore this value.");
         }
 
@@ -223,6 +225,9 @@ public class RenderDistanceExtender extends Thread {
         }
 
         int dist = location.blockDistance(playerChunk);
+        if (dist > 32) {
+            System.out.println(location);
+        }
         if (dist > maxDistance && maxDistance < 32 && dist < 32) {
             maxDistance = dist;
         }
@@ -231,5 +236,11 @@ public class RenderDistanceExtender extends Thread {
     public void resetConnection() {
         this.reset();
         this.invalidateChunks();
+    }
+
+    public void setExtendedDistance(int val) {
+        this.extendedDistance = val;
+
+        invalidateChunks();
     }
 }

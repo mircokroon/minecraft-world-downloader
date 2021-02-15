@@ -1,11 +1,16 @@
 package game.data.chunk;
 
-import game.data.CoordinateDim2D;
+import config.Config;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.region.McaFile;
 import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 
 /**
  * Binary (raw NBT) version of a chunk.
@@ -41,6 +46,14 @@ public class ChunkBinary implements Serializable {
         // this only happens for empty chunks (hopefully)
         if (nbt == null) {
             return null;
+        }
+
+        // debug option - write all chunks nbt as text to files so it can be easily verified
+        if (Config.writeChunksAsNbt()) {
+            String filename = chunk.location.getX() + "_" + chunk.location.getZ();
+            Paths.get(Config.getWorldOutputDir(), "debug").toFile().mkdirs();
+            Path output = Paths.get(Config.getWorldOutputDir(), "debug", filename);
+            Files.write(output, Collections.singleton(nbt.tag.toString()));
         }
 
         ChunkBinary binary = new ChunkBinary();

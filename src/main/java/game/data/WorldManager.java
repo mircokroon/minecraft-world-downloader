@@ -1,9 +1,13 @@
 package game.data;
 
-import game.Config;
+import config.Config;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
+import game.data.coordinates.CoordinateDouble3D;
 import game.data.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
@@ -42,6 +46,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,7 +82,9 @@ public class WorldManager {
     private DimensionCodec dimensionCodec;
 
     private RenderDistanceExtender renderDistanceExtender;
-    private Coordinate3D playerPosition = new Coordinate3D(0, 80, 0);
+
+    private BiConsumer<CoordinateDouble3D, Double> playerPosListener;
+    private CoordinateDouble3D playerPosition = new CoordinateDouble3D(0, 80, 0);
     private double playerRotation = 0;
 
     private Dimension dimension = Dimension.OVERWORLD;
@@ -92,6 +99,7 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.invalidateChunks();
         }
+        GuiManager.setDimension(this.dimension);
     }
 
     public double getPlayerRotation() {
@@ -100,13 +108,25 @@ public class WorldManager {
 
     public void setPlayerRotation(double playerRotation) {
         this.playerRotation = playerRotation;
+
+        if (this.playerPosListener != null){
+            this.playerPosListener.accept(this.playerPosition, this.playerRotation);
+        }
     }
 
     protected WorldManager() {
         this.isStarted = false;
+    }
 
-        if (Config.getExtendedRenderDistance() > 0) {
-            this.renderDistanceExtender = new RenderDistanceExtender(this, Config.getExtendedRenderDistance());
+    public void updateExtendedRenderDistance(int val) {
+        if (val == 0 && this.renderDistanceExtender == null) {
+            return;
+        }
+
+        if (val > 0 && this.renderDistanceExtender == null) {
+            this.renderDistanceExtender = new RenderDistanceExtender(this, val);
+        } else {
+            this.renderDistanceExtender.setExtendedDistance(val);
         }
     }
 
@@ -136,7 +156,7 @@ public class WorldManager {
 
         // We can immediately try to write the dimension data to the proper directory.
         try {
-            Path p = Paths.get(Config.getExportDirectory(), "datapacks", "downloaded", "data");
+            Path p = Paths.get(Config.getWorldOutputDir(), "datapacks", "downloaded", "data");
             if (codec.write(p)) {
 
                 // we need to copy that pack.mcmeta file from so that Minecraft will recognise the datapack
@@ -151,8 +171,13 @@ public class WorldManager {
         }
     }
 
-    public void outlineExistingChunks() throws IOException {
-        Stream<McaFile> files = getMcaFiles(dimension, true);
+    public void outlineExistingChunks() {
+        Stream<McaFile> files = null;
+        try {
+            files = getMcaFiles(dimension, true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         GuiManager.outlineExistingChunks(
                 files.flatMap(el -> el.getChunkPositions(this.dimension).stream()).collect(Collectors.toList())
@@ -192,7 +217,7 @@ public class WorldManager {
      * Read from the save path to see which chunks have been saved already.
      */
     private Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
-        Path exportDir = Paths.get(Config.getExportDirectory(), dimension.getPath(), "region");
+        Path exportDir = Paths.get(Config.getWorldOutputDir(), dimension.getPath(), "region");
 
         if (!exportDir.toFile().exists()) {
             return Stream.empty();
@@ -224,12 +249,12 @@ public class WorldManager {
      */
     private void saveLevelData() throws IOException {
         // make sure the folder exists
-        File directory = Paths.get(Config.getExportDirectory()).toFile();
+        File directory = Paths.get(Config.getWorldOutputDir()).toFile();
         if (!directory.exists()) {
             directory.mkdirs();
         }
 
-        File levelDat = Paths.get(Config.getExportDirectory(), "level.dat").toFile();
+        File levelDat = Paths.get(Config.getWorldOutputDir(), "level.dat").toFile();
 
         // if there is no level.dat yet, make one from the default
         InputStream fileInput;
@@ -258,6 +283,7 @@ public class WorldManager {
                 data.add("Player", player);
             }
 
+            Coordinate3D playerPosition = getPlayerPosition().offsetGlobal();
             player.add("Pos", new ListTag(Tag.TAG_DOUBLE, Arrays.asList(
                     new DoubleTag(playerPosition.getX() * 1.0),
                     new DoubleTag(playerPosition.getY() * 1.0),
@@ -271,7 +297,7 @@ public class WorldManager {
         }
 
         // add the seed & last played time
-        data.add("RandomSeed", new LongTag(Config.getSeed()));
+        data.add("RandomSeed", new LongTag(Config.getLevelSeed()));
         data.add("LastPlayed", new LongTag(System.currentTimeMillis()));
 
         // add the version
@@ -454,7 +480,7 @@ public class WorldManager {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[0]);
             for (Region region : r) {
-                McaFile file = region.toFile(playerPosition);
+                McaFile file = region.toFile(getPlayerPosition());
                 if (file == null) { continue; }
 
                 try {
@@ -492,10 +518,12 @@ public class WorldManager {
 
     public void pauseSaving() {
         isPaused = true;
+        System.out.println("Pausing");
     }
 
     public void resumeSaving() {
         isPaused = false;
+        System.out.println("Resuming");
     }
 
     public void deleteAllExisting() {
@@ -503,7 +531,7 @@ public class WorldManager {
         ChunkFactory.getInstance().clear();
 
         try {
-            File dir = Paths.get(Config.getExportDirectory(), this.dimension.getPath(), "region").toFile();
+            File dir = Paths.get(Config.getWorldOutputDir(), this.dimension.getPath(), "region").toFile();
 
             if (dir.isDirectory()) {
                 FileUtils.cleanDirectory(dir);
@@ -520,18 +548,31 @@ public class WorldManager {
     }
 
 
-    public void setPlayerPosition(Coordinate3D newPos) {
+    public void setPlayerPosition(CoordinateDouble3D newPos) {
         this.playerPosition = newPos;
 
         if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.updatePlayerPos(newPos);
+            this.renderDistanceExtender.updatePlayerPos(getPlayerPosition());
+        }
+        if (this.playerPosListener != null){
+            this.playerPosListener.accept(newPos, this.playerRotation);
         }
     }
 
-    public Coordinate3D getPlayerPosition() {
-        return playerPosition;
+    public void setPlayerPosListener(BiConsumer<CoordinateDouble3D, Double> playerPosListener) {
+        this.playerPosListener = playerPosListener;
     }
 
+    public Coordinate3D getPlayerPosition() {
+        return playerPosition.discretize();
+    }
+
+    public void setServerRenderDistance(int viewDist) {
+        if (renderDistanceExtender != null) {
+            renderDistanceExtender.setServerReportedRenderDistance(viewDist);
+        }
+
+    }
 
     /**
      * Send unload chunk packets to the client for each of the coordinates. Currently not used as chunk unloading is
@@ -557,11 +598,11 @@ public class WorldManager {
         // few chunks to avoid this.
         int chunksSent = 0;
         for (Map.Entry<Coordinate2D, List<Coordinate2D>> entry : mcaFiles.entrySet()) {
-            Coordinate2D key = entry.getKey();
+            Coordinate2D key = entry.getKey().offsetRegion();
             List<Coordinate2D> value = entry.getValue();
 
             String filename = "r." + key.getX() + "." + key.getZ() + ".mca";
-            File f = Paths.get(Config.getExportDirectory(), this.dimension.getPath(), "region", filename).toFile();
+            File f = Paths.get(Config.getWorldOutputDir(), this.dimension.getPath(), "region", filename).toFile();
 
             if (!f.exists()) {
                 continue;

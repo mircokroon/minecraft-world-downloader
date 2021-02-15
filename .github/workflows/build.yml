@@ -10,6 +10,7 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: '8'
+          java-package: jdk+fx
       - run: |
           mvn assembly:assembly
   test:
@@ -19,5 +20,6 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: '8'
+          java-package: jdk+fx
       - run: |
            mvn test

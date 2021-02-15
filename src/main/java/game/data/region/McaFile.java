@@ -1,8 +1,8 @@
 package game.data.region;
 
-import game.Config;
-import game.data.Coordinate2D;
-import game.data.CoordinateDim2D;
+import config.Config;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
@@ -96,8 +96,10 @@ public class McaFile {
      * @param chunkMap the map of chunk binaries
      */
     public McaFile(CoordinateDim2D pos, Map<Integer, ChunkBinary> chunkMap) {
-        regionLocation = pos;
-        Path filePath = Paths.get(Config.getExportDirectory(), pos.getDimension().getPath(), "region", "r." + pos.getX() + "." + pos.getZ() + ".mca");
+        regionLocation = pos.offsetRegion();
+
+        String filename = "r." + regionLocation.getX() + "." + regionLocation.getZ() + ".mca";
+        Path filePath = Paths.get(Config.getWorldOutputDir(),pos.getDimension().getPath(), "region", filename);
 
         this.chunkMap = new HashMap<>();
         if (filePath.toFile().exists()) {
@@ -216,11 +218,14 @@ public class McaFile {
         int offset = i / 4;
         int localX = offset & 0x1F;
         int localZ = offset >>> 5;
-        return new Coordinate2D(regionLocation.getX() * 32 + localX, regionLocation.getZ() * 32 + localZ);
+
+        Coordinate2D actualRegionLocation = regionLocation.offsetRegionToActual();
+        return new Coordinate2D(actualRegionLocation.getX() * 32 + localX, actualRegionLocation.getZ() * 32 + localZ);
     }
 
     /**
-     * Convert global coordinates to integer position.
+     * Convert global coordinates to integer position. We don't have to care about world offsets here because we take
+     * the modulo.
      */
     private int coordinateToInt(Coordinate2D c) {
         Coordinate2D regionLocal = c.toRegionLocal();

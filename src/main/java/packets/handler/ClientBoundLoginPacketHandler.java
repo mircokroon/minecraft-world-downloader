@@ -1,6 +1,6 @@
 package packets.handler;
 
-import game.Config;
+import config.Config;
 import game.NetworkMode;
 import proxy.ConnectionManager;
 

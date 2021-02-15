@@ -1,9 +1,9 @@
 package game.data.chunk;
 
-import game.Config;
-import game.data.Coordinate2D;
-import game.data.Coordinate3D;
-import game.data.CoordinateDim2D;
+import config.Config;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.WorldManager;
 import game.data.entity.Entity;
@@ -111,7 +111,6 @@ public class ChunkFactory extends Thread {
      * @param entityData the NBT data of the entity
      */
     public void updateTileEntity(Coordinate3D position, SpecificTag entityData) {
-        position.offsetGlobal();
         CoordinateDim2D chunkPos = position.globalToChunk().addDimension(WorldManager.getInstance().getDimension());
 
         Chunk chunk = WorldManager.getInstance().getChunk(chunkPos);
@@ -194,7 +193,6 @@ public class ChunkFactory extends Thread {
         DataTypeProvider dataProvider = parser.provider;
 
         CoordinateDim2D chunkPos = new CoordinateDim2D(dataProvider.readInt(), dataProvider.readInt(), parser.dimension);
-        chunkPos.offsetChunk();
 
         boolean full = dataProvider.readBoolean();
         Chunk chunk;

@@ -1,6 +1,6 @@
 package packets.version;
 
-import game.data.Coordinate3D;
+import game.data.coordinates.Coordinate3D;
 import packets.DataTypeProvider;
 
 public class DataTypeProvider_1_14 extends DataTypeProvider_1_13 {

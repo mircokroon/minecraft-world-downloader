@@ -1,8 +1,7 @@
 package game.data.region;
 
-import game.Config;
-import game.data.Coordinate2D;
-import game.data.CoordinateDim2D;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
@@ -118,7 +117,7 @@ public class Region {
                 Coordinate2D localCoordinate = coordinate.toRegionLocal();
                 int pos = 4 * ((localCoordinate.getX() & 31) + (localCoordinate.getZ() & 31) * 32);
                 chunkBinaryMap.put(pos, binary);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });

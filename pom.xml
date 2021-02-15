@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
     <properties>
         <java.version>8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <repositories>
@@ -52,6 +53,12 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M1</version>
             </plugin>
+
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.5</version>
+            </plugin>
         </plugins>
     </build>
 
@@ -62,6 +69,82 @@
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
             <version>2.4</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.10</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.5</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.konghq</groupId>
+            <artifactId>unirest-java</artifactId>
+            <version>3.7.02</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>1.7.30</version>
+        </dependency>
+
+
+        <!-- Use NBT library through jitpack as the latest version is not on Maven -->
+        <dependency>
+            <groupId>com.github.llbit</groupId>
+            <artifactId>jo-nbt</artifactId>
+            <version>1baae2f49a</version>
+        </dependency>
+
+        <dependency>
+            <groupId>args4j</groupId>
+            <artifactId>args4j</artifactId>
+            <version>2.33</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>15.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>11</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-swing</artifactId>
+            <version>11-ea+24</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/dnsjava/dnsjava -->
+        <dependency>
+            <groupId>dnsjava</groupId>
+            <artifactId>dnsjava</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.7.1</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -91,75 +174,6 @@
             <version>1.10.19</version>
             <scope>test</scope>
         </dependency>
-
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.konghq</groupId>
-            <artifactId>unirest-java</artifactId>
-            <version>3.7.02</version>
-        </dependency>
-
-        <!-- Use NBT library through jitpack as the latest version is not on Maven -->
-        <dependency>
-            <groupId>com.github.llbit</groupId>
-            <artifactId>jo-nbt</artifactId>
-            <version>1baae2f49a</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/net.sourceforge.argparse4j/argparse4j -->
-        <dependency>
-            <groupId>net.sourceforge.argparse4j</groupId>
-            <artifactId>argparse4j</artifactId>
-            <version>0.8.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.openjfx</groupId>
-            <artifactId>javafx-base</artifactId>
-            <version>11.0.2</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-            <version>3.10</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/dnsjava/dnsjava -->
-        <dependency>
-            <groupId>dnsjava</groupId>
-            <artifactId>dnsjava</artifactId>
-            <version>3.3.0</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>2.0.0-alpha1</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-simple -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <version>2.0.0-alpha0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
-            <scope>test</scope>
-        </dependency>
-
-
     </dependencies>
 </project>
 

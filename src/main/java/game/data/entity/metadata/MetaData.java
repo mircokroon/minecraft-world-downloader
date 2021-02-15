@@ -1,10 +1,9 @@
 package game.data.entity.metadata;
 
-import game.Config;
+import config.Config;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public abstract class MetaData {

@@ -1,0 +1,1 @@
+Icon generated using https://www.npmjs.com/package/minecraft-blocks-render

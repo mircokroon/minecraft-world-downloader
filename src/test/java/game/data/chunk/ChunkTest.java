@@ -1,7 +1,7 @@
 package game.data.chunk;
 
-import game.Config;
-import game.data.CoordinateDim2D;
+import config.Config;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockColors;
 import game.data.dimension.Dimension;
@@ -31,7 +31,9 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
         WorldManager.setInstance(mock);
 
+        Config.setInstance(new Config());
         Config.setProtocolVersion(protocolVersion);
+
 
         // load chunk
         ObjectInputStream in = new ObjectInputStream(ChunkTest.class.getClassLoader().getResourceAsStream(dataFile));

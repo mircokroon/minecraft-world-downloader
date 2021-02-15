@@ -67,7 +67,7 @@ public class ProxyServer extends Thread {
 
                 // If the server cannot connect, close client connection
                 attempt(() -> server.set(connectionDetails.getClientSocket()), (ex) -> {
-                    System.out.println("Cannot connect to " + friendlyHost + ". The server may be down or on a different address. (" + ex.getClass().getCanonicalName() + ")");
+                    System.err.println("Cannot connect to " + friendlyHost + ". The server may be down or on a different address. (" + ex.getClass().getCanonicalName() + ")");
                     attempt(client.get()::close);
                 });
 

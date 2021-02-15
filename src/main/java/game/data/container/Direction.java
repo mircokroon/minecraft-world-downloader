@@ -1,6 +1,6 @@
 package game.data.container;
 
-import game.data.Coordinate2D;
+import game.data.coordinates.Coordinate2D;
 
 public enum Direction {
     NORTH,

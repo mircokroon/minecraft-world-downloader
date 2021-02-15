@@ -1,7 +1,7 @@
 package packets.handler;
 
-import game.Config;
-import game.data.Coordinate3D;
+import config.Config;
+import game.data.coordinates.CoordinateDouble3D;
 import game.data.WorldManager;
 import proxy.ConnectionManager;
 
@@ -18,8 +18,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             double y = provider.readDouble();
             double z = provider.readDouble();
 
-            Coordinate3D playerPos = new Coordinate3D(x, y, z);
-            playerPos.offsetGlobal();
+            CoordinateDouble3D playerPos = new CoordinateDouble3D(x, y, z);
             WorldManager.getInstance().setPlayerPosition(playerPos);
 
             return true;

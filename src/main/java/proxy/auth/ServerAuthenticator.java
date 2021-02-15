@@ -9,9 +9,8 @@ import kong.unirest.UnirestException;
 import static util.PrintUtils.devPrint;
 
 public class ServerAuthenticator {
-    private static String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/hasJoined";
+    private static final String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/hasJoined";
     private final String username;
-
 
     public ServerAuthenticator(String username) {
         this.username = username;

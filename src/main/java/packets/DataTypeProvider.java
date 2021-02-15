@@ -1,7 +1,7 @@
 package packets;
 
-import game.Config;
-import game.data.Coordinate3D;
+import config.Config;
+import game.data.coordinates.Coordinate3D;
 import game.data.container.Slot;
 import game.data.container.Slot_1_12;
 import packets.version.DataTypeProvider_1_13;
