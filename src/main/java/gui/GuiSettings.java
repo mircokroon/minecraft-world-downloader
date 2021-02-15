@@ -113,7 +113,7 @@ public class GuiSettings {
         server.textProperty().addListener((obs, oldText, newText) -> {
             server.pseudoClassStateChanged(empty, newText.isEmpty());
         });
-        server.pseudoClassStateChanged(empty, true);
+        server.pseudoClassStateChanged(empty, server.getText() == null || server.getText().isEmpty());
 
         // verify auth details on focus loss
         minecraftDir.focusedProperty().addListener((ov, oldVal, newVal) -> {
@@ -266,7 +266,6 @@ public class GuiSettings {
 
         // general tab
         config.extendedRenderDistance = (int) extendedDistance.getValue();
-        System.out.println(config.extendedRenderDistance);
         config.measureRenderDistance = measureRenderDistance.isSelected();
         config.disableMarkUnsavedChunks = !markUnsaved.isSelected();
         config.zoomLevel = Integer.parseInt(overviewZoom.getText());

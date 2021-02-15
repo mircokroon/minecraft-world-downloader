@@ -47,6 +47,10 @@ public class GuiManager extends Application {
         GuiManager.config = config;
     }
 
+    public static boolean isStarted() {
+        return instance != null;
+    }
+
     public static void loadSceneMap() {
         activeScene = "Map";
         loadSceneOrLaunch();
@@ -195,10 +199,10 @@ public class GuiManager extends Application {
             });
         }
 
-        if (config.isValid()) {
-            loadSceneMap();
-        } else {
+        if (config.startWithSettings()) {
             loadSceneSettings();
+        } else {
+            loadSceneMap();
         }
     }
 

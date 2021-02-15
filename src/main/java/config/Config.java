@@ -1,5 +1,10 @@
 package config;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonReader;
 import game.data.WorldManager;
 import game.data.chunk.ChunkFactory;
 import game.data.registries.RegistryLoader;
@@ -10,36 +15,63 @@ import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
+import org.kohsuke.args4j.spi.OptionHandler;
+import org.kohsuke.args4j.spi.Parameters;
+import org.kohsuke.args4j.spi.StringOptionHandler;
 import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
 import proxy.auth.AuthDetails;
 
+import java.io.File;
+import java.io.FileReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.function.Consumer;
 
 public class Config {
     private static final int DEFAULT_VERSION = 340;
+    private static final Path CONFIG_PATH = Paths.get("cache", "config.json");
+
     private static Consumer<PacketBuilder> injector;
     private static Config instance;
 
-    private ProtocolVersionHandler versionHandler;
-    private String gameVersion;
-    private int protocolVersion = DEFAULT_VERSION;
-    private int dataVersion;
-    private ConnectionDetails connectionDetails;
+    // fields marked transient so they are not written to JSON file
+    private transient ProtocolVersionHandler versionHandler;
+    private transient String gameVersion;
+    private transient int protocolVersion = DEFAULT_VERSION;
+    private transient int dataVersion;
+    private transient ConnectionDetails connectionDetails;
 
-    private boolean isStarted = false;
-    private boolean guiOnlyMode = false;
+    private transient boolean isStarted = false;
+    private transient boolean guiOnlyMode = true;
 
-    private boolean debugWriteChunkNbt;
+    private transient boolean debugWriteChunkNbt;
 
     public static void setInstance(Config config) {
         instance = config;
     }
 
+    /**
+     * Try to read config from file if it exists, otherwise return a new Config object.
+     */
+    private static Config createConfig() {
+        try {
+            File file = CONFIG_PATH.toFile();
+            if (file.exists() && file.isFile()) {
+                return new Gson().fromJson(new JsonReader(new FileReader(file)), Config.class);
+            }
+        } catch (Exception ex) {
+            System.out.println("Cannot read " + CONFIG_PATH.toString());
+            ex.printStackTrace();
+        }
+        return new Config();
+    }
+
     public static void init(String[] args) {
-        instance = new Config();
+        instance = createConfig();
         CmdLineParser parser = new CmdLineParser(instance);
         try {
             parser.parseArgument(args);
@@ -54,6 +86,11 @@ public class Config {
 
             System.out.println("Available parameters:");
             parser.printUsage(System.out);
+            System.exit(1);
+        }
+
+        if (instance.clearSettings) {
+            clearSettings();
             System.exit(1);
         }
 
@@ -91,10 +128,18 @@ public class Config {
         instance.debugWriteChunkNbt = !instance.debugWriteChunkNbt;
     }
 
+    public static void disableSettingsGui() {
+        instance.guiOnlyMode = false;
+    }
+
+    public boolean startWithSettings() {
+        return guiOnlyMode;
+    }
+
     public void settingsComplete() {
         GuiManager.setConfig(this);
 
-        if (server == null) {
+        if (guiOnlyMode && !GuiManager.isStarted()) {
             handleGuiOnlyMode();
 
             GuiManager.loadSceneSettings();
@@ -107,6 +152,8 @@ public class Config {
 
         WorldManager.getInstance().setSaveServiceVariables(markNewChunks, writeChunks());
         WorldManager.getInstance().updateExtendedRenderDistance(extendedRenderDistance);
+
+        writeSettings();
 
         if (isStarted) {
             return;
@@ -124,8 +171,28 @@ public class Config {
         new ConnectionManager().startProxy();
     }
 
+    private void writeSettings() {
+        try {
+            String contents = new GsonBuilder().setPrettyPrinting().create().toJson(this);
+            CONFIG_PATH.getParent().toFile().mkdirs();
+            Files.write(CONFIG_PATH, Collections.singleton(contents));
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public static void clearSettings() {
+        try {
+            if (CONFIG_PATH.toFile().exists()) {
+                CONFIG_PATH.toFile().deleteOnExit();
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.err.println("Unable to delete settings.");
+        }
+    }
+
     private void handleGuiOnlyMode() {
-        guiOnlyMode = true;
         if (System.console() != null) {
             return;
         }
@@ -140,10 +207,6 @@ public class Config {
 
     public boolean isStarted() {
         return isStarted;
-    }
-
-    public boolean isValid() {
-        return this.server != null;
     }
 
     /**
@@ -226,10 +289,10 @@ public class Config {
 
     @Option(name = "--help", aliases = {"-h", "help", "-help", "--h"},
             usage = "Show this help message.")
-    public boolean showHelp;
+    public transient boolean showHelp;
 
     // parameters
-    @Option(name = "--server", aliases = "-s",
+    @Option(name = "--server", aliases = "-s", handler = ServerHandler.class,
             usage = "The address of the remote server to connect to. Hostname or IP address (without port).")
     public String server;
 
@@ -307,11 +370,15 @@ public class Config {
 
     @Option(name = "--dev-mode",
             usage = "Enable developer mode")
-    private boolean devMode = false;
+    private transient boolean devMode = false;
 
     @Option(name = "--force-console",
             usage = "Never redirect console output to GUI")
-    private boolean forceConsoleOutput = false;
+    private transient boolean forceConsoleOutput = false;
+
+    @Option(name = "--clear-settings",
+            usage = "Clear settings by deleting config.json file, then exit.")
+    private transient boolean clearSettings = false;
 
     // getters
     public static int getExtendedRenderDistance() {
