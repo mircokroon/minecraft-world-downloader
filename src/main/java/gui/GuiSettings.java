@@ -166,7 +166,7 @@ public class GuiSettings {
     }
 
     private void verifyLocalPort() {
-        if (!isPortAvailable(Integer.parseInt(portLocal.getText()))) {
+        if (portInUse(Integer.parseInt(portLocal.getText()))) {
             portVerifyLabel.setText("Port in use!");
             portInUse = true;
         } else {
@@ -236,13 +236,19 @@ public class GuiSettings {
         }).orElse("");
     }
 
-    private void disableWhenRunning(List<TextField> numericFields) {
+    /**
+     * Disabled fields that should not be changed while the proxy server is already started.
+     */
+    private void disableWhenRunning(List<Control> controls) {
         if (!config.isStarted()) {
             return;
         }
-        numericFields.forEach(field -> field.setDisable(true));
+        controls.forEach(field -> field.setDisable(true));
     }
 
+    /**
+     * Handle numeric formatting for text fields that should be numeric only. Reject all non 0-9 characters.
+     */
     private void numeric(List<TextField> numericFields) {
         numericFields.forEach(field -> field.textProperty().addListener((observable, oldVal, newVal) -> {
             if (!newVal.matches("\\d*")) {
@@ -251,6 +257,9 @@ public class GuiSettings {
         }));
     }
 
+    /**
+     * Write the settings from the GUI to the config file.
+     */
     public void saveSettings(ActionEvent actionEvent) {
         // connection tab
         config.server = server.getText();
@@ -275,7 +284,7 @@ public class GuiSettings {
         config.accessToken = accessToken.getText();
 
         if (!config.isStarted()) {
-            if (!isPortAvailable(config.portLocal)) {
+            if (portInUse(config.portLocal)) {
                 System.err.println("Port in use");
                 return;
             }
@@ -284,13 +293,13 @@ public class GuiSettings {
         GuiManager.closeSettings();
     }
 
-    public boolean isPortAvailable(int port) {
-        if (config.isStarted()) { return true; }
+    public boolean portInUse(int port) {
+        if (config.isStarted()) { return false; }
 
         try (ServerSocket ss = new ServerSocket(port)) {
-            return true;
-        } catch (IOException e) {
             return false;
+        } catch (IOException e) {
+            return true;
         }
     }
 }

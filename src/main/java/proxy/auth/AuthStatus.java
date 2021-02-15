@@ -1,8 +1,10 @@
 package proxy.auth;
 
+/**
+ * Class to keep track of user's details authentication status. When the details are present but old they will be
+ * marked as probably expired.
+ */
 public class AuthStatus {
-    static final AuthStatus VALID = new AuthStatus(true, "");
-
     boolean isValid;
     boolean isProbablyExpired;
     String message;

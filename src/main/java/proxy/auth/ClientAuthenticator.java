@@ -7,9 +7,7 @@ import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
 
 import javax.security.sasl.AuthenticationException;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -19,9 +17,8 @@ import java.util.Map;
 import static util.PrintUtils.devPrint;
 
 public class ClientAuthenticator {
-    private static int STATUS_SUCCESS = 204;
-    private static String UUID_URL = "https://api.mojang.com/users/profiles/minecraft/";
-    private static String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/join";
+    private static final int STATUS_SUCCESS = 204;
+    private static final String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/join";
 
     private LauncherProfiles profiles;
 
@@ -76,16 +73,6 @@ public class ClientAuthenticator {
         String path =  String.join("\n", Files.readAllLines(p));
 
         profiles = g.fromJson(path, LauncherProfiles.class);
-    }
-
-    public static UuidNameResponse uuidFromUsername(String username) throws IOException {
-        HttpResponse<String> str = Unirest.get(UUID_URL + username).asString();
-        if (!str.isSuccess() || str.getStatus() != 200) {
-            System.err.println("Could not get UUID for user '" + username + "'. Status: " + str.getStatus());
-            throw new IOException("Cannot find username");
-        }
-
-        return new Gson().fromJson(str.getBody(), UuidNameResponse.class);
     }
 
     /**

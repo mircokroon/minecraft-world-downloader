@@ -53,7 +53,7 @@ public class RenderDistanceExtender extends Thread {
         }
 
         if (serverDistance >= 28) {
-            System.out.println("Server seems to be running at abnormally high render distance of " + serverDistance
+            System.err.println("Server seems to be running at abnormally high render distance of " + serverDistance
                     + ". Run with --measure-render-distance to ignore this value.");
         }
 
