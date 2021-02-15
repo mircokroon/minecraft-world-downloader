@@ -10,6 +10,7 @@
     <packaging>jar</packaging>
     <properties>
         <java.version>8</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <repositories>
@@ -142,7 +143,7 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
-            <version>RELEASE</version>
+            <version>5.7.1</version>
             <scope>test</scope>
         </dependency>
 
