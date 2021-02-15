@@ -1,5 +1,6 @@
 package game.data.entity;
 
+import config.Config;
 import game.data.coordinates.Coordinate3D;
 import game.data.WorldManager;
 import packets.DataTypeProvider;
@@ -50,7 +51,10 @@ public abstract class Entity {
     public SpecificTag toNbt() {
         CompoundTag root = new CompoundTag();
 
-        List<DoubleTag> pos = Arrays.asList(new DoubleTag(x), new DoubleTag(y), new DoubleTag(z));
+        double offsetX = x - Config.getCenterX();
+        double offsetZ = x - Config.getCenterZ();
+
+        List<DoubleTag> pos = Arrays.asList(new DoubleTag(offsetX), new DoubleTag(y), new DoubleTag(offsetZ));
         root.add("Pos", new ListTag(ListTag.TAG_DOUBLE, pos));
 
         List<DoubleTag> motion = Arrays.asList(new DoubleTag(velX), new DoubleTag(velY), new DoubleTag(velZ));

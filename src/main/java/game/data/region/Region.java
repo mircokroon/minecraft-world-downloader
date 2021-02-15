@@ -117,7 +117,7 @@ public class Region {
                 Coordinate2D localCoordinate = coordinate.toRegionLocal();
                 int pos = 4 * ((localCoordinate.getX() & 31) + (localCoordinate.getZ() & 31) * 32);
                 chunkBinaryMap.put(pos, binary);
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });

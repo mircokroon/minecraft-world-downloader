@@ -27,7 +27,6 @@ public class GuiSettings {
     public TextField centerZ;
     public TextField levelSeed;
 
-    public TextField extendedDistance;
     public CheckBox measureRenderDistance;
     public CheckBox markUnsaved;
     public TextField overviewZoom;
@@ -44,6 +43,8 @@ public class GuiSettings {
     public TextField accessToken;
     public Hyperlink authHelpLink;
     public Label portVerifyLabel;
+    public Slider extendedDistance;
+    public TextField extendedDistanceText;
     Config config;
     private boolean portInUse;
 
@@ -71,7 +72,8 @@ public class GuiSettings {
         levelSeed.setText("" + config.levelSeed);
 
         // general tab
-        extendedDistance.setText("" + config.extendedRenderDistance);
+        extendedDistance.setValue(config.extendedRenderDistance);
+        extendedDistanceText.setText("" + config.extendedRenderDistance);
         measureRenderDistance.setSelected(config.measureRenderDistance);
         markUnsaved.setSelected(!config.disableMarkUnsavedChunks);
         overviewZoom.setText("" + config.zoomLevel);
@@ -80,7 +82,7 @@ public class GuiSettings {
         minecraftUsername.setText(config.username);
         accessToken.setText(config.accessToken);
 
-        numeric(Arrays.asList(portRemote, portLocal, centerX, centerZ, levelSeed, extendedDistance, overviewZoom));
+        numeric(Arrays.asList(portRemote, portLocal, centerX, centerZ, levelSeed, overviewZoom, extendedDistanceText));
         disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
 
         authTooltip = new Tooltip("");
@@ -122,10 +124,22 @@ public class GuiSettings {
         verifyAuthDetails();
 
         // verify port on focus loss
-        portLocal.focusedProperty().addListener((ov, oldVal, newVal) -> {
-            verifyLocalPort();
-        });
+        portLocal.focusedProperty().addListener((ov, oldVal, newVal) -> verifyLocalPort());
         verifyLocalPort();
+
+
+        extendedDistance.valueProperty().addListener((ov, oldV, newV) -> setRenderDistance(newV.intValue()));
+        extendedDistanceText.textProperty().addListener((ov, oldV, newV) -> {
+            if (newV.length() > 0) {
+                setRenderDistance(Integer.parseInt(newV));
+            }
+        });
+    }
+
+    private void setRenderDistance(int v) {
+        int val = Math.max(0, Math.min(32, v));
+        extendedDistance.setValue(val);
+        extendedDistanceText.setText(val + "");
     }
 
     private void updateSaveButtonState() {
@@ -251,7 +265,8 @@ public class GuiSettings {
         config.levelSeed = Integer.parseInt(levelSeed.getText());
 
         // general tab
-        config.extendedRenderDistance = Integer.parseInt(extendedDistance.getText());
+        config.extendedRenderDistance = (int) extendedDistance.getValue();
+        System.out.println(config.extendedRenderDistance);
         config.measureRenderDistance = measureRenderDistance.isSelected();
         config.disableMarkUnsavedChunks = !markUnsaved.isSelected();
         config.zoomLevel = Integer.parseInt(overviewZoom.getText());

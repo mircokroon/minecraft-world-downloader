@@ -44,9 +44,7 @@ public class Config {
         try {
             parser.parseArgument(args);
         } catch (CmdLineException e) {
-            // handling of wrong arguments
             System.err.println(e.getMessage());
-
             instance.showHelp = true;
         }
 
@@ -103,6 +101,10 @@ public class Config {
             return;
         }
 
+        // round to regions
+        centerX = (centerX >> 9) << 9;
+        centerZ = (centerZ >> 9) << 9;
+
         WorldManager.getInstance().setSaveServiceVariables(markNewChunks, writeChunks());
         WorldManager.getInstance().updateExtendedRenderDistance(extendedRenderDistance);
 
@@ -120,7 +122,6 @@ public class Config {
         }
 
         new ConnectionManager().startProxy();
-
     }
 
     private void handleGuiOnlyMode() {

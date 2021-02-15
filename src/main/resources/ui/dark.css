@@ -1,107 +1,78 @@
 .root {
-    -fx-background: #262626;
-
+     -fx-background: #262626;
 }
-
-.tab-header-area {
-    -fx-background-color: transparent;
--fx-text-base-color: #ffffff;
-
-      -fx-border-width: 0px;
-      -fx-padding: 0px;
-      -fx-margin: 0px;
+ .tab-header-area {
+     -fx-background-color: transparent;
+     -fx-text-base-color: #ffffff;
+     -fx-border-width: 0px;
+     -fx-padding: 0px;
+     -fx-margin: 0px;
 }
-.tab-pane {
-    -fx-tab-min-width: 80px;
-
-      -fx-tab-min-height:30px;
-      -fx-tab-max-height:30px;
-
-      -fx-margin: 0px;
-
-      -fx-border-width: 0px;
-      -fx-padding: 0px;
-      -fx-margin: 0px;
+ .tab-pane {
+     -fx-tab-min-width: 80px;
+     -fx-tab-min-height:30px;
+     -fx-tab-max-height:30px;
+     -fx-margin: 0px;
+     -fx-border-width: 0px;
+     -fx-padding: 0px;
+     -fx-margin: 0px;
 }
-
-
-.tab {
--fx-margin: 0px;
-    -fx-background-color: transparent;
-    -fx-text-base-color: #ffffff;
+ .tab {
+     -fx-margin: 0px;
+     -fx-background-color: transparent;
+     -fx-text-base-color: #ffffff;
      -fx-cursor: hand;
-
-       -fx-border-color: transparent, transparent,  transparent;
-        -fx-border-width: 0 0 3 0, 0 0 3 0, 0 0 3 0;
+     -fx-border-color: transparent, transparent, transparent;
+     -fx-border-width: 0 0 3 0, 0 0 3 0, 0 0 3 0;
 }
-
-.tab:selected {
-    -fx-text-base-color: #ffffff;
-    -fx-font-weight: bolder;
-
-   -fx-border-color: #008542, transparent,  #008542;
-    -fx-border-width: 0 0 3 0, 0 0 3 0, 0 0 3 0;
+ .tab:selected {
+     -fx-text-base-color: #ffffff;
+     -fx-font-weight: bolder;
+     -fx-border-color: #008542, transparent, #008542;
+     -fx-border-width: 0 0 3 0, 0 0 3 0, 0 0 3 0;
 }
-
-.tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
-    -fx-border-color: transparent;
+ .tab-pane:focused > .tab-header-area > .headers-region > .tab:selected .focus-indicator {
+     -fx-border-color: transparent;
 }
-
-.text-input {
-    -fx-background-color: #dddddd;
-
-            -fx-background-radius: 0px;
-            -fx-border-radius: 0px;
+ .text-input {
+     -fx-background-color: #dddddd;
+     -fx-background-radius: 0px;
+     -fx-border-radius: 0px;
 }
-
-.check-box {
-    -fx-cursor: hand;
- }
-
-.text-input:focused {
+ .check-box {
+     -fx-cursor: hand;
+}
+ .text-input:focused {
      -fx-background-color: #ffffff;
-    -fx-highlight-text-fill: ladder(
-        -fx-highlight-fill,
-        -fx-light-text-color 85%,
-        -fx-dark-text-color  90%,
-        -fx-dark-text-color  95%,
-        -fx-mid-text-color   100%
-    );
+     -fx-highlight-text-fill: ladder( -fx-highlight-fill, -fx-light-text-color 85%, -fx-dark-text-color 90%, -fx-dark-text-color 95%, -fx-mid-text-color 100% );
 }
-
-.backdrop {
-    -fx-effect: dropshadow(gaussian, rgba(0.2, 0.2, 0.2, 0.9), 10, 0.5, 0.0, 0.0);
+ .backdrop {
+     -fx-effect: dropshadow(gaussian, rgba(0.2, 0.2, 0.2, 0.9), 10, 0.5, 0.0, 0.0);
 }
-
-.button {
-    -fx-background-color: #008943;
-    -fx-text-base-color: white;
-    -fx-font-weight: bold;
-    -fx-font-size: 1.2em;
-
-       -fx-border-color: #27ce40 #0c6e3d #064d2a #0c6e3d;
-        -fx-border-width: 2,2,2,2;
-
-        -fx-background-radius: 1px;
-        -fx-border-radius: 1px;
-
-        -fx-cursor: hand;
+ .button {
+     -fx-background-color: #008943;
+     -fx-text-base-color: white;
+     -fx-font-weight: bold;
+     -fx-font-size: 1.2em;
+     -fx-border-color: #27ce40 #0c6e3d #064d2a #0c6e3d;
+     -fx-border-width: 2,2,2,2;
+     -fx-background-radius: 1px;
+     -fx-border-radius: 1px;
+     -fx-cursor: hand;
 }
-
-.label-valid {
-    -fx-text-base-color: #baffcd;
-    -fx-text-fill: #baffcd;
+ .label-valid {
+     -fx-text-base-color: #baffcd;
+     -fx-text-fill: #baffcd;
 }
-.label-warn {
-    -fx-text-base-color: #ffe6ba;
-    -fx-text-fill: #ffe6ba;
+ .label-warn {
+     -fx-text-base-color: #ffe6ba;
+     -fx-text-fill: #ffe6ba;
 }
-.label-err {
-    -fx-text-base-color: #ffbaba;
-    -fx-text-fill: #ffbaba;
-    -fx-font-weight: bold;
+ .label-err {
+     -fx-text-base-color: #ffbaba;
+     -fx-text-fill: #ffbaba;
+     -fx-font-weight: bold;
 }
-
-.field-nonempty:empty {
-    -fx-background-color: #ffbaba;
+ .field-nonempty:empty {
+     -fx-background-color: #ffbaba;
 }
