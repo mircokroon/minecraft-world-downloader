@@ -2,7 +2,6 @@ package gui;
 
 
 import config.Config;
-import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
@@ -10,13 +9,12 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import java.io.ByteArrayOutputStream;
@@ -30,6 +28,7 @@ import static util.ExceptionHandling.attempt;
  * Class to the handle the GUI.
  */
 public class GuiManager extends Application {
+    private static final String TITLE = "World Downloader";
     private static boolean hasErrors;
     private static ObservableList<String> messages;
 
@@ -40,6 +39,7 @@ public class GuiManager extends Application {
     private static String activeScene = "";
     private static GuiSettings settingController;
     private Stage stage;
+    private Image icon;
 
     private Stage settingsStage;
 
@@ -134,6 +134,12 @@ public class GuiManager extends Application {
             settingsStage = null;
         });
         attempt(() -> loadScene("Settings", settingsStage));
+
+        addIcon(settingsStage);
+    }
+
+    private void addIcon(Stage s) {
+        s.getIcons().add(icon);
     }
 
     static void registerSettingController(GuiSettings settings) {
@@ -158,7 +164,11 @@ public class GuiManager extends Application {
 
         Scene scene = new Scene(root);
 
-        stage.setTitle("World Downloader");
+        if (name.equals("Settings")) {
+            stage.setTitle(TITLE + " - Settings");
+        } else {
+            stage.setTitle(TITLE);
+        }
         stage.setScene(scene);
         stage.show();
     }
@@ -175,6 +185,8 @@ public class GuiManager extends Application {
     public void start(Stage stage) throws Exception {
         instance = this;
         this.stage = stage;
+        this.icon = new Image(GuiManager.class.getResourceAsStream("/ui/icon.png"));
+        addIcon(this.stage);
 
         // when in GUI mode, close the application when the main stage is closed.
         if (Config.inGuiMode()) {
