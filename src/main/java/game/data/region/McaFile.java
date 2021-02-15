@@ -140,10 +140,7 @@ public class McaFile {
         byte[] toWrite = join(locations, timestamps, chunkDataList, maxpos[0]);
 
         // create directory if it doesn't already exist
-        File directory = filePath.getParent().toFile();
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        Files.createDirectories(filePath.getParent());
 
         Files.write(filePath, toWrite);
     }

@@ -249,10 +249,7 @@ public class WorldManager {
      */
     private void saveLevelData() throws IOException {
         // make sure the folder exists
-        File directory = Paths.get(Config.getWorldOutputDir()).toFile();
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
+        Files.createDirectories(Paths.get(Config.getWorldOutputDir()));
 
         File levelDat = Paths.get(Config.getWorldOutputDir(), "level.dat").toFile();
 

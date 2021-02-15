@@ -111,7 +111,7 @@ public class RegistryLoader {
         HttpResponse<byte[]> status = Unirest.get(url)
             .asBytes();
 
-        ensureExists(Paths.get(CACHE));
+        Files.createDirectories(Paths.get(CACHE));
 
         // in case we can't download the server.jar
         if (!status.isSuccess()) {
@@ -155,7 +155,7 @@ public class RegistryLoader {
      * Move newly generated reports to the directory where we expect to find them later.
      */
     private void moveReports() throws IOException {
-        ensureExists(destinationPath);
+        Files.createDirectories(destinationPath);
 
         if (versionSupportsGenerators()) {
             Files.move(REGISTRIES_GENERATED_PATH, registryPath, StandardCopyOption.REPLACE_EXISTING);
@@ -173,25 +173,6 @@ public class RegistryLoader {
         FileUtils.deleteDirectory(Paths.get(CACHE, "logs").toFile());
         FileUtils.deleteDirectory(Paths.get(CACHE, "logsx").toFile());
         Files.deleteIfExists(SERVER_PATH);
-    }
-
-    /**
-     * Make sure the given folder exists.
-     */
-    private void ensureExists(Path folder) {
-        File dir = folder.toFile();
-
-        if (!dir.isDirectory()) {
-            try {
-                boolean created = dir.mkdirs();
-
-                if (!created) {
-                    System.out.println("Could not create folder " + folder.toString());
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
     }
 
     public EntityNames generateEntityNames() throws IOException {

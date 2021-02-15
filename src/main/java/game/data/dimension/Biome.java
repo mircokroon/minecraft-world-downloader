@@ -42,7 +42,7 @@ public class Biome {
      */
     public void write(Path fromPath) throws IOException {
         Path p = Paths.get(fromPath.toString(), namespace, "worldgen", "biome", path, name + ".json");
-        p.toFile().getParentFile().mkdirs();
+        Files.createDirectories(p.getParent());
         Files.write(p, Collections.singleton(properties.json()));
     }
 }

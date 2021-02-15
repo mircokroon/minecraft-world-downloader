@@ -169,7 +169,7 @@ public class Config {
     private void writeSettings() {
         try {
             String contents = new GsonBuilder().setPrettyPrinting().create().toJson(this);
-            CONFIG_PATH.getParent().toFile().mkdirs();
+            Files.createDirectories(CONFIG_PATH.getParent());
             Files.write(CONFIG_PATH, Collections.singleton(contents));
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -51,8 +51,9 @@ public class ChunkBinary implements Serializable {
         // debug option - write all chunks nbt as text to files so it can be easily verified
         if (Config.writeChunksAsNbt()) {
             String filename = chunk.location.getX() + "_" + chunk.location.getZ();
-            Paths.get(Config.getWorldOutputDir(), "debug").toFile().mkdirs();
+
             Path output = Paths.get(Config.getWorldOutputDir(), "debug", filename);
+            Files.createDirectories(output.getParent());
             Files.write(output, Collections.singleton(nbt.tag.toString()));
         }
 

@@ -46,7 +46,7 @@ public class DimensionType {
      */
     public void write(Path prefix) throws IOException {
         Path destination = Paths.get(prefix.toString(), namespace, "dimension_type", name + ".json");
-        destination.toFile().getParentFile().mkdirs();
+        Files.createDirectories(destination.getParent());
 
         Files.write(destination, Collections.singleton(DimensionCodec.GSON.toJson(properties)));
     }

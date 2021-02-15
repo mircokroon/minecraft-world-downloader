@@ -81,7 +81,7 @@ public class Dimension {
      */
     public void write(Path prefix) throws IOException {
         Path destination = Paths.get(prefix.toString(), namespace, "dimension", name + ".json");
-        destination.toFile().getParentFile().mkdirs();
+        Files.createDirectories(destination.getParent());
 
         DimensionDefinition definition = new DimensionDefinition(type);
 

@@ -235,7 +235,7 @@ public abstract class Chunk {
     }
 
     private List<SpecificTag> getEntityList() {
-        return entities.stream().map(Entity::toNbt).collect(Collectors.toList());
+        return entities.stream().filter(Objects::nonNull).map(Entity::toNbt).collect(Collectors.toList());
     }
 
     /**
