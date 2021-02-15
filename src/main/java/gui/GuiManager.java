@@ -185,7 +185,7 @@ public class GuiManager extends Application {
     public void start(Stage stage) throws Exception {
         instance = this;
         this.stage = stage;
-        this.icon = new Image(GuiManager.class.getResourceAsStream("/ui/icon.png"));
+        this.icon = new Image(GuiManager.class.getResourceAsStream("/ui/icon/icon.png"));
         addIcon(this.stage);
 
         // when in GUI mode, close the application when the main stage is closed.

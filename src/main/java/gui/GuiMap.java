@@ -59,7 +59,7 @@ public class GuiMap {
     private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
     private final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
     private final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
-    private final Color UNSAVED_COLOR = new Color(1, 0, 0, .4);
+    private final Color UNSAVED_COLOR = new Color(1, 0, 0, .3);
     private int renderDistanceX;
     private int renderDistanceZ;
     private Bounds bounds;

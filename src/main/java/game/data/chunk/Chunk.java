@@ -359,7 +359,8 @@ public abstract class Chunk {
 
 
     /**
-     * Mark this as a new chunk iff the
+     * Mark this as a new chunk if it's sent in parts, which non-vanilla servers will do to send chunks to the client
+     * before they are fully generated.
      */
     void markAsNew() {
         if (WorldManager.getInstance().markNewChunks()) {
