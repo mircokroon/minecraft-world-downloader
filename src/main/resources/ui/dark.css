@@ -68,14 +68,14 @@
      -fx-cursor: hand;
 }
 .check-box .box {
-          -fx-background-color: white;
-         -fx-text-base-color: white;
-         -fx-font-weight: bold;
-         -fx-font-size: 1.2em;
-         -fx-cursor: hand;
+     -fx-background-color: white;
+     -fx-text-base-color: white;
+     -fx-font-weight: bold;
+     -fx-font-size: 1.2em;
+     -fx-cursor: hand;
 
-         -fx-border-radius: 1px;
-         -fx-background-radius: 1px;
+     -fx-border-radius: 1px;
+     -fx-background-radius: 1px;
 }
 .check-box .mark {
     -fx-background-color: white;
