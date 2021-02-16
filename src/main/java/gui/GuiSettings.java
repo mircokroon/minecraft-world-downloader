@@ -98,6 +98,7 @@ public class GuiSettings {
 
         authTooltip = new Tooltip("");
         GuiManager.bindTooltip(authDetailsVerifyLabel, authTooltip);
+        GuiManager.bindTooltip(portVerifyLabel, new Tooltip("Is the downloader already running?"));
 
         authHelpLink.setOnAction(actionEvent -> GuiManager.openLink("https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication"));
         openWorldDir.setOnAction(e -> attemptQuiet(() -> {

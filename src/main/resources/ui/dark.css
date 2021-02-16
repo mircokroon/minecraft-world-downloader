@@ -50,7 +50,7 @@
 }
  .text-field:is-default {
     -fx-font-style: italic;
-    -fx-text-fill: #777777;
+    -fx-text-fill: #808080;
 }
 
  .backdrop {
@@ -67,6 +67,23 @@
      -fx-border-radius: 1px;
      -fx-cursor: hand;
 }
+.check-box .box {
+          -fx-background-color: white;
+         -fx-text-base-color: white;
+         -fx-font-weight: bold;
+         -fx-font-size: 1.2em;
+         -fx-cursor: hand;
+
+         -fx-border-radius: 1px;
+         -fx-background-radius: 1px;
+}
+.check-box .mark {
+    -fx-background-color: white;
+}
+.check-box:selected .box {
+    -fx-background-color: #008943;
+}
+
  .label-valid {
      -fx-text-base-color: #baffcd;
      -fx-text-fill: #baffcd;
