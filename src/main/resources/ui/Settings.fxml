@@ -3,6 +3,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import gui.components.DefaultIntField?>
+<?import gui.components.IntField?>
+<?import gui.components.LongField?>
 <AnchorPane prefHeight="265.0" prefWidth="600.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml" fx:controller="gui.GuiSettings">
     <Button fx:id="saveButton" layoutX="491.0" layoutY="225.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start"/>
     <TabPane fx:id="tabPane" prefHeight="225.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
@@ -23,11 +26,11 @@
                         <RowConstraints prefHeight="32.0"/>
                     </rowConstraints>
                     <TextField styleClass="field-nonempty" fx:id="server" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1"/>
-                    <TextField fx:id="portRemote" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <DefaultIntField defaultVal="25565" fx:id="portRemote" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                     <Label text="Server address"/>
                     <Label text="Server port" GridPane.rowIndex="1"/>
                     <Label text="Local port" GridPane.rowIndex="2"/>
-                    <TextField fx:id="portLocal" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    <DefaultIntField defaultVal="25565" fx:id="portLocal" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                     <TextField fx:id="minecraftDir" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
                     <Label text="Minecraft location" GridPane.rowIndex="4"/>
                     <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="4">
@@ -56,13 +59,13 @@
                     <Label text="Extended render distance" GridPane.rowIndex="0"/>
                     <Slider showTickLabels="true" majorTickUnit="1.0" blockIncrement="1" snapToTicks="true" minorTickCount="0" fx:id="extendedDistance" max="32" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1"/>
                     <AnchorPane GridPane.columnIndex="2">
-                        <TextField fx:id="extendedDistanceText" prefWidth="30" AnchorPane.leftAnchor="10"/>
+                        <IntField fx:id="extendedDistanceText" prefWidth="30" AnchorPane.leftAnchor="10"/>
                     </AnchorPane>
                     <CheckBox fx:id="measureRenderDistance" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
                     <Label text="Measure render distance" GridPane.rowIndex="1"/>
                     <CheckBox fx:id="markUnsaved" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                     <Label text="Mark unsaved chunks" GridPane.rowIndex="2"/>
-                    <TextField fx:id="overviewZoom" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                    <IntField fx:id="overviewZoom" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
                     <Label text="Overview zoom radius" GridPane.rowIndex="3"/>
                 </GridPane>
             </AnchorPane>
@@ -88,7 +91,7 @@
                     </AnchorPane>
 
                     <Label text="Level seed" GridPane.rowIndex="1"/>
-                    <TextField fx:id="levelSeed" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <LongField fx:id="levelSeed" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
                     <CheckBox fx:id="disableWorldGen" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
                     <Label text="Prevent chunk generation" GridPane.rowIndex="3"/>
@@ -113,7 +116,7 @@
                             <AnchorPane>
                                 <Label text="X: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                             </AnchorPane>
-                            <TextField fx:id="centerX" prefWidth="50.0" GridPane.columnIndex="1"/>
+                            <IntField fx:id="centerX" prefWidth="50.0" GridPane.columnIndex="1"/>
                         </GridPane>
                         <GridPane GridPane.columnIndex="1">
                             <columnConstraints>
@@ -126,7 +129,7 @@
                             <AnchorPane>
                                 <Label text="Z: " textAlignment="RIGHT" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="30.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                             </AnchorPane>
-                            <TextField fx:id="centerZ" prefWidth="50.0" GridPane.columnIndex="1"/>
+                            <IntField fx:id="centerZ" prefWidth="50.0" GridPane.columnIndex="1"/>
                         </GridPane>
                     </GridPane>
                 </GridPane>
