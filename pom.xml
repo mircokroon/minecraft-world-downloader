@@ -6,10 +6,11 @@
 
     <groupId>mircokroon.minecraft-world-downloader</groupId>
     <artifactId>minecraft-world-downloader</artifactId>
-    <version>1.0</version>
+    <version>1.0.0.0</version>
     <packaging>jar</packaging>
     <properties>
         <java.version>8</java.version>
+        <java.version.max>15</java.version.max>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -33,21 +34,30 @@
                 </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
                 <configuration>
-                    <finalName>world-downloader</finalName>
-                    <appendAssemblyId>false</appendAssemblyId>
-                    <archive>
-                        <manifest>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                             <mainClass>Launcher</mainClass>
-                        </manifest>
-                    </archive>
+                        </transformer>
+                    </transformers>
+                    <finalName>world-downloader</finalName>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                </configuration>
-
+            </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -58,6 +68,47 @@
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>
                 <version>0.0.5</version>
+            </plugin>
+
+            <plugin>
+                <groupId>com.akathist.maven.plugins.launch4j</groupId>
+                <artifactId>launch4j-maven-plugin</artifactId>
+                <version>1.7.25</version>
+                <executions>
+                    <execution>
+                        <id>l4j-gui</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>launch4j</goal>
+                        </goals>
+                        <configuration>
+                            <headerType>gui</headerType>
+                            <outfile>target/world-downloader.exe</outfile>
+                            <jar>target/world-downloader.jar</jar>
+                            <errTitle>Error</errTitle>
+                            <classPath>
+                                <mainClass>Launcher</mainClass>
+                            </classPath>
+                            <icon>src/main/resources/ui/icon/icon.ico</icon>
+                            <jre>
+                                <minVersion>${java.version}</minVersion>
+                                <initialHeapSize>256</initialHeapSize>
+                                <maxHeapSize>2048</maxHeapSize>
+                            </jre>
+                            <versionInfo>
+                                <fileVersion>${version}</fileVersion>
+                                <txtFileVersion>${version}</txtFileVersion>
+                                <fileDescription>Minecraft world downloader</fileDescription>
+                                <productVersion>${version}</productVersion>
+                                <copyright>!</copyright>
+                                <txtProductVersion>${version}</txtProductVersion>
+                                <productName>Minecraft world downloader</productName>
+                                <internalName>Minecraft world downloader</internalName>
+                                <originalFilename>world-downloader.exe</originalFilename>
+                            </versionInfo>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
