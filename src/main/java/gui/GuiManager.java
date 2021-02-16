@@ -178,6 +178,7 @@ public class GuiManager extends Application {
     }
 
     public static void openLink(String text) {
+        System.out.println(text);
         instance.getHostServices().showDocument(text);
     }
 

@@ -10,11 +10,11 @@ import game.data.container.MenuRegistry;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import org.apache.commons.io.FileUtils;
+import util.PathUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,14 +30,10 @@ public class RegistryLoader {
     private static final String REGISTRY_FILENAME = "registries.json";
     private static final String BLOCKS_FILENAME = "blocks.json";
 
-    private static final Path SERVER_PATH = Paths.get(CACHE, "server.jar");
-    private static final Path REGISTRIES_GENERATED_PATH = Paths.get(CACHE, OUTPUT, REPORTS, REGISTRY_FILENAME);
-    private static final Path BLOCKS_GENERATED_PATH = Paths.get(CACHE, OUTPUT, REPORTS, BLOCKS_FILENAME);
+    private final Path serverPath, registriesGeneratedPath, blocksGeneratedPath;
+    private final Path destinationPath, registryPath, blocksPath;
 
     private String version;
-    private Path destinationPath;
-    private Path registryPath;
-    private Path blocksPath;
 
     private static Map<String, RegistryLoader> knownLoaders = new ConcurrentHashMap<>();
 
@@ -53,12 +49,16 @@ public class RegistryLoader {
     }
 
     private RegistryLoader(String version) throws IOException, InterruptedException {
+        serverPath = PathUtils.toPath(CACHE, "server.jar");
+        registriesGeneratedPath = PathUtils.toPath(CACHE, OUTPUT, REPORTS, REGISTRY_FILENAME);
+        blocksGeneratedPath = PathUtils.toPath(CACHE, OUTPUT, REPORTS, BLOCKS_FILENAME);
+
         this.version = version;
         String versionPath = version.replaceAll("\\.", "_");
 
-        this.destinationPath = Paths.get(CACHE, versionPath);
-        this.blocksPath = Paths.get(CACHE, versionPath, BLOCKS_FILENAME);
-        this.registryPath = Paths.get(CACHE, versionPath, REGISTRY_FILENAME);
+        this.destinationPath = PathUtils.toPath(CACHE, versionPath);
+        this.blocksPath = PathUtils.toPath(CACHE, versionPath, BLOCKS_FILENAME);
+        this.registryPath = PathUtils.toPath(CACHE, versionPath, REGISTRY_FILENAME);
 
         if (!hasExistingReports()) {
             getReportsFromServerJar();
@@ -111,14 +111,14 @@ public class RegistryLoader {
         HttpResponse<byte[]> status = Unirest.get(url)
             .asBytes();
 
-        ensureExists(Paths.get(CACHE));
+        Files.createDirectories(PathUtils.toPath(CACHE));
 
         // in case we can't download the server.jar
         if (!status.isSuccess()) {
             throw new IOException("Unable to download server.jar. Status: " + status.getStatusText());
         }
 
-        Files.write(SERVER_PATH, status.getBody());
+        Files.write(serverPath, status.getBody());
     }
 
     /**
@@ -132,7 +132,7 @@ public class RegistryLoader {
         ProcessBuilder pb = new ProcessBuilder(
                 "java", "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
         );
-        pb.directory(new File(CACHE));
+        pb.directory(PathUtils.toPath(CACHE).toFile());
         Process p = pb.start();
 
         // instead of directly forwarding the output, we handle it manually. This way we can indent it and get rid
@@ -155,13 +155,13 @@ public class RegistryLoader {
      * Move newly generated reports to the directory where we expect to find them later.
      */
     private void moveReports() throws IOException {
-        ensureExists(destinationPath);
+        Files.createDirectories(destinationPath);
 
         if (versionSupportsGenerators()) {
-            Files.move(REGISTRIES_GENERATED_PATH, registryPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(registriesGeneratedPath, registryPath, StandardCopyOption.REPLACE_EXISTING);
         }
         if (versionSupportsBlockGenerator()) {
-            Files.move(BLOCKS_GENERATED_PATH, blocksPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(blocksGeneratedPath, blocksPath, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -169,29 +169,10 @@ public class RegistryLoader {
      * Delete the server.jar and all the files it generated.
      */
     public void clean() throws IOException {
-        FileUtils.deleteDirectory(Paths.get(CACHE, OUTPUT).toFile());
-        FileUtils.deleteDirectory(Paths.get(CACHE, "logs").toFile());
-        FileUtils.deleteDirectory(Paths.get(CACHE, "logsx").toFile());
-        Files.deleteIfExists(SERVER_PATH);
-    }
-
-    /**
-     * Make sure the given folder exists.
-     */
-    private void ensureExists(Path folder) {
-        File dir = folder.toFile();
-
-        if (!dir.isDirectory()) {
-            try {
-                boolean created = dir.mkdirs();
-
-                if (!created) {
-                    System.out.println("Could not create folder " + folder.toString());
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
+        FileUtils.deleteDirectory(PathUtils.toPath(CACHE, OUTPUT).toFile());
+        FileUtils.deleteDirectory(PathUtils.toPath(CACHE, "logs").toFile());
+        FileUtils.deleteDirectory(PathUtils.toPath(CACHE, "logsx").toFile());
+        Files.deleteIfExists(serverPath);
     }
 
     public EntityNames generateEntityNames() throws IOException {

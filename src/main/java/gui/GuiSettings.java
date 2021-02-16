@@ -11,11 +11,17 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import proxy.auth.AuthStatus;
 import proxy.auth.ClientAuthenticator;
+import util.PathUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
+
+import static util.ExceptionHandling.attemptQuiet;
 
 public class GuiSettings {
     public TextField server;
@@ -45,6 +51,7 @@ public class GuiSettings {
     public Label portVerifyLabel;
     public Slider extendedDistance;
     public TextField extendedDistanceText;
+    public Hyperlink openWorldDir;
     Config config;
     private boolean portInUse;
 
@@ -89,6 +96,15 @@ public class GuiSettings {
         GuiManager.bindTooltip(authDetailsVerifyLabel, authTooltip);
 
         authHelpLink.setOnAction(actionEvent -> GuiManager.openLink("https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication"));
+        openWorldDir.setOnAction(e -> attemptQuiet(() -> {
+            Path p = PathUtils.toPath(worldOutputDir.getText());
+            File f = p.toFile();
+            if (f.exists() && f.isDirectory()) {
+                GuiManager.openLink(p.toString());
+            } else if (p.getParent().toFile().exists()) {
+                GuiManager.openLink(p.getParent().toString());
+            }
+        }));
 
         accessToken.textProperty().addListener((ov, oldV, newV) -> {
             // trim invalid characters, remove accessToken at front in case they copied the entire line

@@ -2,11 +2,11 @@ package game.data.dimension;
 
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.IntTag;
+import util.PathUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 
 /**
@@ -45,8 +45,8 @@ public class DimensionType {
      * Write the dimension type data to the dimension_type directory.
      */
     public void write(Path prefix) throws IOException {
-        Path destination = Paths.get(prefix.toString(), namespace, "dimension_type", name + ".json");
-        destination.toFile().getParentFile().mkdirs();
+        Path destination = PathUtils.toPath(prefix.toString(), namespace, "dimension_type", name + ".json");
+        Files.createDirectories(destination.getParent());
 
         Files.write(destination, Collections.singleton(DimensionCodec.GSON.toJson(properties)));
     }

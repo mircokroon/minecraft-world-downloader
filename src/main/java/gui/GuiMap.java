@@ -25,6 +25,7 @@ import javafx.scene.image.WritableImage;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
+import util.PathUtils;
 
 import javax.imageio.ImageIO;
 import java.io.File;
@@ -385,7 +386,7 @@ public class GuiMap {
         WritableImage img = temp.snapshot(snapshotParameters, new WritableImage(width, height));
 
         try {
-            File dest = Paths.get(Config.getWorldOutputDir(), "rendered.png").toFile();
+            File dest = PathUtils.toPath(Config.getWorldOutputDir(), "rendered.png").toFile();
             ImageIO.write(SwingFXUtils.fromFXImage(img, null), "png", dest);
             System.out.println("Saved overview to " + dest.toString());
         } catch (IOException e) {
