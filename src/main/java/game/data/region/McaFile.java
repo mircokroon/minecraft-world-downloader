@@ -7,6 +7,7 @@ import game.data.dimension.Dimension;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import org.apache.commons.io.IOUtils;
+import util.PathUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +31,7 @@ public class McaFile {
      */
     public McaFile(File file) throws IOException {
         chunkMap = readFile(file);
-        filePath = Paths.get(file.getAbsolutePath());
+        filePath = PathUtils.toPath(file.getAbsolutePath());
         String[] bits = file.getName().split("\\.");
         regionLocation = new Coordinate2D(Integer.parseInt(bits[1]), Integer.parseInt(bits[2]));
     }
@@ -99,7 +100,7 @@ public class McaFile {
         regionLocation = pos.offsetRegion();
 
         String filename = "r." + regionLocation.getX() + "." + regionLocation.getZ() + ".mca";
-        Path filePath = Paths.get(Config.getWorldOutputDir(),pos.getDimension().getPath(), "region", filename);
+        Path filePath = PathUtils.toPath(Config.getWorldOutputDir(),pos.getDimension().getPath(), "region", filename);
 
         this.chunkMap = new HashMap<>();
         if (filePath.toFile().exists()) {

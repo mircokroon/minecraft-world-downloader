@@ -17,6 +17,7 @@ import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
 import proxy.auth.AuthDetails;
+import util.PathUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -28,7 +29,7 @@ import java.util.function.Consumer;
 
 public class Config {
     private static final int DEFAULT_VERSION = 340;
-    private static final Path CONFIG_PATH = Paths.get("cache", "config.json");
+    private static Path configPath;
 
     private static Consumer<PacketBuilder> injector;
     private static Config instance;
@@ -54,18 +55,20 @@ public class Config {
      */
     private static Config createConfig() {
         try {
-            File file = CONFIG_PATH.toFile();
+            File file = configPath.toFile();
             if (file.exists() && file.isFile()) {
                 return new Gson().fromJson(new JsonReader(new FileReader(file)), Config.class);
             }
         } catch (Exception ex) {
-            System.out.println("Cannot read " + CONFIG_PATH.toString());
+            System.out.println("Cannot read " + configPath.toString());
             ex.printStackTrace();
         }
         return new Config();
     }
 
     public static void init(String[] args) {
+        configPath = PathUtils.toPath("cache", "config.json");
+
         instance = createConfig();
         CmdLineParser parser = new CmdLineParser(instance);
         try {
@@ -169,8 +172,8 @@ public class Config {
     private void writeSettings() {
         try {
             String contents = new GsonBuilder().setPrettyPrinting().create().toJson(this);
-            Files.createDirectories(CONFIG_PATH.getParent());
-            Files.write(CONFIG_PATH, Collections.singleton(contents));
+            Files.createDirectories(configPath.getParent());
+            Files.write(configPath, Collections.singleton(contents));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -178,8 +181,8 @@ public class Config {
 
     public static void clearSettings() {
         try {
-            if (CONFIG_PATH.toFile().exists()) {
-                CONFIG_PATH.toFile().deleteOnExit();
+            if (configPath.toFile().exists()) {
+                configPath.toFile().deleteOnExit();
             }
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -208,9 +211,17 @@ public class Config {
      * Get the platform-specific default path for the Minecraft installation directory.
      * @return the path as a string
      */
-    private static String getDefaultPath() {
+    public static String getDefaultMinecraftPath() {
         if (SystemUtils.IS_OS_WINDOWS) {
-            return Paths.get("%appdata%", ".minecraft").toString();
+            String path = Paths.get("%appdata%", ".minecraft").toString();
+
+            // handle common %APPDATA% env variable for Windows
+            if (path.toUpperCase().contains("%APPDATA%") && System.getenv("appdata") != null) {
+                String appdataPath = System.getenv("appdata").replace("\\", "\\\\");
+                path = path.replaceAll("(?i)%APPDATA%", appdataPath);
+            }
+
+            return path;
         } else if (SystemUtils.IS_OS_LINUX) {
             return Paths.get(System.getProperty("user.home"), ".minecraft").toString();
         } else if (SystemUtils.IS_OS_UNIX) {
@@ -259,15 +270,7 @@ public class Config {
      * @return the contents of the file
      */
     public static String getMinecraftPath() {
-        String path = instance.minecraftDir;
-
-        // handle common %APPDATA% env variable for Windows
-        if (path.toUpperCase().contains("%APPDATA%") && System.getenv("appdata") != null) {
-            String appdataPath = System.getenv("appdata").replace("\\", "\\\\");
-            path = path.replaceAll("(?i)%APPDATA%", appdataPath);
-        }
-
-        return path;
+        return instance.minecraftDir;
     }
 
     /**
@@ -321,7 +324,7 @@ public class Config {
 
     @Option(name = "--minecraft-dir", aliases = "-m",
             usage = "Path to your Minecraft installation, used to retrieve Minecraft authentication details.")
-    public String minecraftDir = getDefaultPath();
+    public String minecraftDir = getDefaultMinecraftPath();
 
     @Option(name = "--output", aliases = "-o",
             usage = "The world output directory. If the world already exists, it will be updated.")

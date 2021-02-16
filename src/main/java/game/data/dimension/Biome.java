@@ -1,12 +1,11 @@
 package game.data.dimension;
 
-import com.google.gson.*;
 import se.llbit.nbt.*;
+import util.PathUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,7 +40,7 @@ public class Biome {
      * Write this biome to the world/biome folder.
      */
     public void write(Path fromPath) throws IOException {
-        Path p = Paths.get(fromPath.toString(), namespace, "worldgen", "biome", path, name + ".json");
+        Path p = PathUtils.toPath(fromPath.toString(), namespace, "worldgen", "biome", path, name + ".json");
         Files.createDirectories(p.getParent());
         Files.write(p, Collections.singleton(properties.json()));
     }

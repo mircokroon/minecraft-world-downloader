@@ -5,7 +5,7 @@ import proxy.IExceptionHandler;
 
 public class ExceptionHandling {
     /**
-     * Simple method to make exception handling cleaner.
+     * Method to make exception handling cleaner.
      */
     public static void attempt(IExceptionHandler r, IExceptionConsumer failure) {
         try {
@@ -16,9 +16,14 @@ public class ExceptionHandling {
     }
 
     /**
-     * Simple method to make exception handling cleaner.
+     * Method to make exception handling cleaner.
      */
     public static void attempt(IExceptionHandler r) {
         attempt(r, Throwable::printStackTrace);
+    }
+
+
+    public static void attemptQuiet(IExceptionHandler r) {
+        attempt(r, (e) -> {});
     }
 }

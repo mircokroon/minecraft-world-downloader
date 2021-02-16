@@ -13,6 +13,7 @@ import javafx.event.EventType;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.SeparatorMenuItem;
+import util.PathUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -62,7 +63,7 @@ public class RightClickMenu extends ContextMenu {
         menu.add(new SeparatorMenuItem());
 
         menu.add(construct("Write chunk 0, 0", e -> {
-            Path p = Paths.get(Config.getWorldOutputDir(), "", "region", "r.0.0.mca");
+            Path p = PathUtils.toPath(Config.getWorldOutputDir(), "", "region", "r.0.0.mca");
             ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
 
             String filename = "chunkdata.bin";

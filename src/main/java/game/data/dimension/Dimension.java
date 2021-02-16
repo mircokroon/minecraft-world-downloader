@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import config.Config;
 import game.data.WorldManager;
 import se.llbit.nbt.SpecificTag;
+import util.PathUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Objects;
@@ -73,14 +73,14 @@ public class Dimension {
             return "";
         }
 
-        return Paths.get("dimensions", namespace, name).toString();
+        return PathUtils.toPath("dimensions", namespace, name).toString();
     }
 
     /**
      * Write the dimension data to the dimension directory.
      */
     public void write(Path prefix) throws IOException {
-        Path destination = Paths.get(prefix.toString(), namespace, "dimension", name + ".json");
+        Path destination = PathUtils.toPath(prefix.toString(), namespace, "dimension", name + ".json");
         Files.createDirectories(destination.getParent());
 
         DimensionDefinition definition = new DimensionDefinition(type);
@@ -104,7 +104,7 @@ public class Dimension {
 
             // re-write since we write the dimension information on join otherwise
             try {
-                write(Paths.get(Config.getWorldOutputDir(), "datapacks", "downloaded", "data"));
+                write(PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data"));
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -32,6 +32,7 @@ import se.llbit.nbt.LongTag;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.StringTag;
 import se.llbit.nbt.Tag;
+import util.PathUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -156,11 +157,11 @@ public class WorldManager {
 
         // We can immediately try to write the dimension data to the proper directory.
         try {
-            Path p = Paths.get(Config.getWorldOutputDir(), "datapacks", "downloaded", "data");
+            Path p = PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data");
             if (codec.write(p)) {
 
                 // we need to copy that pack.mcmeta file from so that Minecraft will recognise the datapack
-                Path packMeta = Paths.get(p.getParent().toString(), "pack.mcmeta");
+                Path packMeta = PathUtils.toPath(p.getParent().toString(), "pack.mcmeta");
                 InputStream in = WorldManager.class.getClassLoader().getResourceAsStream("pack.mcmeta");
                 byte[] bytes = IOUtils.toByteArray(in);
                 Files.write(packMeta, bytes);
@@ -217,7 +218,7 @@ public class WorldManager {
      * Read from the save path to see which chunks have been saved already.
      */
     private Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
-        Path exportDir = Paths.get(Config.getWorldOutputDir(), dimension.getPath(), "region");
+        Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
 
         if (!exportDir.toFile().exists()) {
             return Stream.empty();
@@ -249,9 +250,9 @@ public class WorldManager {
      */
     private void saveLevelData() throws IOException {
         // make sure the folder exists
-        Files.createDirectories(Paths.get(Config.getWorldOutputDir()));
+        Files.createDirectories(PathUtils.toPath(Config.getWorldOutputDir()));
 
-        File levelDat = Paths.get(Config.getWorldOutputDir(), "level.dat").toFile();
+        File levelDat = PathUtils.toPath(Config.getWorldOutputDir(), "level.dat").toFile();
 
         // if there is no level.dat yet, make one from the default
         InputStream fileInput;
@@ -528,7 +529,7 @@ public class WorldManager {
         ChunkFactory.getInstance().clear();
 
         try {
-            File dir = Paths.get(Config.getWorldOutputDir(), this.dimension.getPath(), "region").toFile();
+            File dir = PathUtils.toPath(Config.getWorldOutputDir(), this.dimension.getPath(), "region").toFile();
 
             if (dir.isDirectory()) {
                 FileUtils.cleanDirectory(dir);
@@ -599,7 +600,7 @@ public class WorldManager {
             List<Coordinate2D> value = entry.getValue();
 
             String filename = "r." + key.getX() + "." + key.getZ() + ".mca";
-            File f = Paths.get(Config.getWorldOutputDir(), this.dimension.getPath(), "region", filename).toFile();
+            File f = PathUtils.toPath(Config.getWorldOutputDir(), this.dimension.getPath(), "region", filename).toFile();
 
             if (!f.exists()) {
                 continue;

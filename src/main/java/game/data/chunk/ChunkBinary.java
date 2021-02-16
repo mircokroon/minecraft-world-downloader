@@ -5,11 +5,11 @@ import game.data.coordinates.CoordinateDim2D;
 import game.data.region.McaFile;
 import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;
+import util.PathUtils;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 
 /**
@@ -52,7 +52,7 @@ public class ChunkBinary implements Serializable {
         if (Config.writeChunksAsNbt()) {
             String filename = chunk.location.getX() + "_" + chunk.location.getZ();
 
-            Path output = Paths.get(Config.getWorldOutputDir(), "debug", filename);
+            Path output = PathUtils.toPath(Config.getWorldOutputDir(), "debug", filename);
             Files.createDirectories(output.getParent());
             Files.write(output, Collections.singleton(nbt.tag.toString()));
         }
