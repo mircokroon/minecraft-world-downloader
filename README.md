@@ -1,6 +1,11 @@
 # minecraft-world-downloader
 A Minecraft world downloader that works by intercepting & decrypting network traffic between the client and the server to read & save chunk data. Chunks can be sent back to the client to extend the render distance.
 
+### Downloads
+Latest Windows release: [world-downloader.exe](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe)
+
+Cross-platform jar: [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
+
 ### Features
 - Requires no client modifications and as such works with every game client, vanilla or not
 - Automatically merge into previous downloads or existing worlds
@@ -15,7 +20,7 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 - Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+
 
 ### Basic usage
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the latest release and run it by double-clicking it. Enter the server address in the address field and press start. Then connect to address `localhost` in Minecraft to start downloading.
+[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe) the latest release and run it. Enter the server address in the address field and press start. Instead of connecting to the server itself, connect to `localhost` in Minecraft to start downloading the world.
 
 <img src="https://i.imgur.com/bo3i1oA.png">
 
@@ -23,7 +28,7 @@ Additional settings can be changed in the other tabs of the settings window.
 
 
 ### Commandline
-Run `world-downloader.jar` using the commandline by running:
+[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the cross-platform `world-downloader.jar` and run it using the commandline:
 
 ```
 java -jar world-downloader.jar -s address.to.server.com
@@ -84,11 +89,11 @@ java -jar world-downloader.jar -s address.to.server.com --no-gui
 <details>
   <summary>Build project to executable jar file</summary>
   
- Building the project manually can be done with the Maven assembly plugin:
+ Building the project manually can be done using Maven:
   ```
   git clone https://github.com/mircokroon/minecraft-world-downloader
   cd minecraft-world-downloader
-  mvn assembly:assembly
+  mvn package
   java -jar ./target/world-downloader.jar -s address.to.server.com
   ```
 
