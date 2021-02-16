@@ -12,7 +12,7 @@ jobs:
           java-version: '8'
           java-package: jdk+fx
       - run: |
-          mvn assembly:assembly
+          mvn package
   test:
     runs-on: ubuntu-latest
     steps:
