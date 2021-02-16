@@ -2,6 +2,10 @@ package gui;
 
 
 import config.Config;
+import gui.components.DefaultIntField;
+import gui.components.DefaultTextField;
+import gui.components.IntField;
+import gui.components.LongField;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -17,25 +21,25 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
 import static util.ExceptionHandling.attemptQuiet;
 
 public class GuiSettings {
+    private static final int PORT_DEFAULT = 25565;
     public TextField server;
-    public TextField portRemote;
-    public TextField portLocal;
+    public DefaultIntField portRemote;
+    public DefaultIntField portLocal;
 
     public TextField worldOutputDir;
-    public TextField centerX;
-    public TextField centerZ;
-    public TextField levelSeed;
+    public IntField centerX;
+    public IntField centerZ;
+    public LongField levelSeed;
 
     public CheckBox measureRenderDistance;
     public CheckBox markUnsaved;
-    public TextField overviewZoom;
+    public IntField overviewZoom;
 
     public Button saveButton;
     public Tab errTab;
@@ -50,7 +54,7 @@ public class GuiSettings {
     public Hyperlink authHelpLink;
     public Label portVerifyLabel;
     public Slider extendedDistance;
-    public TextField extendedDistanceText;
+    public IntField extendedDistanceText;
     public Hyperlink openWorldDir;
     Config config;
     private boolean portInUse;
@@ -66,6 +70,7 @@ public class GuiSettings {
             saveButton.setText("Save");
         }
 
+
         // connection tab
         server.setText(config.server);
         portRemote.setText("" + config.portRemote);
@@ -74,22 +79,21 @@ public class GuiSettings {
 
         // output tab
         worldOutputDir.setText(config.worldOutputDir);
-        centerX.setText("" + config.centerX);
-        centerZ.setText("" + config.centerZ);
-        levelSeed.setText("" + config.levelSeed);
+        centerX.setValue(config.centerX);
+        centerZ.setValue(config.centerZ);
+        levelSeed.setLongValue(config.levelSeed);
 
         // general tab
         extendedDistance.setValue(config.extendedRenderDistance);
-        extendedDistanceText.setText("" + config.extendedRenderDistance);
+        extendedDistanceText.setValue(config.extendedRenderDistance);
         measureRenderDistance.setSelected(config.measureRenderDistance);
         markUnsaved.setSelected(!config.disableMarkUnsavedChunks);
-        overviewZoom.setText("" + config.zoomLevel);
+        overviewZoom.setValue(config.zoomLevel);
 
         // auth tab
         minecraftUsername.setText(config.username);
         accessToken.setText(config.accessToken);
 
-        numeric(Arrays.asList(portRemote, portLocal, centerX, centerZ, levelSeed, overviewZoom, extendedDistanceText));
         disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
 
         authTooltip = new Tooltip("");
@@ -143,11 +147,10 @@ public class GuiSettings {
         portLocal.focusedProperty().addListener((ov, oldVal, newVal) -> verifyLocalPort());
         verifyLocalPort();
 
-
         extendedDistance.valueProperty().addListener((ov, oldV, newV) -> setRenderDistance(newV.intValue()));
         extendedDistanceText.textProperty().addListener((ov, oldV, newV) -> {
             if (newV.length() > 0) {
-                setRenderDistance(Integer.parseInt(newV));
+                setRenderDistance(extendedDistanceText.getAsInt());
             }
         });
     }
@@ -155,7 +158,7 @@ public class GuiSettings {
     private void setRenderDistance(int v) {
         int val = Math.max(0, Math.min(32, v));
         extendedDistance.setValue(val);
-        extendedDistanceText.setText(val + "");
+        extendedDistanceText.setValue(val);
     }
 
     private void updateSaveButtonState() {
@@ -182,7 +185,7 @@ public class GuiSettings {
     }
 
     private void verifyLocalPort() {
-        if (portInUse(Integer.parseInt(portLocal.getText()))) {
+        if (portInUse(portLocal.getAsInt())) {
             portVerifyLabel.setText("Port in use!");
             portInUse = true;
         } else {
@@ -263,37 +266,26 @@ public class GuiSettings {
     }
 
     /**
-     * Handle numeric formatting for text fields that should be numeric only. Reject all non 0-9 characters.
-     */
-    private void numeric(List<TextField> numericFields) {
-        numericFields.forEach(field -> field.textProperty().addListener((observable, oldVal, newVal) -> {
-            if (!newVal.matches("\\d*")) {
-                field.setText(oldVal);
-            }
-        }));
-    }
-
-    /**
      * Write the settings from the GUI to the config file.
      */
     public void saveSettings(ActionEvent actionEvent) {
         // connection tab
         config.server = server.getText();
-        config.portRemote = Integer.parseInt(portRemote.getText());
-        config.portLocal = Integer.parseInt(portLocal.getText());
+        config.portRemote = portRemote.getAsInt();
+        config.portLocal = portLocal.getAsInt();
         config.minecraftDir = minecraftDir.getText();
 
         // output tab
         config.worldOutputDir = worldOutputDir.getText();
-        config.centerX = Integer.parseInt(centerX.getText());
-        config.centerZ = Integer.parseInt(centerZ.getText());
-        config.levelSeed = Integer.parseInt(levelSeed.getText());
+        config.centerX = centerX.getAsInt();
+        config.centerZ = centerZ.getAsInt();
+        config.levelSeed = levelSeed.getAsLong();
 
         // general tab
         config.extendedRenderDistance = (int) extendedDistance.getValue();
         config.measureRenderDistance = measureRenderDistance.isSelected();
         config.disableMarkUnsavedChunks = !markUnsaved.isSelected();
-        config.zoomLevel = Integer.parseInt(overviewZoom.getText());
+        config.zoomLevel = overviewZoom.getAsInt();
 
         // auth tab
         config.username = minecraftUsername.getText();

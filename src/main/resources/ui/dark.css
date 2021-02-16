@@ -35,9 +35,11 @@
      -fx-border-color: transparent;
 }
  .text-input {
-     -fx-background-color: #dddddd;
+     -fx-background-color: #eeeeee;
      -fx-background-radius: 0px;
      -fx-border-radius: 0px;
+     -fx-text-base-color: #000000;
+     -fx-font-size: 1.15em;
 }
  .check-box {
      -fx-cursor: hand;
@@ -46,6 +48,11 @@
      -fx-background-color: #ffffff;
      -fx-highlight-text-fill: ladder( -fx-highlight-fill, -fx-light-text-color 85%, -fx-dark-text-color 90%, -fx-dark-text-color 95%, -fx-mid-text-color 100% );
 }
+ .text-field:is-default {
+    -fx-font-style: italic;
+    -fx-text-fill: #777777;
+}
+
  .backdrop {
      -fx-effect: dropshadow(gaussian, rgba(0.2, 0.2, 0.2, 0.9), 10, 0.5, 0.0, 0.0);
 }
