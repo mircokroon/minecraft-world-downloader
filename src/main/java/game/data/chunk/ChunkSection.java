@@ -1,18 +1,16 @@
 package game.data.chunk;
 
-import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import packets.builder.PacketBuilder;
-import packets.lib.ByteQueue;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.Tag;
 
 import java.util.Arrays;
-import java.util.Objects;
 
 /**
  * Class to hold a 16 block tall chunk section.
@@ -80,13 +78,18 @@ public abstract class ChunkSection {
         return y;
     }
 
-    public int height(int x, int z) {
+    public int computeHeight(int x, int z, MutableBoolean foundAir) {
         for (int y = 15; y >= 0 ; y--) {
             int blockStateId = getNumericBlockStateAt(x, y, z);
 
             BlockState state = GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(blockStateId);
 
             if (state == null || !state.isSolid()) {
+                foundAir.setTrue();
+                continue;
+            }
+
+            if (foundAir.isFalse()) {
                 continue;
             }
             return y;
