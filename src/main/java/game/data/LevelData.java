@@ -55,10 +55,13 @@ public class LevelData {
     }
 
     public void load() throws IOException {
+        load(false);
+    }
+    private void load(boolean forceInternal) throws IOException {
         Files.createDirectories(outputDir);
 
         InputStream fileInput;
-        if (!file.exists() || !file.isFile()) {
+        if (!file.exists() || !file.isFile() || forceInternal) {
             fileInput = WorldManager.class.getClassLoader().getResourceAsStream("level.dat");
         } else {
             fileInput = new FileInputStream(file);
@@ -66,10 +69,17 @@ public class LevelData {
 
         byte[] fileContent = IOUtils.toByteArray(fileInput);
 
-        // get default level.dat
-        this.root = NamedTag.read(
-                new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
-        );
+        try {
+            // get default level.dat
+            this.root = NamedTag.read(
+                    new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
+            );
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            if (!forceInternal) {
+                load(true);
+            }
+        }
 
         this.data = (CompoundTag) root.unpack().get("Data");
     }

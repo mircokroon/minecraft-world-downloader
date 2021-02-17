@@ -33,7 +33,6 @@ public abstract class Chunk extends ChunkEntities {
     private Runnable onUnload;
     private boolean isNewChunk;
     private boolean saved;
-    private int[] heightMap;
     private ChunkImageFactory imageFactory;
 
     public Chunk(CoordinateDim2D location) {
@@ -220,13 +219,7 @@ public abstract class Chunk extends ChunkEntities {
                 .collect(Collectors.toList());
     }
 
-    public int heightAt(int x, int z) {
-        return heightMap[z << 4 | x];
-    }
 
-    public boolean hasHeightMaps() {
-        return heightMap != null;
-    }
 
     /**
      * Parse the chunk data.
@@ -337,11 +330,7 @@ public abstract class Chunk extends ChunkEntities {
         packet.writeVarInt(res);
     }
 
-    protected void writeBiomes(PacketBuilder packet) {
-    }
-
-    ;
-
+    protected void writeBiomes(PacketBuilder packet) { }
 
     /**
      * Mark this as a new chunk if it's sent in parts, which non-vanilla servers will do to send chunks to the client
@@ -393,14 +382,13 @@ public abstract class Chunk extends ChunkEntities {
 
         if (!Objects.equals(location, chunk.location)) return false;
         if (!Arrays.deepEquals(chunkSections, chunk.chunkSections)) return false;
-        return Arrays.equals(heightMap, chunk.heightMap);
+        return true;
     }
 
     @Override
     public int hashCode() {
         int result = location != null ? location.hashCode() : 0;
         result = 31 * result + Arrays.hashCode(chunkSections);
-        result = 31 * result + Arrays.hashCode(heightMap);
         return result;
     }
 
@@ -409,7 +397,6 @@ public abstract class Chunk extends ChunkEntities {
         return "Chunk{" +
                 "location=" + location +
                 ", chunkSections=" + Arrays.toString(chunkSections) +
-                ", heightMap=" + PrintUtils.array(heightMap) +
                 '}';
     }
 
@@ -419,15 +406,8 @@ public abstract class Chunk extends ChunkEntities {
         }
     }
 
-    public void setHeightMap(int[] heightMap) {
-        this.heightMap = heightMap;
-    }
-
     public ChunkImageFactory getChunkImageFactory() {
         if (imageFactory == null) {
-            if(location.getX() == -6 && location.getZ() == -6) {
-                System.out.println("created");
-            }
             imageFactory = new ChunkImageFactory(this);
         }
         return imageFactory;

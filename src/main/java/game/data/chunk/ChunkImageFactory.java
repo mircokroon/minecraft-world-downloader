@@ -19,10 +19,12 @@ import java.util.function.Consumer;
  * Handles creating images from a Chunk.
  */
 public class ChunkImageFactory {
-    public static boolean fail = false;
     private final Chunk c;
     private final List<CoordinateDim2D> registeredCallbacks = new ArrayList<>(2);
     private Consumer<Image> onImageDone;
+
+    private Chunk south;
+    private Chunk north;
 
     public ChunkImageFactory(Chunk c) {
         this.c = c;
@@ -52,17 +54,27 @@ public class ChunkImageFactory {
         }
     }
 
+    private int[] heightMap;
+
+    public int heightAt(int x, int z) {
+        return heightMap[z << 4 | x];
+    }
+
+    public void setHeightMap(int[] heightMap) {
+        this.heightMap = heightMap;
+    }
+
     /**
      * Compares the blocks south and north, use the gradient to get a multiplier for the colour.
      * @return a colour multiplier to adjust the color value by. If they elevations are the same it will be 1.0, if the
      * northern block is above the current its 0.8, otherwise its 1.2.
      */
-    private double getColorShader(int x, int z) {
-        int yNorth = getOtherHeight(x, z, 0, -1);
-        if (yNorth < 0) { return 1; }
+    private double getColorShader(int x, int y, int z) {
+        int yNorth = getOtherHeight(x, z, 0, -1, north);
+        if (yNorth < 0) { yNorth = y; }
 
-        int ySouth = getOtherHeight(x, z, 15, 1);
-        if (ySouth < 0) { return 1; }
+        int ySouth = getOtherHeight(x, z, 15, 1, south);
+        if (ySouth < 0) { ySouth = y; }
 
         if (ySouth < yNorth) {
             return 0.6 + (0.4 / (1 + yNorth - ySouth));
@@ -76,19 +88,15 @@ public class ChunkImageFactory {
      * Get the height of a neighbouring block. If the block is not on this chunk, either load it or register a callback
      * for when it becomes available.
      */
-    private int getOtherHeight(int x, int z, int zLimit, int offsetZ) {
+    private int getOtherHeight(int x, int z, int zLimit, int offsetZ, Chunk other) {
         if (z != zLimit) {
-            return c.heightAt(x, z + offsetZ);
+            return heightAt(x, z + offsetZ);
         }
 
-        CoordinateDim2D coordinate = c.location.addWithDimension(0, offsetZ);
-        Chunk other = WorldManager.getInstance().getChunk(coordinate);
-
-        if (other == null || !other.hasHeightMaps()) {
-            registerChunkLoadCallback(coordinate);
+        if (other == null) {
             return -1;
         } else {
-            return other.heightAt(x, 15 - zLimit);
+            return other.getChunkImageFactory().heightAt(x, 15 - zLimit);
         }
     }
 
@@ -97,18 +105,16 @@ public class ChunkImageFactory {
      * Generate and return the overview image for this chunk.
      */
     public void createImage() {
-        System.out.println("creating " + c.location);
-        if (c.location.getZ() == -6 && c.location.getX() == -6) {
-            new RuntimeException().printStackTrace();
-        }
-
         WritableImage i = new WritableImage(16, 16);
         PixelWriter writer = i.getPixelWriter();
+
+        // setup north/south chunks
+        setupAdjacentChunks();
 
         try {
             for (int x = 0; x < 16; x++) {
                 for (int z = 0; z < 16; z++) {
-                    int y = c.heightAt(x, z);
+                    int y = heightAt(x, z);
                     BlockState blockState = c.getBlockStateAt(x, y, z);
 
                     SimpleColor color;
@@ -118,7 +124,7 @@ public class ChunkImageFactory {
                         color = shadeTransparent(blockState, x, y, z);
                     }
 
-                    color = color.shaderMultiply(getColorShader(x, z));
+                    color = color.shaderMultiply(getColorShader(x, y, z));
 
                     writer.setColor(x, z, color.toJavaFxColor());
 
@@ -135,6 +141,22 @@ public class ChunkImageFactory {
 
         if (this.onImageDone != null) {
             this.onImageDone.accept(i);
+        }
+    }
+
+    private void setupAdjacentChunks() {
+        // south
+        CoordinateDim2D coordinateSouth = c.location.addWithDimension(0, 1);
+        this.south = WorldManager.getInstance().getChunk(coordinateSouth);
+        if (this.south == null) {
+            registerChunkLoadCallback(coordinateSouth);
+        }
+
+        // north
+        CoordinateDim2D coordinateNorth = c.location.addWithDimension(0, -1);
+        this.north = WorldManager.getInstance().getChunk(coordinateNorth);
+        if (this.north == null) {
+            registerChunkLoadCallback(coordinateNorth);
         }
     }
 
@@ -164,15 +186,13 @@ public class ChunkImageFactory {
     }
 
     protected void computeHeightMap() {
-        int[] heightMap = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
+        this.heightMap = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
 
         for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
             for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
                 heightMap[z << 4 | x] = computeHeight(x, z);
             }
         }
-
-        c.setHeightMap(heightMap);
     }
 
     /**
