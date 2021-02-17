@@ -2,6 +2,7 @@ package proxy;
 
 import config.Config;
 import game.NetworkMode;
+import game.data.WorldManager;
 import game.protocol.HandshakeProtocol;
 import game.protocol.LoginProtocol;
 import game.protocol.StatusProtocol;
@@ -76,6 +77,7 @@ public class ConnectionManager {
         serverBoundDataReader.reset();
         clientBoundDataReader.reset();
         setMode(NetworkMode.HANDSHAKE);
+        WorldManager.getInstance().resetConnection();
     }
 
     public EncryptionManager getEncryptionManager() {

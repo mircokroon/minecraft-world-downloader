@@ -1,12 +1,12 @@
 package gui;
 
 import config.Config;
-import game.data.coordinates.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.ChunkBinary;
+import game.data.chunk.ChunkImageFactory;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.region.McaFile;
-import javafx.application.Platform;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
@@ -19,7 +19,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 public class RightClickMenu extends ContextMenu {
@@ -45,7 +44,9 @@ public class RightClickMenu extends ContextMenu {
         menu.add(new SeparatorMenuItem());
 
         menu.add(construct("Save overview to file", e -> handler.export()));
-        menu.add(construct("Draw all existing chunks", e -> WorldManager.getInstance().drawExistingChunks()));
+        menu.add(construct("Draw nearby existing chunks", e -> {
+            new Thread(() -> WorldManager.getInstance().drawExistingChunks()).start();
+        }));
 
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
 

@@ -8,6 +8,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Function;
 
 public class RenderDistanceExtender extends Thread {
@@ -28,6 +31,8 @@ public class RenderDistanceExtender extends Thread {
     private final WorldManager worldManager;
     private boolean invalidated = false;
     private boolean active = false;
+
+    private ExecutorService executorService;
 
     public RenderDistanceExtender(WorldManager worldManager, int extendedDistance) {
         this.reset();
@@ -74,28 +79,8 @@ public class RenderDistanceExtender extends Thread {
         this.active = this.serverDistance < this.extendedDistance;
     }
 
-    @Override
-    public void run() {
-        super.run();
-        this.setPriority(Thread.MIN_PRIORITY);
-
-        while (true) synchronized (this) {
-            try {
-                this.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            Coordinate2D difference = this.newPlayerChunk.subtract(this.playerChunk);
-            this.playerChunk = this.newPlayerChunk;
-
-            // if we moved just 1 chunk from the previous one
-            if (!invalidated && Math.abs(difference.getX()) + Math.abs(difference.getZ()) == 1) {
-                updateSingleRow(difference);
-            } else {
-                updateFull();
-            }
-        }
+    public void start() {
+        executorService = Executors.newSingleThreadExecutor((r) -> new Thread(r,"Render Distance Extender"));
     }
 
     public void updatePlayerPos(Coordinate2D newPos) {
@@ -111,9 +96,22 @@ public class RenderDistanceExtender extends Thread {
                 return;
             }
 
-            synchronized (this) {
-                this.notify();
+            if (executorService != null) {
+                executorService.execute(this::recompute);
             }
+
+        }
+    }
+
+    private void recompute() {
+        Coordinate2D difference = this.newPlayerChunk.subtract(this.playerChunk);
+        this.playerChunk = this.newPlayerChunk;
+
+        // if we moved just 1 chunk from the previous one
+        if (!invalidated && Math.abs(difference.getX()) + Math.abs(difference.getZ()) == 1) {
+            updateSingleRow(difference);
+        } else {
+            updateFull();
         }
     }
 
@@ -225,9 +223,6 @@ public class RenderDistanceExtender extends Thread {
         }
 
         int dist = location.blockDistance(playerChunk);
-        if (dist > 32) {
-            System.out.println(location);
-        }
         if (dist > maxDistance && maxDistance < 32 && dist < 32) {
             maxDistance = dist;
         }

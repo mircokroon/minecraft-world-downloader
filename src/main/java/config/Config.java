@@ -344,11 +344,11 @@ public class Config {
 
     @Option(name = "--no-gui", depends = "--server",
             usage = "Disable the GUI")
-    public boolean disableGui = false;
+    public transient boolean disableGui = false;
 
     @Option(name = "--mark-new-chunks",
             usage = "Mark new chunks in an orange outline.")
-    public boolean markNewChunks = false;
+    public transient boolean markNewChunks = false;
 
     @Option(name = "--disable-chunk-saving",
             usage = "Disable writing chunks to disk, mostly for debugging purposes.")

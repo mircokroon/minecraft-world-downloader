@@ -1,6 +1,7 @@
 package gui;
 
 import config.Config;
+import game.data.chunk.ChunkImageFactory;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
@@ -32,6 +33,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -76,13 +78,17 @@ public class GuiMap {
 
     @FXML
     void initialize() {
-        Platform.runLater(() -> WorldManager.getInstance().outlineExistingChunks());
+        WorldManager manager = WorldManager.getInstance();
 
-        setDimension(Dimension.OVERWORLD);
+        Platform.runLater(manager::outlineExistingChunks);
+
+        setDimension(manager.getDimension());
+        this.playerPos = manager.getPlayerPosition().toDouble();
+
         setupCanvasProperties();
 
         GuiManager.setGraphicsHandler(this);
-        WorldManager.getInstance().setPlayerPosListener(this::updatePlayerPos);
+        manager.setPlayerPosListener(this::updatePlayerPos);
 
         setupContextMenu();
         bindScroll();
@@ -200,16 +206,14 @@ public class GuiMap {
             }
         }
 
-        Image image = chunk.getImage();
+        ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
+        imageFactory.onComplete(image -> {
+            chunkMap.put(coord, new ChunkImage(image, chunk.isSaved()));
+            drawChunkAsync(coord);
 
-        if (image == null) {
-            image = NONE;
-        }
-
-        chunkMap.put(coord, new ChunkImage(image, chunk.isSaved()));
-        drawChunkAsync(coord);
-
-        hasChanged = true;
+            hasChanged = true;
+        });
+        imageFactory.createImage();
     }
 
     void redrawAll() {
@@ -356,7 +360,12 @@ public class GuiMap {
     }
 
     public void export() {
-        Bounds fullBounds = getOverviewBounds(chunkMap.keySet());
+        List<Coordinate2D> drawables = chunkMap.entrySet().stream()
+                .filter((coord) -> coord.getValue() != NO_IMG)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        Bounds fullBounds = getOverviewBounds(drawables);
 
         // set size limit so that we don't have memory issues with the output image
         int MAX_SIZE = 2 << 12;
@@ -378,6 +387,8 @@ public class GuiMap {
 
         // draw each chunk
         for (Map.Entry<Coordinate2D, ChunkImage> entry : chunkMap.entrySet()) {
+            if (entry.getValue() == NO_IMG) { continue; }
+
             drawChunk(graphics, entry.getKey(), fullBounds, gridSize, false);
         }
 

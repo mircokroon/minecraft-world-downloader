@@ -52,11 +52,22 @@ public class Dimension {
             case "minecraft:the_nether": return NETHER;
             case "minecraft:overworld": return OVERWORLD;
             default: {
-                Dimension dim = WorldManager.getInstance().getDimensionCodec().getDimension(readString);
+                DimensionCodec codec = WorldManager.getInstance().getDimensionCodec();
+                if (codec == null) { return OVERWORLD; }
+
+                Dimension dim = codec.getDimension(readString);
                 if (dim == null) { return OVERWORLD; }
 
                 return dim;
             }
+        }
+    }
+
+    public static Dimension standardDimensionFromString(String string) {
+        switch (string) {
+            case "minecraft:the_end": return END;
+            case "minecraft:the_nether": return NETHER;
+            default: return OVERWORLD;
         }
     }
 

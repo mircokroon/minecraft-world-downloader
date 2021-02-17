@@ -79,4 +79,8 @@ public class Coordinate3D extends Coordinate2D {
         result = 31 * result + y;
         return result;
     }
+
+    public CoordinateDouble3D toDouble() {
+        return new CoordinateDouble3D(x, y, z);
+    }
 }

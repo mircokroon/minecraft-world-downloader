@@ -5,6 +5,7 @@ import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
+import game.data.dimension.Dimension;
 import gui.GuiManager;
 
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
  */
 public class Region {
+    public static final Region EMPTY = new Region(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
     private final int UNLOAD_RANGE = 24;
     private Map<Coordinate2D, Chunk> chunks;
     private CoordinateDim2D regionCoordinates;
@@ -41,8 +43,12 @@ public class Region {
      * @param coordinate the coordinate of the new chunk
      * @param chunk      the chunk to add
      */
-    public void addChunk(Coordinate2D coordinate, Chunk chunk) {
-        chunks.put(coordinate, chunk);
+    public void addChunk(Coordinate2D coordinate, Chunk chunk, boolean overrideExisting) {
+        if (overrideExisting) {
+            chunks.put(coordinate, chunk);
+        } else {
+            chunks.putIfAbsent(coordinate, chunk);
+        }
         updatedSinceLastWrite = true;
     }
 
@@ -55,13 +61,15 @@ public class Region {
         Chunk chunk = chunks.get(coordinate);
 
         if (chunk == null) {
-            return; }
+            return;
+        }
 
         if (chunk.isSaved()) {
             chunks.remove(coordinate);
         } else {
             toDelete.add(coordinate);
         }
+        chunk.unload();
     }
 
 

@@ -220,7 +220,6 @@ public class GuiManager extends Application {
         node.setOnMouseExited(event -> tooltip.hide());
     }
 
-
     /**
      * Set a chunk to being loaded.
      * @param coord the chunk coordinates
