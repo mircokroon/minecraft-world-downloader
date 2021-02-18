@@ -3,7 +3,6 @@ package gui;
 
 import config.Config;
 import gui.components.DefaultIntField;
-import gui.components.DefaultTextField;
 import gui.components.IntField;
 import gui.components.LongField;
 import javafx.application.Platform;
@@ -100,14 +99,14 @@ public class GuiSettings {
         GuiManager.bindTooltip(authDetailsVerifyLabel, authTooltip);
         GuiManager.bindTooltip(portVerifyLabel, new Tooltip("Is the downloader already running?"));
 
-        authHelpLink.setOnAction(actionEvent -> GuiManager.openLink("https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication"));
+        authHelpLink.setOnAction(actionEvent -> GuiManager.openWebLink("https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication"));
         openWorldDir.setOnAction(e -> attemptQuiet(() -> {
             Path p = PathUtils.toPath(worldOutputDir.getText());
             File f = p.toFile();
             if (f.exists() && f.isDirectory()) {
-                GuiManager.openLink(p.toString());
+                GuiManager.openFileLink(p.toString());
             } else if (p.getParent().toFile().exists()) {
-                GuiManager.openLink(p.getParent().toString());
+                GuiManager.openFileLink(p.getParent().toString());
             }
         }));
 
