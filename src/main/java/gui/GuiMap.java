@@ -21,8 +21,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
+import javafx.scene.image.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -33,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +55,8 @@ public class GuiMap {
 
     private CoordinateDouble3D playerPos;
     private double playerRotation;
+
+    private boolean enableModernImageHandling = true;
 
     private static final WritableImage BLACK = new WritableImage(1, 1);
     static {
@@ -143,11 +146,55 @@ public class GuiMap {
         redrawAll();
     }
 
+    /**
+     * Draw an image to the given canvas. In Java 9+, this just calls drawImage. In Java 8 drawImage causes super
+     * ugly artifacts due to forced interpolation, so to avoid this we manually draw the image and do nearest neighbour
+     * interpolation. 
+     */
+    private void drawImage(GraphicsContext ctx, int drawX, int drawY, int gridSize, Image img) {
+        if (enableModernImageHandling) {
+            ctx.drawImage(img, drawX, drawY, gridSize, gridSize);
+            return;
+        }
+
+        // since this drawing method does not support out of bounds drawing, check for bounds first
+        if (drawX < 0 || drawY < 0 || gridSize < 1) {
+            return;
+        }
+        if (drawX + gridSize > ctx.getCanvas().getWidth() || drawY + gridSize > ctx.getCanvas().getHeight()) {
+            return;
+        }
+
+        double imgSize = img.getWidth();
+
+        // for performance reasons, we read all pixels and write pixels through arrays. We only touch the pixel
+        // reader/writer at the start and end.
+        int imgWidth = (int) imgSize;
+        int[] input = new int[imgWidth * imgWidth];
+        int[] output = new int[gridSize * gridSize];
+
+        WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
+        img.getPixelReader().getPixels(0, 0, imgWidth, imgWidth, format, input, 0, imgWidth);
+
+        // in the loop we use the ratio to calculate where a pixel fom the input image ends up in the output
+        double ratio = imgSize / gridSize;
+        for (int x = 0; x < gridSize; x++) {
+            for (int y = 0; y < gridSize; y++) {
+                int imgX = (int) (x * ratio);
+                int imgY = (int) (y * ratio);
+
+                output[x + y * gridSize] = input[imgX + imgY * imgWidth];
+            }
+        }
+        ctx.getPixelWriter().setPixels(drawX, drawY, gridSize, gridSize, format, output, 0, gridSize);
+    }
+
     private void setSmoothingState(GraphicsContext ctx, boolean value) {
         try {
             Method m = ctx.getClass().getMethod("setImageSmoothing", boolean.class);
             m.invoke(ctx, value);
         } catch (NoSuchMethodError | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            enableModernImageHandling = false;
             // if we can't set the image smoothing, we're likely on an older Java version. This is fine, the image
             // will just be rendered slightly less beautiful.
         }
@@ -354,9 +401,11 @@ public class GuiMap {
         } else {
             // draw black before drawing chunk so that we can tell void from missing chunks
             if (drawBlack) {
-                graphics.drawImage(BLACK, drawX, drawY, gridSize, gridSize);
+                drawImage(graphics, drawX, drawY, gridSize, BLACK);
+//                graphics.drawImage(BLACK, drawX, drawY, gridSize, gridSize);
             }
-            graphics.drawImage(chunkImage.getImage(), drawX, drawY, gridSize, gridSize);
+            drawImage(graphics, drawX, drawY, gridSize, chunkImage.getImage());
+//            graphics.drawImage(chunkImage.getImage(), drawX, drawY, gridSize, gridSize);
 
             // if the chunk wasn't saved yet, mark it as such
             if (Config.markUnsavedChunks() && !chunkImage.isSaved) {
