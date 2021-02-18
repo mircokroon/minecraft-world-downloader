@@ -67,9 +67,6 @@
                         </transformer>
                     </transformers>
                     <finalName>world-downloader</finalName>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
             </configuration>
                 <executions>
                     <execution>
