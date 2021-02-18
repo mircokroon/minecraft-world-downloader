@@ -213,7 +213,7 @@ public class GuiManager extends Application {
     private void openAny(String text) throws ClassNotFoundException {
         // trigger ClassNotFoundException early - we can't catch it if it's thrown by .getHostServices
         Class.forName("com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory");
-        
+
         instance.getHostServices().showDocument(text);
     }
 
@@ -229,11 +229,9 @@ public class GuiManager extends Application {
         addIcon(this.stage);
 
         // when in GUI mode, close the application when the main stage is closed.
-        if (Config.inGuiMode()) {
-            this.stage.setOnCloseRequest(e -> {
-                System.exit(0);
-            });
-        }
+        this.stage.setOnCloseRequest(e -> {
+            System.exit(0);
+        });
 
         if (config.startWithSettings()) {
             loadSceneSettings();
