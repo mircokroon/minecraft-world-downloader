@@ -35,6 +35,10 @@ public class CoordinateDim2D extends Coordinate2D {
         return dimension == that.dimension;
     }
 
+    public CoordinateDim2D addWithDimension(int x, int z) {
+        return new CoordinateDim2D(this.x + x, this.z + z, this.dimension);
+    }
+
     @Override
     public int hashCode() {
         int result = super.hashCode();

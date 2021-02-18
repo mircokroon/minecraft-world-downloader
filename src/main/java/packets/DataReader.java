@@ -168,7 +168,7 @@ public class DataReader {
             // check if the the packet length was correct
             int expectedLength = nextPacketSize + varIntPacketSize.numBytes();
             if (currentPacket.size() != expectedLength) {
-                String msg = "Packet parsing may have been incorrect! Expected length: \" + expectedLength + \". Used bytes: \" + currentPacket.size()";
+                String msg = "Packet parsing may have been incorrect! Expected length: " + expectedLength + ". Used bytes: " + currentPacket.size();
                 new IllegalStateException(msg).printStackTrace(System.err);
             }
 

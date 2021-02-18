@@ -29,6 +29,9 @@ public class SimpleColor {
         public Color toJavaFxColor() {
             return Color.TRANSPARENT;
         }
+
+        @Override
+        public int toARGB() { return 0x0; }
     };
 
     private final double r, g, b;
@@ -79,6 +82,15 @@ public class SimpleColor {
         );
     }
 
+    public int toARGB() {
+        int res = 0xFF000000;
+        res |= toInt(r) << 16;
+        res |= toInt(g) << 8;
+        res |= toInt(b);
+
+        return res;
+    }
+
     public Color toJavaFxColor() {
         return Color.color(toDouble(r), toDouble(g), toDouble(b));
     }
@@ -88,6 +100,9 @@ public class SimpleColor {
      */
     private double toDouble(double v) {
         return Math.max(Math.min(1.0f, v / 255.0f), 0.0);
+    }
+    private int toInt(double v) {
+        return (int) Math.round(Math.max(Math.min(255, v), 0));
     }
 
     @Override

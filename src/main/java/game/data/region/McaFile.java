@@ -36,6 +36,17 @@ public class McaFile {
         regionLocation = new Coordinate2D(Integer.parseInt(bits[1]), Integer.parseInt(bits[2]));
     }
 
+    public static File coordinatesToFile(Path dir, Coordinate2D coords) {
+        String name = "r." + coords.getX() + "." + coords.getZ() + ".mca";
+        File f = Paths.get(dir.toString(), name).toFile();
+
+        if (f.exists()) {
+            return f;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Convert the MCA file into individual chunk data.
      * For details on the MCA file format: https://minecraft.gamepedia.com/Region_file_format

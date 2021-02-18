@@ -4,54 +4,35 @@ import config.Config;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
-import game.data.coordinates.Coordinate2D;
-import game.data.coordinates.Coordinate3D;
-import game.data.coordinates.CoordinateDim2D;
-import game.data.coordinates.CoordinateDouble3D;
-import game.data.entity.EntityNames;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
 import game.data.container.ContainerManager;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
+import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
+import game.data.entity.EntityNames;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import proxy.CompressionManager;
-import se.llbit.nbt.ByteTag;
-import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.DoubleTag;
-import se.llbit.nbt.ErrorTag;
-import se.llbit.nbt.IntTag;
-import se.llbit.nbt.ListTag;
-import se.llbit.nbt.LongTag;
-import se.llbit.nbt.NamedTag;
-import se.llbit.nbt.StringTag;
-import se.llbit.nbt.Tag;
 import util.PathUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static util.ExceptionHandling.attempt;
 
 /**
  * Manage the world, including saving, parsing and updating the GUI.
@@ -59,36 +40,68 @@ import static util.ExceptionHandling.attempt;
 public class WorldManager {
     private static final int INIT_SAVE_DELAY = 5 * 1000;
     private static final int SAVE_DELAY = 15 * 1000;
-
+    private static WorldManager instance;
+    private final LevelData levelData;
+    private final Map<CoordinateDim2D, Queue<Runnable>> chunkLoadCallbacks = new ConcurrentHashMap<>();
     private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
+    private Set<Dimension> existingLoaded = new HashSet<>();
 
     private EntityNames entityMap;
     private MenuRegistry menuRegistry;
     private ItemRegistry itemRegistry;
-
     private BlockColors blockColors;
 
     private boolean markNewChunks;
-
     private boolean writeChunks;
-
     private boolean isStarted;
-
     private boolean isPaused;
-
     private boolean isSaving;
 
     private ContainerManager containerManager;
-
     private DimensionCodec dimensionCodec;
-
     private RenderDistanceExtender renderDistanceExtender;
 
     private BiConsumer<CoordinateDouble3D, Double> playerPosListener;
-    private CoordinateDouble3D playerPosition = new CoordinateDouble3D(0, 80, 0);
+    private CoordinateDouble3D playerPosition;
     private double playerRotation = 0;
+    private Dimension dimension;
 
-    private Dimension dimension = Dimension.OVERWORLD;
+    protected WorldManager() {
+        this.isStarted = false;
+
+        this.levelData = new LevelData(this);
+
+        try {
+            this.levelData.load();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+
+        this.playerPosition = this.levelData.getPlayerPosition();
+        this.dimension = this.levelData.getPlayerDimension();
+    }
+
+    public static WorldManager getInstance() {
+        if (instance == null) {
+            instance = new WorldManager();
+        }
+        return instance;
+    }
+
+    public static void setInstance(WorldManager worldManager) {
+        instance = worldManager;
+    }
+
+    public void registerChunkLoadCallback(CoordinateDim2D coordinate, Runnable r) {
+        chunkLoadCallbacks.putIfAbsent(coordinate, new ConcurrentLinkedQueue<>());
+        chunkLoadCallbacks.get(coordinate).add(r);
+    }
+
+    public void deregisterChunkLoadCallback(CoordinateDim2D coordinate, Runnable r) {
+        if (chunkLoadCallbacks.containsKey(coordinate)) {
+            chunkLoadCallbacks.get(coordinate).remove(r);
+        }
+    }
 
     public Dimension getDimension() {
         return dimension;
@@ -101,6 +114,7 @@ public class WorldManager {
             this.renderDistanceExtender.invalidateChunks();
         }
         GuiManager.setDimension(this.dimension);
+        outlineExistingChunks();
     }
 
     public double getPlayerRotation() {
@@ -110,13 +124,9 @@ public class WorldManager {
     public void setPlayerRotation(double playerRotation) {
         this.playerRotation = playerRotation;
 
-        if (this.playerPosListener != null){
+        if (this.playerPosListener != null) {
             this.playerPosListener.accept(this.playerPosition, this.playerRotation);
         }
-    }
-
-    protected WorldManager() {
-        this.isStarted = false;
     }
 
     public void updateExtendedRenderDistance(int val) {
@@ -131,48 +141,12 @@ public class WorldManager {
         }
     }
 
-    public RenderDistanceExtender getRenderDistanceExtender() {
-        return renderDistanceExtender;
-    }
-
-    private static WorldManager instance;
-
-    public static WorldManager getInstance() {
-        if (instance == null) {
-            instance = new WorldManager();
-        }
-        return instance;
-    }
-
-    public static void setInstance(WorldManager worldManager) {
-        instance = worldManager;
-    }
-
-
-    /**
-     * Set the dimension codec, used to store information about the dimensions that this server supports.
-     */
-    public void setDimensionCodec(DimensionCodec codec) {
-        dimensionCodec = codec;
-
-        // We can immediately try to write the dimension data to the proper directory.
-        try {
-            Path p = PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data");
-            if (codec.write(p)) {
-
-                // we need to copy that pack.mcmeta file from so that Minecraft will recognise the datapack
-                Path packMeta = PathUtils.toPath(p.getParent().toString(), "pack.mcmeta");
-                InputStream in = WorldManager.class.getClassLoader().getResourceAsStream("pack.mcmeta");
-                byte[] bytes = IOUtils.toByteArray(in);
-                Files.write(packMeta, bytes);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Could not write dimension codec. Custom dimensions may not work properly.");
-        }
-    }
-
     public void outlineExistingChunks() {
+        if (existingLoaded.contains(this.dimension)) {
+            return;
+        }
+        existingLoaded.add(this.dimension);
+
         Stream<McaFile> files = null;
         try {
             files = getMcaFiles(dimension, true);
@@ -190,28 +164,49 @@ public class WorldManager {
      * GUI, as the shading requires that we look at neighbouring chunks. We first add them all to the world manager,
      * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
      */
-    public void drawExistingChunks() throws IOException {
-        Stream<McaFile> files = getMcaFiles(dimension, false);
+    public void drawExistingChunks() {
+        Stream<McaFile> files = getMcaFiles(8);
 
-        // Step 1: parse all the chunks
-        Set<Map.Entry<CoordinateDim2D, Chunk>> parsedChunks = files.parallel()
-                .flatMap(el -> el.getParsedChunks(this.dimension).entrySet().stream())
-                .collect(Collectors.toSet());
+        files.forEach(file -> {
+            Map<CoordinateDim2D, Chunk> chunks = file.getParsedChunks(this.dimension);
 
-        // Step 2: add all chunks to the WorldManager if it doesn't have them yet
-        Set<CoordinateDim2D> toDelete = new HashSet<>();
-        parsedChunks.forEach(entry -> {
-            if (getChunk(entry.getKey()) == null) {
-                toDelete.add(entry.getKey());
-                loadChunk(entry.getValue(), false);
-            }
+            // Step 2: add all chunks to the WorldManager if it doesn't have them yet
+            Set<CoordinateDim2D> toDelete = new HashSet<>();
+            chunks.forEach((coord, chunk) -> {
+                if (getChunk(coord) == null) {
+                    toDelete.add(coord);
+                    loadChunk(chunk, true, false);
+                }
+            });
+
+            // Step 3: draw to GUI
+            chunks.forEach(GuiManager::setChunkLoaded);
+
+            // Step 4: delete the newly added chunks
+            toDelete.forEach(this::unloadChunk);
         });
+    }
 
-        // Step 3: draw the picture
-        parsedChunks.forEach(entry -> GuiManager.setChunkLoaded(entry.getKey(), entry.getValue()));
+    private Stream<McaFile> getMcaFiles(int radius) {
+        Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
 
-        // Step 4: delete the newly added chunks
-        toDelete.forEach(this::unloadChunk);
+        if (!exportDir.toFile().exists()) {
+            return Stream.empty();
+        }
+        List<File> files = new ArrayList<>();
+        Coordinate2D center = playerPosition.discretize().globalToChunk().chunkToRegion().offsetChunk();
+        for (int x = -radius; x < radius; x++) {
+            for (int z = -radius; z < radius; z++) {
+                files.add(McaFile.coordinatesToFile(exportDir, center.add(x, z)));
+            }
+        }
+        return files.stream().filter(Objects::nonNull).map(el -> {
+            try {
+                return new McaFile(el);
+            } catch (IOException e) {
+                return null;
+            }
+        }).filter(Objects::nonNull);
     }
 
     /**
@@ -245,92 +240,6 @@ public class WorldManager {
     }
 
     /**
-     * Save the level.dat file so the world can be easily opened. If one doesn't exist, use the default one from
-     * the resource folder.
-     */
-    private void saveLevelData() throws IOException {
-        // make sure the folder exists
-        Files.createDirectories(PathUtils.toPath(Config.getWorldOutputDir()));
-
-        File levelDat = PathUtils.toPath(Config.getWorldOutputDir(), "level.dat").toFile();
-
-        // if there is no level.dat yet, make one from the default
-        InputStream fileInput;
-        if (levelDat.isFile()) {
-            fileInput = new FileInputStream(levelDat);
-        } else {
-            fileInput = WorldManager.class.getClassLoader().getResourceAsStream("level.dat");
-        }
-        byte[] fileContent = IOUtils.toByteArray(fileInput);
-
-        // get default level.dat
-        Tag root = NamedTag.read(
-                new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
-        );
-
-        CompoundTag data = (CompoundTag) root.unpack().get("Data");
-
-        // add the player's position
-        if (playerPosition != null) {
-            Tag playerTag = data.get("Player");
-            CompoundTag player;
-            if (playerTag instanceof ErrorTag) {
-                player = new CompoundTag();
-            } else {
-                player = (CompoundTag) playerTag;
-                data.add("Player", player);
-            }
-
-            Coordinate3D playerPosition = getPlayerPosition().offsetGlobal();
-            player.add("Pos", new ListTag(Tag.TAG_DOUBLE, Arrays.asList(
-                    new DoubleTag(playerPosition.getX() * 1.0),
-                    new DoubleTag(playerPosition.getY() * 1.0),
-                    new DoubleTag(playerPosition.getZ() * 1.0)
-            )));
-
-            // set the world spawn to match the last known player location
-            data.add("SpawnX", new IntTag(playerPosition.getX()));
-            data.add("SpawnY", new IntTag(playerPosition.getY()));
-            data.add("SpawnZ", new IntTag(playerPosition.getZ()));
-        }
-
-        // add the seed & last played time
-        data.add("RandomSeed", new LongTag(Config.getLevelSeed()));
-        data.add("LastPlayed", new LongTag(System.currentTimeMillis()));
-
-        // add the version
-        if (Config.getDataVersion() > 0 && Config.getGameVersion() != null) {
-            CompoundTag versionTag = new CompoundTag();
-            versionTag.add("Id", new IntTag(Config.getDataVersion()));
-            versionTag.add("Name", new StringTag(Config.getGameVersion()));
-            versionTag.add("Snapshot", new ByteTag((byte) 0));
-
-            data.add("Version", versionTag);
-        }
-
-        if (!Config.isWorldGenEnabled()) {
-            disableWorldGeneration(data);
-        }
-
-        // write the file
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        root.write(new DataOutputStream(output));
-
-        byte[] compressed = CompressionManager.gzipCompress(output.toByteArray());
-        Files.write(levelDat.toPath(), compressed);
-    }
-
-    /**
-     * Set world type to a superflat void world.
-     */
-    private void disableWorldGeneration(CompoundTag data) {
-        data.add("generatorName", new StringTag("flat"));
-
-        // this is the 1.12.2 superflat format, but it still works in later versions.
-        data.add("generatorOptions", new StringTag("3;minecraft:air;127"));
-    }
-
-    /**
      * Set the config variables for the save service.
      */
     public void setSaveServiceVariables(boolean markNewChunks, Boolean writeChunks) {
@@ -347,6 +256,7 @@ public class WorldManager {
         if (isStarted) {
             return;
         }
+        isStarted = true;
 
         instance.start();
 
@@ -355,9 +265,10 @@ public class WorldManager {
 
     /**
      * Add a parsed chunk to the correct region.
-     * @param chunk      the chunk
+     *
+     * @param chunk the chunk
      */
-    public void loadChunk(Chunk chunk, boolean drawInGui) {
+    public void loadChunk(Chunk chunk, boolean drawInGui, boolean overrideExisting) {
         if (!drawInGui || writeChunks) {
             CoordinateDim2D regionCoordinates = chunk.location.chunkToDimRegion();
 
@@ -365,12 +276,14 @@ public class WorldManager {
                 regions.put(regionCoordinates, new Region(regionCoordinates));
             }
 
-            regions.get(regionCoordinates).addChunk(chunk.location, chunk);
+            regions.get(regionCoordinates).addChunk(chunk.location, chunk, overrideExisting);
         }
 
         if (drawInGui) {
             // draw the chunk once its been parsed
-            chunk.whenParsed(() -> GuiManager.setChunkLoaded(chunk.location, chunk));
+            chunk.whenParsed(() -> {
+                GuiManager.setChunkLoaded(chunk.location, chunk);
+            });
         }
 
         if (this.renderDistanceExtender != null) {
@@ -378,16 +291,24 @@ public class WorldManager {
         }
     }
 
+    public void chunkLoadedCallback(CoordinateDim2D coordinateDim2D) {
+        // run callbacks
+        Queue<Runnable> callbacks = chunkLoadCallbacks.remove(coordinateDim2D);
+        if (callbacks != null) {
+            while (!callbacks.isEmpty()) {
+                callbacks.remove().run();
+            }
+        }
+    }
+
     /**
      * Get a chunk from the region its in.
+     *
      * @param coordinate the global chunk coordinates
      * @return the chunk
      */
     public Chunk getChunk(CoordinateDim2D coordinate) {
-        if (!regions.containsKey(coordinate.chunkToDimRegion())) {
-            return null;
-        }
-        return regions.get(coordinate.chunkToDimRegion()).getChunk(coordinate);
+        return regions.getOrDefault(coordinate.chunkToDimRegion(), Region.EMPTY).getChunk(coordinate);
     }
 
     public void unloadChunk(CoordinateDim2D coordinate) {
@@ -400,22 +321,20 @@ public class WorldManager {
     public BlockState blockStateAt(Coordinate3D coordinate3D) {
         Chunk c = this.getChunk(coordinate3D.globalToChunk().addDimension(this.dimension));
 
-        if (c == null) { return null; }
+        if (c == null) {
+            return null;
+        }
 
         Coordinate3D pos = coordinate3D.withinChunk();
         return c.getBlockStateAt(pos);
     }
 
-    public void setEntityMap(EntityNames names) {
-        entityMap = names;
-    }
-
-    public void setMenuRegistry(MenuRegistry menus) {
-        menuRegistry = menus;
-    }
-
     public EntityNames getEntityMap() {
         return entityMap;
+    }
+
+    public void setEntityMap(EntityNames names) {
+        entityMap = names;
     }
 
     public BlockColors getBlockColors() {
@@ -428,6 +347,10 @@ public class WorldManager {
 
     public MenuRegistry getMenuRegistry() {
         return menuRegistry;
+    }
+
+    public void setMenuRegistry(MenuRegistry menus) {
+        menuRegistry = menus;
     }
 
     public ItemRegistry getItemRegistry() {
@@ -451,10 +374,34 @@ public class WorldManager {
     }
 
     /**
+     * Set the dimension codec, used to store information about the dimensions that this server supports.
+     */
+    public void setDimensionCodec(DimensionCodec codec) {
+        dimensionCodec = codec;
+
+        // We can immediately try to write the dimension data to the proper directory.
+        try {
+            Path p = PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data");
+            if (codec.write(p)) {
+
+                // we need to copy that pack.mcmeta file from so that Minecraft will recognise the datapack
+                Path packMeta = PathUtils.toPath(p.getParent().toString(), "pack.mcmeta");
+                InputStream in = WorldManager.class.getClassLoader().getResourceAsStream("pack.mcmeta");
+                byte[] bytes = IOUtils.toByteArray(in);
+                Files.write(packMeta, bytes);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Could not write dimension codec. Custom dimensions may not work properly.");
+        }
+    }
+
+    /**
      * Periodically save the world.
      */
     public void start() {
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+        ThreadFactory namedThreadFactory = r -> new Thread(r, "World Save Service");
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, namedThreadFactory);
         executor.scheduleWithFixedDelay(this::save, INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
@@ -479,7 +426,9 @@ public class WorldManager {
             Region[] r = regions.values().toArray(new Region[0]);
             for (Region region : r) {
                 McaFile file = region.toFile(getPlayerPosition());
-                if (file == null) { continue; }
+                if (file == null) {
+                    continue;
+                }
 
                 try {
                     file.write();
@@ -491,7 +440,7 @@ public class WorldManager {
 
         // save level.dat
         try {
-            saveLevelData();
+            levelData.save();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -545,6 +494,13 @@ public class WorldManager {
         return isPaused;
     }
 
+    public void setPlayerPosListener(BiConsumer<CoordinateDouble3D, Double> playerPosListener) {
+        this.playerPosListener = playerPosListener;
+    }
+
+    public Coordinate3D getPlayerPosition() {
+        return playerPosition.discretize();
+    }
 
     public void setPlayerPosition(CoordinateDouble3D newPos) {
         this.playerPosition = newPos;
@@ -552,17 +508,9 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.updatePlayerPos(getPlayerPosition());
         }
-        if (this.playerPosListener != null){
+        if (this.playerPosListener != null) {
             this.playerPosListener.accept(newPos, this.playerRotation);
         }
-    }
-
-    public void setPlayerPosListener(BiConsumer<CoordinateDouble3D, Double> playerPosListener) {
-        this.playerPosListener = playerPosListener;
-    }
-
-    public Coordinate3D getPlayerPosition() {
-        return playerPosition.discretize();
     }
 
     public void setServerRenderDistance(int viewDist) {
@@ -575,14 +523,18 @@ public class WorldManager {
     /**
      * Send unload chunk packets to the client for each of the coordinates. Currently not used as chunk unloading is
      * not really important, the client can figure it out.
+     *
      * @param toUnload the set of chunks to unload.
      */
     public void unloadChunks(Collection<Coordinate2D> toUnload) {
-        // TODO
+        for (Coordinate2D coords : toUnload) {
+            unloadChunk(coords.addDimension(getDimension()));
+        }
     }
 
     /**
      * Load chunks from their MCA files and send them to the client.
+     *
      * @param desired the set of chunk coordinates which we want to send to the client.
      * @return the set of chunks that was actually sent to the client.
      */
@@ -632,7 +584,7 @@ public class WorldManager {
                 loaded.add(coord);
 
                 // draw in GUI
-                GuiManager.setChunkLoaded(chunk.location, chunk);
+                loadChunk(chunk, true, false);
 
                 // periodically sleep so the client doesn't stutter from receiving too many chunks
                 chunksSent = (chunksSent + 1) % 5;

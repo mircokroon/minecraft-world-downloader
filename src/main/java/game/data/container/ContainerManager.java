@@ -1,5 +1,6 @@
 package game.data.container;
 
+import game.data.chunk.ChunkEntities;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim3D;
@@ -148,7 +149,7 @@ public class ContainerManager {
         }
     }
 
-    public void loadPreviousInventoriesAt(Chunk c, CoordinateDim3D location) {
+    public void loadPreviousInventoriesAt(ChunkEntities c, CoordinateDim3D location) {
         if (storedWindows.containsKey(location)) {
             c.addInventory(storedWindows.get(location));
         }

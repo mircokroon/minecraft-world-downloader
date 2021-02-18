@@ -1,24 +1,41 @@
 package game.data.chunk.palette;
 
-import com.google.gson.JsonPrimitive;
 import game.data.WorldManager;
+import game.data.chunk.palette.blending.DiscreteBlendEquation;
+import game.data.chunk.palette.blending.IBlendEquation;
+import game.data.chunk.palette.blending.SquareRootBlendEquation;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.StringTag;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
  * A block state in the global palette (1.13+).
  */
 public class BlockState {
+    private static final Map<String, IBlendEquation> transparency;
+    static {
+        transparency = new HashMap<>();
+        transparency.put("minecraft:water", new SquareRootBlendEquation(1.1, 0.6));
+        transparency.put("minecraft:ice", new SquareRootBlendEquation(1.4, 0.8));
+        transparency.put("minecraft:lava", new DiscreteBlendEquation(.7, .8, .88, .94, .98));
+    }
+
     private final String name;
     private final int id;
     private final CompoundTag properties;
+
+    private final boolean isTransparent;
+    private final IBlendEquation transparencyEquation;
 
     public BlockState(String name, int id, CompoundTag properties) {
         this.name = name;
         this.id = id;
         this.properties = properties;
+
+        this.isTransparent = transparency.containsKey(name);
+        this.transparencyEquation = this.isTransparent ? transparency.get(name) : null;
     }
 
     public String getProperty(String name) {
@@ -65,8 +82,12 @@ public class BlockState {
         return WorldManager.getInstance().getBlockColors().getColor(name);
     }
 
-    public boolean isWater() {
-        return name.equals("minecraft:water");
+    public boolean isTransparent() {
+        return isTransparent;
+    }
+
+    public IBlendEquation getTransparencyEquation() {
+        return transparencyEquation;
     }
 
     public boolean isSolid() {

@@ -40,6 +40,8 @@ public class ProxyServer extends Thread {
 
     @Override
     public void run() {
+        setName("Proxy");
+        
         String friendlyHost = connectionDetails.getFriendlyHost();
         System.out.println("Starting proxy for " + friendlyHost + ". Make sure to connect to localhost:" + connectionDetails.getPortLocal() + " instead of the regular server address.");
 
@@ -93,7 +95,7 @@ public class ProxyServer extends Thread {
                     });
                     // the client closed the connection to us, so close our connection to the server.
                     attempt(streamToServer::close);
-                });
+                }, "Proxy Client Listener");
                 clientListener.start();
                 clientListener.setPriority(10);
 

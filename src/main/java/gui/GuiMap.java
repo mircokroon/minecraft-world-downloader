@@ -1,6 +1,7 @@
 package gui;
 
 import config.Config;
+import game.data.chunk.ChunkImageFactory;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
@@ -20,8 +21,7 @@ import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
-import javafx.scene.image.Image;
-import javafx.scene.image.WritableImage;
+import javafx.scene.image.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
@@ -30,8 +30,13 @@ import util.PathUtils;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.file.Paths;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -50,6 +55,8 @@ public class GuiMap {
 
     private CoordinateDouble3D playerPos;
     private double playerRotation;
+
+    private boolean enableModernImageHandling = true;
 
     private static final WritableImage BLACK = new WritableImage(1, 1);
     static {
@@ -76,13 +83,17 @@ public class GuiMap {
 
     @FXML
     void initialize() {
-        Platform.runLater(() -> WorldManager.getInstance().outlineExistingChunks());
+        WorldManager manager = WorldManager.getInstance();
 
-        setDimension(Dimension.OVERWORLD);
+        Platform.runLater(manager::outlineExistingChunks);
+
+        setDimension(manager.getDimension());
+        this.playerPos = manager.getPlayerPosition().toDouble();
+
         setupCanvasProperties();
 
         GuiManager.setGraphicsHandler(this);
-        WorldManager.getInstance().setPlayerPosListener(this::updatePlayerPos);
+        manager.setPlayerPosListener(this::updatePlayerPos);
 
         setupContextMenu();
         bindScroll();
@@ -108,8 +119,8 @@ public class GuiMap {
     }
 
     private void setupCanvasProperties() {
-        chunkCanvas.getGraphicsContext2D().setImageSmoothing(false);
-        entityCanvas.getGraphicsContext2D().setImageSmoothing(true);
+        setSmoothingState(chunkCanvas.getGraphicsContext2D(), false);
+        setSmoothingState(entityCanvas.getGraphicsContext2D(), true);
 
         Pane p = (Pane) chunkCanvas.getParent();
         width = p.widthProperty();
@@ -133,6 +144,69 @@ public class GuiMap {
         reload.play();
 
         redrawAll();
+    }
+
+    /**
+     * Draw an image to the given canvas. In Java 9+, this just calls drawImage. In Java 8 drawImage causes super
+     * ugly artifacts due to forced interpolation, so to avoid this we manually draw the image and do nearest neighbour
+     * interpolation.
+     */
+    private void drawImage(GraphicsContext ctx, int drawX, int drawY, int gridSize, Image img, boolean drawBlack) {
+        if (enableModernImageHandling) {
+            if (drawBlack) {
+                ctx.drawImage(BLACK, drawX, drawY, gridSize, gridSize);
+            }
+            ctx.drawImage(img, drawX, drawY, gridSize, gridSize);
+            return;
+        }
+
+        // since this drawing method does not support out of bounds drawing, check for bounds first
+        if (drawX < 0 || drawY < 0 || gridSize < 1) {
+            return;
+        }
+        if (drawX + gridSize > ctx.getCanvas().getWidth() || drawY + gridSize > ctx.getCanvas().getHeight()) {
+            return;
+        }
+
+        // if drawBlack is enabled, we remove transparency by doing a bitwise or with this mask.
+        int colMask = 0;
+        if (drawBlack) {
+            colMask = 0xFF000000;
+        }
+
+        double imgSize = img.getWidth();
+
+        // for performance reasons, we read all pixels and write pixels through arrays. We only touch the pixel
+        // reader/writer at the start and end.
+        int imgWidth = (int) imgSize;
+        int[] input = new int[imgWidth * imgWidth];
+        int[] output = new int[gridSize * gridSize];
+
+        WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
+        img.getPixelReader().getPixels(0, 0, imgWidth, imgWidth, format, input, 0, imgWidth);
+
+        // in the loop we use the ratio to calculate where a pixel fom the input image ends up in the output
+        double ratio = imgSize / gridSize;
+        for (int x = 0; x < gridSize; x++) {
+            for (int y = 0; y < gridSize; y++) {
+                int imgX = (int) (x * ratio);
+                int imgY = (int) (y * ratio);
+
+                output[x + y * gridSize] = input[imgX + imgY * imgWidth] | colMask;
+            }
+        }
+        ctx.getPixelWriter().setPixels(drawX, drawY, gridSize, gridSize, format, output, 0, gridSize);
+    }
+
+    private void setSmoothingState(GraphicsContext ctx, boolean value) {
+        try {
+            Method m = ctx.getClass().getMethod("setImageSmoothing", boolean.class);
+            m.invoke(ctx, value);
+        } catch (NoSuchMethodError | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            enableModernImageHandling = false;
+            // if we can't set the image smoothing, we're likely on an older Java version. This is fine, the image
+            // will just be rendered slightly less beautiful.
+        }
     }
 
     private void setupContextMenu() {
@@ -168,6 +242,7 @@ public class GuiMap {
     /**
      * Compute the render distance on both axis -- we have two to keep them separate as non-square windows will look
      * bad otherwise.
+     * bad otherwise.
      */
     private void computeRenderDistance() {
         double ratio = (height.get() / width.get());
@@ -200,16 +275,14 @@ public class GuiMap {
             }
         }
 
-        Image image = chunk.getImage();
+        ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
+        imageFactory.onComplete(image -> {
+            chunkMap.put(coord, new ChunkImage(image, chunk.isSaved()));
+            drawChunkAsync(coord);
 
-        if (image == null) {
-            image = NONE;
-        }
-
-        chunkMap.put(coord, new ChunkImage(image, chunk.isSaved()));
-        drawChunkAsync(coord);
-
-        hasChanged = true;
+            hasChanged = true;
+        });
+        imageFactory.createImage();
     }
 
     void redrawAll() {
@@ -337,10 +410,7 @@ public class GuiMap {
             graphics.fillRect(drawX, drawY,gridSize - 1, gridSize - 1);
         } else {
             // draw black before drawing chunk so that we can tell void from missing chunks
-            if (drawBlack) {
-                graphics.drawImage(BLACK, drawX, drawY, gridSize, gridSize);
-            }
-            graphics.drawImage(chunkImage.getImage(), drawX, drawY, gridSize, gridSize);
+            drawImage(graphics, drawX, drawY, gridSize, chunkImage.getImage(), drawBlack);
 
             // if the chunk wasn't saved yet, mark it as such
             if (Config.markUnsavedChunks() && !chunkImage.isSaved) {
@@ -356,7 +426,12 @@ public class GuiMap {
     }
 
     public void export() {
-        Bounds fullBounds = getOverviewBounds(chunkMap.keySet());
+        List<Coordinate2D> drawables = chunkMap.entrySet().stream()
+                .filter((coord) -> coord.getValue() != NO_IMG)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+        Bounds fullBounds = getOverviewBounds(drawables);
 
         // set size limit so that we don't have memory issues with the output image
         int MAX_SIZE = 2 << 12;
@@ -374,10 +449,12 @@ public class GuiMap {
 
         Canvas temp = new Canvas(width, height);
         GraphicsContext graphics = temp.getGraphicsContext2D();
-        graphics.setImageSmoothing(false);
+        setSmoothingState(graphics, false);
 
         // draw each chunk
         for (Map.Entry<Coordinate2D, ChunkImage> entry : chunkMap.entrySet()) {
+            if (entry.getValue() == NO_IMG) { continue; }
+
             drawChunk(graphics, entry.getKey(), fullBounds, gridSize, false);
         }
 

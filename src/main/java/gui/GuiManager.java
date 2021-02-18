@@ -17,12 +17,17 @@ import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import java.awt.*;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URI;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static util.ExceptionHandling.attempt;
+import static util.ExceptionHandling.attemptQuiet;
 
 /**
  * Class to the handle the GUI.
@@ -177,8 +182,38 @@ public class GuiManager extends Application {
         stage.show();
     }
 
-    public static void openLink(String text) {
-        System.out.println(text);
+    public static void openWebLink(String text) {
+        try {
+            instance.openAny(text);
+        } catch (Exception ex) {
+            instance.openIfSupported(Desktop.Action.BROWSE, desktop -> {
+                attemptQuiet(() -> desktop.browse(new URI(text)));
+            });
+        }
+    }
+    public static void openFileLink(String text) {
+        try {
+            instance.openAny(text);
+        } catch (Exception ex) {
+            instance.openIfSupported(Desktop.Action.OPEN, desktop -> {
+                attemptQuiet(() -> desktop.open(new File(text)));
+            });
+        }
+    }
+
+    private void openIfSupported(Desktop.Action action, Consumer<Desktop> r) {
+        if (Desktop.isDesktopSupported()) {
+            Desktop desktop = Desktop.getDesktop();
+            if (desktop.isSupported(action)){
+                r.accept(desktop);
+            }
+        }
+    }
+
+    private void openAny(String text) throws ClassNotFoundException {
+        // trigger ClassNotFoundException early - we can't catch it if it's thrown by .getHostServices
+        Class.forName("com.sun.deploy.uitoolkit.impl.fx.HostServicesFactory");
+
         instance.getHostServices().showDocument(text);
     }
 
@@ -194,11 +229,9 @@ public class GuiManager extends Application {
         addIcon(this.stage);
 
         // when in GUI mode, close the application when the main stage is closed.
-        if (Config.inGuiMode()) {
-            this.stage.setOnCloseRequest(e -> {
-                System.exit(0);
-            });
-        }
+        this.stage.setOnCloseRequest(e -> {
+            System.exit(0);
+        });
 
         if (config.startWithSettings()) {
             loadSceneSettings();
@@ -219,7 +252,6 @@ public class GuiManager extends Application {
         node.setOnMouseMoved(event -> tooltip.show(node, event.getScreenX(), event.getScreenY() + 15));
         node.setOnMouseExited(event -> tooltip.hide());
     }
-
 
     /**
      * Set a chunk to being loaded.

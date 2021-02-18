@@ -41,6 +41,14 @@
                     <minimizeJar>true</minimizeJar>
                     <filters>
                         <filter>
+                            <artifact>org.openjfx</artifact>
+                            <excludeDefaults>false</excludeDefaults>
+                            <includes>
+                                <include>com/sun/**</include>
+                                <include>javafx/**</include>
+                            </includes>
+                        </filter>
+                        <filter>
                             <artifact>log4j:log4j</artifact>
                             <includes>
                                 <include>**</include>
@@ -59,9 +67,6 @@
                         </transformer>
                     </transformers>
                     <finalName>world-downloader</finalName>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
             </configuration>
                 <executions>
                     <execution>

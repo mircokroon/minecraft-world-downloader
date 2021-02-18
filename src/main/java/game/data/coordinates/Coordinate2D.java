@@ -20,11 +20,6 @@ public class Coordinate2D {
         this.z = (int) z;
     }
 
-    public void offset(int x, int z) {
-        this.x += x;
-        this.z += z;
-    }
-
     public Coordinate2D offsetChunk() {
         return new Coordinate2D(
                 x - (Config.getCenterX() >> CHUNK_SHIFT),

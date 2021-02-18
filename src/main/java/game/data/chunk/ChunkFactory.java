@@ -17,15 +17,13 @@ import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.function.Function;
 
 /**
  * Class responsible for creating chunks.
  */
-public class ChunkFactory extends Thread {
+public class ChunkFactory {
     private static ChunkFactory factory;
 
     private ConcurrentLinkedQueue<ChunkParserPair> unparsedChunks;
@@ -36,6 +34,7 @@ public class ChunkFactory extends Thread {
     private Collection<EntityParser> unparsedEntities;
 
     private boolean threadStarted = false;
+    private ExecutorService executor;
 
     public static ChunkFactory getInstance() {
         if (factory == null) {
@@ -130,14 +129,14 @@ public class ChunkFactory extends Thread {
     /**
      * Need a non-static method to do this as we cannot otherwise call notify
      */
-    public synchronized void addChunk(DataTypeProvider provider) {
+    public void addChunk(DataTypeProvider provider) {
         // if the world manager is currently paused, discard this chunk
         if (WorldManager.getInstance().isPaused()) {
             return;
         }
 
         unparsedChunks.add(new ChunkParserPair(provider, WorldManager.getInstance().getDimension()));
-        notify();
+        executor.execute(this::parse);
     }
 
     /**
@@ -156,25 +155,18 @@ public class ChunkFactory extends Thread {
     /**
      * Periodically check if there are unparsed chunks, and if so, parse them.
      */
-    @Override
-    public synchronized void run() {
-        threadStarted = true;
+    public void start() {
+        executor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "Chunk Parser Service"));
+    }
 
-        ChunkParserPair provider;
-        while (true) {
-            while ((provider = getUnparsedChunk()) != null) {
-                try {
-                    readChunkDataPacket(provider);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    System.out.println("Chunk could not be parsed!");
-                }
-            }
-
+    private void parse() {
+        ChunkParserPair parsePair;
+        while ((parsePair = getUnparsedChunk()) != null) {
             try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                readChunkDataPacket(parsePair);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                System.err.println("Chunk could not be parsed!");
             }
         }
     }
@@ -182,7 +174,7 @@ public class ChunkFactory extends Thread {
     /**
      * Gets an unparsed chunk from the list, or null if the list is empty.
      */
-    private synchronized ChunkParserPair getUnparsedChunk() {
+    private ChunkParserPair getUnparsedChunk() {
         if (unparsedChunks.isEmpty()) {
             return null;
         }
@@ -199,7 +191,7 @@ public class ChunkFactory extends Thread {
         if (full) {
             chunk = getVersionedChunk(chunkPos);
 
-            worldManager.loadChunk(chunk, true);
+            worldManager.loadChunk(chunk, true, true);
         } else {
             chunk = worldManager.getChunk(new CoordinateDim2D(chunkPos.getX(), chunkPos.getZ(), parser.dimension));
 
