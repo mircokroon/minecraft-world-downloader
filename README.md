@@ -2,9 +2,9 @@
 A Minecraft world downloader that works by intercepting & decrypting network traffic between the client and the server to read & save chunk data. Chunks can be sent back to the client to extend the render distance.
 
 ### Downloads
-Latest Windows release: [world-downloader.exe](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe)
+Latest Windows release (GUI): [world-downloader.exe](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe)
 
-Cross-platform jar: [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
+Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
 
 ### Features
 - Requires no client modifications and as such works with every game client, vanilla or not
