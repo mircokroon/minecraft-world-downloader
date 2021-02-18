@@ -149,10 +149,13 @@ public class GuiMap {
     /**
      * Draw an image to the given canvas. In Java 9+, this just calls drawImage. In Java 8 drawImage causes super
      * ugly artifacts due to forced interpolation, so to avoid this we manually draw the image and do nearest neighbour
-     * interpolation. 
+     * interpolation.
      */
-    private void drawImage(GraphicsContext ctx, int drawX, int drawY, int gridSize, Image img) {
+    private void drawImage(GraphicsContext ctx, int drawX, int drawY, int gridSize, Image img, boolean drawBlack) {
         if (enableModernImageHandling) {
+            if (drawBlack) {
+                ctx.drawImage(BLACK, drawX, drawY, gridSize, gridSize);
+            }
             ctx.drawImage(img, drawX, drawY, gridSize, gridSize);
             return;
         }
@@ -163,6 +166,12 @@ public class GuiMap {
         }
         if (drawX + gridSize > ctx.getCanvas().getWidth() || drawY + gridSize > ctx.getCanvas().getHeight()) {
             return;
+        }
+
+        // if drawBlack is enabled, we remove transparency by doing a bitwise or with this mask.
+        int colMask = 0;
+        if (drawBlack) {
+            colMask = 0xFF000000;
         }
 
         double imgSize = img.getWidth();
@@ -183,7 +192,7 @@ public class GuiMap {
                 int imgX = (int) (x * ratio);
                 int imgY = (int) (y * ratio);
 
-                output[x + y * gridSize] = input[imgX + imgY * imgWidth];
+                output[x + y * gridSize] = input[imgX + imgY * imgWidth] | colMask;
             }
         }
         ctx.getPixelWriter().setPixels(drawX, drawY, gridSize, gridSize, format, output, 0, gridSize);
@@ -232,6 +241,7 @@ public class GuiMap {
 
     /**
      * Compute the render distance on both axis -- we have two to keep them separate as non-square windows will look
+     * bad otherwise.
      * bad otherwise.
      */
     private void computeRenderDistance() {
@@ -400,12 +410,7 @@ public class GuiMap {
             graphics.fillRect(drawX, drawY,gridSize - 1, gridSize - 1);
         } else {
             // draw black before drawing chunk so that we can tell void from missing chunks
-            if (drawBlack) {
-                drawImage(graphics, drawX, drawY, gridSize, BLACK);
-//                graphics.drawImage(BLACK, drawX, drawY, gridSize, gridSize);
-            }
-            drawImage(graphics, drawX, drawY, gridSize, chunkImage.getImage());
-//            graphics.drawImage(chunkImage.getImage(), drawX, drawY, gridSize, gridSize);
+            drawImage(graphics, drawX, drawY, gridSize, chunkImage.getImage(), drawBlack);
 
             // if the chunk wasn't saved yet, mark it as such
             if (Config.markUnsavedChunks() && !chunkImage.isSaved) {
