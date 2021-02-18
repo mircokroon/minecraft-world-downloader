@@ -7,10 +7,11 @@ import game.data.chunk.palette.blending.IBlendEquation;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import javafx.scene.image.Image;
-import javafx.scene.image.PixelWriter;
 import javafx.scene.image.WritableImage;
+import javafx.scene.image.WritablePixelFormat;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -105,15 +106,16 @@ public class ChunkImageFactory {
      * Generate and return the overview image for this chunk.
      */
     public void createImage() {
-        WritableImage i = new WritableImage(16, 16);
-        PixelWriter writer = i.getPixelWriter();
+        WritableImage i = new WritableImage(Chunk.SECTION_WIDTH, Chunk.SECTION_WIDTH);
+        int[] output = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
+        WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
 
         // setup north/south chunks
         setupAdjacentChunks();
 
         try {
-            for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
+            for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
+                for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
                     int y = heightAt(x, z);
                     BlockState blockState = c.getBlockStateAt(x, y, z);
 
@@ -126,14 +128,19 @@ public class ChunkImageFactory {
 
                     color = color.shaderMultiply(getColorShader(x, y, z));
 
-                    writer.setColor(x, z, color.toJavaFxColor());
-
                     // mark new chunks in a red-ish outline
                     if (c.isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
-                        writer.setColor(x, z, color.highlight().toJavaFxColor());
+                        color = color.highlight();
                     }
+
+                    output[x + Chunk.SECTION_WIDTH * z] = color.toARGB();
                 }
             }
+            i.getPixelWriter().setPixels(
+                    0, 0,
+                    Chunk.SECTION_WIDTH, Chunk.SECTION_WIDTH,
+                    format, output, 0, Chunk.SECTION_WIDTH
+            );
         } catch (Exception ex) {
             System.out.println("Unable to draw picture for chunk at " + c.location);
             ex.printStackTrace();
