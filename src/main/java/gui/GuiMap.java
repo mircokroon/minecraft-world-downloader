@@ -31,6 +31,8 @@ import util.PathUtils;
 import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
@@ -114,8 +116,8 @@ public class GuiMap {
     }
 
     private void setupCanvasProperties() {
-        chunkCanvas.getGraphicsContext2D().setImageSmoothing(false);
-        entityCanvas.getGraphicsContext2D().setImageSmoothing(true);
+        setSmoothingState(chunkCanvas.getGraphicsContext2D(), false);
+        setSmoothingState(entityCanvas.getGraphicsContext2D(), true);
 
         Pane p = (Pane) chunkCanvas.getParent();
         width = p.widthProperty();
@@ -139,6 +141,16 @@ public class GuiMap {
         reload.play();
 
         redrawAll();
+    }
+
+    private void setSmoothingState(GraphicsContext ctx, boolean value) {
+        try {
+            Method m = ctx.getClass().getMethod("setImageSmoothing", boolean.class);
+            m.invoke(ctx, value);
+        } catch (NoSuchMethodError | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
+            // if we can't set the image smoothing, we're likely on an older Java version. This is fine, the image
+            // will just be rendered slightly less beautiful.
+        }
     }
 
     private void setupContextMenu() {
@@ -383,7 +395,7 @@ public class GuiMap {
 
         Canvas temp = new Canvas(width, height);
         GraphicsContext graphics = temp.getGraphicsContext2D();
-        graphics.setImageSmoothing(false);
+        setSmoothingState(graphics, false);
 
         // draw each chunk
         for (Map.Entry<Coordinate2D, ChunkImage> entry : chunkMap.entrySet()) {
