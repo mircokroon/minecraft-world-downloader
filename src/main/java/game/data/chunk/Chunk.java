@@ -14,9 +14,11 @@ import game.protocol.ProtocolVersionHandler;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
-import util.PrintUtils;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -196,13 +198,12 @@ public abstract class Chunk extends ChunkEntities {
     protected void addLevelNbtTags(CompoundTag map) {
         super.addLevelNbtTags(map);
 
-        Coordinate2D location = this.location.offsetChunk();
-        map.add("xPos", new IntTag(location.getX()));
-        map.add("zPos", new IntTag(location.getZ()));
+        Coordinate2D offset = this.location.offsetChunk();
+        map.add("xPos", new IntTag(offset.getX()));
+        map.add("zPos", new IntTag(offset.getZ()));
 
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));
-        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>()));
 
         map.add("Biomes", getNbtBiomes());
         map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
@@ -411,5 +412,9 @@ public abstract class Chunk extends ChunkEntities {
             imageFactory = new ChunkImageFactory(this);
         }
         return imageFactory;
+    }
+
+    public CoordinateDim2D getLocation() {
+        return location;
     }
 }

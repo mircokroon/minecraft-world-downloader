@@ -54,6 +54,10 @@ public class CoordinateDim2D extends Coordinate2D {
         return new CoordinateDim2D(this.chunkToRegion(), this.dimension);
     }
 
+    public CoordinateDim2D globalToDimChunk() {
+        return new CoordinateDim2D(x >> CHUNK_SHIFT, z >> CHUNK_SHIFT, this.dimension);
+    }
+
     public CoordinateDim2D copy() {
         return new CoordinateDim2D(x, z, dimension);
     }
@@ -62,4 +66,5 @@ public class CoordinateDim2D extends Coordinate2D {
     public String toString() {
         return "(" + x + ", " + z + ", " + dimension + ")";
     }
+
 }

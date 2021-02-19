@@ -203,7 +203,7 @@ public class GuiSettings {
         if (status.isExpired()) {
             authDetailsVerifyLabel.getStyleClass().add("label-warn");
             authDetailsVerifyLabel.setText("Expired?");
-            authTooltip.setText("Your authentication details are more than a day old. If you are using a custom launcher, enter your token.");
+            authTooltip.setText("Your authentication details are more than a day old. If you are using a custom launcher,\n enter your details in the Authentication tab.");
         } else if (status.isValid()) {
             authDetailsVerifyLabel.getStyleClass().add("label-valid");
             authDetailsVerifyLabel.setText("Found");

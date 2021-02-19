@@ -3,6 +3,7 @@ package game.data.region;
 import config.Config;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
+import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
@@ -18,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class McaFile {
     public final static int SECTOR_SIZE = 4096;
@@ -45,6 +47,59 @@ public class McaFile {
         } else {
             return null;
         }
+    }
+
+    public static Stream<McaFile> getFiles(CoordinateDouble3D playerPosition, Dimension dimension, int radius) {
+        Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
+
+        if (!exportDir.toFile().exists()) {
+            return Stream.empty();
+        }
+        List<File> files = new ArrayList<>();
+        Coordinate2D center = playerPosition.discretize().globalToChunk().chunkToRegion().offsetChunk();
+        for (int x = -radius; x < radius; x++) {
+            for (int z = -radius; z < radius; z++) {
+                files.add(McaFile.coordinatesToFile(exportDir, center.add(x, z)));
+            }
+        }
+        return files.stream().filter(Objects::nonNull).map(el -> {
+            try {
+                return new McaFile(el);
+            } catch (IOException e) {
+                return null;
+            }
+        }).filter(Objects::nonNull);
+    }
+
+
+    /**
+     * Read from the save path to see which chunks have been saved already.
+     */
+    public static Stream<McaFile> getFiles(Dimension dimension, boolean limit) throws IOException {
+        Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
+
+        if (!exportDir.toFile().exists()) {
+            return Stream.empty();
+        }
+
+        Stream<File> stream = Files.walk(exportDir)
+                .filter(el -> el.getFileName().toString().endsWith(".mca"))
+                .map(Path::toFile);
+
+        if (limit) {
+            stream = stream.limit(100); // don't load more than 100 region files
+        }
+
+        return stream.filter(el -> el.length() > 0)
+                .map(el -> {
+                    try {
+                        return new McaFile(el);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull);
     }
 
     /**

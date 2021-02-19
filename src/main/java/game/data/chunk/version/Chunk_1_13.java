@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import game.data.chunk.IncompleteChunkException;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
@@ -70,8 +71,8 @@ public class Chunk_1_13 extends Chunk {
 
     @Override
     protected void parseBiomes(Tag tag) {
-        IntArrayTag intArr = (IntArrayTag) tag.get("Level").asCompound().get("Biomes");
-        this.biomes = intArr.value;
+        Tag biomeTag = tag.get("Level").asCompound().get("Biomes");
+        this.biomes = biomeTag.intArray();
     }
 
     protected int[] getBiomes() {
@@ -97,6 +98,9 @@ public class Chunk_1_13 extends Chunk {
     }
 
     protected void writeSectionDataBiomes(PacketBuilder builder) {
+        if (this.biomes.length == 0) {
+            throw new IncompleteChunkException();
+        }
         builder.writeIntArray(getBiomes());
     }
 

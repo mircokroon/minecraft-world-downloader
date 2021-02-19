@@ -27,15 +27,20 @@ public class Slot {
             '}';
     }
 
-    public CompoundTag toNbt(int index) {
+    public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
         tag.add("id", new StringTag(WorldManager.getInstance().getItemRegistry().getItemName(itemId)));
         tag.add("Count", new ByteTag(count));
-        tag.add("Slot", new ByteTag(index));
 
         if (nbt instanceof CompoundTag) {
             tag.add("tag", nbt);
         }
+        return tag;
+    }
+
+    public CompoundTag toNbt(int index) {
+        CompoundTag tag = toNbt();
+        tag.add("Slot", new ByteTag(index));
         return tag;
     }
 

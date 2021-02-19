@@ -3,6 +3,7 @@ package game.data.chunk;
 import game.data.WorldManager;
 import game.data.container.InventoryWindow;
 import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
 import game.data.entity.Entity;
@@ -16,19 +17,9 @@ import java.util.stream.Collectors;
  */
 public abstract class ChunkEntities {
     private final Map<Coordinate3D, SpecificTag> tileEntities;
-    private final Set<Entity> entities;
 
     public ChunkEntities() {
         tileEntities = new HashMap<>();
-        entities = new HashSet<>();
-    }
-
-    private List<SpecificTag> getEntityList() {
-        return entities.stream().filter(Objects::nonNull).map(Entity::toNbt).collect(Collectors.toList());
-    }
-
-    public void addEntity(Entity ent) {
-        entities.add(ent);
     }
 
     /**
@@ -52,7 +43,9 @@ public abstract class ChunkEntities {
 
     protected void addLevelNbtTags(CompoundTag map) {
         map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
-        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, getEntityList()));
+
+        List<SpecificTag> entities = WorldManager.getInstance().getEntityRegistry().getEntitiesNbt(this.getLocation());
+        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, entities));
     }
 
 
@@ -97,4 +90,5 @@ public abstract class ChunkEntities {
     }
 
     public abstract Dimension getDimension();
+    public abstract CoordinateDim2D getLocation();
 }

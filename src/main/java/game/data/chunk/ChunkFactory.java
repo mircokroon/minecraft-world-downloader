@@ -24,84 +24,18 @@ import java.util.function.Function;
  * Class responsible for creating chunks.
  */
 public class ChunkFactory {
-    private static ChunkFactory factory;
+    private Queue<ChunkParserPair> unparsedChunks;
+    private Map<CoordinateDim2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
 
-    private ConcurrentLinkedQueue<ChunkParserPair> unparsedChunks;
-    private ConcurrentMap<CoordinateDim2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
-    private ConcurrentMap<CoordinateDim2D, ConcurrentLinkedQueue<Integer>> chunkEntities;
-    private ConcurrentMap<Integer, Entity> entities;
-
-    private Collection<EntityParser> unparsedEntities;
-
-    private boolean threadStarted = false;
     private ExecutorService executor;
 
-    public static ChunkFactory getInstance() {
-        if (factory == null) {
-            factory = new ChunkFactory();
-        }
-        return factory;
-    }
-
-    private ChunkFactory() {
+    public ChunkFactory() {
         clear();
     }
 
     public void clear() {
         this.tileEntities = new ConcurrentHashMap<>();
-        this.chunkEntities = new ConcurrentHashMap<>();
-        this.entities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
-        this.unparsedEntities = new ArrayDeque<>();
-    }
-
-    /**
-     * Add an unparsed entity.
-     */
-    public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
-        try {
-            if (WorldManager.getInstance().getEntityMap() != null) {
-                addEntity(parser.apply(provider), WorldManager.getInstance().getDimension());
-            } else {
-                this.unparsedEntities.add(new EntityParser(provider, WorldManager.getInstance().getDimension(), parser));
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println("Skipping entity that could not be parsed.");
-        }
-    }
-
-    /**
-     * Parse all entities that were added to the entity list before
-     */
-    public void parseEntities() {
-        this.unparsedEntities.forEach(el -> addEntity(el.parse(), el.dimension));
-    }
-
-    /**
-     * Update a regular entity that was given individually. If the entity is null, do nothing as its an unknown type.
-     * @param ent the entity object
-     */
-    public void addEntity(Entity ent, Dimension dimension) {
-        if (ent == null) { return; }
-
-        CoordinateDim2D chunkPos = ent.getPosition().globalToChunk().addDimension(dimension);
-        Chunk chunk = WorldManager.getInstance().getChunk(chunkPos);
-
-        entities.put(ent.getId(), ent);
-
-        // if the chunk doesn't exist yet, add it to the queue to process later
-        if (chunk == null) {
-            Queue<Integer> queue = chunkEntities.computeIfAbsent(chunkPos, (pos) -> new ConcurrentLinkedQueue<>());
-            queue.add(ent.getId());
-        } else {
-            chunk.addEntity(ent);
-            chunk.setSaved(false);
-        }
-    }
-
-    public Entity getEntity(int key) {
-        return entities.getOrDefault(key, null);
     }
 
     /**
@@ -140,23 +74,10 @@ public class ChunkFactory {
     }
 
     /**
-     * Start service to periodically parse chunks in the queue. This is to prevent the other threads from being blocked
-     * by chunk parsing.
-     */
-    public static void startChunkParserService() {
-        ChunkFactory factory = getInstance();
-        if (factory.threadStarted) {
-            return;
-        }
-
-        factory.start();
-    }
-
-    /**
      * Periodically check if there are unparsed chunks, and if so, parse them.
      */
     public void start() {
-        executor = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "Chunk Parser Service"));
+        executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Chunk Parser Service"));
     }
 
     private void parse() {
@@ -222,13 +143,6 @@ public class ChunkFactory {
                 chunk.addTileEntity(ent.getPosition(), ent.getTag());
             }
         }
-
-        if (chunkEntities.containsKey(chunk.location)) {
-            Queue<Integer> queue = chunkEntities.get(chunk.location);
-            for (Integer entId : queue) {
-                chunk.addEntity(entities.get(entId));
-            }
-        }
     }
 
     /**
@@ -269,24 +183,6 @@ public class ChunkFactory {
         }
     }
 
-    /**
-     * Delete all tile entities for a chunk, only done when the chunk is also unloaded. Note that this only related to
-     * tile entities sent in the update-tile-entity packets, ones sent with the chunk will only be stored in the chunk.
-     * @param location the position of the chunk for which we can delete tile entities.
-     */
-    public void deleteAllEntities(Coordinate2D location) {
-        tileEntities.remove(location);
-
-        // delete regular entities as well, some might not unload with the origin chunk but we'll ignore that for now
-        Queue<Integer> queue = chunkEntities.get(location);
-        if (queue != null) {
-            for (Integer entId : queue) {
-                entities.remove(entId);
-            }
-            chunkEntities.remove(location);
-        }
-    }
-
     public Chunk fromNbt(NamedTag tag, CoordinateDim2D location) {
         int dataVersion = tag.getTag().get("DataVersion").intValue();
         Chunk chunk = getVersionedChunk(dataVersion, location);
@@ -295,6 +191,11 @@ public class ChunkFactory {
         chunk.setSaved(true);
 
         return chunk;
+    }
+
+    public void reset() {
+        this.unparsedChunks.clear();
+        this.tileEntities.clear();
     }
 
     private static class TileEntity {
@@ -314,6 +215,10 @@ public class ChunkFactory {
             return tag;
         }
     }
+
+    public void unloadChunk(CoordinateDim2D coord) {
+        this.tileEntities.remove(coord);
+    }
 }
 
 class ChunkParserPair {
@@ -323,21 +228,5 @@ class ChunkParserPair {
     public ChunkParserPair(DataTypeProvider provider, Dimension dimension) {
         this.provider = provider;
         this.dimension = dimension;
-    }
-}
-
-class EntityParser {
-    DataTypeProvider provider;
-    Dimension dimension;
-    Function<DataTypeProvider, Entity> parser;
-
-    public EntityParser(DataTypeProvider provider, Dimension dimension, Function<DataTypeProvider, Entity> parser) {
-        this.dimension = dimension;
-        this.provider = provider;
-        this.parser = parser;
-    }
-
-    public Entity parse() {
-        return parser.apply(provider);
     }
 }

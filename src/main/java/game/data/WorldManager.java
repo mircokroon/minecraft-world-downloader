@@ -4,6 +4,7 @@ import config.Config;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
+import game.data.chunk.IncompleteChunkException;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
 import game.data.container.ContainerManager;
@@ -16,6 +17,7 @@ import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
 import game.data.entity.EntityNames;
+import game.data.entity.EntityRegistry;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
@@ -42,6 +44,7 @@ public class WorldManager {
     private static final int SAVE_DELAY = 15 * 1000;
     private static WorldManager instance;
     private final LevelData levelData;
+    private final MapData mapData;
     private final Map<CoordinateDim2D, Queue<Runnable>> chunkLoadCallbacks = new ConcurrentHashMap<>();
     private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
     private Set<Dimension> existingLoaded = new HashSet<>();
@@ -65,9 +68,14 @@ public class WorldManager {
     private CoordinateDouble3D playerPosition;
     private double playerRotation = 0;
     private Dimension dimension;
+    private final EntityRegistry entityRegistry;
+    private final ChunkFactory chunkFactory;
 
     protected WorldManager() {
         this.isStarted = false;
+        this.entityRegistry = new EntityRegistry(this);
+        this.chunkFactory = new ChunkFactory();
+        this.mapData = new MapData();
 
         this.levelData = new LevelData(this);
 
@@ -149,7 +157,7 @@ public class WorldManager {
 
         Stream<McaFile> files = null;
         try {
-            files = getMcaFiles(dimension, true);
+            files = McaFile.getFiles(dimension, true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -165,7 +173,7 @@ public class WorldManager {
      * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
      */
     public void drawExistingChunks() {
-        Stream<McaFile> files = getMcaFiles(8);
+        Stream<McaFile> files = McaFile.getFiles(this.playerPosition, this.dimension, 8);
 
         files.forEach(file -> {
             Map<CoordinateDim2D, Chunk> chunks = file.getParsedChunks(this.dimension);
@@ -187,58 +195,6 @@ public class WorldManager {
         });
     }
 
-    private Stream<McaFile> getMcaFiles(int radius) {
-        Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
-
-        if (!exportDir.toFile().exists()) {
-            return Stream.empty();
-        }
-        List<File> files = new ArrayList<>();
-        Coordinate2D center = playerPosition.discretize().globalToChunk().chunkToRegion().offsetChunk();
-        for (int x = -radius; x < radius; x++) {
-            for (int z = -radius; z < radius; z++) {
-                files.add(McaFile.coordinatesToFile(exportDir, center.add(x, z)));
-            }
-        }
-        return files.stream().filter(Objects::nonNull).map(el -> {
-            try {
-                return new McaFile(el);
-            } catch (IOException e) {
-                return null;
-            }
-        }).filter(Objects::nonNull);
-    }
-
-    /**
-     * Read from the save path to see which chunks have been saved already.
-     */
-    private Stream<McaFile> getMcaFiles(Dimension dimension, boolean limit) throws IOException {
-        Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
-
-        if (!exportDir.toFile().exists()) {
-            return Stream.empty();
-        }
-
-        Stream<File> stream = Files.walk(exportDir)
-                .filter(el -> el.getFileName().toString().endsWith(".mca"))
-                .map(Path::toFile);
-
-        if (limit) {
-            stream = stream.limit(100); // don't load more than 100 region files
-        }
-
-        return stream.filter(el -> el.length() > 0)
-                .map(el -> {
-                    try {
-                        return new McaFile(el);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    return null;
-                })
-                .filter(Objects::nonNull);
-    }
-
     /**
      * Set the config variables for the save service.
      */
@@ -258,9 +214,8 @@ public class WorldManager {
         }
         isStarted = true;
 
-        instance.start();
-
-        ChunkFactory.getInstance().parseEntities();
+        this.start();
+        this.chunkFactory.start();
     }
 
     /**
@@ -281,9 +236,7 @@ public class WorldManager {
 
         if (drawInGui) {
             // draw the chunk once its been parsed
-            chunk.whenParsed(() -> {
-                GuiManager.setChunkLoaded(chunk.location, chunk);
-            });
+            chunk.whenParsed(() -> GuiManager.setChunkLoaded(chunk.location, chunk));
         }
 
         if (this.renderDistanceExtender != null) {
@@ -475,7 +428,7 @@ public class WorldManager {
 
     public void deleteAllExisting() {
         regions = new HashMap<>();
-        ChunkFactory.getInstance().clear();
+        chunkFactory.clear();
 
         try {
             File dir = PathUtils.toPath(Config.getWorldOutputDir(), this.dimension.getPath(), "region").toFile();
@@ -580,7 +533,13 @@ public class WorldManager {
 
                 // send a packet with the chunk to the client
                 Chunk chunk = chunkBinary.toChunk(withDim);
-                Config.getPacketInjector().accept(chunk.toPacket());
+
+                try {
+                    Config.getPacketInjector().accept(chunk.toPacket());
+                } catch (IncompleteChunkException ex) {
+                    // chunk was not complete
+                    continue;
+                }
                 loaded.add(coord);
 
                 // draw in GUI
@@ -605,6 +564,20 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.resetConnection();
         }
+        this.entityRegistry.reset();
+        this.chunkFactory.reset();
+    }
+
+    public EntityRegistry getEntityRegistry() {
+        return entityRegistry;
+    }
+    public ChunkFactory getChunkFactory() {
+        return chunkFactory;
+    }
+
+    public void unloadEntities(CoordinateDim2D coord) {
+        this.entityRegistry.unloadChunk(coord);
+        this.chunkFactory.unloadChunk(coord);
     }
 }
 

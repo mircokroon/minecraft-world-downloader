@@ -251,7 +251,6 @@ public class Config {
             WorldManager.getInstance().setItemRegistry(loader.generateItemRegistry());
 
             WorldManager.getInstance().startSaveService();
-            ChunkFactory.startChunkParserService();
 
             loader.clean();
         } catch (Exception e) {
