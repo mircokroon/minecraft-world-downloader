@@ -56,6 +56,11 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        operations.put("map_data", provider -> {
+            worldManager.getMapRegistry().readMap(provider);
+            return true;
+        });
+
         operations.put("join_game", provider -> {
             provider.readInt();
             provider.readNext();

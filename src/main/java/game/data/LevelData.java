@@ -1,6 +1,7 @@
 package game.data;
 
 import config.Config;
+import game.data.WorldManager;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
@@ -9,6 +10,7 @@ import game.data.dimension.Dimension;
 import org.apache.commons.io.IOUtils;
 import proxy.CompressionManager;
 import se.llbit.nbt.*;
+import util.NbtUtil;
 import util.PathUtils;
 
 import java.io.*;
@@ -67,13 +69,9 @@ public class LevelData {
             fileInput = new FileInputStream(file);
         }
 
-        byte[] fileContent = IOUtils.toByteArray(fileInput);
-
         try {
             // get default level.dat
-            this.root = NamedTag.read(
-                    new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
-            );
+            this.root = NbtUtil.read(fileInput);
         } catch (Exception ex) {
             ex.printStackTrace();
             if (!forceInternal) {
@@ -83,7 +81,6 @@ public class LevelData {
 
         this.data = (CompoundTag) root.unpack().get("Data");
     }
-
 
     /**
      * Save the level.dat file so the world can be easily opened. If one doesn't exist, use the default one from
@@ -133,11 +130,7 @@ public class LevelData {
         }
 
         // write the file
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        root.write(new DataOutputStream(output));
-
-        byte[] compressed = CompressionManager.gzipCompress(output.toByteArray());
-        Files.write(file.toPath(), compressed);
+        NbtUtil.write(root, file.toPath());
     }
 
 

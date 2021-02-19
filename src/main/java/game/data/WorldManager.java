@@ -18,6 +18,7 @@ import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
 import game.data.entity.EntityNames;
 import game.data.entity.EntityRegistry;
+import game.data.maps.MapRegistry;
 import game.data.region.McaFile;
 import game.data.region.Region;
 import gui.GuiManager;
@@ -44,7 +45,7 @@ public class WorldManager {
     private static final int SAVE_DELAY = 15 * 1000;
     private static WorldManager instance;
     private final LevelData levelData;
-    private final MapData mapData;
+    private final MapRegistry mapRegistry;
     private final Map<CoordinateDim2D, Queue<Runnable>> chunkLoadCallbacks = new ConcurrentHashMap<>();
     private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
     private Set<Dimension> existingLoaded = new HashSet<>();
@@ -75,7 +76,7 @@ public class WorldManager {
         this.isStarted = false;
         this.entityRegistry = new EntityRegistry(this);
         this.chunkFactory = new ChunkFactory();
-        this.mapData = new MapData();
+        this.mapRegistry = new MapRegistry();
 
         this.levelData = new LevelData(this);
 
@@ -397,6 +398,15 @@ public class WorldManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        // save map data
+        try {
+            mapRegistry.save();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+        
 
 
         // remove empty regions
@@ -573,6 +583,9 @@ public class WorldManager {
     }
     public ChunkFactory getChunkFactory() {
         return chunkFactory;
+    }
+    public MapRegistry getMapRegistry() {
+        return mapRegistry;
     }
 
     public void unloadEntities(CoordinateDim2D coord) {

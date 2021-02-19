@@ -122,6 +122,7 @@
 				"0x27": "entity_position",
 				"0x28": "entity_position_rotation",
 				"0x56": "entity_teleport",
+				"0x25": "map_data",
                 "0x24": "join_game",
 				"0x39": "respawn",
 				"0x2D": "open_window",
