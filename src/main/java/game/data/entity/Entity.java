@@ -66,9 +66,7 @@ public abstract class Entity extends PrimitiveEntity {
         nbt.add("Pos", new ListTag(ListTag.TAG_DOUBLE, pos));
     }
 
-    public void parseMetadata(DataTypeProvider provider) {
-        System.out.println("No metadata " + this.getClass().getSimpleName());
-    };
+    public void parseMetadata(DataTypeProvider provider) { };
 
     protected abstract void addNbtData(CompoundTag root);
 
