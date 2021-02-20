@@ -1,25 +1,25 @@
 package packets.handler;
 
 import config.Config;
+import config.Option;
+import config.Version;
+import game.data.WorldManager;
+import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
-import game.data.WorldManager;
-import game.data.chunk.Chunk;
-import game.data.chunk.ChunkFactory;
-import game.data.entity.Entity;
+import game.data.entity.EntityRegistry;
 import game.data.entity.MobEntity;
 import game.data.entity.ObjectEntity;
-import game.data.container.Slot;
 import packets.handler.version.ClientBoundGamePacketHandler_1_14;
 import packets.handler.version.ClientBoundGamePacketHandler_1_15;
 import packets.handler.version.ClientBoundGamePacketHandler_1_16;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ClientBoundGamePacketHandler extends PacketHandler {
@@ -27,28 +27,44 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
     public ClientBoundGamePacketHandler(ConnectionManager connectionManager) {
         super(connectionManager);
 
-        operations.put("entity_metadata", provider -> {
-            Entity ent = ChunkFactory.getInstance().getEntity(provider.readVarInt());
-            if (ent == null) { return true; }
-            ent.parseMetadata(provider);
+        WorldManager worldManager = WorldManager.getInstance();
+        EntityRegistry entityRegistry = WorldManager.getInstance().getEntityRegistry();
 
-            // mark chunk as unsaved
-            Chunk c = WorldManager.getInstance().getChunk(ent.getPosition().globalToChunk().addDimension(WorldManager.getInstance().getDimension()));
-            if (c == null) { return true; }
+        operations.put("entity_data", provider -> {
+            entityRegistry.addMetadata(provider);
+            return true;
+        });
 
-            WorldManager.getInstance().touchChunk(c);
+        operations.put("entity_equipment", provider -> {
+            entityRegistry.addEquipment(provider);
             return true;
         });
 
         operations.put("spawn_mob", provider -> {
-            ChunkFactory.getInstance().addEntity(provider, MobEntity::parse);
-
+            entityRegistry.addEntity(provider, MobEntity::parse);
             return true;
         });
 
         operations.put("spawn_object", provider -> {
-            ChunkFactory.getInstance().addEntity(provider, ObjectEntity::parse);
+            entityRegistry.addEntity(provider, ObjectEntity::parse);
+            return true;
+        });
 
+        operations.put("entity_position", provider -> {
+            entityRegistry.updatePositionRelative(provider);
+            return true;
+        });
+        operations.put("entity_position_rotation", provider -> {
+            entityRegistry.updatePositionRelative(provider);
+            return true;
+        });
+        operations.put("entity_teleport", provider -> {
+            entityRegistry.updatePositionAbsolute(provider);
+            return true;
+        });
+
+        operations.put("map_data", provider -> {
+            worldManager.getMapRegistry().readMap(provider);
             return true;
         });
 
@@ -57,21 +73,21 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             provider.readNext();
             int dimensionEnum = provider.readInt();
 
-            WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
+            worldManager.setDimension(Dimension.fromId(dimensionEnum));
 
             return true;
         });
 
         operations.put("respawn", provider -> {
             int dimensionEnum = provider.readInt();
-            WorldManager.getInstance().setDimension(Dimension.fromId(dimensionEnum));
+            worldManager.setDimension(Dimension.fromId(dimensionEnum));
 
             return true;
         });
 
         operations.put("chunk_data", provider -> {
             try {
-                ChunkFactory.getInstance().addChunk(provider);
+                worldManager.getChunkFactory().addChunk(provider);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -80,7 +96,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
         operations.put("chunk_unload", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), WorldManager.getInstance().getDimension());
-            WorldManager.getInstance().unloadChunk(co);
+            worldManager.unloadChunk(co);
             return Config.getExtendedRenderDistance() == 0;
         });
 
@@ -89,7 +105,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             byte action = provider.readNext();
             SpecificTag entityData = provider.readNbtTag();
 
-            ChunkFactory.getInstance().updateTileEntity(position, entityData);
+            worldManager.getChunkFactory().updateTileEntity(position, entityData);
             return true;
         });
 
@@ -100,7 +116,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             double z = provider.readDouble();
 
             CoordinateDouble3D playerPos = new CoordinateDouble3D(x, y, z);
-            WorldManager.getInstance().setPlayerPosition(playerPos);
+            worldManager.setPlayerPosition(playerPos);
 
             return true;
         };
@@ -115,12 +131,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
             int numSlots = provider.readNext() & 0xFF;
 
-            WorldManager.getInstance().getContainerManager().openWindow_1_12(windowId, numSlots, windowTitle);
+            worldManager.getContainerManager().openWindow_1_12(windowId, numSlots, windowTitle);
 
             return true;
         });
         operations.put("close_window", provider -> {
-            WorldManager.getInstance().getContainerManager().closeWindow(provider.readNext());
+            worldManager.getContainerManager().closeWindow(provider.readNext());
             return true;
         });
 
@@ -129,7 +145,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             int count = provider.readShort();
             List<Slot> slots = provider.readSlots(count);
 
-            WorldManager.getInstance().getContainerManager().items(windowId, slots);
+            worldManager.getContainerManager().items(windowId, slots);
 
             return true;
         });
@@ -141,20 +157,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
     }
 
     public static PacketHandler of(ConnectionManager connectionManager) {
-        final int VERSION_1_14 = 441;
-        final int VERSION_1_15 = 573;
-        final int VERSION_1_16 = 701;
-
-        int protocolVersion = Config.getProtocolVersion();
-        if (protocolVersion >= VERSION_1_16) {
-            return new ClientBoundGamePacketHandler_1_16(connectionManager);
-        } else if (protocolVersion >= VERSION_1_15) {
-            return new ClientBoundGamePacketHandler_1_15(connectionManager);
-        } else if (protocolVersion >= VERSION_1_14) {
-            return new ClientBoundGamePacketHandler_1_14(connectionManager);
-        } else {
-            return new ClientBoundGamePacketHandler(connectionManager);
-        }
+        return Config.versionReporter().select(PacketHandler.class,
+                Option.of(Version.V1_16, () -> new ClientBoundGamePacketHandler_1_16(connectionManager)),
+                Option.of(Version.V1_15, () -> new ClientBoundGamePacketHandler_1_15(connectionManager)),
+                Option.of(Version.V1_14, () -> new ClientBoundGamePacketHandler_1_14(connectionManager)),
+                Option.of(Version.ANY, () -> new ClientBoundGamePacketHandler(connectionManager))
+        );
     }
 
     @Override

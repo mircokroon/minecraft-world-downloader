@@ -28,6 +28,7 @@ class ChunkTest extends PacketBuilderAndParserTest {
         // set up mock
         WorldManager mock = mock(WorldManager.class);
         when(mock.getBlockColors()).thenReturn(mock(BlockColors.class));
+        when(mock.getChunkFactory()).thenReturn(new ChunkFactory());
 
         WorldManager.setInstance(mock);
 

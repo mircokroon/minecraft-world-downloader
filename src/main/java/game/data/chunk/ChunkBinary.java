@@ -1,6 +1,7 @@
 package game.data.chunk;
 
 import config.Config;
+import game.data.WorldManager;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.region.McaFile;
 import proxy.CompressionManager;
@@ -98,7 +99,7 @@ public class ChunkBinary implements Serializable {
         byte[] data = CompressionManager.zlibDecompress(compressedNbtData);
         NamedTag nbt = (NamedTag) NamedTag.read(new DataInputStream(new ByteArrayInputStream(data)));
 
-        return ChunkFactory.getInstance().fromNbt(nbt, coordinate2D);
+        return WorldManager.getInstance().getChunkFactory().fromNbt(nbt, coordinate2D);
     }
 
     public int getTimestamp() {

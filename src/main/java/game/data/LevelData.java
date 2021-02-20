@@ -1,14 +1,17 @@
 package game.data;
 
 import config.Config;
+import game.data.WorldManager;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
+import game.data.dimension.DimensionCodec;
 import org.apache.commons.io.IOUtils;
 import proxy.CompressionManager;
 import se.llbit.nbt.*;
+import util.NbtUtil;
 import util.PathUtils;
 
 import java.io.*;
@@ -16,6 +19,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class LevelData {
     WorldManager worldManager;
@@ -67,13 +73,9 @@ public class LevelData {
             fileInput = new FileInputStream(file);
         }
 
-        byte[] fileContent = IOUtils.toByteArray(fileInput);
-
         try {
             // get default level.dat
-            this.root = NamedTag.read(
-                    new DataInputStream(new ByteArrayInputStream(CompressionManager.gzipDecompress(fileContent)))
-            );
+            this.root = NbtUtil.read(fileInput);
         } catch (Exception ex) {
             ex.printStackTrace();
             if (!forceInternal) {
@@ -83,7 +85,6 @@ public class LevelData {
 
         this.data = (CompoundTag) root.unpack().get("Data");
     }
-
 
     /**
      * Save the level.dat file so the world can be easily opened. If one doesn't exist, use the default one from
@@ -126,18 +127,26 @@ public class LevelData {
             versionTag.add("Snapshot", new ByteTag((byte) 0));
 
             data.add("Version", versionTag);
+            data.add("DataVersion", new IntTag(Config.getDataVersion()));
         }
 
         if (!Config.isWorldGenEnabled()) {
             disableWorldGeneration(data);
+        } else {
+            enableWorldGeneration(data);
         }
 
         // write the file
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        root.write(new DataOutputStream(output));
+        NbtUtil.write(root, file.toPath());
+    }
 
-        byte[] compressed = CompressionManager.gzipCompress(output.toByteArray());
-        Files.write(file.toPath(), compressed);
+    private void enableWorldGeneration(CompoundTag data) {
+        if (Config.getDataVersion() < 2504) {
+            data.add("generatorVersion", new IntTag(1));
+            data.add("generatorName", new StringTag("default"));
+            // this is the 1.12.2 superflat format, but it still works in later versions.
+            data.add("generatorOptions", new StringTag(""));
+        }
     }
 
 
@@ -145,10 +154,41 @@ public class LevelData {
      * Set world type to a superflat void world.
      */
     private void disableWorldGeneration(CompoundTag data) {
-        data.add("generatorName", new StringTag("flat"));
+        if (Config.getDataVersion() < 2504) {
+            data.add("generatorVersion", new IntTag(1));
+            data.add("generatorName", new StringTag("flat"));
+            // this is the 1.12.2 superflat format, but it still works in later versions.
+            data.add("generatorOptions", new StringTag("3;minecraft:air;127"));
+        } else {
+            CompoundTag generator = new CompoundTag();
+            generator.add("type", new StringTag("minecraft:flat"));
+            generator.add("settings", new CompoundTag(Arrays.asList(
+                    new NamedTag("layers", new ListTag(Tag.TAG_COMPOUND, Collections.singletonList(
+                            new CompoundTag(Arrays.asList(
+                                    new NamedTag("block", new StringTag("minecraft:air")),
+                                    new NamedTag("height", new IntTag(1))
+                            ))
+                    ))),
+                    new NamedTag("structures", new CompoundTag(Arrays.asList(new NamedTag("structures", new CompoundTag())))),
+                    new NamedTag("biome", new StringTag("minecraft:the_void"))
+            )));
 
-        // this is the 1.12.2 superflat format, but it still works in later versions.
-        data.add("generatorOptions", new StringTag("3;minecraft:air;127"));
+            CompoundTag dimensions = new CompoundTag(worldManager.getDimensionCodec().getDimensions().stream().map(dimension -> {
+                CompoundTag dim = new CompoundTag();
+                dim.add("type", new StringTag(dimension.getType()));
+                dim.add("generator", generator);
+
+                return new NamedTag(dimension.getName(), dim);
+            }).collect(Collectors.toList()));
+
+
+            data.add("WorldGenSettings", new CompoundTag(Arrays.asList(
+                    new NamedTag("bonus_chest", new ByteTag(0)),
+                    new NamedTag("generate_features", new ByteTag(0)),
+                    new NamedTag("seed", new LongTag(Config.getLevelSeed())),
+                    new NamedTag("dimensions", dimensions)
+            )));
+        }
     }
 
 }

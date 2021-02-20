@@ -2,32 +2,30 @@ package game.data.entity;
 
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.FloatTag;
-import se.llbit.nbt.ListTag;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class ObjectEntity extends Entity {
-    private float pitch;
-    private float yaw;
-
-    private ObjectEntity() { }
-
+    protected ObjectEntity() { }
 
     @Override
-    protected void addNbtData(CompoundTag root) {
-        List<FloatTag> pos = Arrays.asList(new FloatTag(pitch), new FloatTag(yaw));
-        root.add("Rotation", new ListTag(ListTag.TAG_FLOAT, pos));
-    }
+    protected void addNbtData(CompoundTag root) { }
 
-    @Override
-    protected void parseRotation(DataTypeProvider provider) {
-        this.pitch = provider.readNext();
-        this.yaw = provider.readNext();
-    }
+    protected void setData(int data) { }
 
     public static Entity parse(DataTypeProvider provider) {
-        return Entity.parseEntity(provider, new ObjectEntity());
+        PrimitiveEntity primitive = PrimitiveEntity.parse(provider);
+        Entity ent = primitive.getEntity(ObjectEntity::new);
+
+        ent.readPosition(provider);
+        ent.pitch = provider.readNext();
+        ent.yaw = provider.readNext();
+        int data = provider.readInt();
+        parseVelocity(provider);
+
+        // only if it's an ObjectEntity do we actually set the data bit
+        if (ent instanceof ObjectEntity) {
+            ((ObjectEntity) ent).setData(data);
+        }
+
+        return ent;
     }
 }

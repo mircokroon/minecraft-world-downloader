@@ -1,6 +1,7 @@
 package game.data.entity.metadata;
 
 import packets.DataTypeProvider;
+import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.IntTag;
 import se.llbit.nbt.StringTag;
@@ -23,7 +24,11 @@ public class MetaData_1_13 extends MetaData {
         typeHandlers.put(7, DataTypeProvider::readBoolean);
         typeHandlers.put(8, DataTypeProvider::readBoolean);
         typeHandlers.put(9, DataTypeProvider::readLong);
-        // typeHandlers.put(10, DataTypeProvider::read);
+        typeHandlers.put(10, provider -> {
+            if (provider.readBoolean()) {
+                provider.readLong();
+            }
+        });
         typeHandlers.put(11, DataTypeProvider::readVarInt);
         // typeHandlers.put(12, DataTypeProvider::read);
         typeHandlers.put(13, DataTypeProvider::readVarInt);
@@ -40,6 +45,10 @@ public class MetaData_1_13 extends MetaData {
 
     private int air;
     private String customName;
+    private boolean customNameVisible;
+    private boolean isInvisible;
+    private boolean isSilent;
+    private boolean hasNoGravity;
 
 
     @Override
@@ -50,14 +59,22 @@ public class MetaData_1_13 extends MetaData {
     @Override
     public Consumer<DataTypeProvider> getIndexHandler(int i) {
         switch (i) {
+            case 0: return provider -> isInvisible = (provider.readNext() & 0x20) > 0;
             case 1: return provider -> this.air = provider.readVarInt();
             case 2: return provider -> this.customName = provider.readOptChat();
+            case 3: return provider -> this.customNameVisible = provider.readBoolean();
+            case 4: return provider -> this.isSilent = provider.readBoolean();
+            case 5: return provider -> this.hasNoGravity = provider.readBoolean();
         }
         return null;
     }
 
     @Override
     public void addNbtTags(CompoundTag nbt) {
+        nbt.add("Silent", new ByteTag(isSilent ? 1 : 0));
+        nbt.add("NoGravity", new ByteTag(hasNoGravity ? 1 : 0));
+        nbt.add("Invisible", new ByteTag(isInvisible ? 1 : 0));
+        nbt.add("CustomNameVisible", new ByteTag(customNameVisible ? 1 : 0));
         nbt.add("Air", new IntTag(air));
         if (customName != null && customName.length() > 0) {
             nbt.add("CustomName", new StringTag(customName));

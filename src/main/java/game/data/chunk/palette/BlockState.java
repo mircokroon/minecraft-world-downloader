@@ -54,6 +54,10 @@ public class BlockState {
         return type != null && (type.equals("left") || type.equals("right"));
     }
 
+    public String getName() {
+        return name;
+    }
+
     public boolean hasProperty(String property) {
         return !properties.get(property).isError();
     }

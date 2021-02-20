@@ -41,7 +41,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
         operations.put("right_click", provider -> {
             // newer versions first include a VarInt with the hand
-            if (Config.getProtocolVersion() >= 477) {
+            if (Config.versionReporter().isAtLeast1_14()) {
                 provider.readVarInt();
             }
 

@@ -81,6 +81,8 @@ public class GuiSettings {
         centerX.setValue(config.centerX);
         centerZ.setValue(config.centerZ);
         levelSeed.setLongValue(config.levelSeed);
+        disableWorldGen.setSelected(config.disableWorldGen);
+
 
         // general tab
         extendedDistance.setValue(config.extendedRenderDistance);
@@ -203,7 +205,7 @@ public class GuiSettings {
         if (status.isExpired()) {
             authDetailsVerifyLabel.getStyleClass().add("label-warn");
             authDetailsVerifyLabel.setText("Expired?");
-            authTooltip.setText("Your authentication details are more than a day old. If you are using a custom launcher, enter your token.");
+            authTooltip.setText("Your authentication details are more than a day old. If you are using a custom launcher,\n enter your details in the Authentication tab.");
         } else if (status.isValid()) {
             authDetailsVerifyLabel.getStyleClass().add("label-valid");
             authDetailsVerifyLabel.setText("Found");
@@ -280,6 +282,7 @@ public class GuiSettings {
         config.centerX = centerX.getAsInt();
         config.centerZ = centerZ.getAsInt();
         config.levelSeed = levelSeed.getAsLong();
+        config.disableWorldGen = disableWorldGen.isSelected();
 
         // general tab
         config.extendedRenderDistance = (int) extendedDistance.getValue();

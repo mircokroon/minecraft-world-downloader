@@ -1,34 +1,27 @@
 package game.data.chunk;
 
 import game.data.WorldManager;
+import game.data.chunk.palette.BlockState;
 import game.data.container.InventoryWindow;
 import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
-import game.data.entity.Entity;
 import se.llbit.nbt.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Manage entities and tile entities for chunks.
  */
 public abstract class ChunkEntities {
     private final Map<Coordinate3D, SpecificTag> tileEntities;
-    private final Set<Entity> entities;
 
     public ChunkEntities() {
         tileEntities = new HashMap<>();
-        entities = new HashSet<>();
-    }
-
-    private List<SpecificTag> getEntityList() {
-        return entities.stream().filter(Objects::nonNull).map(Entity::toNbt).collect(Collectors.toList());
-    }
-
-    public void addEntity(Entity ent) {
-        entities.add(ent);
     }
 
     /**
@@ -52,7 +45,9 @@ public abstract class ChunkEntities {
 
     protected void addLevelNbtTags(CompoundTag map) {
         map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
-        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, getEntityList()));
+
+        List<SpecificTag> entities = WorldManager.getInstance().getEntityRegistry().getEntitiesNbt(this.getLocation());
+        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, entities));
     }
 
 
@@ -63,11 +58,29 @@ public abstract class ChunkEntities {
         if (!entity.get("id").isError()) {
             String id = entity.get("id").stringValue();
 
+            if (id.split(":").length < 2) {
+                id = "minecraft:" + id.toLowerCase();
+            }
+
             // invalid identifier - some servers will send these and it makes Minecraft angry when we load the world
             if (!id.matches("^[a-z0-9/._-]*$")) {
                 entity.add("id", new StringTag(id.toLowerCase()));
             }
+
+
+            // some servers send slightly incorrect tile entity IDs (e.g. chest for trapped_chests), we can fix those
+            // to ensure that the chests still works
+            BlockState bs = getBlockStateAt(location.withinChunk());
+            if (bs != null) {
+                String blockStateName = bs.getName();
+
+                if (!blockStateName.equals(id) && blockStateName.contains("chest")) {
+                    entity.add("id", new StringTag(bs.getName()));
+                }
+            }
         }
+
+
 
         // get offset location
         Coordinate3D offset = location.offsetGlobal();
@@ -97,4 +110,6 @@ public abstract class ChunkEntities {
     }
 
     public abstract Dimension getDimension();
+    public abstract CoordinateDim2D getLocation();
+    public abstract BlockState getBlockStateAt(Coordinate3D location);
 }

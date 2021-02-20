@@ -4,7 +4,7 @@ import config.Config;
 import game.data.dimension.Dimension;
 
 public class Coordinate2D {
-    private static final int CHUNK_SHIFT = 4;
+    protected static final int CHUNK_SHIFT = 4;
     private static final int REGION_SHIFT = 5;
     private static final int REGION_TOTAL_SHIFT = CHUNK_SHIFT + REGION_SHIFT;
     int x;

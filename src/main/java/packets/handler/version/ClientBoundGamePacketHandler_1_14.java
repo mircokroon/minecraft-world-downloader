@@ -18,7 +18,7 @@ public class ClientBoundGamePacketHandler_1_14 extends ClientBoundGamePacketHand
     public ClientBoundGamePacketHandler_1_14(ConnectionManager connectionManager) {
         super(connectionManager);
 
-        Protocol protocol = ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(Config.getProtocolVersion());
+        Protocol protocol = Config.versionReporter().getProtocol();
 
         Map<String, PacketOperator> operators = getOperators();
         operators.put("join_game", provider -> {

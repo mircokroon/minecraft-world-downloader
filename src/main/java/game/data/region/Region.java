@@ -1,5 +1,6 @@
 package game.data.region;
 
+import game.data.WorldManager;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
@@ -132,7 +133,7 @@ public class Region {
 
         // delete chunks and their sent-later tile entities
         for (Coordinate2D c : toDelete) {
-            ChunkFactory.getInstance().deleteAllEntities(c);
+            WorldManager.getInstance().unloadEntities(c.addDimension(regionCoordinates.getDimension()));
             chunks.remove(c);
         }
         toDelete.clear();

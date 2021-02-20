@@ -80,7 +80,7 @@ public class ChunkImageFactory {
         if (ySouth < yNorth) {
             return 0.6 + (0.4 / (1 + yNorth - ySouth));
         } else if (ySouth > yNorth) {
-            return 1.9 - (0.8 / Math.sqrt(ySouth - yNorth));
+            return 1.6 - (0.6 / Math.sqrt(ySouth - yNorth));
         }
         return 1;
     }
