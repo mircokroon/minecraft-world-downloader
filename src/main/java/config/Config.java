@@ -45,6 +45,11 @@ public class Config {
     private transient boolean guiOnlyMode = true;
 
     private transient boolean debugWriteChunkNbt;
+    private transient VersionReporter versionReporter;
+
+    public Config() {
+        this.versionReporter = new VersionReporter(0);
+    }
 
     public static void setInstance(Config config) {
         instance = config;
@@ -101,6 +106,7 @@ public class Config {
 
     public static void setProtocolVersion(int protocolVersion) {
         instance.protocolVersion = protocolVersion;
+        instance.versionReporter = new VersionReporter(protocolVersion);
     }
 
     public static boolean inGuiMode() {
@@ -235,6 +241,7 @@ public class Config {
         Protocol p = instance.versionHandler.getProtocolByProtocolVersion(instance.protocolVersion);
         instance.dataVersion = p.getDataVersion();
         instance.gameVersion = p.getVersion();
+        instance.versionReporter = new VersionReporter(instance.protocolVersion);
 
         new Thread(() -> loadVersionRegistries(p)).start();
 
@@ -410,9 +417,15 @@ public class Config {
         return instance.gameVersion;
     }
 
-    public static int getProtocolVersion() {
+    private static int getProtocolVersion() {
         return instance.protocolVersion;
     }
+
+    public static VersionReporter versionReporter() {
+        return instance.versionReporter;
+    }
+
+
 
     public static AuthDetails getAuthDetails() {
         return AuthDetails.fromUsername(instance.username, instance.accessToken);

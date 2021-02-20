@@ -1,6 +1,9 @@
 package game.data.chunk;
 
 import config.Config;
+import config.Option;
+import config.Version;
+import config.VersionReporter;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
@@ -151,17 +154,13 @@ public class ChunkFactory {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
-        if (Config.getProtocolVersion() >= 751) {
-            return new Chunk_1_16(chunkPos);
-        } else  if (Config.getProtocolVersion() >= 550) {
-            return new Chunk_1_15(chunkPos);
-        } else if (Config.getProtocolVersion() >= 440) {
-            return new Chunk_1_14(chunkPos);
-        } else if (Config.getProtocolVersion() >= 341) {
-            return new Chunk_1_13(chunkPos);
-        } else {
-            return new Chunk_1_12(chunkPos);
-        }
+        return Config.versionReporter().select(Chunk.class,
+                Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
+                Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos)),
+                Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos)),
+                Option.of(Version.V1_13, () -> new Chunk_1_13(chunkPos)),
+                Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos))
+        );
     }
 
     /**
@@ -170,17 +169,14 @@ public class ChunkFactory {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
-        if (dataVersion >= Chunk_1_16.DATA_VERSION) {
-            return new Chunk_1_16(chunkPos);
-        } else if (dataVersion >= Chunk_1_15.DATA_VERSION) {
-            return new Chunk_1_15(chunkPos);
-        } else if (dataVersion >= Chunk_1_14.DATA_VERSION) {
-            return new Chunk_1_14(chunkPos);
-        } else if (dataVersion >= Chunk_1_13.DATA_VERSION) {
-            return new Chunk_1_13(chunkPos);
-        } else {
-            return new Chunk_1_12(chunkPos);
-        }
+        return VersionReporter.select(dataVersion, Chunk.class,
+                Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
+                Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos)),
+                Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos)),
+                Option.of(Version.V1_13, () -> new Chunk_1_13(chunkPos)),
+                Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos))
+        );
+
     }
 
     public Chunk fromNbt(NamedTag tag, CoordinateDim2D location) {

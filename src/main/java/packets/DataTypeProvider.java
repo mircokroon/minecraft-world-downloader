@@ -1,6 +1,8 @@
 package packets;
 
 import config.Config;
+import config.Option;
+import config.Version;
 import game.data.coordinates.Coordinate3D;
 import game.data.container.Slot;
 import game.data.container.Slot_1_12;
@@ -30,13 +32,11 @@ public class DataTypeProvider {
     }
 
     public static DataTypeProvider ofPacket(byte[] finalFullPacket) {
-        if (Config.getProtocolVersion() >= 477) {
-            return new DataTypeProvider_1_14(finalFullPacket);
-        } else if (Config.getProtocolVersion() >= 404) {
-            return new DataTypeProvider_1_13(finalFullPacket);
-        } else {
-            return new DataTypeProvider(finalFullPacket);
-        }
+        return Config.versionReporter().select(DataTypeProvider.class,
+                Option.of(Version.V1_14, () -> new DataTypeProvider_1_14(finalFullPacket)),
+                Option.of(Version.V1_13, () -> new DataTypeProvider_1_13(finalFullPacket)),
+                Option.of(Version.ANY, () -> new DataTypeProvider(finalFullPacket))
+        );
     }
 
     public DataTypeProvider ofLength(int length) {

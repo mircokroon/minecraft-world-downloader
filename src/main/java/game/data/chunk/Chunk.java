@@ -282,7 +282,7 @@ public abstract class Chunk extends ChunkEntities {
      * Generate network packet for this chunk.
      */
     public PacketBuilder toPacket() {
-        Protocol p = ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(Config.getProtocolVersion());
+        Protocol p = Config.versionReporter().getProtocol();
         PacketBuilder packet = new PacketBuilder();
         packet.writeVarInt(p.clientBound("chunk_data"));
 

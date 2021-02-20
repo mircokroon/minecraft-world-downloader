@@ -1,6 +1,8 @@
 package packets.handler;
 
 import config.Config;
+import config.Option;
+import config.Version;
 import game.NetworkMode;
 import proxy.ConnectionManager;
 
@@ -28,13 +30,11 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
             return false;
         });
         operations.put("login_success", provider -> {
-            String uuid;
-            if (Config.getProtocolVersion() >= 735) {
-                uuid = provider.readUUID().toString();
-            } else {
-                // pre 1.16
-                uuid = provider.readString();
-            }
+            String uuid = Config.versionReporter().select(String.class,
+                    Option.of(Version.V1_16, () -> provider.readUUID().toString()),
+                    Option.of(Version.ANY, provider::readString)
+            );
+
             String username = provider.readString();
             System.out.println("Login success: " + username + " logged in with uuid " + uuid);
             getConnectionManager().setMode(NetworkMode.GAME);

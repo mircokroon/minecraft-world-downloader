@@ -1,6 +1,8 @@
 package packets.handler;
 
 import config.Config;
+import config.Option;
+import config.Version;
 import game.data.WorldManager;
 import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
@@ -155,20 +157,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
     }
 
     public static PacketHandler of(ConnectionManager connectionManager) {
-        final int VERSION_1_14 = 441;
-        final int VERSION_1_15 = 573;
-        final int VERSION_1_16 = 701;
-
-        int protocolVersion = Config.getProtocolVersion();
-        if (protocolVersion >= VERSION_1_16) {
-            return new ClientBoundGamePacketHandler_1_16(connectionManager);
-        } else if (protocolVersion >= VERSION_1_15) {
-            return new ClientBoundGamePacketHandler_1_15(connectionManager);
-        } else if (protocolVersion >= VERSION_1_14) {
-            return new ClientBoundGamePacketHandler_1_14(connectionManager);
-        } else {
-            return new ClientBoundGamePacketHandler(connectionManager);
-        }
+        return Config.versionReporter().select(PacketHandler.class,
+                Option.of(Version.V1_16, () -> new ClientBoundGamePacketHandler_1_16(connectionManager)),
+                Option.of(Version.V1_15, () -> new ClientBoundGamePacketHandler_1_15(connectionManager)),
+                Option.of(Version.V1_14, () -> new ClientBoundGamePacketHandler_1_14(connectionManager)),
+                Option.of(Version.ANY, () -> new ClientBoundGamePacketHandler(connectionManager))
+        );
     }
 
     @Override
