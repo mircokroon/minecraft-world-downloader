@@ -27,7 +27,12 @@ public class PrimitiveEntity {
         if (typeName == null) {
             return null;
         }
-        return moveTo(new MobEntity());
+
+        if (typeName.endsWith("armor_stand")) {
+            return moveTo(new ArmorStand());
+        } else {
+            return moveTo(new MobEntity());
+        }
     }
 
     public Entity getObjectEntity() {
@@ -37,8 +42,6 @@ public class PrimitiveEntity {
 
         if (typeName.endsWith("item_frame")) {
             return moveTo(new ItemFrame());
-        } else if (typeName.endsWith("armor_stand")) {
-            return moveTo(new ArmorStand());
         } else {
             return moveTo(new ObjectEntity());
         }

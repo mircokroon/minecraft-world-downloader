@@ -17,6 +17,12 @@ public class ObjectEntity extends Entity {
     }
 
     @Override
+    protected void parseRotation(DataTypeProvider provider) {
+        this.pitch = provider.readNext();
+        this.yaw = provider.readNext();
+    }
+
+    @Override
     protected void parseFully(DataTypeProvider provider) {
         super.parseFully(provider);
 

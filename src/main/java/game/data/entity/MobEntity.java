@@ -3,18 +3,14 @@ package game.data.entity;
 import game.data.entity.metadata.MetaData;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.FloatTag;
-import se.llbit.nbt.ListTag;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class MobEntity extends Entity {
     private float headPitch;
 
     private MetaData metaData;
 
-    protected MobEntity() { }
+    public MobEntity() {
+    }
 
     @Override
     protected void addNbtData(CompoundTag root) {
@@ -25,7 +21,8 @@ public class MobEntity extends Entity {
 
     @Override
     protected void parseRotation(DataTypeProvider provider) {
-        super.parseRotation(provider);
+        this.yaw = provider.readNext();
+        this.pitch = provider.readNext();
         this.headPitch = provider.readNext();
     }
 

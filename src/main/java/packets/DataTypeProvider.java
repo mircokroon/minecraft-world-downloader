@@ -179,7 +179,7 @@ public class DataTypeProvider {
         }
     }
 
-    public double readFloat() {
+    public float readFloat() {
         byte[] bytes = readByteArray(4);
         ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
         buffer.put(bytes);

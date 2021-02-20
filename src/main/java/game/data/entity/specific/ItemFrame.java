@@ -34,7 +34,6 @@ public class ItemFrame extends ObjectEntity {
 
         // prevent floating item frames from popping off
         root.add("Fixed", new ByteTag(1));
-        root.add("Invisible", new ByteTag(metaData.isInvisible ? 1 : 0));
     }
 
     @Override
@@ -59,12 +58,10 @@ public class ItemFrame extends ObjectEntity {
 class ItemFrameMetaData extends MetaData_1_13 {
     Slot item;
     int rotation;
-    boolean isInvisible;
 
     @Override
     public Consumer<DataTypeProvider> getIndexHandler(int i) {
         switch (i) {
-            case 0: return provider -> isInvisible = (provider.readNext() & 0x20) > 0;
             case 7: return provider -> item = provider.readSlot();
             case 8: return provider -> rotation = provider.readVarInt();
         }

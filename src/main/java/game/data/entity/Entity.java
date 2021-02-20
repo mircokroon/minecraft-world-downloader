@@ -1,6 +1,7 @@
 package game.data.entity;
 
 import config.Config;
+import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
 import game.data.WorldManager;
 import game.data.coordinates.CoordinateDim2D;
@@ -24,6 +25,7 @@ public abstract class Entity extends PrimitiveEntity {
 
     protected float pitch;
     protected float yaw;
+    private Slot[] equipment;
 
     private BiConsumer<CoordinateDim2D, CoordinateDim2D> onMove;
 
@@ -36,7 +38,8 @@ public abstract class Entity extends PrimitiveEntity {
 
         addPosition(root);
 
-        List<DoubleTag> motion = Arrays.asList(new DoubleTag(velX), new DoubleTag(velY), new DoubleTag(velZ));
+        // write velocity as 0, we'd rather have entities become stationary
+        List<DoubleTag> motion = Arrays.asList(new DoubleTag(0), new DoubleTag(0), new DoubleTag(0));
         root.add("Motion", new ListTag(ListTag.TAG_DOUBLE, motion));
 
         root.add("UUIDLeast", new LongTag(uuid.getLower()));
@@ -47,11 +50,39 @@ public abstract class Entity extends PrimitiveEntity {
         root.add("Rotation", new ListTag(ListTag.TAG_FLOAT, pos));
 
         addNbtData(root);
+        addNbtEquipment(root);
 
         return root;
     }
 
-    private float angleToRotation(float angle) {
+    private void addNbtEquipment(CompoundTag root) {
+        if (equipment == null) {
+            return;
+        }
+
+        ListTag handItems = new ListTag(Tag.TAG_COMPOUND, Arrays.asList(
+                slotToNbt(equipment[0]),
+                slotToNbt(equipment[1])
+        ));
+        ListTag armorItems = new ListTag(Tag.TAG_COMPOUND, Arrays.asList(
+                slotToNbt(equipment[2]),
+                slotToNbt(equipment[3]),
+                slotToNbt(equipment[4]),
+                slotToNbt(equipment[5])
+        ));
+
+        root.add("HandItems", handItems);
+        root.add("ArmorItems", armorItems);
+    }
+
+    private CompoundTag slotToNbt(Slot s) {
+        if (s == null) {
+            return new CompoundTag();
+        }
+        return s.toNbt();
+    }
+
+    protected float angleToRotation(float angle) {
         float rotation = angle * ROTATION_MULTIPLIER;
         if (rotation < 0) {
             rotation += 360;
@@ -70,10 +101,7 @@ public abstract class Entity extends PrimitiveEntity {
 
     protected abstract void addNbtData(CompoundTag root);
 
-    protected void parseRotation(DataTypeProvider provider) {
-        this.pitch = provider.readNext();
-        this.yaw = provider.readNext();
-    }
+    protected abstract void parseRotation(DataTypeProvider provider);
 
     public void parsePosition(DataTypeProvider provider) {
         this.x = provider.readDouble();
@@ -142,5 +170,20 @@ public abstract class Entity extends PrimitiveEntity {
     protected void parseFully(DataTypeProvider provider) {
         parsePosition(provider);
         parseRotation(provider);
+    }
+
+    public void addEquipment(DataTypeProvider provider) {
+        if (equipment == null) {
+            equipment = new Slot[6];
+        }
+
+        boolean hasNext;
+        do {
+            byte slotData = provider.readNext();
+
+            hasNext = (slotData & 0x80) > 0;
+            int slotId = (slotData & 0x7f);
+            equipment[slotId] = provider.readSlot();
+        } while (hasNext);
     }
 }

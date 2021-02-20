@@ -121,4 +121,13 @@ public class EntityRegistry {
         this.entities.clear();
         this.perChunk.clear();
     }
+
+    public void addEquipment(DataTypeProvider provider) {
+        int id = provider.readVarInt();
+        Entity ent = entities.get(id);
+
+        if (ent != null) {
+            ent.addEquipment(provider);
+        }
+    }
 }

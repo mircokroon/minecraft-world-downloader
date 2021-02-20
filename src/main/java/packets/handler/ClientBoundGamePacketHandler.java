@@ -33,6 +33,11 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        operations.put("entity_equipment", provider -> {
+            entityRegistry.addEquipment(provider);
+            return true;
+        });
+
         operations.put("spawn_mob", provider -> {
             entityRegistry.addEntity(provider, MobEntity::parse);
             return true;
