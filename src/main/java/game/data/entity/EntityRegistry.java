@@ -64,7 +64,7 @@ public class EntityRegistry {
     private void markUnsaved(CoordinateDim2D coord) {
         Chunk chunk = worldManager.getChunk(coord);
         if (chunk != null) {
-            chunk.setSaved(false);
+            worldManager.touchChunk(chunk);
         }
     }
 
