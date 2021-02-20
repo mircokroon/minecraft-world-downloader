@@ -81,6 +81,8 @@ public class GuiSettings {
         centerX.setValue(config.centerX);
         centerZ.setValue(config.centerZ);
         levelSeed.setLongValue(config.levelSeed);
+        disableWorldGen.setSelected(config.disableWorldGen);
+
 
         // general tab
         extendedDistance.setValue(config.extendedRenderDistance);
@@ -280,6 +282,7 @@ public class GuiSettings {
         config.centerX = centerX.getAsInt();
         config.centerZ = centerZ.getAsInt();
         config.levelSeed = levelSeed.getAsLong();
+        config.disableWorldGen = disableWorldGen.isSelected();
 
         // general tab
         config.extendedRenderDistance = (int) extendedDistance.getValue();

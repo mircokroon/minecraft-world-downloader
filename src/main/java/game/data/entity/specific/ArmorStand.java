@@ -1,7 +1,6 @@
 package game.data.entity.specific;
 
 import game.data.entity.MobEntity;
-import game.data.entity.ObjectEntity;
 import game.data.entity.metadata.MetaData_1_13;
 import packets.DataTypeProvider;
 import se.llbit.nbt.*;
@@ -11,6 +10,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
+/**
+ * Handle Armorstands because many servers will use them for decorations.
+ */
 public class ArmorStand extends MobEntity {
     private ArmorStandMetaData metaData;
 
@@ -21,16 +23,11 @@ public class ArmorStand extends MobEntity {
     protected void addNbtData(CompoundTag root) {
         super.addNbtData(root);
 
-        root.add("Small", new ByteTag(metaData.isSmall ? 1 : 0));
-        root.add("ShowArms", new ByteTag(metaData.hasArms ? 1 : 0));
-        root.add("NoBasePlate", new ByteTag(metaData.hasNoBasePlate ? 1 : 0));
-        root.add("Marker", new ByteTag(metaData.isMarker ? 1 : 0));
-
-        CompoundTag pose = new CompoundTag();
-        metaData.pose.forEach((name, rotation) -> pose.add(name, rotation.toNbt()));
-
-        root.add("Pose", pose);
+        if (metaData != null) {
+            metaData.addNbtTags(root);
+        }
     }
+
 
     @Override
     public void parseMetadata(DataTypeProvider provider) {
@@ -46,15 +43,33 @@ public class ArmorStand extends MobEntity {
 }
 
 class ArmorStandMetaData extends MetaData_1_13 {
-    boolean isSmall;
-    boolean hasArms = true;
-    boolean hasNoBasePlate;
-    boolean isMarker;
+    private boolean isSmall;
+    private boolean hasArms = true;
+    private boolean hasNoBasePlate;
+    private boolean isMarker;
 
     Map<String, Rotation> pose;
 
     public ArmorStandMetaData() {
         pose = new HashMap<>();
+    }
+
+    @Override
+    public void addNbtTags(CompoundTag nbt) {
+        super.addNbtTags(nbt);
+
+        nbt.add("Small", new ByteTag(isSmall ? 1 : 0));
+        nbt.add("ShowArms", new ByteTag(hasArms ? 1 : 0));
+        nbt.add("NoBasePlate", new ByteTag(hasNoBasePlate ? 1 : 0));
+        nbt.add("Marker", new ByteTag(isMarker ? 1 : 0));
+
+        // for armorstands we always want to disable gravity
+        nbt.add("NoGravity", new ByteTag(1));
+
+        CompoundTag pose = new CompoundTag();
+        this.pose.forEach((name, rotation) -> pose.add(name, rotation.toNbt()));
+
+        nbt.add("Pose", pose);
     }
 
     @Override
@@ -99,14 +114,5 @@ class Rotation {
                 new FloatTag(y),
                 new FloatTag(z)
         ));
-    }
-
-    @Override
-    public String toString() {
-        return "Rotation{" +
-                "x=" + x +
-                ", y=" + y +
-                ", z=" + z +
-                '}';
     }
 }

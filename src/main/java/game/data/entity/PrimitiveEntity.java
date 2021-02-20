@@ -6,6 +6,11 @@ import game.data.entity.specific.ItemFrame;
 import packets.DataTypeProvider;
 import packets.UUID;
 
+import java.util.function.Supplier;
+
+/**
+ * Handle the initial entity fields, we need to know the type before we can instantiate the correct object.
+ */
 public class PrimitiveEntity {
     protected int id;
     protected UUID uuid;
@@ -23,27 +28,17 @@ public class PrimitiveEntity {
         return ent;
     }
 
-    public Entity getLivingEntity() {
+    public Entity getEntity(Supplier<Entity> generate) {
         if (typeName == null) {
             return null;
         }
 
         if (typeName.endsWith("armor_stand")) {
             return moveTo(new ArmorStand());
-        } else {
-            return moveTo(new MobEntity());
-        }
-    }
-
-    public Entity getObjectEntity() {
-        if (typeName == null) {
-            return null;
-        }
-
-        if (typeName.endsWith("item_frame")) {
+        } else if (typeName.endsWith("item_frame")) {
             return moveTo(new ItemFrame());
         } else {
-            return moveTo(new ObjectEntity());
+            return moveTo(generate.get());
         }
     }
 

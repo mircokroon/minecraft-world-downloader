@@ -5,7 +5,9 @@ import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
 import game.data.WorldManager;
 import game.data.coordinates.CoordinateDim2D;
+import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
+import game.data.entity.specific.ArmorStand;
 import packets.DataTypeProvider;
 import packets.UUID;
 import se.llbit.nbt.*;
@@ -19,7 +21,7 @@ public abstract class Entity extends PrimitiveEntity {
     private final static float ROTATION_MULTIPLIER = 360f / 256f;
 
     protected double x, y, z;
-    protected int velX, velY, velZ;
+//    protected int velX, velY, velZ;
     private CoordinateDim2D position;
     private Dimension dimension;
 
@@ -55,6 +57,9 @@ public abstract class Entity extends PrimitiveEntity {
         return root;
     }
 
+    /**
+     * First two slots are the entity's hands, the other four are armor slots.
+     */
     private void addNbtEquipment(CompoundTag root) {
         if (equipment == null) {
             return;
@@ -101,19 +106,13 @@ public abstract class Entity extends PrimitiveEntity {
 
     protected abstract void addNbtData(CompoundTag root);
 
-    protected abstract void parseRotation(DataTypeProvider provider);
-
-    public void parsePosition(DataTypeProvider provider) {
-        this.x = provider.readDouble();
-        this.y = provider.readDouble();
-        this.z = provider.readDouble();
-        updateCoordinate();
-    }
-
-    protected void parseVelocity(DataTypeProvider provider) {
-        this.velX = provider.readShort();
-        this.velY = provider.readShort();
-        this.velZ = provider.readShort();
+    /**
+     * velocity is not saved but we still read it
+     */
+    protected static void parseVelocity(DataTypeProvider provider) {
+        int velX = provider.readShort();
+        int velY = provider.readShort();
+        int velZ = provider.readShort();
     }
 
     public Integer getId() {
@@ -144,34 +143,18 @@ public abstract class Entity extends PrimitiveEntity {
         updateCoordinate();
     }
 
-    public String toSimpleString() {
-        return typeName + "@(" + x + ", " + y + ", " + z + ")";
+    protected void readPosition(DataTypeProvider provider) {
+        this.x = provider.readDouble();
+        this.y = provider.readDouble();
+        this.z = provider.readDouble();
+
+        updateCoordinate();
     }
 
-    @Override
-    public String toString() {
-        return "Entity{" +
-                "id=" + id +
-                ", uuid=" + uuid +
-                ", type=" + type +
-                ", typeName='" + typeName + '\'' +
-                ", x=" + x +
-                ", y=" + y +
-                ", z=" + z +
-                ", velX=" + velX +
-                ", velY=" + velY +
-                ", velZ=" + velZ +
-                ", position=" + position +
-                ", dimension=" + dimension +
-                ", onMove=" + onMove +
-                '}';
-    }
-
-    protected void parseFully(DataTypeProvider provider) {
-        parsePosition(provider);
-        parseRotation(provider);
-    }
-
+    /**
+     * Parse list of slot data. Each slot starts with a byte where the first bit indicates whether another slot will
+     * follow, the other 7 indicate the slot index.
+     */
     public void addEquipment(DataTypeProvider provider) {
         if (equipment == null) {
             equipment = new Slot[6];

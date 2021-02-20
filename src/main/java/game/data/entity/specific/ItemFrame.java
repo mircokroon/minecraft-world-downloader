@@ -10,6 +10,9 @@ import se.llbit.nbt.IntTag;
 
 import java.util.function.Consumer;
 
+/**
+ * Handle item frames as they can be used as decorations
+ */
 public class ItemFrame extends ObjectEntity {
     int facing;
     private ItemFrameMetaData metaData;
@@ -24,21 +27,25 @@ public class ItemFrame extends ObjectEntity {
     @Override
     protected void addNbtData(CompoundTag root) {
         super.addNbtData(root);
-        root.add("Item", metaData.item.toNbt());
-        root.add("ItemRotation", new IntTag(metaData.rotation));
+
         root.add("Facing", new IntTag(facing));
 
-        root.add("TileX", new IntTag((int) x));
-        root.add("TileY", new IntTag((int) y));
-        root.add("TileZ", new IntTag((int) z));
+        // use math.floor instead of just cast so that negative numbers are handled correctly
+        root.add("TileX", new IntTag((int) Math.floor(x)));
+        root.add("TileY", new IntTag((int) Math.floor(y)));
+        root.add("TileZ", new IntTag((int) Math.floor(z)));
 
         // prevent floating item frames from popping off
         root.add("Fixed", new ByteTag(1));
+
+        if (metaData != null) {
+            metaData.addNbtTags(root);
+        }
     }
 
     @Override
-    protected void parseData(DataTypeProvider provider) {
-        facing = provider.readInt();
+    protected void setData(int data) {
+        this.facing = data;
     }
 
     @Override
@@ -58,6 +65,12 @@ public class ItemFrame extends ObjectEntity {
 class ItemFrameMetaData extends MetaData_1_13 {
     Slot item;
     int rotation;
+
+    @Override
+    public void addNbtTags(CompoundTag nbt) {
+        nbt.add("Item", item.toNbt());
+        nbt.add("ItemRotation", new IntTag(rotation));
+    }
 
     @Override
     public Consumer<DataTypeProvider> getIndexHandler(int i) {

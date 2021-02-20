@@ -107,7 +107,9 @@ public class McaFile {
      * For details on the MCA file format: https://minecraft.gamepedia.com/Region_file_format
      */
     private Map<Integer, ChunkBinary> readFile(File mca) throws IOException {
-        byte[] bytes = IOUtils.toByteArray(new FileInputStream(mca));
+        FileInputStream inputStream = new FileInputStream(mca);
+        byte[] bytes = IOUtils.toByteArray(inputStream);
+        inputStream.close();
 
         // ensure that the data is not empty
         if (bytes.length == 0) {

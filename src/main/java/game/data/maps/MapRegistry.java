@@ -14,11 +14,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Handle storing of the map item.
+ */
 public class MapRegistry {
     String registryFileName = "idcounts.dat";
     Path dataDir = PathUtils.toPath(Config.getWorldOutputDir(),  "data");
@@ -40,6 +42,9 @@ public class MapRegistry {
         }
     }
 
+    /**
+     * Read in the maximum map ID from the existing data file, if it exists.
+     */
     private void read() throws IOException {
         if (!registryFile.exists()) {
             return;
@@ -50,6 +55,9 @@ public class MapRegistry {
         this.maxMapId = root.get("map").intValue();
     }
 
+    /**
+     * Save the number of maps in the idcount file, then save each map that changed since we saved last time.
+     */
     public void save() throws IOException {
         Files.createDirectories(dataDir);
 
@@ -71,6 +79,9 @@ public class MapRegistry {
         updatedSince.clear();
     }
 
+    /**
+     * Read map from network packet to class.
+     */
     public void readMap(DataTypeProvider provider) {
         int mapId = provider.readVarInt();
         this.updatedSince.add(mapId);

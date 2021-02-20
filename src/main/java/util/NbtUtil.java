@@ -29,4 +29,8 @@ public class NbtUtil {
        byte[] compressed = CompressionManager.gzipCompress(output.toByteArray());
        Files.write(destination, compressed);
    }
+
+    public static void main(String[] args) throws IOException {
+        System.out.println(read(new File("C:\\Users\\Mirco\\AppData\\Roaming\\.minecraft\\saves\\hypixel-ent-test\\level.dat")).unpack());
+    }
 }

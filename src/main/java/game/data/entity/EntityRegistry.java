@@ -103,7 +103,7 @@ public class EntityRegistry {
         Entity ent = entities.get(provider.readVarInt());
 
         if (ent != null) {
-            ent.parsePosition(provider);
+            ent.readPosition(provider);
         }
     }
 

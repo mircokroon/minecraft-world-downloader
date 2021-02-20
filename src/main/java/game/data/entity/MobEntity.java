@@ -19,25 +19,19 @@ public class MobEntity extends Entity {
         }
     }
 
-    @Override
-    protected void parseRotation(DataTypeProvider provider) {
-        this.yaw = provider.readNext();
-        this.pitch = provider.readNext();
-        this.headPitch = provider.readNext();
-    }
-
-    @Override
-    protected void parseFully(DataTypeProvider provider) {
-        super.parseFully(provider);
-
-        parseVelocity(provider);
-    }
-
     public static Entity parse(DataTypeProvider provider) {
         PrimitiveEntity primitive = PrimitiveEntity.parse(provider);
-        Entity ent = primitive.getLivingEntity();
+        Entity ent = primitive.getEntity(MobEntity::new);
 
-        ent.parseFully(provider);
+        ent.readPosition(provider);
+        ent.yaw = provider.readNext();
+        ent.pitch = provider.readNext();
+        byte headPitch = provider.readNext();
+        parseVelocity(provider);
+
+        if (ent instanceof MobEntity) {
+            ((MobEntity) ent).headPitch = headPitch;
+        }
 
         return ent;
     }

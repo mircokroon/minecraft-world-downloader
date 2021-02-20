@@ -19,17 +19,27 @@ import java.util.Objects;
  * no new chunks are generated.
  */
 public class Dimension {
-    public static final Dimension OVERWORLD = new Dimension("minecraft", "overworld");
-    public static final Dimension NETHER = new Dimension("minecraft", "the_nether");
-    public static final Dimension END = new Dimension("minecraft", "the_end");
+    public static final Dimension OVERWORLD = new Dimension("minecraft", "overworld", "minecraft:overworld");
+    public static final Dimension NETHER = new Dimension("minecraft", "the_nether", "minecraft:the_nether");
+    public static final Dimension END = new Dimension("minecraft", "the_end", "minecraft:the_end");
 
     private final String namespace;
     private final String name;
     private String type;
 
+    Dimension(String namespace, String name, String type) {
+        this(namespace, name);
+        this.type = type;
+    }
+
     Dimension(String namespace, String name) {
         this.namespace = namespace;
         this.name = name;
+    }
+
+    public String getType() {
+        if (type == null) { return "minecraft:overworld"; }
+        return type;
     }
 
     /**
@@ -143,6 +153,10 @@ public class Dimension {
     @Override
     public String toString() {
         return namespace + ":" + name;
+    }
+
+    public String getName() {
+        return this.toString();
     }
 }
 

@@ -5,7 +5,9 @@ import se.llbit.nbt.*;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -66,6 +68,10 @@ public class DimensionCodec {
         codec.readBiomes(tag.get("minecraft:worldgen/biome").asCompound().get("value").asList());
 
         return codec;
+    }
+
+    public Collection<Dimension> getDimensions() {
+        return dimensions.values();
     }
 
     private void readDimensions(String[] dimensionNames) {
