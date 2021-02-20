@@ -2,14 +2,11 @@ package game.data.entity;
 
 import config.Config;
 import game.data.container.Slot;
-import game.data.coordinates.Coordinate3D;
 import game.data.WorldManager;
 import game.data.coordinates.CoordinateDim2D;
-import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
-import game.data.entity.specific.ArmorStand;
+import game.data.entity.version.EquipmentReader;
 import packets.DataTypeProvider;
-import packets.UUID;
 import se.llbit.nbt.*;
 
 import java.util.Arrays;
@@ -17,11 +14,12 @@ import java.util.List;
 import java.util.function.BiConsumer;
 
 public abstract class Entity extends PrimitiveEntity {
+    private static EquipmentReader equipmentReader;
+
     private final static double CHANGE_MULTIPLIER = 4096.0;
     private final static float ROTATION_MULTIPLIER = 360f / 256f;
 
     protected double x, y, z;
-//    protected int velX, velY, velZ;
     private CoordinateDim2D position;
     private Dimension dimension;
 
@@ -32,6 +30,9 @@ public abstract class Entity extends PrimitiveEntity {
     private BiConsumer<CoordinateDim2D, CoordinateDim2D> onMove;
 
     Entity() {
+        if (equipmentReader == null) {
+            equipmentReader = EquipmentReader.getVersioned();
+        }
         this.dimension = WorldManager.getInstance().getDimension();
     }
 
@@ -156,17 +157,6 @@ public abstract class Entity extends PrimitiveEntity {
      * follow, the other 7 indicate the slot index.
      */
     public void addEquipment(DataTypeProvider provider) {
-        if (equipment == null) {
-            equipment = new Slot[6];
-        }
-
-        boolean hasNext;
-        do {
-            byte slotData = provider.readNext();
-
-            hasNext = (slotData & 0x80) > 0;
-            int slotId = (slotData & 0x7f);
-            equipment[slotId] = provider.readSlot();
-        } while (hasNext);
+        this.equipment = equipmentReader.readSlots(this.equipment, provider);
     }
 }

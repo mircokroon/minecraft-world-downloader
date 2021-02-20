@@ -89,7 +89,7 @@ public class MapRegistry {
             maxMapId = mapId;
         }
 
-        PlayerMap map = maps.computeIfAbsent(mapId, PlayerMap::new);
+        PlayerMap map = maps.computeIfAbsent(mapId, PlayerMap::getVersioned);
         map.parse(provider);
     }
 }

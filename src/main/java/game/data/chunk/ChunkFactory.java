@@ -73,7 +73,12 @@ public class ChunkFactory {
         }
 
         unparsedChunks.add(new ChunkParserPair(provider, WorldManager.getInstance().getDimension()));
-        executor.execute(this::parse);
+
+        // check if executor is defined - there is a rare race condition where the proxy could receive chunks before
+        // it is initiated
+        if (executor != null) {
+            executor.execute(this::parse);
+        }
     }
 
     /**

@@ -1,6 +1,8 @@
 package game.data.maps;
 
 import config.Config;
+import config.Option;
+import config.Version;
 import game.data.WorldManager;
 import game.data.dimension.Dimension;
 import packets.DataTypeProvider;
@@ -9,7 +11,7 @@ import se.llbit.nbt.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PlayerMap {
+public abstract class PlayerMap {
     int id;
     byte scale;
     boolean trackingPosition;
@@ -31,51 +33,40 @@ public class PlayerMap {
         this.colors = new byte[128 * 128];
     }
 
+    public static PlayerMap getVersioned(int id) {
+        return Config.versionReporter().select(PlayerMap.class,
+                Option.of(Version.V1_14, () -> new PlayerMap_1_14(id)),
+                Option.of(Version.V1_12, () -> new PlayerMap_1_12(id))
+        );
+    }
+
     public SpecificTag toNbt() {
         CompoundTag data = new CompoundTag();
-        data.add("dimension", new StringTag(dimension.toString()));
+
         data.add("xCenter", new IntTag(xCenter));
         data.add("zCenter", new IntTag(zCenter));
         data.add("colors", new ByteArrayTag(colors));
-
-        data.add("banners", new ListTag(Tag.TAG_COMPOUND, icons.stream().map(Icon::toNbt).collect(Collectors.toList())));
-        data.add("frames", new ListTag(Tag.TAG_COMPOUND, Collections.emptyList()));
 
         // disable tracking since we don't know the center
         data.add("trackingPosition", new ByteTag(0));
         data.add("unlimitedTracking", new ByteTag(0));
 
-        // we lock the map and set the scale to 1, these don't matter for the client anyway
-        data.add("locked", new ByteTag(1));
+
         data.add("scale", new ByteTag(1));
 
         CompoundTag root = new CompoundTag();
         root.add("data", data);
         root.add("DataVersion", new IntTag(Config.getDataVersion()));
 
+        addNbtTags(data);
+
         return root;
     }
 
-    public void parse(DataTypeProvider provider) {
-        byte scale = provider.readNext();
-        if (scale != 0) {
-            this.scale = scale;
-        }
-        this.trackingPosition = provider.readBoolean();
-        this.locked = provider.readBoolean();
+    protected void addNbtTags(CompoundTag data) { };
 
-        int iconCount = provider.readVarInt();
-        for (int i = 0; i < iconCount; i++) {
-            Icon icon = Icon.of(provider);
-            if (icon != null) {
-                icons.add(icon);
-            }
-        }
 
-        parseMapImage(provider);
-    }
-
-    private void parseMapImage(DataTypeProvider provider) {
+    protected void parseMapImage(DataTypeProvider provider) {
         int columns = provider.readNext() & 0xFF;
         if (columns == 0) { return; }
 
@@ -98,6 +89,8 @@ public class PlayerMap {
             }
         }
     }
+
+    public abstract void parse(DataTypeProvider provider);
 }
 
 class Icon {
