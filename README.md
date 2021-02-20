@@ -6,7 +6,7 @@ Latest Windows release (GUI): [world-downloader.exe](https://github.com/mircokro
 
 Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
 
-### Features
+### [Features](https://github.com/mircokroon/minecraft-world-downloader/wiki/Features)
 - Requires no client modifications and as such works with every game client, vanilla or not
 - Automatically merge into previous downloads or existing worlds
 - Save chests and other inventories by opening them
