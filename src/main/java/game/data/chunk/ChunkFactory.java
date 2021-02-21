@@ -39,6 +39,8 @@ public class ChunkFactory {
     public void clear() {
         this.tileEntities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
+
+        this.executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Chunk Parser Service"));;
     }
 
     /**
@@ -79,13 +81,6 @@ public class ChunkFactory {
         if (executor != null) {
             executor.execute(this::parse);
         }
-    }
-
-    /**
-     * Periodically check if there are unparsed chunks, and if so, parse them.
-     */
-    public void start() {
-        executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Chunk Parser Service"));
     }
 
     private void parse() {

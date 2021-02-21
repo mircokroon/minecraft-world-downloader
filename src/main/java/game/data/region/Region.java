@@ -150,4 +150,8 @@ public class Region {
     public void touch() {
         this.updatedSinceLastWrite = true;
     }
+
+    public int countChunks() {
+        return this.chunks.size();
+    }
 }

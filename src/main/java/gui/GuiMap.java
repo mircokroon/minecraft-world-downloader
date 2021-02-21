@@ -38,8 +38,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 /**
@@ -140,10 +139,30 @@ public class GuiMap {
         Timeline reload = new Timeline(new KeyFrame(Duration.millis(1000), e -> {
             computeBounds(false);
         }));
+
+        // periodically clean up old images
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor((r) -> new Thread(r, "Chunk Image Cleaner"));
+        executor.scheduleWithFixedDelay(this::cleanFarImages, 120, 60, TimeUnit.SECONDS);
+
         reload.setCycleCount(Animation.INDEFINITE);
         reload.play();
 
         redrawAll();
+    }
+
+    /**
+     * Periodically we will try to remove older images so we don't use needless memory to store them all. It only
+     * removes them if they are over 8000 blocks away so it's fairly conservative.
+     */
+    private void cleanFarImages() {
+        Coordinate2D playerRegion = playerPos.discretize().globalToChunk().chunkToRegion();
+        for (Coordinate2D c : chunkMap.keySet()) {
+            Coordinate2D chunkRegion = c.chunkToRegion();
+
+            if (playerRegion.blockDistance(chunkRegion) > 16) {
+                chunkMap.remove(c);
+            }
+        }
     }
 
     /**
@@ -308,7 +327,7 @@ public class GuiMap {
         this.drawableChunks = getChunksInRange(chunkMap.keySet(),renderDistanceX * 2, renderDistanceZ * 2);
         Collection<Coordinate2D> inRangeChunks = getChunksInRange(drawableChunks, renderDistanceX, renderDistanceZ);
 
-        this.bounds = getOverviewBounds(inRangeChunks);
+        this.bounds = getOverviewBounds(inRangeChunks, this.playerPos.discretize().globalToChunk());
 
         double gridWidth = width.get() / bounds.getWidth();
         double gridHeight = height.get() / bounds.getHeight();
@@ -329,9 +348,12 @@ public class GuiMap {
         }
     }
 
-    private Bounds getOverviewBounds(Collection<Coordinate2D> coordinates) {
+    private Bounds getOverviewBounds(Collection<Coordinate2D> coordinates, Coordinate2D... others) {
         Bounds bounds = new Bounds();
         for (Coordinate2D coordinate : coordinates) {
+            bounds.update(coordinate);
+        }
+        for (Coordinate2D coordinate : others) {
             bounds.update(coordinate);
         }
         return bounds;
@@ -485,6 +507,14 @@ public class GuiMap {
         this.helpLabel.setText("");
         this.helpLabel.setStyle("-fx-text-fill: white;");
         this.showErrorPrompt = false;
+    }
+
+    public int countImages() {
+        int total = 0;
+        for (Map<Coordinate2D, ChunkImage> x : chunkDimensions.values()) {
+            total += x.values().size();
+        }
+        return total;
     }
 }
 

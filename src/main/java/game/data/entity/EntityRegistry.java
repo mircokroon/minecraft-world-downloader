@@ -11,54 +11,62 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static util.ExceptionHandling.attempt;
+
 public class EntityRegistry {
 
-    Map<CoordinateDim2D, Set<Entity>> perChunk;
-    Map<Integer, Entity> entities;
+    private final Map<CoordinateDim2D, Set<Entity>> perChunk;
+    private final Map<Integer, Entity> entities;
+    private final WorldManager worldManager;
 
-    WorldManager worldManager;
+    private final ExecutorService executor;
 
     public EntityRegistry(WorldManager manager) {
         this.worldManager = manager;
         this.perChunk = new ConcurrentHashMap<>();
         this.entities = new ConcurrentHashMap<>();
-    }
 
+        this.executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Entity Parser Service"));;
+    }
     /**
      * Add a new entity.
      */
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
-        Entity ent = parser.apply(provider);
-        entities.put(ent.getId(), ent);
+        this.executor.execute(() -> attempt(() -> {
+            Entity ent = parser.apply(provider);
+            entities.put(ent.getId(), ent);
 
-        ent.registerOnLocationChange((oldPos, newPos) -> {
-            CoordinateDim2D oldChunk = oldPos == null ? null : oldPos.globalToDimChunk();
-            CoordinateDim2D newChunk = newPos.globalToDimChunk();
+            ent.registerOnLocationChange((oldPos, newPos) -> {
+                CoordinateDim2D oldChunk = oldPos == null ? null : oldPos.globalToDimChunk();
+                CoordinateDim2D newChunk = newPos.globalToDimChunk();
 
-            // if they're the same, just mark the chunk as unsaved
-            if (oldPos == newPos) {
-                markUnsaved(newChunk);
-                return;
-            }
-
-            Set<Entity> entities = oldChunk == null ? null : perChunk.get(oldChunk);
-            if (entities != null) {
-                entities.remove(ent);
-
-                if (entities.isEmpty()) {
-                    perChunk.remove(oldChunk);
+                // if they're the same, just mark the chunk as unsaved
+                if (oldPos == newPos) {
+                    markUnsaved(newChunk);
+                    return;
                 }
-            }
 
-            Set<Entity> set = perChunk.computeIfAbsent(newChunk, (k) -> ConcurrentHashMap.newKeySet());
-            set.add(ent);
+                Set<Entity> entities = oldChunk == null ? null : perChunk.get(oldChunk);
+                if (entities != null) {
+                    entities.remove(ent);
 
-            markUnsaved(newChunk);
+                    if (entities.isEmpty()) {
+                        perChunk.remove(oldChunk);
+                    }
+                }
 
-        });
+                Set<Entity> set = perChunk.computeIfAbsent(newChunk, (k) -> ConcurrentHashMap.newKeySet());
+                set.add(ent);
+
+                markUnsaved(newChunk);
+
+            });
+        }));
     }
 
     private void markUnsaved(CoordinateDim2D coord) {
@@ -84,27 +92,33 @@ public class EntityRegistry {
 
 
     public void addMetadata(DataTypeProvider provider) {
-        Entity ent = entities.get(provider.readVarInt());
+        this.executor.execute(() -> attempt(() -> {
+            Entity ent = entities.get(provider.readVarInt());
 
-        if (ent != null) {
-            ent.parseMetadata(provider);
-        }
+            if (ent != null) {
+                ent.parseMetadata(provider);
+            }
+        }));
     }
 
     public void updatePositionRelative(DataTypeProvider provider) {
-        Entity ent = entities.get(provider.readVarInt());
+        this.executor.execute(() -> attempt(() -> {
+            Entity ent = entities.get(provider.readVarInt());
 
-        if (ent != null) {
-            ent.incrementPosition(provider.readShort(), provider.readShort(), provider.readShort());
-        }
+            if (ent != null) {
+                ent.incrementPosition(provider.readShort(), provider.readShort(), provider.readShort());
+            }
+        }));
     }
 
     public void updatePositionAbsolute(DataTypeProvider provider) {
-        Entity ent = entities.get(provider.readVarInt());
+        this.executor.execute(() -> attempt(() -> {
+            Entity ent = entities.get(provider.readVarInt());
 
-        if (ent != null) {
-            ent.readPosition(provider);
-        }
+            if (ent != null) {
+                ent.readPosition(provider);
+            }
+        }));
     }
 
     public List<SpecificTag> getEntitiesNbt(CoordinateDim2D location) {
@@ -123,11 +137,17 @@ public class EntityRegistry {
     }
 
     public void addEquipment(DataTypeProvider provider) {
-        int id = provider.readVarInt();
-        Entity ent = entities.get(id);
+        this.executor.execute(() -> attempt(() -> {
+            int id = provider.readVarInt();
+            Entity ent = entities.get(id);
 
-        if (ent != null) {
-            ent.addEquipment(provider);
-        }
+            if (ent != null) {
+                ent.addEquipment(provider);
+            }
+        }));
+    }
+
+    public int countActiveEntities() {
+        return this.entities.size();
     }
 }
