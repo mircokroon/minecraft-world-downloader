@@ -17,18 +17,24 @@ import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+import static util.ExceptionHandling.attempt;
 
 /**
  * Handle storing of the map item.
  */
 public class MapRegistry {
-    String registryFileName = "idcounts.dat";
-    Path dataDir = PathUtils.toPath(Config.getWorldOutputDir(),  "data");
-    File registryFile = Paths.get(dataDir.toString(), registryFileName).toFile();
+    private final String registryFileName = "idcounts.dat";
+    private final Path dataDir = PathUtils.toPath(Config.getWorldOutputDir(),  "data");
+    private final File registryFile = Paths.get(dataDir.toString(), registryFileName).toFile();
 
-    Map<Integer, PlayerMap> maps;
-    Set<Integer> updatedSince;
-    int maxMapId = 0;
+    private final Map<Integer, PlayerMap> maps;
+    private final Set<Integer> updatedSince;
+    private int maxMapId = 0;
+
+    private final ExecutorService executor;
 
     public MapRegistry() {
         this.maps = new ConcurrentHashMap<>();
@@ -40,6 +46,8 @@ public class MapRegistry {
             e.printStackTrace();
             // if we can't read it, thats fine, we'll use maxId = 0
         }
+
+        this.executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Map Parser Service"));;
     }
 
     /**
@@ -83,13 +91,19 @@ public class MapRegistry {
      * Read map from network packet to class.
      */
     public void readMap(DataTypeProvider provider) {
-        int mapId = provider.readVarInt();
-        this.updatedSince.add(mapId);
-        if (mapId > maxMapId) {
-            maxMapId = mapId;
-        }
+        executor.execute(() -> attempt(() -> {
+            int mapId = provider.readVarInt();
+            this.updatedSince.add(mapId);
+            if (mapId > maxMapId) {
+                maxMapId = mapId;
+            }
 
-        PlayerMap map = maps.computeIfAbsent(mapId, PlayerMap::getVersioned);
-        map.parse(provider);
+            PlayerMap map = maps.computeIfAbsent(mapId, PlayerMap::getVersioned);
+            map.parse(provider);
+        }));
+    }
+
+    public int countActiveMaps() {
+        return this.maps.size();
     }
 }

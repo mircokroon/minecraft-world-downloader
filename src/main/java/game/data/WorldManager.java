@@ -37,12 +37,14 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static util.ExceptionHandling.attempt;
+
 /**
  * Manage the world, including saving, parsing and updating the GUI.
  */
 public class WorldManager {
     private static final int INIT_SAVE_DELAY = 5 * 1000;
-    private static final int SAVE_DELAY = 15 * 1000;
+    private static final int SAVE_DELAY = 12 * 1000;
     private static WorldManager instance;
     private final LevelData levelData;
     private final MapRegistry mapRegistry;
@@ -156,12 +158,7 @@ public class WorldManager {
         }
         existingLoaded.add(this.dimension);
 
-        Stream<McaFile> files = null;
-        try {
-            files = McaFile.getFiles(dimension, true);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stream<McaFile> files = McaFile.getFiles(this.playerPosition, dimension, 16);
 
         GuiManager.outlineExistingChunks(
                 files.flatMap(el -> el.getChunkPositions(this.dimension).stream()).collect(Collectors.toList())
@@ -216,7 +213,6 @@ public class WorldManager {
         isStarted = true;
 
         this.start();
-        this.chunkFactory.start();
     }
 
     /**
@@ -356,7 +352,7 @@ public class WorldManager {
     public void start() {
         ThreadFactory namedThreadFactory = r -> new Thread(r, "World Save Service");
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, namedThreadFactory);
-        executor.scheduleWithFixedDelay(this::save, INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
+        executor.scheduleWithFixedDelay(() -> attempt(this::save), INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
 
@@ -591,6 +587,14 @@ public class WorldManager {
     public void unloadEntities(CoordinateDim2D coord) {
         this.entityRegistry.unloadChunk(coord);
         this.chunkFactory.unloadChunk(coord);
+    }
+
+    public int countActiveChunks() {
+        int total = 0;
+        for (Region r : regions.values()) {
+            total += r.countChunks();
+        }
+        return total;
     }
 }
 

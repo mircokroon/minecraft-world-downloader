@@ -80,8 +80,6 @@ public abstract class ChunkEntities {
             }
         }
 
-
-
         // get offset location
         Coordinate3D offset = location.offsetGlobal();
 
