@@ -9,7 +9,7 @@ public interface IComponentNumberField {
     default void onChange() {
         textProperty().addListener((observable, oldVal, newVal) -> {
             // only check when in focus so that we can change the value programmatically
-            if (isFocused() && !newVal.matches("\\d*")) {
+            if (isFocused() && !newVal.matches("-?\\d*")) {
                 setText(oldVal);
             }
         });

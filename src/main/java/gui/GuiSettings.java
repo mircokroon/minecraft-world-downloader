@@ -273,8 +273,8 @@ public class GuiSettings {
     public void saveSettings(ActionEvent actionEvent) {
         // connection tab
         config.server = server.getText();
-        config.portRemote = portRemote.getAsInt();
-        config.portLocal = portLocal.getAsInt();
+        config.portRemote = Math.abs(portRemote.getAsInt());
+        config.portLocal = Math.abs(portLocal.getAsInt());
         config.minecraftDir = minecraftDir.getText();
 
         // output tab
@@ -285,10 +285,10 @@ public class GuiSettings {
         config.disableWorldGen = disableWorldGen.isSelected();
 
         // general tab
-        config.extendedRenderDistance = (int) extendedDistance.getValue();
+        config.extendedRenderDistance =  Math.abs((int) extendedDistance.getValue());
         config.measureRenderDistance = measureRenderDistance.isSelected();
         config.disableMarkUnsavedChunks = !markUnsaved.isSelected();
-        config.zoomLevel = overviewZoom.getAsInt();
+        config.zoomLevel =  Math.abs(overviewZoom.getAsInt());
 
         // auth tab
         config.username = minecraftUsername.getText();
