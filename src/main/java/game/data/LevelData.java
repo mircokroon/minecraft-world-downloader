@@ -108,6 +108,7 @@ public class LevelData {
                     new DoubleTag(playerPosition.getY() * 1.0),
                     new DoubleTag(playerPosition.getZ() * 1.0)
             )));
+            player.add("Dimension", new StringTag(WorldManager.getInstance().getDimension().toString()));
 
             // set the world spawn to match the last known player location
             data.add("SpawnX", new IntTag(playerPosition.getX()));

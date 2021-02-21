@@ -68,7 +68,9 @@ class ItemFrameMetaData extends MetaData_1_13 {
 
     @Override
     public void addNbtTags(CompoundTag nbt) {
-        nbt.add("Item", item.toNbt());
+        if (item != null) {
+            nbt.add("Item", item.toNbt());
+        }
         nbt.add("ItemRotation", new IntTag(rotation));
     }
 
