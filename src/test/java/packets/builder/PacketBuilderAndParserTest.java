@@ -162,6 +162,16 @@ public class PacketBuilderAndParserTest {
     }
 
     @Test
+    void floatTest() {
+        float before = 0.12345f;
+        builder.writeFloat(before);
+
+        float after = getParser().readFloat();
+
+        assertThat(after).isEqualTo(before);
+    }
+
+    @Test
     void uuidTest() {
         UUID before = new UUID(2L^42, 2L^12);
         builder.writeUUID(before);

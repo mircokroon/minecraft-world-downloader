@@ -10,6 +10,8 @@ import se.llbit.nbt.SpecificTag;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class PacketBuilder {
@@ -238,5 +240,12 @@ public class PacketBuilder {
         for (int i : arr) {
             writeInt(i);
         }
+    }
+
+    public void writeFloat(float val) {
+        ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
+        buffer.putFloat(val);
+        ((Buffer) buffer).flip();
+        writeByteArray(buffer.array());
     }
 }
