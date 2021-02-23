@@ -1,15 +1,13 @@
 package game.data.entity;
 
+import config.Config;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.coordinates.CoordinateDim2D;
 import packets.DataTypeProvider;
 import se.llbit.nbt.SpecificTag;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,6 +18,7 @@ import static util.ExceptionHandling.attempt;
 
 public class EntityRegistry {
 
+    private final Map<Integer, PlayerEntity> players;
     private final Map<CoordinateDim2D, Set<Entity>> perChunk;
     private final Map<Integer, Entity> entities;
     private final WorldManager worldManager;
@@ -30,6 +29,7 @@ public class EntityRegistry {
         this.worldManager = manager;
         this.perChunk = new ConcurrentHashMap<>();
         this.entities = new ConcurrentHashMap<>();
+        this.players = new ConcurrentHashMap<>();
 
         this.executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Entity Parser Service"));;
     }
@@ -69,6 +69,13 @@ public class EntityRegistry {
         }));
     }
 
+    public void addPlayer(DataTypeProvider provider) {
+        executor.execute(() -> attempt(() -> {
+            int entId = provider.readVarInt();
+            players.put(entId, PlayerEntity.parse(provider));
+        }));
+    }
+
     private void markUnsaved(CoordinateDim2D coord) {
         Chunk chunk = worldManager.getChunk(coord);
         if (chunk != null) {
@@ -103,7 +110,7 @@ public class EntityRegistry {
 
     public void updatePositionRelative(DataTypeProvider provider) {
         this.executor.execute(() -> attempt(() -> {
-            Entity ent = entities.get(provider.readVarInt());
+            IMovableEntity ent = getMovableEntity(provider.readVarInt());
 
             if (ent != null) {
                 ent.incrementPosition(provider.readShort(), provider.readShort(), provider.readShort());
@@ -113,12 +120,21 @@ public class EntityRegistry {
 
     public void updatePositionAbsolute(DataTypeProvider provider) {
         this.executor.execute(() -> attempt(() -> {
-            Entity ent = entities.get(provider.readVarInt());
+            IMovableEntity ent = getMovableEntity(provider.readVarInt());
 
             if (ent != null) {
                 ent.readPosition(provider);
             }
         }));
+    }
+
+    private IMovableEntity getMovableEntity(int entId) {
+        IMovableEntity ent = players.get(entId);
+        if (ent != null) {
+            return ent;
+        }
+
+        return entities.get(entId);
     }
 
     public List<SpecificTag> getEntitiesNbt(CoordinateDim2D location) {
@@ -134,6 +150,7 @@ public class EntityRegistry {
     public void reset() {
         this.entities.clear();
         this.perChunk.clear();
+        this.players.clear();
     }
 
     public void addEquipment(DataTypeProvider provider) {
@@ -147,7 +164,27 @@ public class EntityRegistry {
         }));
     }
 
+    /**
+     * When destroyEntities is called, we don't remove the entities from the perChunk map. These will only be removed
+     * when the chunk is unloaded. This way we won't accidentally delete entities that belong to an unsaved chunk.
+     */
+    public void destroyEntities(DataTypeProvider provider) {
+        int count = provider.readVarInt();
+        while (count-- > 0) {
+            int id = provider.readVarInt();
+            if (entities.containsKey(id)) {
+                entities.remove(id);
+            } else {
+                players.remove(id);
+            }
+        }
+    }
+
     public int countActiveEntities() {
         return this.entities.size();
+    }
+
+    public Collection<PlayerEntity> getPlayerSet() {
+        return players.values();
     }
 }

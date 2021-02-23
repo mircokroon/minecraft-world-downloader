@@ -8,6 +8,7 @@ import game.data.coordinates.CoordinateDouble3D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.dimension.Dimension;
+import game.data.entity.PlayerEntity;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -24,6 +25,9 @@ import javafx.scene.control.Label;
 import javafx.scene.image.*;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import javafx.util.Duration;
 import util.PathUtils;
 
@@ -32,9 +36,7 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -74,15 +76,20 @@ public class GuiMap {
     private Map<Dimension, Map<Coordinate2D, ChunkImage>> chunkDimensions = new ConcurrentHashMap<>();
     private Map<Coordinate2D, ChunkImage> chunkMap;
     private Collection<Coordinate2D> drawableChunks = new ConcurrentLinkedQueue<>();
+    private Collection<PlayerEntity> otherPlayers;
 
     ReadOnlyDoubleProperty width;
     ReadOnlyDoubleProperty height;
 
     private boolean hasChanged = false;
+    private boolean mouseOver = false;
+    private double mouseX = -1;
+    private double mouseY = -1;
 
     @FXML
     void initialize() {
         WorldManager manager = WorldManager.getInstance();
+        this.otherPlayers = manager.getEntityRegistry().getPlayerSet();
 
         Platform.runLater(manager::outlineExistingChunks);
 
@@ -93,6 +100,14 @@ public class GuiMap {
 
         GuiManager.setGraphicsHandler(this);
         manager.setPlayerPosListener(this::updatePlayerPos);
+
+        Timeline drawPlayer = new Timeline(new KeyFrame(Duration.millis(30), (x) -> {
+            redrawEntities();
+        }));
+        drawPlayer.setCycleCount(Animation.INDEFINITE);
+        drawPlayer.play();
+
+
 
         setupContextMenu();
         bindScroll();
@@ -106,11 +121,17 @@ public class GuiMap {
             helpLabel.setText(Config.getConnectionDetails().getConnectionHint());
         }
         entityCanvas.setOnMouseEntered(e -> {
+            mouseOver = true;
             if (playerHasConnected && !showErrorPrompt) {
                 helpLabel.setText("Right-click to open context menu. Scroll to zoom.");
             }
         });
+        entityCanvas.setOnMouseMoved(e -> {
+            mouseX = e.getSceneX();
+            mouseY = e.getSceneY();
+        });
         entityCanvas.setOnMouseExited(e -> {
+            mouseOver = false;
             if (playerHasConnected && !showErrorPrompt) {
                 helpLabel.setText("");
             }
@@ -120,6 +141,9 @@ public class GuiMap {
     private void setupCanvasProperties() {
         setSmoothingState(chunkCanvas.getGraphicsContext2D(), false);
         setSmoothingState(entityCanvas.getGraphicsContext2D(), true);
+
+        entityCanvas.getGraphicsContext2D().setTextAlign(TextAlignment.CENTER);
+        entityCanvas.getGraphicsContext2D().setFont(Font.font(null, FontWeight.BOLD, 14));
 
         Pane p = (Pane) chunkCanvas.getParent();
         width = p.widthProperty();
@@ -308,7 +332,6 @@ public class GuiMap {
         computeRenderDistance();
         this.computeBounds(true);
         redrawCanvas();
-        redrawPlayer();
     }
 
     /**
@@ -382,17 +405,53 @@ public class GuiMap {
     public void updatePlayerPos(CoordinateDouble3D playerPos, double rot) {
         this.playerPos = playerPos;
         this.playerRotation = rot;
-
-        Platform.runLater(this::redrawPlayer);
     }
 
-    void redrawPlayer() {
+
+    private void redrawEntities() {
+        GraphicsContext graphics = entityCanvas.getGraphicsContext2D();
+        graphics.clearRect(0, 0, width.get(), height.get());
+
+        if (Config.renderOtherPlayers()) {
+            for (PlayerEntity player : otherPlayers) {
+                drawOtherPlayer(graphics, player);
+            }
+        }
+        redrawPlayer(graphics);
+    }
+
+    /**
+     * Draw another player on the map. If the cursor is nearby (max 10 pixels away), draw the name of the player.
+     * If the name of the player is not known it's first requested from the Mojang API.
+     */
+    private void drawOtherPlayer(GraphicsContext graphics, PlayerEntity player) {
+        double playerX = ((player.getPosition().getX() / 16.0 - bounds.getMinX()) * gridSize);
+        double playerZ = ((player.getPosition().getZ() / 16.0 - bounds.getMinZ()) * gridSize);
+
+        if (mouseOver && isNear(playerX, playerZ)) {
+            graphics.setFill(Color.WHITE);
+
+            if (player.getName() != null) {
+                graphics.strokeText(player.getName(), playerX, playerZ - 5);
+                graphics.fillText(player.getName(), playerX, playerZ - 5);
+            }
+        } else {
+            graphics.setFill(Color.color(1, 1, 1, .6));
+        }
+        graphics.setStroke(Color.BLACK);
+
+        graphics.strokeOval((int) playerX - 2, (int) playerZ - 2, 4, 4);
+        graphics.fillOval((int) playerX - 2, (int) playerZ - 2, 4, 4);
+    }
+
+    private boolean isNear(double x, double y) {
+        return Math.abs(x - mouseX) < 10 && Math.abs(y - mouseY) < 10;
+    }
+
+    private void redrawPlayer(GraphicsContext graphics) {
         if (playerPos == null) { return; }
         double playerX = ((playerPos.getX() / 16.0 - bounds.getMinX()) * gridSize);
         double playerZ = ((playerPos.getZ() / 16.0 - bounds.getMinZ()) * gridSize);
-
-        GraphicsContext graphics = entityCanvas.getGraphicsContext2D();
-        graphics.clearRect(0, 0, width.get(), height.get());
 
         // direction pointer
         double yaw = Math.toRadians(this.playerRotation + 45);

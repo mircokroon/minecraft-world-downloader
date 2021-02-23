@@ -6,6 +6,7 @@ import config.Version;
 import game.data.coordinates.Coordinate3D;
 import game.data.container.Slot;
 import game.data.container.Slot_1_12;
+import game.data.coordinates.CoordinateDouble3D;
 import packets.version.DataTypeProvider_1_13;
 import packets.version.DataTypeProvider_1_14;
 import se.llbit.nbt.NamedTag;
@@ -23,6 +24,7 @@ import java.util.List;
  * self-explanatory.
  */
 public class DataTypeProvider {
+    private static final int MAX_SHORT_VAL = 1 << 15;
     private byte[] finalFullPacket;
     private int pos;
 
@@ -116,7 +118,8 @@ public class DataTypeProvider {
     public int readShort() {
         byte low = readNext();
         byte high = readNext();
-        return (((low & 0xFF) << 8) | (high & 0xFF));
+        int val = (((low & 0xFF) << 8) | (high & 0xFF));
+        return val > MAX_SHORT_VAL ? -(MAX_SHORT_VAL * 2 - val) : val ;
     }
 
     public Coordinate3D readCoordinates() {
@@ -245,6 +248,10 @@ public class DataTypeProvider {
             res[i] = readString();
         }
         return res;
+    }
+
+    public CoordinateDouble3D readDoubleCoordinates() {
+        return new CoordinateDouble3D(readDouble(), readDouble(), readDouble());
     }
 
     public int remaining() {

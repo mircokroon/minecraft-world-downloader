@@ -105,6 +105,16 @@ public class PacketBuilderAndParserTest {
     }
 
     @Test
+    void shortNegativeTest() {
+        int before = -42;
+        builder.writeShort(before);
+
+        int after = getParser().readShort();
+
+        assertThat(after).isEqualTo(before);
+    }
+
+    @Test
     void byteArray() {
         byte[] before = {1, 2, 3, 2, 1};
         builder.writeByteArray(before);

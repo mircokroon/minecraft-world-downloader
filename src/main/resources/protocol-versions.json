@@ -16,12 +16,14 @@
 				"0x14": "window_items",
 				"0x24": "map_data",
 
-				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
+				"0x03": "spawn_mob",
+				"0x05": "spawn_player",
 				"0x3C": "entity_data",
 				"0x3F": "entity_equipment",
 				"0x26": "entity_position",
-				"0x4C": "entity_teleport"
+				"0x4C": "entity_teleport",
+				"0x32": "destroy_entities"
 
 			},
 			"serverBound": {
@@ -75,11 +77,13 @@
 
 				"0x00": "spawn_object",
 				"0x03": "spawn_mob",
+				"0x05": "spawn_player",
 				"0x43": "entity_data",
 				"0x46": "entity_equipment",
 				"0x28": "entity_position",
 				"0x29": "entity_position_rotation",
-				"0x56": "entity_teleport"
+				"0x56": "entity_teleport",
+				"0x37": "destroy_entities"
 			},
 			"serverBound": {
 				"0x11": "player_position",
@@ -107,13 +111,15 @@
                 "0x15": "window_items",
 				"0x27": "map_data",
 
-				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
+				"0x03": "spawn_mob",
+				"0x05": "spawn_player",
 				"0x44": "entity_data",
 				"0x47": "entity_equipment",
 				"0x29": "entity_position",
 				"0x2A": "entity_position_rotation",
-				"0x57": "entity_teleport"
+				"0x57": "entity_teleport",
+				"0x38": "destroy_entities"
 			},
 			"serverBound": {
 				"0x11": "player_position",
@@ -141,13 +147,15 @@
 				"0x13": "window_items",
 				"0x25": "map_data",
 
-				"0x02": "spawn_mob",
 				"0x00": "spawn_object",
+				"0x02": "spawn_mob",
+				"0x04": "spawn_player",
 				"0x44": "entity_data",
 				"0x47": "entity_equipment",
 				"0x27": "entity_position",
 				"0x28": "entity_position_rotation",
-				"0x56": "entity_teleport"
+				"0x56": "entity_teleport",
+				"0x36": "destroy_entities"
 			},
 			"serverBound": {
 				"0x12": "player_position",

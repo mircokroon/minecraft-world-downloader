@@ -50,6 +50,16 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        operations.put("spawn_player", provider -> {
+            entityRegistry.addPlayer(provider);
+            return true;
+        });
+
+        operations.put("destroy_entities", provider -> {
+            entityRegistry.destroyEntities(provider);
+            return true;
+        });
+
         operations.put("entity_position", provider -> {
             entityRegistry.updatePositionRelative(provider);
             return true;

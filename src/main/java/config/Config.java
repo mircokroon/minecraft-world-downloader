@@ -348,6 +348,10 @@ public class Config {
             usage = "Render distance of (in chunks) of the overview map. Can also be changed by scrolling on GUI.")
     public int zoomLevel = 75;
 
+    @Option(name = "--render-players",
+            usage = "Show other players in the overview map.")
+    public boolean renderOtherPlayers = false;
+
     @Option(name = "--no-gui", depends = "--server",
             usage = "Disable the GUI")
     public transient boolean disableGui = false;
@@ -417,9 +421,7 @@ public class Config {
         return instance.gameVersion;
     }
 
-    private static int getProtocolVersion() {
-        return instance.protocolVersion;
-    }
+    public static boolean renderOtherPlayers() { return instance.renderOtherPlayers; }
 
     public static VersionReporter versionReporter() {
         return instance.versionReporter;
