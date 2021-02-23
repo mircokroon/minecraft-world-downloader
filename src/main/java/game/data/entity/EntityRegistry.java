@@ -183,6 +183,9 @@ public class EntityRegistry {
     public int countActiveEntities() {
         return this.entities.size();
     }
+    public int countActivePlayers() {
+        return this.players.size();
+    }
 
     public Collection<PlayerEntity> getPlayerSet() {
         return players.values();

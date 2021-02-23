@@ -83,4 +83,16 @@ public class Coordinate3D extends Coordinate2D {
     public CoordinateDouble3D toDouble() {
         return new CoordinateDouble3D(x, y, z);
     }
+
+    public Coordinate3D globalToChunkLocal() {
+        int newX = ((x % 16) + 16) % 16;
+        int newZ = ((z % 16) + 16) % 16;
+
+        return new Coordinate3D(newX, y, newZ);
+    }
+
+    public Coordinate3D chunkLocalToSectionLocal() {
+        int newY = ((y % 16) + 16) % 16;
+        return new Coordinate3D(x, newY, z);
+    }
 }

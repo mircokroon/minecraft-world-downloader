@@ -6,6 +6,7 @@ import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.DummyPalette;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.palette.PaletteBuilder;
+import game.data.coordinates.Coordinate3D;
 import game.data.dimension.Dimension;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
@@ -177,6 +178,11 @@ public class ChunkSection_1_12 extends ChunkSection {
         int result = super.hashCode();
         result = 31 * result + Arrays.deepHashCode(blockStates);
         return result;
+    }
+
+    @Override
+    public void setBlockAt(Coordinate3D coords, int blockStateId) {
+        throw new IllegalArgumentException("NOT IMPLEMENTED");
     }
 
     @Override

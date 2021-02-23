@@ -104,6 +104,11 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        operations.put("chunk_block_change", provider -> {
+            WorldManager.getInstance().blockChange(provider);
+            return true;
+        });
+
         operations.put("chunk_unload", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), WorldManager.getInstance().getDimension());
             worldManager.unloadChunk(co);

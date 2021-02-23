@@ -82,10 +82,13 @@ public class RightClickMenu extends ContextMenu {
         menu.add(construct("Print stats", e -> {
             int chunks = WorldManager.getInstance().countActiveChunks();
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
+            int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
             int maps = WorldManager.getInstance().getMapRegistry().countActiveMaps();
             int images = handler.countImages();
 
-            System.out.printf("Statistics:\n\tActive chunks: %d\n\tActive entities: %d\n\tActive maps: %d\n\tActive chunk images:%d\n", chunks, entities, maps, images);
+            System.out.printf("Statistics:\n\tActive chunks: %d\n\tActive entities: %d\n" +
+                    "\tActive players: %d\n\tActive maps: %d\n\tActive chunk images:%d\n",
+                    chunks, entities, players, maps, images);
         }));
     }
 

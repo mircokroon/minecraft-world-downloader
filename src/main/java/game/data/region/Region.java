@@ -22,11 +22,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Region {
     public static final Region EMPTY = new Region(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
     private final int UNLOAD_RANGE = 24;
-    private Map<Coordinate2D, Chunk> chunks;
-    private CoordinateDim2D regionCoordinates;
+    private final Map<Coordinate2D, Chunk> chunks;
+    private final CoordinateDim2D regionCoordinates;
 
     private boolean updatedSinceLastWrite;
-    private Set<Coordinate2D> toDelete;
+    private final Set<Coordinate2D> toDelete;
 
     /**
      * Initialise the region with the given coordinates.
@@ -105,6 +105,7 @@ public class Region {
                 // mark the chunk for deletion -- this is really only a back-up, the unload-chunk packet sent by the
                 // server is what should be used to unload chunks correctly.
                 if (!playerPos.isInRange(coordinate, UNLOAD_RANGE)) {
+                    System.out.println(playerPos + " :: " + coordinate);
                     toDelete.add(coordinate);
                 }
 

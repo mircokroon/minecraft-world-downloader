@@ -4,6 +4,7 @@ import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.SimpleColor;
 import game.data.chunk.palette.blending.IBlendEquation;
+import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import javafx.scene.image.Image;
@@ -232,5 +233,20 @@ public class ChunkImageFactory {
             return (chunkSection * Chunk.SECTION_HEIGHT) + height;
         }
         return isNether ? 127 : 0;
+    }
+
+    /**
+     * We need to update the image only if the updated block was either the top layer, or above the top layer.
+     * Technically this does not take transparent blocks into account, but that's fine.
+     */
+    public void updateHeight(Coordinate3D coords) {
+        if (coords.getY() >= heightAt(coords.getX(), coords.getZ())) {
+            recomputeHeight(coords.getX(), coords.getZ());
+            createImage();
+        }
+    }
+
+    private void recomputeHeight(int x, int z) {
+        heightMap[z << 4 | x] = computeHeight(x, z);
     }
 }

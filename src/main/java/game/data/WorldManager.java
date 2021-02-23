@@ -24,6 +24,7 @@ import game.data.region.Region;
 import gui.GuiManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import packets.DataTypeProvider;
 import util.PathUtils;
 
 import java.io.File;
@@ -50,7 +51,7 @@ public class WorldManager {
     private final MapRegistry mapRegistry;
     private final Map<CoordinateDim2D, Queue<Runnable>> chunkLoadCallbacks = new ConcurrentHashMap<>();
     private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
-    private Set<Dimension> existingLoaded = new HashSet<>();
+    private final Set<Dimension> existingLoaded = new HashSet<>();
 
     private EntityNames entityMap;
     private MenuRegistry menuRegistry;
@@ -375,7 +376,7 @@ public class WorldManager {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[0]);
             for (Region region : r) {
-                McaFile file = region.toFile(getPlayerPosition());
+                McaFile file = region.toFile(getPlayerPosition().globalToChunk());
                 if (file == null) {
                     continue;
                 }
@@ -401,9 +402,6 @@ public class WorldManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        
-
 
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
@@ -595,6 +593,20 @@ public class WorldManager {
             total += r.countChunks();
         }
         return total;
+    }
+
+    public void blockChange(DataTypeProvider provider) {
+        chunkFactory.runOnFactoryThread(() -> {
+            Coordinate3D coords = provider.readCoordinates();
+            Chunk c = getChunk(coords.globalToChunk().addDimension(this.dimension));
+            if (c == null) {
+                System.out.println("Unknown chunk");
+                return;
+            }
+
+            c.updateBlock(coords.globalToChunkLocal(), provider.readVarInt());
+            touchChunk(c);
+        });
     }
 }
 

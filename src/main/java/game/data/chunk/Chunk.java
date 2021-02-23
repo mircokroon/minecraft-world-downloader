@@ -10,7 +10,6 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.protocol.Protocol;
-import game.protocol.ProtocolVersionHandler;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
@@ -417,4 +416,20 @@ public abstract class Chunk extends ChunkEntities {
     public CoordinateDim2D getLocation() {
         return location;
     }
+
+    public void updateBlock(Coordinate3D coords, int blockStateId) {
+        int section = coords.getY() / SECTION_HEIGHT;
+
+        // if there's no section, we create an empty one
+        if (chunkSections[section] == null) {
+            chunkSections[section] = createNewChunkSection((byte) section, Palette.empty());
+            chunkSections[section].setBlocks(new long[256]);
+        }
+        chunkSections[section].setBlockAt(coords.chunkLocalToSectionLocal(), blockStateId);
+
+        if (this.imageFactory != null) {
+            this.imageFactory.updateHeight(coords);
+        }
+    }
+
 }
