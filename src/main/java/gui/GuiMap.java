@@ -10,6 +10,7 @@ import game.data.chunk.Chunk;
 import game.data.dimension.Dimension;
 import game.data.entity.PlayerEntity;
 import javafx.animation.Animation;
+import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -69,6 +70,7 @@ public class GuiMap {
     private final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
     private final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
     private final Color UNSAVED_COLOR = new Color(1, 0, 0, .3);
+    private final Color PLAYER_COLOR = new Color(.6, .95, 1, .6);
     private int renderDistanceX;
     private int renderDistanceZ;
     private Bounds bounds;
@@ -101,13 +103,13 @@ public class GuiMap {
         GuiManager.setGraphicsHandler(this);
         manager.setPlayerPosListener(this::updatePlayerPos);
 
-        Timeline drawPlayer = new Timeline(new KeyFrame(Duration.millis(30), (x) -> {
-            redrawEntities();
-        }));
-        drawPlayer.setCycleCount(Animation.INDEFINITE);
-        drawPlayer.play();
-
-
+        AnimationTimer animationTimer = new AnimationTimer() {
+            @Override
+            public void handle(long time) {
+                redrawEntities();
+            }
+        };
+        animationTimer.start();
 
         setupContextMenu();
         bindScroll();
@@ -247,8 +249,8 @@ public class GuiMap {
             m.invoke(ctx, value);
         } catch (NoSuchMethodError | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
             enableModernImageHandling = false;
-            // if we can't set the image smoothing, we're likely on an older Java version. This is fine, the image
-            // will just be rendered slightly less beautiful.
+            // if we can't set the image smoothing, we're likely on an older Java version. We will draw it manually
+            // so that we can use Nearest Neighbour interpolation.
         }
     }
 
@@ -284,7 +286,6 @@ public class GuiMap {
 
     /**
      * Compute the render distance on both axis -- we have two to keep them separate as non-square windows will look
-     * bad otherwise.
      * bad otherwise.
      */
     private void computeRenderDistance() {
@@ -427,7 +428,6 @@ public class GuiMap {
     private void drawOtherPlayer(GraphicsContext graphics, PlayerEntity player) {
         double playerX = ((player.getPosition().getX() / 16.0 - bounds.getMinX()) * gridSize);
         double playerZ = ((player.getPosition().getZ() / 16.0 - bounds.getMinZ()) * gridSize);
-
         if (mouseOver && isNear(playerX, playerZ)) {
             graphics.setFill(Color.WHITE);
 
@@ -436,12 +436,12 @@ public class GuiMap {
                 graphics.fillText(player.getName(), playerX, playerZ - 5);
             }
         } else {
-            graphics.setFill(Color.color(1, 1, 1, .6));
+            graphics.setFill(PLAYER_COLOR);
         }
         graphics.setStroke(Color.BLACK);
 
-        graphics.strokeOval((int) playerX - 2, (int) playerZ - 2, 4, 4);
-        graphics.fillOval((int) playerX - 2, (int) playerZ - 2, 4, 4);
+        graphics.strokeOval(playerX - 2, playerZ - 2, 4, 4);
+        graphics.fillOval(playerX - 2, playerZ - 2, 4, 4);
     }
 
     private boolean isNear(double x, double y) {

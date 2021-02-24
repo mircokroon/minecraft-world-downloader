@@ -376,6 +376,10 @@ public class Config {
             usage = "Disable marking unsaved chunks in red on the map")
     public boolean disableMarkUnsavedChunks = false;
 
+    @Option(name = "--ignore-block-changes",
+            usage = "Ignore changes to chunks after they have been loaded.")
+    public boolean ignoreBlockChanges = false;
+
     @Option(name = "--dev-mode",
             usage = "Enable developer mode")
     private transient boolean devMode = false;
@@ -441,6 +445,11 @@ public class Config {
     public static boolean markUnsavedChunks() {
         return !instance.disableMarkUnsavedChunks;
     }
+
+    public static boolean handleBlockChanges() {
+        return !instance.ignoreBlockChanges;
+    }
+
 
     // setters
     public static void setZoomLevel(int val) {

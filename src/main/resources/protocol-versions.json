@@ -5,6 +5,7 @@
 			"dataVersion": 1343,
 			"clientBound": {
 				"0x20": "chunk_data",
+				"0x0B": "chunk_block_change",
 				"0x1D": "chunk_unload",
 				"0x2F": "player_position_look",
 				"0x29": "player_vehicle_move",

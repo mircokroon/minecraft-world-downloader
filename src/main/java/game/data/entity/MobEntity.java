@@ -23,6 +23,8 @@ public class MobEntity extends Entity {
         PrimitiveEntity primitive = PrimitiveEntity.parse(provider);
         Entity ent = primitive.getEntity(MobEntity::new);
 
+        if (ent == null) { return null; }
+
         ent.readPosition(provider);
         ent.yaw = provider.readNext();
         ent.pitch = provider.readNext();

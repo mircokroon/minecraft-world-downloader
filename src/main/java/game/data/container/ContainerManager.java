@@ -8,6 +8,7 @@ import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.BlockState;
 import org.apache.commons.lang3.ArrayUtils;
+import packets.DataTypeProvider;
 
 import java.util.HashMap;
 import java.util.List;
@@ -141,10 +142,13 @@ public class ContainerManager {
         }
     }
 
-    public void items(int windowId, List<Slot> slots) {
+    public void items(int windowId, DataTypeProvider provider) {
         InventoryWindow window = knownWindows.get(windowId);
 
         if (window != null) {
+            int count = provider.readShort();
+            List<Slot> slots = provider.readSlots(count);
+
             window.setSlots(slots);
         }
     }

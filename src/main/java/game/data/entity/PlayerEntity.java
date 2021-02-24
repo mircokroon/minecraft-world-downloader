@@ -57,7 +57,7 @@ public class PlayerEntity implements IMovableEntity {
 
     @Override
     public void incrementPosition(int dx, int dy, int dz) {
-        this.pos = pos.increment(
+        pos.increment(
                 dx / Entity.CHANGE_MULTIPLIER,
                 dy / Entity.CHANGE_MULTIPLIER,
                 dz / Entity.CHANGE_MULTIPLIER

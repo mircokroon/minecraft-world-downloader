@@ -91,7 +91,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("respawn", provider -> {
             int dimensionEnum = provider.readInt();
             worldManager.setDimension(Dimension.fromId(dimensionEnum));
-
+            worldManager.getEntityRegistry().reset();
             return true;
         });
 
@@ -157,10 +157,8 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
         operations.put("window_items", provider -> {
             int windowId = provider.readNext();
-            int count = provider.readShort();
-            List<Slot> slots = provider.readSlots(count);
 
-            worldManager.getContainerManager().items(windowId, slots);
+            worldManager.getContainerManager().items(windowId, provider);
 
             return true;
         });

@@ -39,6 +39,7 @@ public class EntityRegistry {
     public void addEntity(DataTypeProvider provider, Function<DataTypeProvider, Entity> parser) {
         this.executor.execute(() -> attempt(() -> {
             Entity ent = parser.apply(provider);
+            if (ent == null) { return; }
             entities.put(ent.getId(), ent);
 
             ent.registerOnLocationChange((oldPos, newPos) -> {

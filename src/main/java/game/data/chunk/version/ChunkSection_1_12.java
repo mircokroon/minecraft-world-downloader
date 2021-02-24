@@ -182,7 +182,8 @@ public class ChunkSection_1_12 extends ChunkSection {
 
     @Override
     public void setBlockAt(Coordinate3D coords, int blockStateId) {
-        throw new IllegalArgumentException("NOT IMPLEMENTED");
+        super.setBlockAt(coords, blockStateId);
+        this.blockStates[coords.getX()][coords.getY()][coords.getZ()] = blockStateId;
     }
 
     @Override

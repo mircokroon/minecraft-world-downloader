@@ -15,6 +15,8 @@ public class ObjectEntity extends Entity {
         PrimitiveEntity primitive = PrimitiveEntity.parse(provider);
         Entity ent = primitive.getEntity(ObjectEntity::new);
 
+        if (ent == null) { return null; }
+
         ent.readPosition(provider);
         ent.pitch = provider.readNext();
         ent.yaw = provider.readNext();

@@ -36,7 +36,9 @@ public class CoordinateDouble3D {
                 '}';
     }
 
-    public CoordinateDouble3D increment(double dx, double dy, double dz) {
-        return new CoordinateDouble3D(x + dx, y + dy, z + dz);
+    public void increment(double dx, double dy, double dz) {
+        this.x += dx;
+        this.y += dy;
+        this.z += dz;
     }
 }

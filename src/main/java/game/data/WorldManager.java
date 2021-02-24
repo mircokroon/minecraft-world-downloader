@@ -596,6 +596,9 @@ public class WorldManager {
     }
 
     public void blockChange(DataTypeProvider provider) {
+        if (!Config.handleBlockChanges()) {
+            return;
+        }
         chunkFactory.runOnFactoryThread(() -> {
             Coordinate3D coords = provider.readCoordinates();
             Chunk c = getChunk(coords.globalToChunk().addDimension(this.dimension));
