@@ -14,10 +14,7 @@ import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -418,6 +415,10 @@ public abstract class Chunk extends ChunkEntities {
     }
 
     public void updateBlock(Coordinate3D coords, int blockStateId) {
+        updateBlock(coords, blockStateId, false);
+    }
+
+    public void updateBlock(Coordinate3D coords, int blockStateId, boolean suppressUpdate) {
         int section = coords.getY() / SECTION_HEIGHT;
 
         // if there's no section, we create an empty one
@@ -427,9 +428,37 @@ public abstract class Chunk extends ChunkEntities {
         }
         chunkSections[section].setBlockAt(coords.chunkLocalToSectionLocal(), blockStateId);
 
+        if (suppressUpdate) {
+            return;
+        }
+
         if (this.imageFactory != null) {
             this.imageFactory.updateHeight(coords);
         }
     }
 
+    /**
+     * Update a number of blocks. toUpdate keeps track of which blocks have changed so that we can only redraw the
+     * chunk if that's actually needed.
+     * @param pos
+     * @param provider
+     */
+    public void updateBlocks(Coordinate3D pos, DataTypeProvider provider) {
+        int count = provider.readVarInt();
+        Collection<Coordinate3D> toUpdate = new ArrayList<>();
+        while (count-- > 0) {
+            byte xz = provider.readNext();
+            int y = provider.readNext();
+            int x = (xz >>> 4) & 0x0F;
+            int z = xz & 0x0F;
+
+            int blockId = provider.readVarInt();
+
+            Coordinate3D blockPos = new Coordinate3D(x, y, z);
+            toUpdate.add(blockPos);
+
+            updateBlock(blockPos, blockId, true);
+        }
+        this.getChunkImageFactory().recomputeHeights(toUpdate);
+    }
 }

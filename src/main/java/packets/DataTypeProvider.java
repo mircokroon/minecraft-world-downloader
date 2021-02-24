@@ -129,9 +129,22 @@ public class DataTypeProvider {
         int y = (int) (var >> 26) & 0xFFF;
         int z = (int) var & mask;
 
-        if (x >= 2 << 24) { x -= 2 << 25; }
-        if (y >= 2 << 10) { y -= 2 << 11; }
-        if (z >= 2 << 24) { z -= 2 << 25; }
+        if (x >= 1 << 25) { x -= 1 << 26; }
+        if (y >= 1 << 11) { y -= 1 << 12; }
+        if (z >= 1 << 25) { z -= 1 << 26; }
+
+        return new Coordinate3D(x, y, z);
+    }
+
+    public Coordinate3D readSectionCoordinates() {
+        long val = readLong();
+        int x = (int) (val >>> 42);
+        int y = (int) (val << 44 >>> 44);
+        int z = (int) (val << 22 >>> 42);
+
+        if (x >= 1 << 21) { x -= 1 << 22; }
+        if (y >= 1 << 19) { y -= 1 << 20; }
+        if (z >= 1 << 21) { z -= 1 << 22; }
 
         return new Coordinate3D(x, y, z);
     }
@@ -228,7 +241,7 @@ public class DataTypeProvider {
     public Slot readSlot() {
         int itemId = readShort();
 
-        if (itemId == 0xFFFF) {
+        if (itemId == -1) {
             return null;
         }
 

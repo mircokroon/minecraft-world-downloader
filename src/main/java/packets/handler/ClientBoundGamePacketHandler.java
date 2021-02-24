@@ -19,7 +19,6 @@ import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ClientBoundGamePacketHandler extends PacketHandler {
@@ -106,6 +105,13 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
         operations.put("chunk_block_change", provider -> {
             WorldManager.getInstance().blockChange(provider);
+            return true;
+        });
+        operations.put("chunk_multi_block_change", provider -> {
+            int x = provider.readInt();
+            int z = provider.readInt();
+            worldManager.multiBlockChange(new Coordinate3D(x, 0, z), provider);
+
             return true;
         });
 

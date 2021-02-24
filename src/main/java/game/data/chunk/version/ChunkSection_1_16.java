@@ -26,5 +26,22 @@ public class ChunkSection_1_16 extends ChunkSection_1_15 {
     public int getDataVersion() {
         return Chunk_1_16.DATA_VERSION;
     }
+
+    /**
+     * When the bits per block increases, we must rewrite the blocks array.
+     */
+    @Override
+    public synchronized void resizeBlocks(int newBitsPerBlock) {
+        int blocksPerLong = 64 / newBitsPerBlock;
+        int newSize = (int) Math.ceil(4096.0 / blocksPerLong);
+        long[] newBlocks = new long[newSize];
+
+        if (blocks == null) {
+            this.blocks = newBlocks;
+            return;
+        }
+
+        copyBlocks(newBlocks, newBitsPerBlock);
+    }
 }
 

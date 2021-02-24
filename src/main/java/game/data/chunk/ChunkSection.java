@@ -172,6 +172,10 @@ public abstract class ChunkSection {
             return;
         }
 
+        copyBlocks(newBlocks, newBitsPerBlock);
+    }
+
+    public synchronized void copyBlocks(long[] newBlocks, int newBitsPerBlock) {
         BlockLocationEncoder locationHelper = getLocationEncoder();
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {

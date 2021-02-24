@@ -68,6 +68,8 @@ public class ContainerManager {
     }
 
     private void closeWindow(InventoryWindow window) {
+        if (window.getSlotList() == null) { return; }
+
         Chunk c = WorldManager.getInstance().getChunk(window.containerLocation.globalToChunk().addDimension(WorldManager.getInstance().getDimension()));
 
         if (c == null) { return; }

@@ -603,13 +603,26 @@ public class WorldManager {
             Coordinate3D coords = provider.readCoordinates();
             Chunk c = getChunk(coords.globalToChunk().addDimension(this.dimension));
             if (c == null) {
-                System.out.println("Unknown chunk");
                 return;
             }
 
             c.updateBlock(coords.globalToChunkLocal(), provider.readVarInt());
             touchChunk(c);
         });
+    }
+
+    public void multiBlockChange(Coordinate3D pos, DataTypeProvider provider) {
+        if (!Config.handleBlockChanges()) {
+            return;
+        }
+        chunkFactory.runOnFactoryThread(() -> {
+            Chunk c = getChunk(pos.addDimension(this.dimension));
+            if (c == null) {
+                return;
+            }
+            c.updateBlocks(pos, provider);
+        });
+
     }
 }
 

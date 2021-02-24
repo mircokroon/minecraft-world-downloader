@@ -70,7 +70,7 @@ public class GuiMap {
     private final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
     private final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
     private final Color UNSAVED_COLOR = new Color(1, 0, 0, .3);
-    private final Color PLAYER_COLOR = new Color(.6, .95, 1, .6);
+    private final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
     private int renderDistanceX;
     private int renderDistanceZ;
     private Bounds bounds;
@@ -440,8 +440,8 @@ public class GuiMap {
         }
         graphics.setStroke(Color.BLACK);
 
-        graphics.strokeOval(playerX - 2, playerZ - 2, 4, 4);
-        graphics.fillOval(playerX - 2, playerZ - 2, 4, 4);
+        graphics.strokeOval(playerX - 3, playerZ - 3, 6, 6);
+        graphics.fillOval(playerX - 3, playerZ - 3, 6, 6);
     }
 
     private boolean isNear(double x, double y) {
