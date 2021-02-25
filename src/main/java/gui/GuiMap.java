@@ -21,9 +21,11 @@ import javafx.fxml.FXML;
 import javafx.scene.SnapshotParameters;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.image.*;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -49,33 +51,31 @@ import java.util.stream.Collectors;
  * which can be redrawn any moment.
  */
 public class GuiMap {
-    public Canvas chunkCanvas;
-    public Canvas entityCanvas;
-    public Label helpLabel;
-    private boolean playerHasConnected = false;
-    private boolean showErrorPrompt = false;
-
-    private CoordinateDouble3D playerPos;
-    private double playerRotation;
-
-    private boolean enableModernImageHandling = true;
-
+    private static final Image NONE = new WritableImage(1, 1);
+    private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
+    private static final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
+    private static final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
+    private static final Color UNSAVED_COLOR = new Color(1, 0, 0, .3);
+    private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
     private static final WritableImage BLACK = new WritableImage(1, 1);
     static {
         BLACK.getPixelWriter().setColor(0, 0, Color.BLACK);
     }
 
-    private static final Image NONE = new WritableImage(1, 1);
-    private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
-    private final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
-    private final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
-    private final Color UNSAVED_COLOR = new Color(1, 0, 0, .3);
-    private final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
+    public Canvas chunkCanvas;
+    public Canvas entityCanvas;
+    public Label helpLabel;
+    public Label coordsLabel;
+    public Button playerLockButton;
+
+    private CoordinateDouble3D playerPos;
+    private double playerRotation;
+
+    private Bounds bounds;
     private int renderDistanceX;
     private int renderDistanceZ;
-    private Bounds bounds;
     private int gridSize = 0;
-    private Map<Dimension, Map<Coordinate2D, ChunkImage>> chunkDimensions = new ConcurrentHashMap<>();
+    private final Map<Dimension, Map<Coordinate2D, ChunkImage>> chunkDimensions = new ConcurrentHashMap<>();
     private Map<Coordinate2D, ChunkImage> chunkMap;
     private Collection<Coordinate2D> drawableChunks = new ConcurrentLinkedQueue<>();
     private Collection<PlayerEntity> otherPlayers;
@@ -85,8 +85,18 @@ public class GuiMap {
 
     private boolean hasChanged = false;
     private boolean mouseOver = false;
+    private boolean enableModernImageHandling = true;
+    private boolean playerHasConnected = false;
+    private boolean showErrorPrompt = false;
+    private boolean isDragging = false;
+    private boolean draggingHasMoved = false;
+    private boolean lockedToPlayer = true;
+
     private double mouseX = -1;
     private double mouseY = -1;
+
+    private Coordinate2D center = new Coordinate2D(0, 0);
+    WritableImage chunkCanvasCopy;
 
     @FXML
     void initialize() {
@@ -97,6 +107,7 @@ public class GuiMap {
 
         setDimension(manager.getDimension());
         this.playerPos = manager.getPlayerPosition().toDouble();
+        playerLockButton.setVisible(false);
 
         setupCanvasProperties();
 
@@ -115,7 +126,6 @@ public class GuiMap {
         bindScroll();
 
         setupHelpLabel();
-
     }
 
     private void setupHelpLabel() {
@@ -131,13 +141,89 @@ public class GuiMap {
         entityCanvas.setOnMouseMoved(e -> {
             mouseX = e.getSceneX();
             mouseY = e.getSceneY();
+
+            int worldX = (int) Math.round((bounds.getMinX() + (mouseX / gridSize)) * 16);
+            int worldZ = (int) Math.round((bounds.getMinZ() + (mouseY / gridSize)) * 16);
+
+            coordsLabel.setText("(" + worldX + ", " + worldZ + ")");
         });
         entityCanvas.setOnMouseExited(e -> {
             mouseOver = false;
+            coordsLabel.setText("");
             if (playerHasConnected && !showErrorPrompt) {
                 helpLabel.setText("");
             }
         });
+
+        handleDrag();
+    }
+
+    /**
+     * Handle dragging on the canvas. When dragging, a copy of the current canvas is made to provide a lightweight
+     * visualisation of the dragging state. When dragging ends, the chunks are fully re-drawn.
+     */
+    private void handleDrag() {
+        SnapshotParameters snapshotParameters = new SnapshotParameters();
+        snapshotParameters.setFill(Color.TRANSPARENT);
+
+        entityCanvas.setOnMousePressed((e) -> {
+            if (e.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
+
+            // hide entity canvas while dragging
+            entityCanvas.setOpacity(0);
+            isDragging = true;
+            draggingHasMoved = false;
+            chunkCanvasCopy = chunkCanvas.snapshot(snapshotParameters, null);
+        });
+
+        entityCanvas.setOnMouseReleased((e) -> {
+            if (e.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
+            isDragging = false;
+            entityCanvas.setOpacity(1);
+            if (!draggingHasMoved) {
+                return;
+            }
+
+            lockedToPlayer = false;
+            playerLockButton.setVisible(true);
+
+            double diffX = mouseX - e.getX();
+            double diffY = mouseY - e.getY();
+
+            Coordinate2D difference = new Coordinate2D(Math.round(diffX / gridSize), Math.round(diffY / gridSize));
+            this.center = this.bounds.center().add(difference);
+            this.redrawAll(true);
+
+            if (difference.getX() == 0 && difference.getZ() == 0) {
+                followPlayer();
+                chunkCanvas.getGraphicsContext2D().drawImage(chunkCanvasCopy, 0, 0);
+            }
+        });
+
+        entityCanvas.setOnMouseDragged((e) -> {
+            if (!isDragging) { return; }
+            draggingHasMoved = true;
+
+            double diffX = mouseX - e.getX();
+            double diffY = mouseY - e.getY();
+
+            chunkCanvas.getGraphicsContext2D().setFill(BACKGROUND_COLOR);
+            chunkCanvas.getGraphicsContext2D().fillRect(0, 0, width.get(), height.get());
+            chunkCanvas.getGraphicsContext2D().drawImage(chunkCanvasCopy, -diffX, -diffY);
+        });
+
+        // button to reset the center back to the player
+        playerLockButton.setOnMouseClicked(e -> followPlayer());
+    }
+
+    private void followPlayer() {
+        lockedToPlayer = true;
+        playerLockButton.setVisible(false);
+        redrawAll(true);
     }
 
     private void setupCanvasProperties() {
@@ -157,14 +243,18 @@ public class GuiMap {
         entityCanvas.widthProperty().bind(width);
         entityCanvas.heightProperty().bind(height);
 
-        height.addListener((ChangeListener<? super Number>)  (a, b, c) -> {
-            redrawAll();
-        });
-
         // periodically recompute the canvas bounds
         Timeline reload = new Timeline(new KeyFrame(Duration.millis(1000), e -> {
             computeBounds(false);
         }));
+
+        Timeline redraw = new Timeline(new KeyFrame(Duration.millis(100), e -> {
+            this.bounds = null;
+            redrawAll(true);
+        }));
+
+        height.addListener((ChangeListener<? super Number>) (a, b, c) -> redraw.play());
+        height.addListener((ChangeListener<? super Number>) (a, b, c) -> redraw.play());
 
         // periodically clean up old images
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor((r) -> new Thread(r, "Chunk Image Cleaner"));
@@ -173,7 +263,7 @@ public class GuiMap {
         reload.setCycleCount(Animation.INDEFINITE);
         reload.play();
 
-        redrawAll();
+        redrawAll(true);
     }
 
     /**
@@ -230,6 +320,7 @@ public class GuiMap {
         WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
         img.getPixelReader().getPixels(0, 0, imgWidth, imgWidth, format, input, 0, imgWidth);
 
+
         // in the loop we use the ratio to calculate where a pixel fom the input image ends up in the output
         double ratio = imgSize / gridSize;
         for (int x = 0; x < gridSize; x++) {
@@ -240,6 +331,7 @@ public class GuiMap {
                 output[x + y * gridSize] = input[imgX + imgY * imgWidth] | colMask;
             }
         }
+
         ctx.getPixelWriter().setPixels(drawX, drawY, gridSize, gridSize, format, output, 0, gridSize);
     }
 
@@ -276,11 +368,13 @@ public class GuiMap {
             } else {
                 zoom *= 2;
             }
-            if (zoom < 2) { zoom = 2; }
+            if (zoom < 1) { zoom = 1; }
             if (zoom > 1000) { zoom = 1000; }
 
-            Config.setZoomLevel(zoom);
-            redrawAll();
+            if (Config.getZoomLevel() != zoom) {
+                Config.setZoomLevel(zoom);
+                redrawAll(true);
+            }
         });
     }
 
@@ -292,19 +386,28 @@ public class GuiMap {
         double ratio = (height.get() / width.get());
 
         int zoom = Config.getZoomLevel();
-        renderDistanceX =  (int) Math.ceil(zoom / ratio);
-        renderDistanceZ = (int) Math.ceil(zoom * ratio);
+
+        renderDistanceZ = zoom;
+        renderDistanceX = zoom;
+
+        // height is bigger - so reduce width
+        if (ratio > 1) {
+            renderDistanceZ = (int) Math.ceil(zoom / ratio);
+            // width is bigger - reduce height
+        } else {
+            renderDistanceX = (int) Math.ceil(zoom / ratio);
+        }
     }
 
     void setChunkExists(CoordinateDim2D coord) {
-        chunkMap.put(coord, NO_IMG);
+        chunkMap.put(coord.stripDimension(), NO_IMG);
 
         hasChanged = true;
     }
 
     void markChunkSaved(CoordinateDim2D coord) {
-        if (chunkMap.containsKey(coord)) {
-            chunkMap.get(coord).setSaved(true);
+        if (chunkMap.containsKey(coord.stripDimension())) {
+            chunkMap.get(coord.stripDimension()).setSaved(true);
         }
 
         hasChanged = true;
@@ -321,18 +424,18 @@ public class GuiMap {
 
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
         imageFactory.onComplete(image -> {
-            chunkMap.put(coord, new ChunkImage(image, chunk.isSaved()));
-            drawChunkAsync(coord);
+            chunkMap.put(coord.stripDimension(), new ChunkImage(image, chunk.isSaved()));
+            drawChunkAsync(coord.stripDimension());
 
             hasChanged = true;
         });
         imageFactory.createImage();
     }
 
-    void redrawAll() {
+    void redrawAll(boolean force) {
         computeRenderDistance();
-        this.computeBounds(true);
-        redrawCanvas();
+        this.computeBounds(force);
+        hasChanged = false;
     }
 
     /**
@@ -340,24 +443,38 @@ public class GuiMap {
      * set render distance. The computed bounds will be used to determine the scale and positions to draw the chunks to.
      */
     void computeBounds(boolean force) {
-        if (force) {
-            computeRenderDistance();
-        } else if (!hasChanged) {
+        if (!force && !hasChanged) {
             return;
         }
 
-        hasChanged = false;
+        Coordinate2D center;
+        if (lockedToPlayer && this.playerPos != null) {
+            center = this.playerPos.discretize().globalToChunk();
+        } else {
+            // if no player position is known, calculate the average coordinate
+            center = this.center;
+        }
 
-        this.drawableChunks = getChunksInRange(chunkMap.keySet(),renderDistanceX * 2, renderDistanceZ * 2);
-        Collection<Coordinate2D> inRangeChunks = getChunksInRange(drawableChunks, renderDistanceX, renderDistanceZ);
+        //this.drawableChunks = getChunksInRange(chunkMap.keySet(),renderDistanceX * 2, renderDistanceZ * 2);
+        this.drawableChunks = getChunksInRange(center, chunkMap.keySet(), renderDistanceX, renderDistanceZ);
 
-        this.bounds = getOverviewBounds(inRangeChunks, this.playerPos.discretize().globalToChunk());
+        Bounds newBounds;
+        if (lockedToPlayer) {
+            newBounds = getOverviewBounds(drawableChunks, this.playerPos.discretize().globalToChunk());
+        } else {
+            newBounds = new Bounds(center, renderDistanceX, renderDistanceZ);
+        }
 
-        double gridWidth = width.get() / bounds.getWidth();
-        double gridHeight = height.get() / bounds.getHeight();
+        if (!newBounds.equals(bounds)) {
+            bounds = newBounds;
 
-        gridSize = (int) Math.max(1, Math.round(Math.min(gridWidth, gridHeight)));
-        redrawCanvas();
+            double gridWidth = width.get() / bounds.getWidth();
+            double gridHeight = height.get() / bounds.getHeight();
+
+            gridSize = (int) Math.max(2, Math.round(Math.min(gridWidth, gridHeight)));
+
+            redrawCanvas();
+        }
     }
 
     private void redrawCanvas() {
@@ -367,8 +484,8 @@ public class GuiMap {
         graphics.setFill(BACKGROUND_COLOR);
         graphics.fillRect(0, 0, width.get(), height.get());
 
-        for (Coordinate2D coord : drawableChunks) {
-            drawChunk(coord);
+        for (Coordinate2D drawableChunk : drawableChunks) {
+            drawChunk(drawableChunk);
         }
     }
 
@@ -388,15 +505,7 @@ public class GuiMap {
      * range due to pixels).
      * @return the set of chunks actually in range.
      */
-    private Collection<Coordinate2D> getChunksInRange(Collection<Coordinate2D> coords, int rangeX, int rangeZ) {
-        Coordinate2D center;
-        if (this.playerPos != null) {
-            center = this.playerPos.discretize().globalToChunk();
-        } else {
-            // if no player position is known, calculate the average coordinate
-            center = coords.stream().reduce(Coordinate2D::add).orElse(new Coordinate2D(0, 0)).divide(coords.size());
-        }
-
+    private Collection<Coordinate2D> getChunksInRange(Coordinate2D center, Collection<Coordinate2D> coords, int rangeX, int rangeZ) {
         return coords.parallelStream()
                 .filter(coordinate2D -> coordinate2D.isInRange(center, rangeX, rangeZ))
                 .collect(Collectors.toSet());
@@ -481,6 +590,7 @@ public class GuiMap {
 
         int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
         int drawY = (pos.getZ() - bounds.getMinZ()) * gridSize;
+
         if (chunkImage.getImage() == NONE) {
             graphics.setLineWidth(1);
             graphics.setFill(EXISTING_COLOR);

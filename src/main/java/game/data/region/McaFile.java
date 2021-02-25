@@ -49,6 +49,9 @@ public class McaFile {
         }
     }
 
+    /**
+     * Gets MCA files starting from the center, then increasing in radius.
+     */
     public static Stream<McaFile> getFiles(CoordinateDouble3D playerPosition, Dimension dimension, int radius) {
         Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
 
@@ -57,12 +60,34 @@ public class McaFile {
         }
         List<File> files = new ArrayList<>();
         Coordinate2D center = playerPosition.discretize().globalToChunk().chunkToRegion().offsetChunk();
-        for (int x = -radius; x < radius; x++) {
-            for (int z = -radius; z < radius; z++) {
-                files.add(McaFile.coordinatesToFile(exportDir, center.add(x, z)));
+
+        // loop from radius 0 up to the given radius
+        for (int r = 0; r < radius; r++) {
+
+            // for each radius, we take only the edge items. That is, for the first and last row we take all files, but
+            // for the others we only take the first and last items.
+            for (int x = -r; x < r; x++) {
+                if (x != r - 1 && x != -r) {
+                    File a = McaFile.coordinatesToFile(exportDir, center.add(x, -r));
+                    if (a != null) {
+                        files.add(a);
+                    }
+
+                    File b = McaFile.coordinatesToFile(exportDir, center.add(x, r - 1));
+                    if (b != null) {
+                        files.add(b);
+                    }
+                } else {
+                    for (int z = -r; z < r; z++) {
+                        File f = McaFile.coordinatesToFile(exportDir, center.add(x, z));
+                        if (f != null) {
+                            files.add(f);
+                        }
+                    }
+                }
             }
         }
-        return files.stream().filter(Objects::nonNull).map(el -> {
+        return files.stream().map(el -> {
             try {
                 return new McaFile(el);
             } catch (IOException e) {
@@ -133,10 +158,20 @@ public class McaFile {
             int chunkDataStart = (location - 2) * SECTOR_SIZE;
             int chunkDataEnd = (location + size - 2) * SECTOR_SIZE;
 
+
+
             byte[] chunkData = Arrays.copyOfRange(chunkDataArray, chunkDataStart, chunkDataEnd);
 
             // i is the unique identifier of this chunk within the file, based on coordinates thus consistent
             chunkMap.put(i, new ChunkBinary(timestamp, location, size, chunkData));
+        }
+
+        // if a region only has a single small chunk, we ignore it since it's probably not actually generated.
+        if (chunkMap.size() == 1) {
+            ChunkBinary first = chunkMap.values().iterator().next();
+            if (first.getChunkData().length == SECTOR_SIZE) {
+                return Collections.emptyMap();
+            }
         }
 
         return chunkMap;

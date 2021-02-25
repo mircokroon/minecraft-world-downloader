@@ -172,26 +172,38 @@ public class WorldManager {
      * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
      */
     public void drawExistingChunks() {
-        Stream<McaFile> files = McaFile.getFiles(this.playerPosition, this.dimension, 8);
+        int limit = 48000;
+        Collection<McaFile> files = McaFile.getFiles(this.playerPosition, this.dimension, 8).collect(Collectors.toList());
 
-        files.forEach(file -> {
+        int chunksLoaded = 0;
+        for (McaFile file : files) {
+            if (chunksLoaded > limit) {
+                break;
+            }
             Map<CoordinateDim2D, Chunk> chunks = file.getParsedChunks(this.dimension);
 
             // Step 2: add all chunks to the WorldManager if it doesn't have them yet
             Set<CoordinateDim2D> toDelete = new HashSet<>();
-            chunks.forEach((coord, chunk) -> {
+            for (Map.Entry<CoordinateDim2D, Chunk> entry : chunks.entrySet()) {
+                if (chunksLoaded > limit) {
+                    break;
+                }
+
+                CoordinateDim2D coord = entry.getKey();
+                Chunk chunk = entry.getValue();
                 if (getChunk(coord) == null) {
                     toDelete.add(coord);
-                    loadChunk(chunk, true, false);
+                    loadChunk(chunk, false, false);
+                    chunksLoaded++;
                 }
-            });
+            }
 
             // Step 3: draw to GUI
             chunks.forEach(GuiManager::setChunkLoaded);
 
             // Step 4: delete the newly added chunks
             toDelete.forEach(this::unloadChunk);
-        });
+        }
     }
 
     /**

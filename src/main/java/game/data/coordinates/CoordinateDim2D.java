@@ -67,4 +67,7 @@ public class CoordinateDim2D extends Coordinate2D {
         return "(" + x + ", " + z + ", " + dimension + ")";
     }
 
+    public Coordinate2D stripDimension() {
+        return new Coordinate2D(x, z);
+    }
 }

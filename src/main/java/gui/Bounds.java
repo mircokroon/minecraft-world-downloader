@@ -9,6 +9,14 @@ public class Bounds {
         reset();
     }
 
+    public Bounds(Coordinate2D center, int renderDistanceX, int renderDistanceZ) {
+        this.minX = center.getX() - renderDistanceX;
+        this.maxX = center.getX() + renderDistanceX;
+
+        this.minZ = center.getZ() - renderDistanceZ;
+        this.maxZ = center.getZ() + renderDistanceZ;
+    }
+
     public void reset() {
         this.minX = Integer.MAX_VALUE;
         this.maxX = Integer.MIN_VALUE;
@@ -64,5 +72,31 @@ public class Bounds {
             ", minZ=" + minZ +
             ", maxZ=" + maxZ +
             '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Bounds bounds = (Bounds) o;
+
+        if (minX != bounds.minX) return false;
+        if (maxX != bounds.maxX) return false;
+        if (minZ != bounds.minZ) return false;
+        return maxZ == bounds.maxZ;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = minX;
+        result = 31 * result + maxX;
+        result = 31 * result + minZ;
+        result = 31 * result + maxZ;
+        return result;
+    }
+
+    public Coordinate2D center() {
+        return new Coordinate2D((maxX + minX) / 2, (maxZ + minZ) / 2);
     }
 }
