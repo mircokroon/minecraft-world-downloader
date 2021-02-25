@@ -129,7 +129,7 @@ public class ChunkImageFactory {
 
                     SimpleColor color;
                     if (blockState == null) {
-                        color = SimpleColor.TRANSPARENT;
+                        continue;
                     } else {
                         color = shadeTransparent(blockState, x, y, z);
                     }
