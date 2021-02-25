@@ -17,6 +17,7 @@
 				"0x12": "close_window",
 				"0x14": "window_items",
 				"0x24": "map_data",
+				"0x0F": "message",
 
 				"0x00": "spawn_object",
 				"0x03": "spawn_mob",
@@ -52,7 +53,8 @@
 				"0x38": "respawn",
 				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
-				"0x3F": "entity_data"
+				"0x3F": "entity_data",
+				"0x0E": "message"
 			},
 			"serverBound": {
 				"0x10": "player_position",
@@ -80,6 +82,7 @@
 				"0x13": "close_window",
 				"0x14": "window_items",
 				"0x27": "map_data",
+				"0x0E": "message",
 
 				"0x00": "spawn_object",
 				"0x03": "spawn_mob",
@@ -118,6 +121,7 @@
                 "0x14": "close_window",
                 "0x15": "window_items",
 				"0x27": "map_data",
+				"0x0F": "message",
 
 				"0x00": "spawn_object",
 				"0x03": "spawn_mob",
@@ -156,6 +160,7 @@
 				"0x12": "close_window",
 				"0x13": "window_items",
 				"0x25": "map_data",
+				"0x0E": "message",
 
 				"0x00": "spawn_object",
 				"0x02": "spawn_mob",

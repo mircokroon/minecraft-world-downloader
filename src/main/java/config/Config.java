@@ -392,6 +392,10 @@ public class Config {
             usage = "Clear settings by deleting config.json file, then exit.")
     private transient boolean clearSettings = false;
 
+    @Option(name = "--disable-messages",
+            usage = "Disable various info messages (e.g. chest saving).")
+    public boolean disableInfoMessages = false;
+
     // getters
     public static int getExtendedRenderDistance() {
         return instance.extendedRenderDistance;
@@ -450,6 +454,7 @@ public class Config {
         return !instance.ignoreBlockChanges;
     }
 
+    public static boolean sendInfoMessages() { return !instance.disableInfoMessages; }
 
     // setters
     public static void setZoomLevel(int val) {

@@ -1,5 +1,6 @@
 package game.data.chunk;
 
+import config.Config;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.container.InventoryWindow;
@@ -7,6 +8,9 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
+import packets.builder.Chat;
+import packets.builder.MessageTarget;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
 
 import java.util.ArrayList;
@@ -32,6 +36,7 @@ public abstract class ChunkEntities {
 
         // if a tile entity is missing, don't store anything
         if (tileEntity == null) {
+            sendInventoryFailureMessage(window);
             return;
         }
 
@@ -41,6 +46,23 @@ public abstract class ChunkEntities {
             tileEntity.add("CustomName", new StringTag(window.getWindowTitle()));
         }
 
+        sendInventoryMessage(window);
+    }
+
+    private void sendInventoryFailureMessage(InventoryWindow window) {
+        if (Config.sendInfoMessages()) {
+            Chat message = new Chat("Unable to save inventory at " + window.getContainerLocation() + ". Try reloading the chunk.");
+            message.setColor("red");
+
+            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+        }
+    }
+
+    private void sendInventoryMessage(InventoryWindow tileEntity) {
+        if (Config.sendInfoMessages()) {
+            String message = "Recorded inventory at " + tileEntity.getContainerLocation();
+            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+        }
     }
 
     protected void addLevelNbtTags(CompoundTag map) {
