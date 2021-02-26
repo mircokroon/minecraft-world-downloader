@@ -334,9 +334,9 @@ public class WorldManager {
     /**
      * Mark a chunk and it's region as having unsaved changes.
      */
-    public void touchChunk(Chunk c) {
+    public void touchChunk(ChunkEntities c) {
         c.touch();
-        regions.get(c.location.chunkToDimRegion()).touch();
+        regions.get(c.getLocation().chunkToDimRegion()).touch();
     }
 
     public DimensionCodec getDimensionCodec() {
@@ -643,5 +643,7 @@ public class WorldManager {
         });
 
     }
+
+
 }
 
