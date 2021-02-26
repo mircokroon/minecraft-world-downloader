@@ -362,7 +362,7 @@ public class WorldManager {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Could not write dimension codec. Custom dimensions may not work properly.");
+            System.err.println("Could not write dimension codec. Custom dimensions may not work properly.");
         }
     }
 

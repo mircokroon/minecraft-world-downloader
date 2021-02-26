@@ -1,5 +1,6 @@
 package game.data.container;
 
+import config.Config;
 import game.data.chunk.ChunkEntities;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
@@ -9,6 +10,9 @@ import game.data.chunk.Chunk;
 import game.data.chunk.palette.BlockState;
 import org.apache.commons.lang3.ArrayUtils;
 import packets.DataTypeProvider;
+import packets.builder.Chat;
+import packets.builder.MessageTarget;
+import packets.builder.PacketBuilder;
 
 import java.util.HashMap;
 import java.util.List;
@@ -72,11 +76,17 @@ public class ContainerManager {
 
         Chunk c = WorldManager.getInstance().getChunk(window.containerLocation.globalToChunk().addDimension(WorldManager.getInstance().getDimension()));
 
-        if (c == null) { return; }
+        if (c == null) {
+            sendInventoryFailureMessage(window, "Chunk not loaded.");
+            return;
+        }
 
         BlockState block = c.getBlockStateAt(window.getContainerLocation().withinChunk());
 
-        if (block == null) { return; }
+        if (block == null) {
+            sendInventoryFailureMessage(window, "No block found.");
+            return;
+        }
 
         WorldManager.getInstance().touchChunk(c);
 
@@ -89,6 +99,16 @@ public class ContainerManager {
             storedWindows.put(window.containerLocation.addDimension3D(WorldManager.getInstance().getDimension()), window);
         }
     }
+
+    private void sendInventoryFailureMessage(InventoryWindow window, String cause) {
+        if (Config.sendInfoMessages()) {
+            Chat message = new Chat("Unable to save inventory at " + window.getContainerLocation() + ". " + cause);
+            message.setColor("red");
+
+            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+        }
+    }
+
 
     /**
      * Handles double chests in 1.12.
