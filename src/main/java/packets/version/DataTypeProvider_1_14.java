@@ -13,7 +13,7 @@ public class DataTypeProvider_1_14 extends DataTypeProvider_1_13 {
         long val = readLong();
         int x = (int) (val >> 38);
         int y = (int) (val & 0xFFF);
-        int z = (int) ((val << 38 >> 38) >> 12);
+        int z = (int) ((val << 26) >> 38);
         return new Coordinate3D(x, y, z);
     }
 

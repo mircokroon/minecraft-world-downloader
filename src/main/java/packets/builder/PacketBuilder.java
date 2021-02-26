@@ -1,5 +1,7 @@
 package packets.builder;
 
+import config.Config;
+import game.protocol.Protocol;
 import packets.DataTypeProvider;
 import packets.UUID;
 import packets.lib.ByteQueue;
@@ -10,6 +12,8 @@ import se.llbit.nbt.SpecificTag;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 
 public class PacketBuilder {
@@ -34,14 +38,22 @@ public class PacketBuilder {
         }
     };
 
+
+    public static PacketBuilder constructClientMessage(String message, MessageTarget target) {
+        return constructClientMessage(new Chat(message), target);
+    }
     /**
      * Construct a message packet for the client.
      */
-    public static PacketBuilder constructClientMessage(String message, MessageTarget target) {
-        PacketBuilder builder = new PacketBuilder(0x0E);
-        builder.writeString("{\"text\": \"" + message + "\"}");
+    public static PacketBuilder constructClientMessage(Chat message, MessageTarget target) {
+        Protocol protocol = Config.versionReporter().getProtocol();
+        PacketBuilder builder = new PacketBuilder(protocol.clientBound("message"));
+
+        builder.writeString(message.toJson());
         builder.writeByte(target.getIdentifier());
-        builder.writeUUID(new UUID(0L, 0L));
+        if (Config.versionReporter().isAtLeast1_16()) {
+            builder.writeUUID(new UUID(0L, 0L));
+        }
         return builder;
     }
 
@@ -238,5 +250,12 @@ public class PacketBuilder {
         for (int i : arr) {
             writeInt(i);
         }
+    }
+
+    public void writeFloat(float val) {
+        ByteBuffer buffer = ByteBuffer.allocate(Float.BYTES);
+        buffer.putFloat(val);
+        ((Buffer) buffer).flip();
+        writeByteArray(buffer.array());
     }
 }

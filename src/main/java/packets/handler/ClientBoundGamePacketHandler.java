@@ -19,7 +19,6 @@ import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ClientBoundGamePacketHandler extends PacketHandler {
@@ -47,6 +46,16 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
         operations.put("spawn_object", provider -> {
             entityRegistry.addEntity(provider, ObjectEntity::parse);
+            return true;
+        });
+
+        operations.put("spawn_player", provider -> {
+            entityRegistry.addPlayer(provider);
+            return true;
+        });
+
+        operations.put("destroy_entities", provider -> {
+            entityRegistry.destroyEntities(provider);
             return true;
         });
 
@@ -81,7 +90,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("respawn", provider -> {
             int dimensionEnum = provider.readInt();
             worldManager.setDimension(Dimension.fromId(dimensionEnum));
-
+            worldManager.getEntityRegistry().reset();
             return true;
         });
 
@@ -91,6 +100,18 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+            return true;
+        });
+
+        operations.put("chunk_block_change", provider -> {
+            WorldManager.getInstance().blockChange(provider);
+            return true;
+        });
+        operations.put("chunk_multi_block_change", provider -> {
+            int x = provider.readInt();
+            int z = provider.readInt();
+            worldManager.multiBlockChange(new Coordinate3D(x, 0, z), provider);
+
             return true;
         });
 
@@ -142,10 +163,8 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
         operations.put("window_items", provider -> {
             int windowId = provider.readNext();
-            int count = provider.readShort();
-            List<Slot> slots = provider.readSlots(count);
 
-            worldManager.getContainerManager().items(windowId, slots);
+            worldManager.getContainerManager().items(windowId, provider);
 
             return true;
         });

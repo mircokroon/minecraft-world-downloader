@@ -35,4 +35,10 @@ public class CoordinateDouble3D {
                 ", z=" + z +
                 '}';
     }
+
+    public void increment(double dx, double dy, double dz) {
+        this.x += dx;
+        this.y += dy;
+        this.z += dz;
+    }
 }

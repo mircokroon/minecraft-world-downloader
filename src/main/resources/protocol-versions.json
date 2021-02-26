@@ -5,6 +5,8 @@
 			"dataVersion": 1343,
 			"clientBound": {
 				"0x20": "chunk_data",
+				"0x0B": "chunk_block_change",
+				"0x10": "chunk_multi_block_change",
 				"0x1D": "chunk_unload",
 				"0x2F": "player_position_look",
 				"0x29": "player_vehicle_move",
@@ -15,13 +17,16 @@
 				"0x12": "close_window",
 				"0x14": "window_items",
 				"0x24": "map_data",
+				"0x0F": "message",
 
-				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
+				"0x03": "spawn_mob",
+				"0x05": "spawn_player",
 				"0x3C": "entity_data",
 				"0x3F": "entity_equipment",
 				"0x26": "entity_position",
-				"0x4C": "entity_teleport"
+				"0x4C": "entity_teleport",
+				"0x32": "destroy_entities"
 
 			},
 			"serverBound": {
@@ -38,6 +43,8 @@
 			"dataVersion": 1631,
 			"clientBound": {
 				"0x22": "chunk_data",
+				"0x0B": "chunk_block_change",
+				"0x0F": "chunk_multi_block_change",
 				"0x1F": "chunk_unload",
 				"0x32": "player_position_look",
 				"0x2B": "player_vehicle_move",
@@ -46,7 +53,8 @@
 				"0x38": "respawn",
 				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
-				"0x3F": "entity_data"
+				"0x3F": "entity_data",
+				"0x0E": "message"
 			},
 			"serverBound": {
 				"0x10": "player_position",
@@ -61,6 +69,8 @@
 			"dataVersion": 1976,
 			"clientBound": {
 				"0x21": "chunk_data",
+				"0x0B": "chunk_block_change",
+				"0x0F": "chunk_multi_block_change",
 				"0x1D": "chunk_unload",
 				"0x35": "player_position_look",
 				"0x2C": "player_vehicle_move",
@@ -72,14 +82,17 @@
 				"0x13": "close_window",
 				"0x14": "window_items",
 				"0x27": "map_data",
+				"0x0E": "message",
 
 				"0x00": "spawn_object",
 				"0x03": "spawn_mob",
+				"0x05": "spawn_player",
 				"0x43": "entity_data",
 				"0x46": "entity_equipment",
 				"0x28": "entity_position",
 				"0x29": "entity_position_rotation",
-				"0x56": "entity_teleport"
+				"0x56": "entity_teleport",
+				"0x37": "destroy_entities"
 			},
 			"serverBound": {
 				"0x11": "player_position",
@@ -95,6 +108,8 @@
 			"dataVersion": 2225,
 			"clientBound": {
 				"0x22": "chunk_data",
+				"0x0C": "chunk_block_change",
+				"0x10": "chunk_multi_block_change",
 				"0x1E": "chunk_unload",
 				"0x36": "player_position_look",
 				"0x2D": "player_vehicle_move",
@@ -106,14 +121,17 @@
                 "0x14": "close_window",
                 "0x15": "window_items",
 				"0x27": "map_data",
+				"0x0F": "message",
 
-				"0x03": "spawn_mob",
 				"0x00": "spawn_object",
+				"0x03": "spawn_mob",
+				"0x05": "spawn_player",
 				"0x44": "entity_data",
 				"0x47": "entity_equipment",
 				"0x29": "entity_position",
 				"0x2A": "entity_position_rotation",
-				"0x57": "entity_teleport"
+				"0x57": "entity_teleport",
+				"0x38": "destroy_entities"
 			},
 			"serverBound": {
 				"0x11": "player_position",
@@ -129,6 +147,8 @@
 			"dataVersion": 2578,
 			"clientBound": {
 				"0x20": "chunk_data",
+				"0x0B": "chunk_block_change",
+				"0x3B": "chunk_multi_block_change",
 				"0x1C": "chunk_unload",
 				"0x34": "player_position_look",
 				"0x2B": "player_vehicle_move",
@@ -140,14 +160,17 @@
 				"0x12": "close_window",
 				"0x13": "window_items",
 				"0x25": "map_data",
+				"0x0E": "message",
 
-				"0x02": "spawn_mob",
 				"0x00": "spawn_object",
+				"0x02": "spawn_mob",
+				"0x04": "spawn_player",
 				"0x44": "entity_data",
 				"0x47": "entity_equipment",
 				"0x27": "entity_position",
 				"0x28": "entity_position_rotation",
-				"0x56": "entity_teleport"
+				"0x56": "entity_teleport",
+				"0x36": "destroy_entities"
 			},
 			"serverBound": {
 				"0x12": "player_position",

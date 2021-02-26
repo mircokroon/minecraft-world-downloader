@@ -13,11 +13,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public abstract class Entity extends PrimitiveEntity {
+public abstract class Entity extends PrimitiveEntity implements IMovableEntity {
     private static EquipmentReader equipmentReader;
 
-    private final static double CHANGE_MULTIPLIER = 4096.0;
-    private final static float ROTATION_MULTIPLIER = 360f / 256f;
+    public final static double CHANGE_MULTIPLIER = 4096.0;
+    public final static float ROTATION_MULTIPLIER = 360f / 256f;
 
     protected double x, y, z;
     private CoordinateDim2D position;
@@ -144,7 +144,7 @@ public abstract class Entity extends PrimitiveEntity {
         updateCoordinate();
     }
 
-    protected void readPosition(DataTypeProvider provider) {
+    public void readPosition(DataTypeProvider provider) {
         this.x = provider.readDouble();
         this.y = provider.readDouble();
         this.z = provider.readDouble();

@@ -1,5 +1,7 @@
 package packets;
 
+import java.util.Locale;
+
 public class UUID {
     long lower;
     long upper;
@@ -35,7 +37,7 @@ public class UUID {
 
     @Override
     public String toString() {
-        return Long.toHexString(lower) + Long.toHexString(upper);
+        return String.format("%016X", lower) + String.format("%016X", upper);
     }
 
     public long getUpper() {

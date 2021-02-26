@@ -4,6 +4,8 @@ import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.SimpleColor;
 import game.data.chunk.palette.blending.IBlendEquation;
+import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import javafx.scene.image.Image;
@@ -13,6 +15,7 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
 
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -26,6 +29,8 @@ public class ChunkImageFactory {
 
     private Chunk south;
     private Chunk north;
+
+    private boolean drawnBefore = false;
 
     public ChunkImageFactory(Chunk c) {
         this.c = c;
@@ -111,7 +116,10 @@ public class ChunkImageFactory {
         WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
 
         // setup north/south chunks
-        setupAdjacentChunks();
+        if (!drawnBefore) {
+            setupAdjacentChunks();
+        }
+        drawnBefore = true;
 
         try {
             for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
@@ -121,7 +129,7 @@ public class ChunkImageFactory {
 
                     SimpleColor color;
                     if (blockState == null) {
-                        color = SimpleColor.TRANSPARENT;
+                        continue;
                     } else {
                         color = shadeTransparent(blockState, x, y, z);
                     }
@@ -193,7 +201,9 @@ public class ChunkImageFactory {
     }
 
     protected void computeHeightMap() {
-        this.heightMap = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
+        if (this.heightMap == null) {
+            this.heightMap = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
+        }
 
         for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
             for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
@@ -232,5 +242,40 @@ public class ChunkImageFactory {
             return (chunkSection * Chunk.SECTION_HEIGHT) + height;
         }
         return isNether ? 127 : 0;
+    }
+
+    /**
+     * We need to update the image only if the updated block was either the top layer, or above the top layer.
+     * Technically this does not take transparent blocks into account, but that's fine.
+     */
+    public void updateHeight(Coordinate3D coords) {
+        if (coords.getY() >= heightAt(coords.getX(), coords.getZ())) {
+            recomputeHeight(coords.getX(), coords.getZ());
+            createImage();
+        }
+    }
+
+    /**
+     * Recompute the heights in the given coordinate collection. We keep track of which heights actually changed, and
+     * only redraw if we have to.
+     */
+    public void recomputeHeights(Collection<Coordinate3D> toUpdate) {
+        boolean hasChanged = false;
+        for (Coordinate3D pos : toUpdate) {
+            if (pos.getY() >= heightAt(pos.getX(), pos.getZ())) {
+                hasChanged |= recomputeHeight(pos.getX(), pos.getZ());
+            }
+        }
+        if (hasChanged) {
+            createImage();
+        }
+    }
+
+    private boolean recomputeHeight(int x, int z) {
+        int before = heightMap[z << 4 | x];
+        int after = computeHeight(x, z);
+        heightMap[z << 4 | x] = after;
+
+        return before != after;
     }
 }

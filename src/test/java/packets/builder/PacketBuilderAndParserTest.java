@@ -1,11 +1,14 @@
 package packets.builder;
 
+import game.data.coordinates.Coordinate3D;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import packets.DataTypeProvider;
 import packets.UUID;
 import packets.lib.ByteQueue;
+import packets.version.DataTypeProvider_1_13;
+import packets.version.DataTypeProvider_1_14;
 import se.llbit.nbt.*;
 
 import java.util.Arrays;
@@ -36,7 +39,7 @@ public class PacketBuilderAndParserTest {
         byte[] arr = new byte[built.size()];
         built.copyTo(arr);
 
-        parser = new DataTypeProvider(arr);
+        parser = new DataTypeProvider_1_14(arr);
         int length = parser.readVarInt();
         assertThat(length).isGreaterThan(0);
 
@@ -105,6 +108,16 @@ public class PacketBuilderAndParserTest {
     }
 
     @Test
+    void shortNegativeTest() {
+        int before = -42;
+        builder.writeShort(before);
+
+        int after = getParser().readShort();
+
+        assertThat(after).isEqualTo(before);
+    }
+
+    @Test
     void byteArray() {
         byte[] before = {1, 2, 3, 2, 1};
         builder.writeByteArray(before);
@@ -162,6 +175,16 @@ public class PacketBuilderAndParserTest {
     }
 
     @Test
+    void floatTest() {
+        float before = 0.12345f;
+        builder.writeFloat(before);
+
+        float after = getParser().readFloat();
+
+        assertThat(after).isEqualTo(before);
+    }
+
+    @Test
     void uuidTest() {
         UUID before = new UUID(2L^42, 2L^12);
         builder.writeUUID(before);
@@ -169,5 +192,33 @@ public class PacketBuilderAndParserTest {
         UUID after = getParser().readUUID();
 
         assertThat(after).isEqualTo(before);
+    }
+
+    @Test
+    void parseCoordinates() {
+        long x = -1337;
+        long y = 64;
+        long z = -4201;
+        long encoded = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+
+        builder.writeLong(encoded);
+
+        Coordinate3D after = getParser().readCoordinates();
+
+        assertThat(after).isEqualTo(new Coordinate3D(x, y, z));
+    }
+
+    @Test
+    void parseCoordinatesOther() {
+        long x = 1000;
+        long y = 72;
+        long z = 9800;
+        long encoded = ((x & 0x3FFFFFF) << 38) | ((z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+
+        builder.writeLong(encoded);
+
+        Coordinate3D after = getParser().readCoordinates();
+
+        assertThat(after).isEqualTo(new Coordinate3D(x, y, z));
     }
 }

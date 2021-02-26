@@ -348,6 +348,10 @@ public class Config {
             usage = "Render distance of (in chunks) of the overview map. Can also be changed by scrolling on GUI.")
     public int zoomLevel = 75;
 
+    @Option(name = "--render-players",
+            usage = "Show other players in the overview map.")
+    public boolean renderOtherPlayers = false;
+
     @Option(name = "--no-gui", depends = "--server",
             usage = "Disable the GUI")
     public transient boolean disableGui = false;
@@ -372,6 +376,10 @@ public class Config {
             usage = "Disable marking unsaved chunks in red on the map")
     public boolean disableMarkUnsavedChunks = false;
 
+    @Option(name = "--ignore-block-changes",
+            usage = "Ignore changes to chunks after they have been loaded.")
+    public boolean ignoreBlockChanges = false;
+
     @Option(name = "--dev-mode",
             usage = "Enable developer mode")
     private transient boolean devMode = false;
@@ -383,6 +391,10 @@ public class Config {
     @Option(name = "--clear-settings",
             usage = "Clear settings by deleting config.json file, then exit.")
     private transient boolean clearSettings = false;
+
+    @Option(name = "--disable-messages",
+            usage = "Disable various info messages (e.g. chest saving).")
+    public boolean disableInfoMessages = false;
 
     // getters
     public static int getExtendedRenderDistance() {
@@ -417,9 +429,7 @@ public class Config {
         return instance.gameVersion;
     }
 
-    private static int getProtocolVersion() {
-        return instance.protocolVersion;
-    }
+    public static boolean renderOtherPlayers() { return instance.renderOtherPlayers; }
 
     public static VersionReporter versionReporter() {
         return instance.versionReporter;
@@ -439,6 +449,12 @@ public class Config {
     public static boolean markUnsavedChunks() {
         return !instance.disableMarkUnsavedChunks;
     }
+
+    public static boolean handleBlockChanges() {
+        return !instance.ignoreBlockChanges;
+    }
+
+    public static boolean sendInfoMessages() { return !instance.disableInfoMessages; }
 
     // setters
     public static void setZoomLevel(int val) {

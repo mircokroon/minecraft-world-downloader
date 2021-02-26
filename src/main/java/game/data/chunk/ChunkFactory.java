@@ -212,6 +212,10 @@ public class ChunkFactory {
         }
     }
 
+    public void runOnFactoryThread(Runnable r) {
+        executor.execute(r);
+    }
+
     public void unloadChunk(CoordinateDim2D coord) {
         this.tileEntities.remove(coord);
     }

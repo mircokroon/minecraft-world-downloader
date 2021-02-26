@@ -1,5 +1,6 @@
 package game.data.chunk;
 
+import config.Config;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.container.InventoryWindow;
@@ -7,6 +8,9 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
+import packets.builder.Chat;
+import packets.builder.MessageTarget;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
 
 import java.util.ArrayList;
@@ -30,9 +34,15 @@ public abstract class ChunkEntities {
     public void addInventory(InventoryWindow window) {
         CompoundTag tileEntity = (CompoundTag) tileEntities.get(window.getContainerLocation());
 
-        // if a tile entity is missing, don't store anything
+        // if a tile entity is missing, try to generate it first. If there's no block there we don't save anything.
         if (tileEntity == null) {
-            return;
+            BlockState bs = getBlockStateAt(window.getContainerLocation().withinChunk());
+            if (bs == null) {
+                sendInventoryFailureMessage(window);
+                return;
+            }
+            tileEntity = generateTileEntity(bs.getName(),  window.getContainerLocation());
+            tileEntities.put(window.getContainerLocation(), tileEntity);
         }
 
         tileEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
@@ -41,6 +51,24 @@ public abstract class ChunkEntities {
             tileEntity.add("CustomName", new StringTag(window.getWindowTitle()));
         }
 
+        WorldManager.getInstance().touchChunk(this);
+        sendInventoryMessage(window);
+    }
+
+    private void sendInventoryFailureMessage(InventoryWindow window) {
+        if (Config.sendInfoMessages()) {
+            Chat message = new Chat("Unable to save inventory at " + window.getContainerLocation() + ". Try reloading the chunk.");
+            message.setColor("red");
+
+            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+        }
+    }
+
+    private void sendInventoryMessage(InventoryWindow tileEntity) {
+        if (Config.sendInfoMessages()) {
+            String message = "Recorded inventory at " + tileEntity.getContainerLocation();
+            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+        }
     }
 
     protected void addLevelNbtTags(CompoundTag map) {
@@ -107,7 +135,25 @@ public abstract class ChunkEntities {
         addTileEntity(position, nbtTag);
     }
 
+    private CompoundTag generateTileEntity(String id, Coordinate3D containerLocation) {
+        String entId = id;
+
+        // all shulker colours have the same tile entity
+        if (id.endsWith("shulker_box")) {
+            entId =  "minecraft:shulker_box";
+        }
+
+        CompoundTag entity = new CompoundTag();
+        entity.add("id", new StringTag(entId));
+        entity.add("x", new IntTag(containerLocation.getX()));
+        entity.add("y", new IntTag(containerLocation.getY()));
+        entity.add("z", new IntTag(containerLocation.getZ()));
+
+        return entity;
+    }
+
     public abstract Dimension getDimension();
     public abstract CoordinateDim2D getLocation();
     public abstract BlockState getBlockStateAt(Coordinate3D location);
+    public abstract void touch();
 }

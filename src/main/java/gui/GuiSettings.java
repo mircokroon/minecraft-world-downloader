@@ -26,7 +26,6 @@ import java.util.List;
 import static util.ExceptionHandling.attemptQuiet;
 
 public class GuiSettings {
-    private static final int PORT_DEFAULT = 25565;
     public TextField server;
     public DefaultIntField portRemote;
     public DefaultIntField portLocal;
@@ -38,7 +37,6 @@ public class GuiSettings {
 
     public CheckBox measureRenderDistance;
     public CheckBox markUnsaved;
-    public IntField overviewZoom;
 
     public Button saveButton;
     public Tab errTab;
@@ -55,6 +53,8 @@ public class GuiSettings {
     public Slider extendedDistance;
     public IntField extendedDistanceText;
     public Hyperlink openWorldDir;
+    public CheckBox renderOtherPlayers;
+    public CheckBox enableInfoMessages;
     Config config;
     private boolean portInUse;
 
@@ -83,13 +83,13 @@ public class GuiSettings {
         levelSeed.setLongValue(config.levelSeed);
         disableWorldGen.setSelected(config.disableWorldGen);
 
-
         // general tab
         extendedDistance.setValue(config.extendedRenderDistance);
         extendedDistanceText.setValue(config.extendedRenderDistance);
         measureRenderDistance.setSelected(config.measureRenderDistance);
         markUnsaved.setSelected(!config.disableMarkUnsavedChunks);
-        overviewZoom.setValue(config.zoomLevel);
+        renderOtherPlayers.setSelected(config.renderOtherPlayers);
+        enableInfoMessages.setSelected(!config.disableInfoMessages);
 
         // auth tab
         minecraftUsername.setText(config.username);
@@ -288,7 +288,8 @@ public class GuiSettings {
         config.extendedRenderDistance =  Math.abs((int) extendedDistance.getValue());
         config.measureRenderDistance = measureRenderDistance.isSelected();
         config.disableMarkUnsavedChunks = !markUnsaved.isSelected();
-        config.zoomLevel =  Math.abs(overviewZoom.getAsInt());
+        config.renderOtherPlayers = renderOtherPlayers.isSelected();
+        config.disableInfoMessages = !enableInfoMessages.isSelected();
 
         // auth tab
         config.username = minecraftUsername.getText();

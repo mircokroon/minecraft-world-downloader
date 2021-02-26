@@ -1,6 +1,6 @@
 package game.data.chunk.palette;
 
-import game.data.chunk.Chunk;
+import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
@@ -12,7 +12,6 @@ import java.util.*;
  * Class to hold a palette of a chunk.
  */
 public class Palette {
-    private static boolean maskBedrock = false;
     protected int bitsPerBlock;
     private int[] palette;
 
@@ -28,6 +27,10 @@ public class Palette {
     Palette(int[] arr) {
         this.palette = arr;
         this.bitsPerBlock = computeBitsPerBlock(arr.length - 1);
+    }
+
+    public static Palette empty() {
+        return new Palette(4, new int[1]);
     }
 
 
@@ -68,11 +71,6 @@ public class Palette {
         return Math.max(4, bitsNeeded);
     }
 
-
-    public static void setMaskBedrock(boolean maskBedrock) {
-        Palette.maskBedrock = maskBedrock;
-    }
-
     /**
      * Read the palette from the network stream.
      * @param bitsPerBlock the number of bits per block that is used, indicates the palette type
@@ -85,14 +83,6 @@ public class Palette {
         int size = dataTypeProvider.readVarInt();
 
         int[] palette = dataTypeProvider.readVarIntArray(size);
-
-        if (maskBedrock) {
-            for (int i = 0; i < palette.length; i++) {
-                if (palette[i] == 0x70) {
-                    palette[i] = 0x10;
-                }
-            }
-        }
 
         return new Palette(bitsPerBlock, palette);
     }
@@ -176,4 +166,29 @@ public class Palette {
     }
 
 
+    public int getIndexFor(ChunkSection section, int blockStateId) {
+        for (int i = 0; i < palette.length; i++) {
+            if (palette[i] == blockStateId) {
+                return i;
+            }
+        }
+
+        int[] newPalette = new int[palette.length + 1];
+        System.arraycopy(palette, 0, newPalette, 0, palette.length);
+        newPalette[palette.length] = blockStateId;
+        this.palette = newPalette;
+
+        int newBitsPerBlock = computeBitsPerBlock(palette.length - 1);
+        if (bitsPerBlock != newBitsPerBlock) {
+            section.resizeBlocks(newBitsPerBlock);
+            this.bitsPerBlock = newBitsPerBlock;
+        }
+
+        return palette.length - 1;
+    }
+
+
+    public int size() {
+        return palette.length;
+    }
 }

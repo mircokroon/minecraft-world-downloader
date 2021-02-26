@@ -3,6 +3,8 @@ package game.data.chunk;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.version.encoder.BlockLocationEncoder;
+import game.data.coordinates.Coordinate3D;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
@@ -22,6 +24,8 @@ public abstract class ChunkSection {
     protected byte y;
     protected Palette palette;
 
+    BlockLocationEncoder locationHelper = new BlockLocationEncoder();
+
     public abstract int getDataVersion();
 
     public ChunkSection(byte y, Palette palette) {
@@ -29,6 +33,10 @@ public abstract class ChunkSection {
         this.blockLight = new byte[2048];
         this.skyLight = new byte[2048];
         this.palette = palette;
+    }
+
+    protected BlockLocationEncoder getLocationEncoder() {
+        return this.locationHelper;
     }
 
     public ChunkSection(int sectionY, Tag nbt) {
@@ -105,28 +113,12 @@ public abstract class ChunkSection {
         return getPaletteIndex(x, y, z, palette.getBitsPerBlock());
     }
 
-    public int getPaletteIndex(int x, int y, int z, int bitsPerBlock) {
+    private synchronized int getPaletteIndex(int x, int y, int z, int bitsPerBlock) {
         if (blocks.length == 0) {
             return 0;
         }
 
-        int individualValueMask = (1 << bitsPerBlock) - 1;
-
-        int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;
-        int startLong = (blockNumber * bitsPerBlock) / 64;
-        int startOffset = (blockNumber * bitsPerBlock) % 64;
-        int endLong = ((blockNumber + 1) * bitsPerBlock - 1) / 64;
-
-        int data;
-        if (startLong == endLong) {
-            data = (int) (blocks[startLong] >>> startOffset);
-        } else {
-            int endOffset = 64 - startOffset;
-            data = (int) (blocks[startLong] >>> startOffset | blocks[endLong] << endOffset);
-        }
-        data &= individualValueMask;
-
-        return data;
+        return getLocationEncoder().setTo(x, y, z, bitsPerBlock).fetch(blocks);
     }
 
     public void write(PacketBuilder packet) {
@@ -147,8 +139,7 @@ public abstract class ChunkSection {
 
         if (y != that.y) return false;
         if (!Arrays.equals(blockLight, that.blockLight)) return false;
-        if (!Arrays.equals(skyLight, that.skyLight)) return false;
-        return true;
+        return Arrays.equals(skyLight, that.skyLight);
     }
 
     @Override
@@ -157,6 +148,45 @@ public abstract class ChunkSection {
         result = 31 * result + (int) y;
         result = 31 * result + (palette != null ? palette.hashCode() : 0);
         return result;
+    }
+
+    public synchronized void setBlockAt(Coordinate3D coords, int blockStateId) {
+        int index = palette.getIndexFor(this, blockStateId);
+
+        getLocationEncoder().setTo(
+               coords.getX(), coords.getY(), coords.getZ(),
+               palette.getBitsPerBlock()
+       );
+        getLocationEncoder().write(blocks, index);
+    }
+
+    /**
+     * When the bits per block increases, we must rewrite the blocks array.
+     */
+    public synchronized void resizeBlocks(int newBitsPerBlock) {
+        int newSize = newBitsPerBlock * 64;
+        long[] newBlocks = new long[newSize];
+
+        if (blocks == null) {
+            this.blocks = newBlocks;
+            return;
+        }
+
+        copyBlocks(newBlocks, newBitsPerBlock);
+    }
+
+    public synchronized void copyBlocks(long[] newBlocks, int newBitsPerBlock) {
+        BlockLocationEncoder locationHelper = getLocationEncoder();
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+                    int index = getPaletteIndex(x, y, z);
+
+                    locationHelper.setTo(x, y, z, newBitsPerBlock).write(newBlocks, index);
+                }
+            }
+        }
+        this.blocks = newBlocks;
     }
 }
 

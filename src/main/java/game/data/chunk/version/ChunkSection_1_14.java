@@ -1,8 +1,6 @@
 package game.data.chunk.version;
 
-import game.data.WorldManager;
 import game.data.chunk.palette.Palette;
-import game.data.dimension.Dimension;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.Tag;
 

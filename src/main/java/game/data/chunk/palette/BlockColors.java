@@ -2,7 +2,9 @@ package game.data.chunk.palette;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
+import config.Config;
 
+import java.awt.*;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -33,7 +35,33 @@ public class BlockColors {
      * Get a block color from a given block name.
      */
     public SimpleColor getColor(String key) {
-        return colors.getOrDefault(key, SimpleColor.BLACK);
+        SimpleColor col = colors.get(key);
+        if (col != null) {
+            return col;
+        }
+
+        // handle carpet blocks
+        if (key.endsWith("_carpet")) {
+            return colors.getOrDefault(key.replace("_carpet", "_wool"), SimpleColor.BLACK);
+        }
+
+        // handle stairs & slabs, the original block can have various different name structures
+        String suffix = key.endsWith("_slab") ? "_slab" : key.endsWith("_stairs") ? "_stairs" : null;
+        if (suffix == null) { return SimpleColor.BLACK; }
+
+        col = colors.get(key.replace(suffix, ""));
+        if (col != null) { return col; }
+
+        col = colors.get(key.replace(suffix, "_block"));
+        if (col != null) { return col; }
+
+        col = colors.get(key.replace(suffix, "_planks"));
+        if (col != null) { return col; }
+
+        col = colors.get(key.replace(suffix, "s"));
+        if (col != null) { return col; }
+
+        return SimpleColor.BLACK;
     }
 
     /**
@@ -41,6 +69,9 @@ public class BlockColors {
      * @param key the block ID
      */
     public boolean isSolid(String key) {
-        return colors.containsKey(key);
+        if (key.endsWith("air")) {
+            return false;
+        }
+        return getColor(key) != SimpleColor.BLACK;
     }
 }

@@ -2,6 +2,7 @@ package packets.handler.version;
 
 import config.Config;
 import game.data.WorldManager;
+import game.data.coordinates.Coordinate3D;
 import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
 import game.protocol.Protocol;
@@ -66,6 +67,14 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
             Dimension dimension = Dimension.fromString(provider.readString());
             dimension.registerType(dimensionNbt);
             WorldManager.getInstance().setDimension(dimension);
+            WorldManager.getInstance().getEntityRegistry().reset();
+
+            return true;
+        });
+
+        operators.put("chunk_multi_block_change", provider -> {
+            Coordinate3D pos = provider.readSectionCoordinates();
+            WorldManager.getInstance().multiBlockChange(pos, provider);
 
             return true;
         });

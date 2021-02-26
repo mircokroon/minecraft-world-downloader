@@ -1,10 +1,7 @@
 package game.data;
 
 import config.Config;
-import game.data.chunk.Chunk;
-import game.data.chunk.ChunkBinary;
-import game.data.chunk.ChunkFactory;
-import game.data.chunk.IncompleteChunkException;
+import game.data.chunk.*;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
 import game.data.container.ContainerManager;
@@ -24,6 +21,7 @@ import game.data.region.Region;
 import gui.GuiManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import packets.DataTypeProvider;
 import util.PathUtils;
 
 import java.io.File;
@@ -50,7 +48,7 @@ public class WorldManager {
     private final MapRegistry mapRegistry;
     private final Map<CoordinateDim2D, Queue<Runnable>> chunkLoadCallbacks = new ConcurrentHashMap<>();
     private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
-    private Set<Dimension> existingLoaded = new HashSet<>();
+    private final Set<Dimension> existingLoaded = new HashSet<>();
 
     private EntityNames entityMap;
     private MenuRegistry menuRegistry;
@@ -153,44 +151,66 @@ public class WorldManager {
     }
 
     public void outlineExistingChunks() {
+        int limit = 64000;
         if (existingLoaded.contains(this.dimension)) {
             return;
         }
         existingLoaded.add(this.dimension);
 
-        Stream<McaFile> files = McaFile.getFiles(this.playerPosition, dimension, 16);
+        Collection<McaFile> files = McaFile.getFiles(this.playerPosition.discretize().globalToChunk(), dimension, 32).collect(Collectors.toList());
 
-        GuiManager.outlineExistingChunks(
-                files.flatMap(el -> el.getChunkPositions(this.dimension).stream()).collect(Collectors.toList())
-        );
+        int total = 0;
+        for (McaFile f : files) {
+            if (total > limit) {
+                break;
+            }
+
+            List<CoordinateDim2D> list = f.getChunkPositions(this.dimension);
+            total += list.size();
+            GuiManager.outlineExistingChunks(list);
+        }
+
     }
 
     /**
      * Draw all previously-downloaded chunks in the GUI. We can't just load them all and immediately draw them to the
      * GUI, as the shading requires that we look at neighbouring chunks. We first add them all to the world manager,
      * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
+     * @param center
      */
-    public void drawExistingChunks() {
-        Stream<McaFile> files = McaFile.getFiles(this.playerPosition, this.dimension, 8);
+    public void drawExistingChunks(Coordinate2D center) {
+        int limit = 48000;
+        Collection<McaFile> files = McaFile.getFiles(center, this.dimension, 24).collect(Collectors.toList());
 
-        files.forEach(file -> {
+        int chunksLoaded = 0;
+        for (McaFile file : files) {
+            if (chunksLoaded > limit) {
+                break;
+            }
             Map<CoordinateDim2D, Chunk> chunks = file.getParsedChunks(this.dimension);
 
             // Step 2: add all chunks to the WorldManager if it doesn't have them yet
             Set<CoordinateDim2D> toDelete = new HashSet<>();
-            chunks.forEach((coord, chunk) -> {
+            for (Map.Entry<CoordinateDim2D, Chunk> entry : chunks.entrySet()) {
+                if (chunksLoaded > limit) {
+                    break;
+                }
+
+                CoordinateDim2D coord = entry.getKey();
+                Chunk chunk = entry.getValue();
                 if (getChunk(coord) == null) {
                     toDelete.add(coord);
-                    loadChunk(chunk, true, false);
+                    loadChunk(chunk, false, false);
+                    chunksLoaded++;
                 }
-            });
+            }
 
             // Step 3: draw to GUI
             chunks.forEach(GuiManager::setChunkLoaded);
 
             // Step 4: delete the newly added chunks
             toDelete.forEach(this::unloadChunk);
-        });
+        }
     }
 
     /**
@@ -314,9 +334,9 @@ public class WorldManager {
     /**
      * Mark a chunk and it's region as having unsaved changes.
      */
-    public void touchChunk(Chunk c) {
+    public void touchChunk(ChunkEntities c) {
         c.touch();
-        regions.get(c.location.chunkToDimRegion()).touch();
+        regions.get(c.getLocation().chunkToDimRegion()).touch();
     }
 
     public DimensionCodec getDimensionCodec() {
@@ -342,7 +362,7 @@ public class WorldManager {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Could not write dimension codec. Custom dimensions may not work properly.");
+            System.err.println("Could not write dimension codec. Custom dimensions may not work properly.");
         }
     }
 
@@ -375,7 +395,7 @@ public class WorldManager {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[0]);
             for (Region region : r) {
-                McaFile file = region.toFile(getPlayerPosition());
+                McaFile file = region.toFile(getPlayerPosition().globalToChunk());
                 if (file == null) {
                     continue;
                 }
@@ -401,9 +421,6 @@ public class WorldManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        
-
 
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
@@ -596,5 +613,37 @@ public class WorldManager {
         }
         return total;
     }
+
+    public void blockChange(DataTypeProvider provider) {
+        if (!Config.handleBlockChanges()) {
+            return;
+        }
+        chunkFactory.runOnFactoryThread(() -> {
+            Coordinate3D coords = provider.readCoordinates();
+            Chunk c = getChunk(coords.globalToChunk().addDimension(this.dimension));
+            if (c == null) {
+                return;
+            }
+
+            c.updateBlock(coords.globalToChunkLocal(), provider.readVarInt());
+            touchChunk(c);
+        });
+    }
+
+    public void multiBlockChange(Coordinate3D pos, DataTypeProvider provider) {
+        if (!Config.handleBlockChanges()) {
+            return;
+        }
+        chunkFactory.runOnFactoryThread(() -> {
+            Chunk c = getChunk(pos.addDimension(this.dimension));
+            if (c == null) {
+                return;
+            }
+            c.updateBlocks(pos, provider);
+        });
+
+    }
+
+
 }
 

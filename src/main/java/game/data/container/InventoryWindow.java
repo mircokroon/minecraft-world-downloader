@@ -96,4 +96,15 @@ public class InventoryWindow {
     public boolean hasCustomName() {
         return !windowTitle.startsWith("{\"translate");
     }
+
+    @Override
+    public String toString() {
+        return "InventoryWindow{" +
+                "windowType=" + windowType +
+                ", windowTitle='" + windowTitle + '\'' +
+                ", slotCount=" + slotCount +
+                ", slotList=" + slotList +
+                ", containerLocation=" + containerLocation +
+                '}';
+    }
 }
