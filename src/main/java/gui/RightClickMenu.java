@@ -45,7 +45,8 @@ public class RightClickMenu extends ContextMenu {
 
         menu.add(construct("Save overview to file", e -> handler.export()));
         menu.add(construct("Draw nearby existing chunks", e -> {
-            new Thread(() -> WorldManager.getInstance().drawExistingChunks()).start();
+
+            new Thread(() -> WorldManager.getInstance().drawExistingChunks(handler.getCenter())).start();
         }));
 
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));

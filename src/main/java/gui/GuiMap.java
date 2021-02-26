@@ -74,6 +74,7 @@ public class GuiMap {
     private Bounds bounds;
     private int renderDistanceX;
     private int renderDistanceZ;
+    private int maxZoom;
     private int gridSize = 0;
     private final Map<Dimension, Map<Coordinate2D, ChunkImage>> chunkDimensions = new ConcurrentHashMap<>();
     private Map<Coordinate2D, ChunkImage> chunkMap;
@@ -195,7 +196,7 @@ public class GuiMap {
             double diffY = mouseY - e.getY();
 
             Coordinate2D difference = new Coordinate2D(Math.round(diffX / gridSize), Math.round(diffY / gridSize));
-            this.center = this.bounds.center().add(difference);
+            this.center = this.bounds.center(gridSize, width.get(), height.get()).add(difference);
             this.redrawAll(true);
 
             if (difference.getX() == 0 && difference.getZ() == 0) {
@@ -249,12 +250,17 @@ public class GuiMap {
         }));
 
         Timeline redraw = new Timeline(new KeyFrame(Duration.millis(100), e -> {
+            maxZoom = (int) Math.min(width.get() / 2, height.get() / 2);
+            if (Config.getZoomLevel() > maxZoom) {
+                Config.setZoomLevel(maxZoom);
+            }
+
             this.bounds = null;
             redrawAll(true);
         }));
 
         height.addListener((ChangeListener<? super Number>) (a, b, c) -> redraw.play());
-        height.addListener((ChangeListener<? super Number>) (a, b, c) -> redraw.play());
+        width.addListener((ChangeListener<? super Number>) (a, b, c) -> redraw.play());
 
         // periodically clean up old images
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor((r) -> new Thread(r, "Chunk Image Cleaner"));
@@ -368,8 +374,8 @@ public class GuiMap {
             } else {
                 zoom *= 2;
             }
-            if (zoom < 1) { zoom = 1; }
-            if (zoom > 1000) { zoom = 1000; }
+            if (zoom > maxZoom) { zoom = maxZoom; }
+            else if (zoom < 1) { zoom = 1; }
 
             if (Config.getZoomLevel() != zoom) {
                 Config.setZoomLevel(zoom);
@@ -471,7 +477,7 @@ public class GuiMap {
             double gridWidth = width.get() / bounds.getWidth();
             double gridHeight = height.get() / bounds.getHeight();
 
-            gridSize = (int) Math.max(2, Math.round(Math.min(gridWidth, gridHeight)));
+            gridSize = (int) Math.max(1, Math.round(Math.min(gridWidth, gridHeight)));
 
             redrawCanvas();
         }
@@ -596,6 +602,9 @@ public class GuiMap {
             graphics.setFill(EXISTING_COLOR);
             graphics.setStroke(Color.WHITE);
 
+            if (gridSize == 1) {
+                gridSize += 1;
+            }
             // offset by 1 since the stroke is centered on the border, not inside the shape
             graphics.strokeRect(drawX + 1, drawY + 1, gridSize - 1, gridSize - 1);
             graphics.fillRect(drawX, drawY,gridSize - 1, gridSize - 1);
@@ -684,6 +693,14 @@ public class GuiMap {
             total += x.values().size();
         }
         return total;
+    }
+
+    public Coordinate2D getCenter() {
+        if (lockedToPlayer) {
+            return playerPos.discretize().globalToChunk();
+        } else {
+            return center;
+        }
     }
 }
 

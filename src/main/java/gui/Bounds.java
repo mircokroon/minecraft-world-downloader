@@ -96,7 +96,9 @@ public class Bounds {
         return result;
     }
 
-    public Coordinate2D center() {
-        return new Coordinate2D((maxX + minX) / 2, (maxZ + minZ) / 2);
+    public Coordinate2D center(int gridSize, double width, double height) {
+        int trueMaxX = (int) (minX + (width / gridSize));
+        int trueMaxZ = (int) (minZ + (height / gridSize));
+        return new Coordinate2D((trueMaxX + minX) / 2, (trueMaxZ + minZ) / 2);
     }
 }

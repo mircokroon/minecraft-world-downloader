@@ -1,10 +1,7 @@
 package game.data;
 
 import config.Config;
-import game.data.chunk.Chunk;
-import game.data.chunk.ChunkBinary;
-import game.data.chunk.ChunkFactory;
-import game.data.chunk.IncompleteChunkException;
+import game.data.chunk.*;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
 import game.data.container.ContainerManager;
@@ -154,26 +151,36 @@ public class WorldManager {
     }
 
     public void outlineExistingChunks() {
+        int limit = 64000;
         if (existingLoaded.contains(this.dimension)) {
             return;
         }
         existingLoaded.add(this.dimension);
 
-        Stream<McaFile> files = McaFile.getFiles(this.playerPosition, dimension, 16);
+        Collection<McaFile> files = McaFile.getFiles(this.playerPosition.discretize().globalToChunk(), dimension, 32).collect(Collectors.toList());
 
-        GuiManager.outlineExistingChunks(
-                files.flatMap(el -> el.getChunkPositions(this.dimension).stream()).collect(Collectors.toList())
-        );
+        int total = 0;
+        for (McaFile f : files) {
+            if (total > limit) {
+                break;
+            }
+
+            List<CoordinateDim2D> list = f.getChunkPositions(this.dimension);
+            total += list.size();
+            GuiManager.outlineExistingChunks(list);
+        }
+
     }
 
     /**
      * Draw all previously-downloaded chunks in the GUI. We can't just load them all and immediately draw them to the
      * GUI, as the shading requires that we look at neighbouring chunks. We first add them all to the world manager,
      * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
+     * @param center
      */
-    public void drawExistingChunks() {
+    public void drawExistingChunks(Coordinate2D center) {
         int limit = 48000;
-        Collection<McaFile> files = McaFile.getFiles(this.playerPosition, this.dimension, 8).collect(Collectors.toList());
+        Collection<McaFile> files = McaFile.getFiles(center, this.dimension, 24).collect(Collectors.toList());
 
         int chunksLoaded = 0;
         for (McaFile file : files) {

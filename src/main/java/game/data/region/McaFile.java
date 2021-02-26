@@ -2,6 +2,7 @@ package game.data.region;
 
 import config.Config;
 import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
@@ -52,14 +53,14 @@ public class McaFile {
     /**
      * Gets MCA files starting from the center, then increasing in radius.
      */
-    public static Stream<McaFile> getFiles(CoordinateDouble3D playerPosition, Dimension dimension, int radius) {
+    public static Stream<McaFile> getFiles(Coordinate2D chunkCenter, Dimension dimension, int radius) {
         Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
 
         if (!exportDir.toFile().exists()) {
             return Stream.empty();
         }
         List<File> files = new ArrayList<>();
-        Coordinate2D center = playerPosition.discretize().globalToChunk().chunkToRegion().offsetChunk();
+        Coordinate2D center = chunkCenter.chunkToRegion().offsetChunk();
 
         // loop from radius 0 up to the given radius
         for (int r = 0; r < radius; r++) {
