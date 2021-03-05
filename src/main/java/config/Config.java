@@ -344,8 +344,8 @@ public class Config {
             usage = "Offsets output world. Given center Z coordinate will be put at world origin (0, 0). Rounded to multiples of 512 blocks.")
     public int centerZ = 0;
 
-    @Option(name = "--overview-zoom", depends = "-z",
-            usage = "Render distance of (in chunks) of the overview map. Can also be changed by scrolling on GUI.")
+    @Option(name = "--overview-zoom", aliases = "-z",
+            usage = "Render distance (in chunks) of the overview map. Can also be changed by scrolling on GUI.")
     public int zoomLevel = 75;
 
     @Option(name = "--render-players",
