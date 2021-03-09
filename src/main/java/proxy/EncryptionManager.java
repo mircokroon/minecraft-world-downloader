@@ -145,8 +145,10 @@ public class EncryptionManager {
     public void streamToClient(ByteQueue bytes) throws IOException {
         streamTo(streamToClient, bytes, this::clientBoundEncrypt);
 
-        // if we inject a lot of packets important other stuff could be delayed, so
-        if (!insertedPackets.isEmpty()) {
+        // if we need to insert packets, send at most 100 at a time
+        int limit = 100;
+        while (!insertedPackets.isEmpty() && limit > 0) {
+            limit--;
             streamTo(streamToClient, insertedPackets.remove(), this::clientBoundEncrypt);
         }
 

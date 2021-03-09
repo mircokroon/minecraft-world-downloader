@@ -188,5 +188,8 @@ public abstract class ChunkSection {
         }
         this.blocks = newBlocks;
     }
+
+    public byte[] getSkyLight() { return skyLight; }
+    public byte[] getBlockLight() { return blockLight; }
 }
 

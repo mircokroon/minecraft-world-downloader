@@ -29,6 +29,7 @@ import java.util.function.Function;
 public class ChunkFactory {
     private Queue<ChunkParserPair> unparsedChunks;
     private Map<CoordinateDim2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
+    private Map<CoordinateDim2D, DataTypeProvider> lighting;
 
     private ExecutorService executor;
 
@@ -37,6 +38,7 @@ public class ChunkFactory {
     }
 
     public void clear() {
+        this.lighting = new ConcurrentHashMap<>();
         this.tileEntities = new ConcurrentHashMap<>();
         this.unparsedChunks = new ConcurrentLinkedQueue<>();
 
@@ -146,6 +148,10 @@ public class ChunkFactory {
                 chunk.addTileEntity(ent.getPosition(), ent.getTag());
             }
         }
+
+        if (lighting.containsKey(chunk.location)) {
+            chunk.updateLight(lighting.remove(chunk.location));
+        }
     }
 
     /**
@@ -185,6 +191,7 @@ public class ChunkFactory {
 
         chunk.parse(tag.getTag());
         chunk.setSaved(true);
+        chunk.setLit(true);
 
         return chunk;
     }
@@ -192,6 +199,10 @@ public class ChunkFactory {
     public void reset() {
         this.unparsedChunks.clear();
         this.tileEntities.clear();
+    }
+
+    public void updateLight(CoordinateDim2D coords, DataTypeProvider provider) {
+        this.lighting.put(coords, provider);
     }
 
     private static class TileEntity {

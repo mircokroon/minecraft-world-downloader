@@ -4,11 +4,11 @@ import javafx.scene.image.Image;
 
 public class ChunkImage {
     Image image;
-    boolean isSaved;
+    ChunkState state;
 
-    public ChunkImage(Image image, boolean isSaved) {
+    public ChunkImage(Image image, ChunkState state) {
         this.image = image;
-        this.isSaved = isSaved;
+        this.state = state;
     }
 
     public Image getImage() {
@@ -16,10 +16,14 @@ public class ChunkImage {
     }
 
     public boolean isSaved() {
-        return isSaved;
+        return state.isSaved();
     }
 
-    public void setSaved(boolean saved) {
-        isSaved = saved;
+    public void setState(ChunkState state) {
+        this.state = state;
+    }
+
+    public ChunkState getState() {
+        return state;
     }
 }

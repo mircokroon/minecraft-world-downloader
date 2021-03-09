@@ -6,6 +6,8 @@ import game.data.WorldManager;
 import game.data.chunk.palette.BlockColors;
 import game.data.dimension.Dimension;
 import org.junit.jupiter.api.Test;
+import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 import packets.builder.PacketBuilderAndParserTest;
 
 import java.io.IOException;
@@ -18,6 +20,9 @@ class ChunkTest extends PacketBuilderAndParserTest {
     @Override
     public void afterEach() {
     }
+
+    CoordinateDim2D pos = new CoordinateDim2D(0, 0, Dimension.OVERWORLD);
+    ChunkBinary cb;
 
     /**
      * Tests that reading in binary chunk data (as stored in MCA Files), writing it to a network packet and parsing the
@@ -35,15 +40,13 @@ class ChunkTest extends PacketBuilderAndParserTest {
         Config.setInstance(new Config());
         Config.setProtocolVersion(protocolVersion);
 
-
-        // load chunk
         ObjectInputStream in = new ObjectInputStream(ChunkTest.class.getClassLoader().getResourceAsStream(dataFile));
-        ChunkBinary chunkBinary = (ChunkBinary) in.readObject();
+        cb = (ChunkBinary) in.readObject();
 
-        CoordinateDim2D pos = new CoordinateDim2D(0, 0, Dimension.OVERWORLD);
-        Chunk c = chunkBinary.toChunk(pos);
+        Chunk c = cb.toChunk(pos);
 
         builder = c.toPacket();
+
 
         assertThat(ChunkFactory.parseChunk(new ChunkParserPair(getParser(), pos.getDimension()), mock)).isEqualTo(c);
     }
@@ -71,6 +74,41 @@ class ChunkTest extends PacketBuilderAndParserTest {
     @Test
     void chunk_1_16() throws IOException, ClassNotFoundException {
         testFor(751, "chunkdata_1_16");
+    }
+
+    @Test
+    void chunk_1_16_light() throws IOException, ClassNotFoundException {
+        testFor(751, "chunkdata_1_16");
+
+        int trueX = -100;
+        int trueZ = 100;
+
+        Chunk src = cb.toChunk(new CoordinateDim2D(trueX, trueZ, Dimension.OVERWORLD));
+        byte[] sky = src.getChunkSections()[0].getSkyLight();
+        sky[0] = 42;
+        sky[100] = 24;
+
+        byte[] block = src.getChunkSections()[0].getBlockLight();
+        block[100] = 42;
+        block[0] = 24;
+
+        builder = src.toLightPacket();
+        DataTypeProvider provider = getParser();
+        int x = provider.readVarInt();
+        int z = provider.readVarInt();
+
+        assertThat(x).isEqualTo(trueX);
+        assertThat(z).isEqualTo(trueZ);
+
+        Chunk dst = cb.toChunk(pos);
+
+        assertThat(dst.getChunkSections()[0].getBlockLight()).isNotEqualTo(block);
+        assertThat(dst.getChunkSections()[0].getSkyLight()).isNotEqualTo(sky);
+
+        dst.updateLight(provider);
+
+        assertThat(dst.getChunkSections()[0].getBlockLight()).isEqualTo(block);
+        assertThat(dst.getChunkSections()[0].getSkyLight()).isEqualTo(sky);
     }
 
 

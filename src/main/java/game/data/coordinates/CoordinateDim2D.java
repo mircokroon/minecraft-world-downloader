@@ -70,4 +70,8 @@ public class CoordinateDim2D extends Coordinate2D {
     public Coordinate2D stripDimension() {
         return new Coordinate2D(x, z);
     }
+
+    public Coordinate2D removeDimension() {
+        return new Coordinate2D(x, z);
+    }
 }

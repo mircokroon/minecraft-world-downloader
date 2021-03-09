@@ -264,15 +264,16 @@ public class GuiManager extends Application {
         }
     }
 
-    public static void markChunkSaved(CoordinateDim2D coord) {
+
+    public static void setChunkState(CoordinateDim2D coord, ChunkState state) {
         if (chunkGraphicsHandler != null) {
-            chunkGraphicsHandler.markChunkSaved(coord);
+            chunkGraphicsHandler.setChunkState(coord, state);
         }
     }
 
     public static void outlineExistingChunks(List<CoordinateDim2D> existing) {
         if (chunkGraphicsHandler != null) {
-            existing.forEach(chunkGraphicsHandler::setChunkExists);
+            existing.forEach(c -> chunkGraphicsHandler.setChunkState(c, ChunkState.exists()));
         }
     }
 

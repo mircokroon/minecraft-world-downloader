@@ -10,6 +10,7 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.protocol.Protocol;
+import gui.ChunkState;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
@@ -32,10 +33,12 @@ public abstract class Chunk extends ChunkEntities {
     private boolean isNewChunk;
     private boolean saved;
     private ChunkImageFactory imageFactory;
+    private boolean isLit;
 
     public Chunk(CoordinateDim2D location) {
         super();
 
+        this.isLit = false;
         this.saved = false;
         this.location = location;
         this.isNewChunk = false;
@@ -296,12 +299,12 @@ public abstract class Chunk extends ChunkEntities {
         packet.writeVarInt(columnArr.length);
         packet.writeByteArray(columnArr);
 
-        columns.build();
-
         // we don't include block entities - these chunks will be far away so they shouldn't be rendered anyway
         packet.writeVarInt(0);
         return packet;
     }
+
+    public PacketBuilder toLightPacket() { return null; }
 
     protected void writeHeightMaps(PacketBuilder packet) {
     }
@@ -460,5 +463,21 @@ public abstract class Chunk extends ChunkEntities {
             updateBlock(blockPos, blockId, true);
         }
         this.getChunkImageFactory().recomputeHeights(toUpdate);
+    }
+
+    public void updateLight(DataTypeProvider provider) {
+        this.isLit = true;
+    };
+
+    public ChunkState getState() {
+        return new ChunkState(true, isSaved(), isLit());
+    }
+
+    public boolean isLit() {
+        return this.isLit;
+    }
+
+    public void setLit(boolean lit) {
+        this.isLit = lit;
     }
 }

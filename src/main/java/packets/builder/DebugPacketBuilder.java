@@ -50,11 +50,11 @@ public class DebugPacketBuilder extends PacketBuilder {
     public ByteQueue build() {
         System.out.println("Packet[" +String.join(" ", parts) + "]");
         return super.build();
-
     }
 
     @Override
     public ByteQueue build(CompressionManager compressionManager) {
+        System.out.println("Packet[" +String.join(" ", parts) + "]");
         return super.build(compressionManager);
     }
 

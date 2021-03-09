@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -265,6 +266,10 @@ public class DataTypeProvider {
 
     public CoordinateDouble3D readDoubleCoordinates() {
         return new CoordinateDouble3D(readDouble(), readDouble(), readDouble());
+    }
+
+    public DataTypeProvider copy() {
+        return new DataTypeProvider(Arrays.copyOf(this.finalFullPacket, this.finalFullPacket.length));
     }
 
     public int remaining() {

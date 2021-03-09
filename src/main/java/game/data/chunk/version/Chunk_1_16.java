@@ -1,17 +1,22 @@
 package game.data.chunk.version;
 
-import game.data.coordinates.Coordinate2D;
+import config.Config;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
+import game.protocol.Protocol;
+import javafx.util.Pair;
 import packets.DataTypeProvider;
+import packets.builder.DebugPacketBuilder;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Support for chunks of version 1.16.2+. 1.16.0 and 1.16.1 are not supported.
@@ -72,5 +77,112 @@ public class Chunk_1_16 extends Chunk_1_15 {
             updateBlock(blockPos, blockId, true);
         }
         this.getChunkImageFactory().recomputeHeights(toUpdate);
+    }
+
+    @Override
+    public void updateLight(DataTypeProvider provider) {
+        super.updateLight(provider);
+
+        boolean isTrusted = provider.readBoolean();
+
+        int skyLightMask = provider.readVarInt();
+        int blockLightMask = provider.readVarInt();
+
+        int emptySkyLightMask = provider.readVarInt();
+        int emptyBlockLightMask = provider.readVarInt();
+
+
+        parseLightArray(skyLightMask, emptySkyLightMask, provider, ChunkSection::setSkyLight);
+        parseLightArray(blockLightMask, emptyBlockLightMask, provider, ChunkSection::setBlockLight);
+    }
+
+    private void parseLightArray(int mask, int emptyMask, DataTypeProvider provider, BiConsumer<ChunkSection, byte[]> c) {
+        for (int sectionY = -1; (mask != 0 || emptyMask != 0); sectionY++, mask >>>= 1, emptyMask >>>= 1) {
+
+            ChunkSection s = null;
+            if (sectionY >= 0 && sectionY < getChunkSections().length) {
+                s = getChunkSections()[sectionY];;
+
+                // if we get light for empty sections, create the section
+                if (s == null) {
+                    s = createNewChunkSection((byte) sectionY, Palette.empty());
+                    s.setBlocks(new long[256]);
+
+                    getChunkSections()[sectionY] = s;
+                }
+            }
+
+
+            // Mask tells us if a section is present or not
+            if ((mask & 1) == 0) {
+                if (s != null && (emptyMask & 1) != 0) {
+                    c.accept(s, new byte[2048]);
+                }
+                continue;
+            }
+
+            int skyLength = provider.readVarInt();
+            byte[] data = provider.readByteArray(skyLength);
+
+            if (s != null) {
+                c.accept(s, data);
+            }
+
+        }
+    }
+
+    /**
+     * Build the start of a light packet, which is always the same.
+     */
+    private PacketBuilder buildLightPacket() {
+        Protocol p = Config.versionReporter().getProtocol();
+        PacketBuilder packet = new PacketBuilder();
+        packet.writeVarInt(p.clientBound("chunk_update_light"));
+
+        packet.writeVarInt(location.getX());
+        packet.writeVarInt(location.getZ());
+        packet.writeBoolean(true);
+
+        return packet;
+    }
+
+    @Override
+    public PacketBuilder toLightPacket() {
+        PacketBuilder packet = buildLightPacket();
+
+        Pair<Integer, PacketBuilder> skyLight = writeLightToPacket(ChunkSection::getSkyLight);
+        Pair<Integer, PacketBuilder> blockLight = writeLightToPacket(ChunkSection::getBlockLight);
+
+        packet.writeVarInt(skyLight.getKey());
+        packet.writeVarInt(blockLight.getKey());
+
+        // empty masks we just set to 0
+        packet.writeVarInt(0);
+        packet.writeVarInt(0);
+
+        packet.writeByteArray(skyLight.getValue().toArray());
+        packet.writeByteArray(blockLight.getValue().toArray());
+
+        return packet;
+    }
+
+    /**
+     * Write one of the light arrays to a packet, return the mask and the array itself.
+     */
+    private Pair<Integer, PacketBuilder> writeLightToPacket(Function<ChunkSection, byte[]> fn) {
+        PacketBuilder packet = new PacketBuilder();
+        int mask = 0;
+        ChunkSection[] sections = getChunkSections();
+        for (int sectionY = 0; sectionY < sections.length; sectionY++) {
+            if (sections[sectionY] == null) { continue; }
+
+            byte[] light = fn.apply(sections[sectionY]);
+            if (light == null || light.length == 0) { continue; }
+
+            packet.writeVarInt(light.length);
+            packet.writeByteArray(light);
+            mask |= 1 << sectionY + 1;
+        }
+        return new Pair<>(mask, packet);
     }
 }

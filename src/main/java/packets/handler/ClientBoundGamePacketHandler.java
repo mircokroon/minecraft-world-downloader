@@ -4,7 +4,6 @@ import config.Config;
 import config.Option;
 import config.Version;
 import game.data.WorldManager;
-import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
@@ -12,6 +11,10 @@ import game.data.dimension.Dimension;
 import game.data.entity.EntityRegistry;
 import game.data.entity.MobEntity;
 import game.data.entity.ObjectEntity;
+import game.protocol.Protocol;
+import packets.DataTypeProvider;
+import packets.builder.NetworkType;
+import packets.builder.PacketBuilder;
 import packets.handler.version.ClientBoundGamePacketHandler_1_14;
 import packets.handler.version.ClientBoundGamePacketHandler_1_15;
 import packets.handler.version.ClientBoundGamePacketHandler_1_16;
@@ -100,6 +103,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
+            return true;
+        });
+
+        operations.put("chunk_update_light", provider -> {
+            worldManager.updateLight(provider);
+
             return true;
         });
 

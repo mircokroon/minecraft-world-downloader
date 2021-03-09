@@ -52,10 +52,8 @@ import java.util.stream.Collectors;
  */
 public class GuiMap {
     private static final Image NONE = new WritableImage(1, 1);
-    private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
+    private static final ChunkImage NO_IMG = new ChunkImage(NONE, ChunkState.exists());
     private static final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
-    private static final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
-    private static final Color UNSAVED_COLOR = new Color(1, 0, 0, .3);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
     private static final WritableImage BLACK = new WritableImage(1, 1);
     static {
@@ -405,15 +403,11 @@ public class GuiMap {
         }
     }
 
-    void setChunkExists(CoordinateDim2D coord) {
-        chunkMap.put(coord.stripDimension(), NO_IMG);
-
-        hasChanged = true;
-    }
-
-    void markChunkSaved(CoordinateDim2D coord) {
+    void setChunkState(CoordinateDim2D coord, ChunkState state) {
         if (chunkMap.containsKey(coord.stripDimension())) {
-            chunkMap.get(coord.stripDimension()).setSaved(true);
+            chunkMap.get(coord.stripDimension()).setState(state);
+        } else if (!state.isLoaded()) {
+            chunkMap.put(coord.stripDimension(), new ChunkImage(NONE, state));
         }
 
         hasChanged = true;
@@ -430,7 +424,7 @@ public class GuiMap {
 
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
         imageFactory.onComplete(image -> {
-            chunkMap.put(coord.stripDimension(), new ChunkImage(image, chunk.isSaved()));
+            chunkMap.put(coord.stripDimension(), new ChunkImage(image, chunk.getState()));
             drawChunkAsync(coord.stripDimension());
 
             hasChanged = true;
@@ -597,9 +591,9 @@ public class GuiMap {
         int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
         int drawY = (pos.getZ() - bounds.getMinZ()) * gridSize;
 
-        if (chunkImage.getImage() == NONE) {
+        if (!chunkImage.getState().isLoaded()) {
             graphics.setLineWidth(1);
-            graphics.setFill(EXISTING_COLOR);
+            graphics.setFill(chunkImage.getState().getColor());
             graphics.setStroke(Color.WHITE);
 
             if (gridSize == 1) {
@@ -612,12 +606,10 @@ public class GuiMap {
             // draw black before drawing chunk so that we can tell void from missing chunks
             drawImage(graphics, drawX, drawY, gridSize, chunkImage.getImage(), drawBlack);
 
-            // if the chunk wasn't saved yet, mark it as such
-            if (Config.markUnsavedChunks() && !chunkImage.isSaved) {
-                graphics.setFill(UNSAVED_COLOR);
-                graphics.setStroke(Color.TRANSPARENT);
-                graphics.fillRect(drawX, drawY, gridSize, gridSize);
-            }
+            // draw state overlay
+            graphics.setFill(chunkImage.getState().getColor());
+            graphics.setStroke(Color.TRANSPARENT);
+            graphics.fillRect(drawX, drawY, gridSize, gridSize);
         }
     }
 
@@ -627,7 +619,7 @@ public class GuiMap {
 
     public void export() {
         List<Coordinate2D> drawables = chunkMap.entrySet().stream()
-                .filter((coord) -> coord.getValue() != NO_IMG)
+                .filter((coord) -> coord.getValue().getState().isLoaded())
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 

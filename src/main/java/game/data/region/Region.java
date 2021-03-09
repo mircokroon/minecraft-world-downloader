@@ -7,6 +7,7 @@ import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
 import game.data.dimension.Dimension;
+import gui.ChunkState;
 import gui.GuiManager;
 
 import java.io.IOException;
@@ -113,7 +114,7 @@ public class Region {
                 }
 
                 chunk.setSaved(true);
-                GuiManager.markChunkSaved(coordinate.addDimension(regionCoordinates.getDimension()));
+                GuiManager.setChunkState(coordinate.addDimension(regionCoordinates.getDimension()), chunk.getState());
 
                 // get the chunk in binary format and get its coordinates as an Mca compatible integer. Then add
                 // these to the map of chunk binaries.

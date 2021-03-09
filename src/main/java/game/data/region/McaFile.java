@@ -50,6 +50,22 @@ public class McaFile {
         }
     }
 
+    public static McaFile ofCoords(CoordinateDim2D regionCoords) {
+        File f = coordinatesToFile(PathUtils.toPath(Config.getWorldOutputDir(), regionCoords.getDimension().getPath(), "region"), regionCoords);
+
+        if (f == null) {
+            return null;
+        }
+
+        // Load the MCA file - if it cannot be loaded for any reason it's skipped.
+        try {
+            return new McaFile(f);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * Gets MCA files starting from the center, then increasing in radius.
      */
