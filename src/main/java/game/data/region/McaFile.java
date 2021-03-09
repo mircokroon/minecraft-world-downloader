@@ -179,7 +179,7 @@ public class McaFile {
             if (chunkDataStart < 0 || chunkDataStart >= chunkDataArray.length) {
                 continue;
             }
-            if (chunkDataEnd < 0 || chunkDataEnd >= chunkDataArray.length || chunkDataEnd < chunkDataStart) {
+            if (chunkDataEnd < 0 || chunkDataEnd > chunkDataArray.length || chunkDataEnd < chunkDataStart) {
                 continue;
             }
 
