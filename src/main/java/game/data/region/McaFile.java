@@ -175,7 +175,13 @@ public class McaFile {
             int chunkDataStart = (location - 2) * SECTOR_SIZE;
             int chunkDataEnd = (location + size - 2) * SECTOR_SIZE;
 
-
+            // make sure the indices are valid
+            if (chunkDataStart < 0 || chunkDataStart >= chunkDataArray.length) {
+                continue;
+            }
+            if (chunkDataEnd < 0 || chunkDataEnd >= chunkDataArray.length || chunkDataEnd < chunkDataStart) {
+                continue;
+            }
 
             byte[] chunkData = Arrays.copyOfRange(chunkDataArray, chunkDataStart, chunkDataEnd);
 
@@ -214,7 +220,6 @@ public class McaFile {
      * Generate an MCA file from a given map of chunk binaries. This method will try to read this MCA file to merge with
      * it so that existing chunks are not deleted.
      * @param pos      the positon of this file
-     * @param chunkMap the map of chunk binaries
      */
     public McaFile(CoordinateDim2D pos) {
         regionLocation = pos.offsetRegion();
