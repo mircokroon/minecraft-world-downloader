@@ -29,6 +29,8 @@ public class Region {
     private boolean updatedSinceLastWrite;
     private final Set<Coordinate2D> toDelete;
 
+    private final McaFile file;
+
     /**
      * Initialise the region with the given coordinates.
      * @param regionCoordinates coordinates of the region (so global coordinates / 16 / 32)
@@ -38,6 +40,8 @@ public class Region {
         this.chunks = new ConcurrentHashMap<>();
         this.updatedSinceLastWrite = false;
         this.toDelete = new HashSet<>();
+
+        this.file = new McaFile(regionCoordinates);
     }
 
     /**
@@ -47,6 +51,15 @@ public class Region {
      */
     public void addChunk(Coordinate2D coordinate, Chunk chunk, boolean overrideExisting) {
         if (overrideExisting) {
+            try {
+                ChunkBinary cb = file.getChunkBinary(coordinate);
+                if (cb != null) {
+                    chunk.parse(cb.getNbt());
+                }
+            } catch (Exception ex) {
+                // if we can't read in the current chunk, that's fine, just continue.
+            }
+
             chunks.put(coordinate, chunk);
         } else {
             chunks.putIfAbsent(coordinate, chunk);
@@ -142,7 +155,9 @@ public class Region {
         if (chunkBinaryMap.isEmpty()) {
             return null;
         }
-        return new McaFile(regionCoordinates, chunkBinaryMap);
+
+        file.addChunks(chunkBinaryMap);
+        return file;
     }
 
     /**

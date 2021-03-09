@@ -213,7 +213,7 @@ public class RenderDistanceExtender extends Thread {
         toUnload.remove(chunkCoords);
     }
 
-    private boolean isLoaded(Coordinate2D coords) {
+    public boolean isLoaded(Coordinate2D coords) {
         return loaded.contains(coords);
     }
 

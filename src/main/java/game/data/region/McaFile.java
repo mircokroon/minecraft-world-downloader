@@ -216,7 +216,7 @@ public class McaFile {
      * @param pos      the positon of this file
      * @param chunkMap the map of chunk binaries
      */
-    public McaFile(CoordinateDim2D pos, Map<Integer, ChunkBinary> chunkMap) {
+    public McaFile(CoordinateDim2D pos) {
         regionLocation = pos.offsetRegion();
 
         String filename = "r." + regionLocation.getX() + "." + regionLocation.getZ() + ".mca";
@@ -231,9 +231,12 @@ public class McaFile {
             }
         }
 
+        this.filePath = filePath;
+    }
+
+    public void addChunks(Map<Integer, ChunkBinary> chunkMap) {
         // merge new chunks into existing ones
         chunkMap.forEach((key, value) -> this.chunkMap.put(key, value));
-        this.filePath = filePath;
     }
 
     /**
@@ -359,7 +362,7 @@ public class McaFile {
         return res;
     }
 
-    public ChunkBinary getChunkBinary(CoordinateDim2D coord) {
+    public ChunkBinary getChunkBinary(Coordinate2D coord) {
         return chunkMap.get(coordinateToInt(coord));
     }
 }

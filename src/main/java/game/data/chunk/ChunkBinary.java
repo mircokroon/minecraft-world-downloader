@@ -91,15 +91,17 @@ public class ChunkBinary implements Serializable {
     }
 
     public Chunk toChunk(CoordinateDim2D coordinate2D) {
+        return WorldManager.getInstance().getChunkFactory().fromNbt(getNbt(), coordinate2D);
+    }
+
+    public NamedTag getNbt() {
         int length = (chunkData[0] & 0xFF) << 24 | (chunkData[1] & 0xFF) << 16 | (chunkData[2] & 0xFF) << 8 | (chunkData[3] & 0xFF);
 
         byte[] compressedNbtData = new byte[length - 1];
         System.arraycopy(this.chunkData, 5, compressedNbtData, 0, length - 1);
 
         byte[] data = CompressionManager.zlibDecompress(compressedNbtData);
-        NamedTag nbt = (NamedTag) NamedTag.read(new DataInputStream(new ByteArrayInputStream(data)));
-
-        return WorldManager.getInstance().getChunkFactory().fromNbt(nbt, coordinate2D);
+        return (NamedTag) NamedTag.read(new DataInputStream(new ByteArrayInputStream(data)));
     }
 
     public int getTimestamp() {

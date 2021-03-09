@@ -244,11 +244,9 @@ public class WorldManager {
         if (!drawInGui || writeChunks) {
             CoordinateDim2D regionCoordinates = chunk.location.chunkToDimRegion();
 
-            if (!regions.containsKey(regionCoordinates)) {
-                regions.put(regionCoordinates, new Region(regionCoordinates));
-            }
+            Region r = regions.computeIfAbsent(regionCoordinates, Region::new);
 
-            regions.get(regionCoordinates).addChunk(chunk.location, chunk, overrideExisting);
+            r.addChunk(chunk.location, chunk, overrideExisting);
         }
 
         if (drawInGui) {
@@ -527,6 +525,12 @@ public class WorldManager {
         int chunksSent = 0;
         Map<Coordinate2D, McaFile> loadedFiles = new HashMap<>();
         for (Coordinate2D coords : desired) {
+            // since there is delay in this loop, it's possible some of the chunks were sent to the client by the time
+            // we get to them.
+            if (this.renderDistanceExtender.isLoaded(coords)) {
+                continue;
+            }
+
             McaFile mca = loadedFiles.computeIfAbsent(coords.chunkToRegion(), (c) -> McaFile.ofCoords(c.addDimension(this.dimension)));
 
             if (mca == null) {
