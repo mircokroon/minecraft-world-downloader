@@ -424,6 +424,11 @@ public abstract class Chunk extends ChunkEntities {
     public void updateBlock(Coordinate3D coords, int blockStateId, boolean suppressUpdate) {
         int section = coords.getY() / SECTION_HEIGHT;
 
+        // if the section is out of bounds, do nothing
+        if (section < 0 || section >= chunkSections.length) {
+            return;
+        }
+
         // if there's no section, we create an empty one
         if (chunkSections[section] == null) {
             chunkSections[section] = createNewChunkSection((byte) section, Palette.empty());

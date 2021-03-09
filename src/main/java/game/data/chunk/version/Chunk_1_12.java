@@ -66,6 +66,9 @@ public class Chunk_1_12 extends Chunk {
     @Override
     protected void parseBiomes(Tag tag) {
         this.biomes = tag.get("Level").asCompound().get("Biomes").byteArray();
+        if (this.biomes == null || this.biomes.length == 0) {
+            this.biomes = new byte[256];
+        }
     }
 
     @Override
