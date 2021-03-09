@@ -257,7 +257,7 @@ public class WorldManager {
         }
 
         if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.updateDistance(chunk.location);
+            this.renderDistanceExtender.notifyLoaded(chunk.location);
         }
     }
 
@@ -289,6 +289,9 @@ public class WorldManager {
         Region r = regions.get(coordinate.chunkToDimRegion());
         if (r != null) {
             r.removeChunk(coordinate);
+        }
+        if (this.renderDistanceExtender != null) {
+            this.renderDistanceExtender.notifyUnloaded(coordinate);
         }
     }
 
