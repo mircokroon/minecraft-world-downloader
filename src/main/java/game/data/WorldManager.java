@@ -22,6 +22,7 @@ import gui.GuiManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import packets.DataTypeProvider;
+import packets.builder.PacketBuilder;
 import util.PathUtils;
 
 import java.io.File;
@@ -33,7 +34,6 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static util.ExceptionHandling.attempt;
 
@@ -122,8 +122,21 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.invalidateChunks();
         }
+        unloadChunksNotIn(dimension);
+
         GuiManager.setDimension(this.dimension);
         outlineExistingChunks();
+    }
+
+    /**
+     * Unload all chunks except those in the given dimension. Used when changing dimension or disconnecting.
+     */
+    private void unloadChunksNotIn(Dimension dimension) {
+        for (Map.Entry<CoordinateDim2D, Region> r : this.regions.entrySet()) {
+            if (!r.getKey().getDimension().equals(dimension)) {
+                r.getValue().unloadAll();
+            }
+        }
     }
 
     public double getPlayerRotation() {
@@ -210,6 +223,7 @@ public class WorldManager {
 
             // Step 4: delete the newly added chunks
             toDelete.forEach(this::unloadChunk);
+
         }
     }
 
@@ -244,11 +258,9 @@ public class WorldManager {
         if (!drawInGui || writeChunks) {
             CoordinateDim2D regionCoordinates = chunk.location.chunkToDimRegion();
 
-            if (!regions.containsKey(regionCoordinates)) {
-                regions.put(regionCoordinates, new Region(regionCoordinates));
-            }
+            Region r = regions.computeIfAbsent(regionCoordinates, Region::new);
 
-            regions.get(regionCoordinates).addChunk(chunk.location, chunk, overrideExisting);
+            r.addChunk(chunk.location, chunk, overrideExisting);
         }
 
         if (drawInGui) {
@@ -257,7 +269,7 @@ public class WorldManager {
         }
 
         if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.updateDistance(chunk.location);
+            this.renderDistanceExtender.notifyLoaded(chunk.location);
         }
     }
 
@@ -281,10 +293,24 @@ public class WorldManager {
         return regions.getOrDefault(coordinate.chunkToDimRegion(), Region.EMPTY).getChunk(coordinate);
     }
 
+    public Chunk getChunk(Coordinate2D coords) {
+        return getChunk(coords.addDimension(this.dimension));
+    }
+
     public void unloadChunk(CoordinateDim2D coordinate) {
-        Region r = regions.get(coordinate.chunkToDimRegion());
+        chunkFactory.unloadChunk(coordinate);
+
+        CoordinateDim2D regionCoordinate = coordinate.chunkToDimRegion();
+        Region r = regions.get(regionCoordinate);
         if (r != null) {
             r.removeChunk(coordinate);
+
+            if (r.canRemove()) {
+                regions.remove(regionCoordinate);
+            }
+        }
+        if (this.renderDistanceExtender != null) {
+            this.renderDistanceExtender.notifyUnloaded(coordinate);
         }
     }
 
@@ -430,6 +456,9 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.checkDistance();
         }
+
+        // suggest GC to clear up some memory that may have been freed by saving
+        System.gc();
     }
 
     public ContainerManager getContainerManager() {
@@ -517,65 +546,57 @@ public class WorldManager {
     public Set<Coordinate2D> loadChunks(Collection<Coordinate2D> desired) {
         Set<Coordinate2D> loaded = new HashSet<>();
 
-        // separate into McaFiles
-        Map<Coordinate2D, List<Coordinate2D>> mcaFiles = desired.stream().collect(Collectors.groupingBy(Coordinate2D::chunkToRegion));
-
-        // we need to avoid overwhelming the client with tons of chunks all at once, so we insert a small delay every
-        // few chunks to avoid this.
         int chunksSent = 0;
-        for (Map.Entry<Coordinate2D, List<Coordinate2D>> entry : mcaFiles.entrySet()) {
-            Coordinate2D key = entry.getKey().offsetRegion();
-            List<Coordinate2D> value = entry.getValue();
-
-            String filename = "r." + key.getX() + "." + key.getZ() + ".mca";
-            File f = PathUtils.toPath(Config.getWorldOutputDir(), this.dimension.getPath(), "region", filename).toFile();
-
-            if (!f.exists()) {
+        Map<Coordinate2D, McaFile> loadedFiles = new HashMap<>();
+        for (Coordinate2D coords : desired) {
+            // since there is delay in this loop, it's possible some of the chunks were sent to the client by the time
+            // we get to them.
+            if (this.renderDistanceExtender.isLoaded(coords)) {
                 continue;
             }
 
-            // Load the MCA file - if it cannot be loaded for any reason it's skipped.
-            McaFile m;
+            McaFile mca = loadedFiles.computeIfAbsent(coords.chunkToRegion(), (c) -> McaFile.ofCoords(c.addDimension(this.dimension)));
+
+            if (mca == null) {
+                continue;
+            }
+
+            CoordinateDim2D withDim = coords.addDimension(this.dimension);
+            ChunkBinary chunkBinary = mca.getChunkBinary(withDim);
+
+            // skip any chunks not in the MCA file
+            if (chunkBinary == null) {
+                continue;
+            }
+
+            // send a packet with the chunk to the client
+            Chunk chunk = chunkBinary.toChunk(withDim);
+
             try {
-                m = new McaFile(f);
-            } catch (IOException e) {
-                e.printStackTrace();
-                System.out.println("Skipping invalid MCA file.");
+                PacketBuilder chunkData = chunk.toPacket();
+                PacketBuilder light = chunk.toLightPacket();
+                if (light != null) {
+                    Config.getPacketInjector().accept(light);
+                }
+                Config.getPacketInjector().accept(chunkData);
+
+            } catch (IncompleteChunkException ex) {
+                ex.printStackTrace();
+                // chunk was not complete
                 continue;
             }
+            loaded.add(coords);
 
-            // loop through the list of chunks we want to load from this file
-            for (Coordinate2D coord : value) {
-                CoordinateDim2D withDim = coord.addDimension(this.dimension);
-                ChunkBinary chunkBinary = m.getChunkBinary(withDim);
+            // draw in GUI
+            loadChunk(chunk, true, false);
 
-                // skip any chunks not in the MCA file
-                if (chunkBinary == null) {
-                    continue;
-                }
-
-                // send a packet with the chunk to the client
-                Chunk chunk = chunkBinary.toChunk(withDim);
-
+            // periodically sleep so the client doesn't stutter from receiving too many chunks
+            chunksSent = (chunksSent + 1) % 5;
+            if (chunksSent == 0) {
                 try {
-                    Config.getPacketInjector().accept(chunk.toPacket());
-                } catch (IncompleteChunkException ex) {
-                    // chunk was not complete
-                    continue;
-                }
-                loaded.add(coord);
-
-                // draw in GUI
-                loadChunk(chunk, true, false);
-
-                // periodically sleep so the client doesn't stutter from receiving too many chunks
-                chunksSent = (chunksSent + 1) % 5;
-                if (chunksSent == 0) {
-                    try {
-                        Thread.sleep(24);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    Thread.sleep(48);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -589,6 +610,7 @@ public class WorldManager {
         }
         this.entityRegistry.reset();
         this.chunkFactory.reset();
+        this.unloadChunksNotIn(null);
     }
 
     public EntityRegistry getEntityRegistry() {
@@ -645,5 +667,34 @@ public class WorldManager {
     }
 
 
+    /**
+     * Update a chunk with lighting data. If the chunk is not known yet, give it to the chunk factory. If it is known,
+     * it is given to the chunk to parse immediately.
+     */
+    public void updateLight(DataTypeProvider provider) {
+        chunkFactory.runOnFactoryThread(() -> {
+            int chunkX = provider.readVarInt();
+            int chunkZ = provider.readVarInt();
+            CoordinateDim2D coords = new CoordinateDim2D(chunkX, chunkZ, dimension);
+            Chunk c = getChunk(coords);
+            if (c == null) {
+                chunkFactory.updateLight(coords, provider);
+            } else {
+                c.updateLight(provider);
+                touchChunk(c);
+
+                GuiManager.setChunkState(coords, c.getState());
+            }
+        });
+
+    }
+
+    public int countActiveRegions() {
+        return this.regions.size();
+    }
+
+    public int countActiveBinaryChunks() {
+        return this.regions.values().stream().mapToInt(el -> el.getFile().countChunks()).sum();
+    }
 }
 

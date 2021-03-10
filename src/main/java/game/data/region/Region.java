@@ -7,6 +7,7 @@ import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkFactory;
 import game.data.dimension.Dimension;
+import gui.ChunkState;
 import gui.GuiManager;
 
 import java.io.IOException;
@@ -28,6 +29,8 @@ public class Region {
     private boolean updatedSinceLastWrite;
     private final Set<Coordinate2D> toDelete;
 
+    private final McaFile file;
+
     /**
      * Initialise the region with the given coordinates.
      * @param regionCoordinates coordinates of the region (so global coordinates / 16 / 32)
@@ -37,6 +40,8 @@ public class Region {
         this.chunks = new ConcurrentHashMap<>();
         this.updatedSinceLastWrite = false;
         this.toDelete = new HashSet<>();
+
+        this.file = new McaFile(regionCoordinates);
     }
 
     /**
@@ -45,9 +50,21 @@ public class Region {
      * @param chunk      the chunk to add
      */
     public void addChunk(Coordinate2D coordinate, Chunk chunk, boolean overrideExisting) {
+
         if (overrideExisting) {
+            toDelete.remove(coordinate);
+            try {
+                ChunkBinary cb = file.getChunkBinary(coordinate);
+                if (cb != null) {
+                    chunk.parse(cb.getNbt());
+                }
+            } catch (Exception ex) {
+                // if we can't read in the current chunk, that's fine, just continue.
+            }
+
             chunks.put(coordinate, chunk);
-        } else {
+        } else if (!chunks.containsKey(coordinate)) {
+            toDelete.add(coordinate);
             chunks.putIfAbsent(coordinate, chunk);
         }
         updatedSinceLastWrite = true;
@@ -82,6 +99,8 @@ public class Region {
     }
 
     public Chunk getChunk(Coordinate2D coordinate) {
+        // if the chunk is already marked for deletion, don't return it
+        if (toDelete.contains(coordinate)) { return null; }
         return chunks.get(coordinate);
     }
 
@@ -113,7 +132,7 @@ public class Region {
                 }
 
                 chunk.setSaved(true);
-                GuiManager.markChunkSaved(coordinate.addDimension(regionCoordinates.getDimension()));
+                GuiManager.setChunkState(coordinate.addDimension(regionCoordinates.getDimension()), chunk.getState());
 
                 // get the chunk in binary format and get its coordinates as an Mca compatible integer. Then add
                 // these to the map of chunk binaries.
@@ -141,7 +160,13 @@ public class Region {
         if (chunkBinaryMap.isEmpty()) {
             return null;
         }
-        return new McaFile(regionCoordinates, chunkBinaryMap);
+
+        file.addChunks(chunkBinaryMap);
+        return file;
+    }
+
+    public McaFile getFile() {
+        return file;
     }
 
     /**
@@ -153,5 +178,18 @@ public class Region {
 
     public int countChunks() {
         return this.chunks.size();
+    }
+
+    /**
+     * Unload all chunks in this region. Used when player disconnects or changes dimension.
+     */
+    public void unloadAll() {
+        for (Coordinate2D co : this.chunks.keySet()) {
+            removeChunk(co);
+        }
+    }
+
+    public boolean canRemove() {
+        return chunks.isEmpty();
     }
 }

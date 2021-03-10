@@ -4,7 +4,6 @@ import config.Config;
 import config.Option;
 import config.Version;
 import game.data.WorldManager;
-import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
@@ -103,6 +102,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        operations.put("chunk_update_light", provider -> {
+            worldManager.updateLight(provider);
+
+            return true;
+        });
+
         operations.put("chunk_block_change", provider -> {
             WorldManager.getInstance().blockChange(provider);
             return true;
@@ -129,21 +134,6 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             worldManager.getChunkFactory().updateTileEntity(position, entityData);
             return true;
         });
-
-
-        PacketOperator updatePlayerPosition = provider -> {
-            double x = provider.readDouble();
-            double y = provider.readDouble();
-            double z = provider.readDouble();
-
-            CoordinateDouble3D playerPos = new CoordinateDouble3D(x, y, z);
-            worldManager.setPlayerPosition(playerPos);
-
-            return true;
-        };
-
-        operations.put("player_position_look", updatePlayerPosition);
-        operations.put("player_vehicle_move", updatePlayerPosition);
 
         operations.put("open_window", provider -> {
             int windowId = provider.readNext();

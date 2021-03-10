@@ -220,12 +220,12 @@ public class ChunkImageFactory {
     private int computeHeight(int x, int z) {
         // if we're in the Nether, we want to find an air block before we start counting blocks.
         boolean isNether = c.location.getDimension().equals(Dimension.NETHER);
-        int topSection = isNether ? 5 : 15;
+        int topSection = isNether ? 5 : c.getMaxSection();
 
         MutableBoolean foundAir = new MutableBoolean(!isNether);
 
-        for (int chunkSection = topSection; chunkSection >= 0; chunkSection--) {
-            ChunkSection cs = c.getChunkSections()[chunkSection];
+        for (int sectionY = topSection; sectionY >= c.getMinSection(); sectionY--) {
+            ChunkSection cs = c.getChunkSection(sectionY);
             if (cs == null) {
                 foundAir.setTrue();
                 continue;
@@ -236,10 +236,10 @@ public class ChunkImageFactory {
             if (height < 0) { continue; }
 
             // if we're in the nether we can't find
-            if (isNether && chunkSection == topSection && height == 15) {
+            if (isNether && sectionY == topSection && height == 15) {
                 return 127;
             }
-            return (chunkSection * Chunk.SECTION_HEIGHT) + height;
+            return (sectionY * Chunk.SECTION_HEIGHT) + height;
         }
         return isNether ? 127 : 0;
     }

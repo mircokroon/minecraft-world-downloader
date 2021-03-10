@@ -9,7 +9,7 @@ import packets.DataTypeProvider;
 import se.llbit.nbt.*;
 
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 public abstract class PlayerMap {
     int id;
@@ -22,10 +22,10 @@ public abstract class PlayerMap {
     int xCenter;
     int zCenter;
 
-    List<Icon> icons;
+    Collection<Icon> icons;
 
     public PlayerMap(int id) {
-        this.icons = new ArrayList<>();
+        this.icons = new ConcurrentLinkedDeque<>();
         this.id = id;
         this.dimension = WorldManager.getInstance().getDimension();
         this.xCenter = 0;

@@ -258,4 +258,8 @@ public class PacketBuilder {
         ((Buffer) buffer).flip();
         writeByteArray(buffer.array());
     }
+
+    public void copyRemainder(DataTypeProvider provider) {
+        writeByteArray(provider.readByteArray(provider.remaining()));
+    }
 }

@@ -3,7 +3,9 @@ package game.data;
 import config.Config;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
+import game.data.region.McaFile;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -27,6 +29,7 @@ public class RenderDistanceExtender extends Thread {
     private Coordinate2D playerChunk = POS_INIT;
     private Coordinate2D newPlayerChunk = new Coordinate2D(0, 0);
 
+    private final Set<Coordinate2D> loaded;
     private final Set<Coordinate2D> activeChunks;
     private final WorldManager worldManager;
     private boolean invalidated = false;
@@ -41,6 +44,7 @@ public class RenderDistanceExtender extends Thread {
         this.extendedDistance = extendedDistance;
 
         this.activeChunks = new HashSet<>();
+        this.loaded = new HashSet<>();
         this.start();
     }
 
@@ -155,14 +159,7 @@ public class RenderDistanceExtender extends Thread {
     public void invalidateChunks() {
         invalidated = true;
         this.activeChunks.clear();
-
-        if (measuringRenderDistance) {
-            return;
-        }
-
-        synchronized (this) {
-            notify();
-        }
+        this.loaded.clear();
     }
 
 
@@ -171,18 +168,23 @@ public class RenderDistanceExtender extends Thread {
      */
     private void updateFull() {
         invalidated = false;
-        Collection<Coordinate2D> desired = new HashSet<>();
+        Collection<Coordinate2D> desired = new ArrayList<>();
         Collection<Coordinate2D> toUnload = new HashSet<>(activeChunks);
 
-        for (int x = -extendedDistance; x <= extendedDistance; x++) {
-            for (int z = -extendedDistance; z <= extendedDistance; z++) {
-                if (inServerDistance(x, z)) { continue; }
+        // loop from radius 0 up to the given radius
+        for (int r = serverDistance - 1; r <= extendedDistance; r++) {
 
-                Coordinate2D chunkCoords = playerChunk.add(x, z);
-                if (!activeChunks.contains(chunkCoords)) {
-                    desired.add(chunkCoords);
+            // for each radius, we take only the edge items. That is, for the first and last row we take all files, but
+            // for the others we only take the first and last items.
+            for (int x = -r; x < r; x++) {
+                if (x != r - 1 && x != -r) {
+                    loadConditionally(new Coordinate2D(x, -r), desired, toUnload);
+                    loadConditionally(new Coordinate2D(x, r - 1), desired, toUnload);
+                } else {
+                    for (int z = -r; z < r; z++) {
+                        loadConditionally(new Coordinate2D(x, z), desired, toUnload);
+                    }
                 }
-                toUnload.remove(chunkCoords);
             }
         }
 
@@ -192,11 +194,19 @@ public class RenderDistanceExtender extends Thread {
         activeChunks.removeAll(toUnload);
     }
 
-    /**
-     * Checks if a given chunk coordinate is within the server's render distance.
-     */
-    private boolean inServerDistance(int x, int z) {
-        return x >= -serverDistance && z >= -serverDistance && x <= serverDistance && z <= serverDistance;
+    private void loadConditionally(Coordinate2D coords, Collection<Coordinate2D> desired, Collection<Coordinate2D> toUnload) {
+        Coordinate2D chunkCoords = playerChunk.add(coords);
+
+        if (isLoaded(chunkCoords)) { return; }
+
+        if (!activeChunks.contains(chunkCoords)) {
+            desired.add(chunkCoords);
+        }
+        toUnload.remove(chunkCoords);
+    }
+
+    public boolean isLoaded(Coordinate2D coords) {
+        return loaded.contains(coords);
     }
 
     /**
@@ -213,7 +223,9 @@ public class RenderDistanceExtender extends Thread {
     /**
      * Notifies of newly loaded chunks so we can measure the server render distance.
      */
-    public void updateDistance(CoordinateDim2D location) {
+    public void notifyLoaded(CoordinateDim2D location) {
+        this.loaded.add(location.removeDimension());
+
         if (!measuringRenderDistance) {
             return;
         }
@@ -226,6 +238,10 @@ public class RenderDistanceExtender extends Thread {
         if (dist > maxDistance && maxDistance < 32 && dist < 32) {
             maxDistance = dist;
         }
+    }
+
+    public void notifyUnloaded(CoordinateDim2D location) {
+        loaded.remove(location);
     }
 
     public void resetConnection() {

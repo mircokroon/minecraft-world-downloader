@@ -45,6 +45,7 @@ public class Config {
     private transient boolean guiOnlyMode = true;
 
     private transient boolean debugWriteChunkNbt;
+    private transient boolean debugTrackEvents = false;
     private transient VersionReporter versionReporter;
 
     public Config() {
@@ -134,6 +135,10 @@ public class Config {
 
     public static void disableSettingsGui() {
         instance.guiOnlyMode = false;
+    }
+
+    public static boolean trackEvents() {
+        return instance.debugTrackEvents;
     }
 
     public boolean startWithSettings() {

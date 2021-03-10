@@ -51,11 +51,9 @@ import java.util.stream.Collectors;
  * which can be redrawn any moment.
  */
 public class GuiMap {
-    private static final Image NONE = new WritableImage(1, 1);
-    private static final ChunkImage NO_IMG = new ChunkImage(NONE, true);
+    public static final Image NONE = new WritableImage(1, 1);
+    private static final ChunkImage NO_IMG = new ChunkImage(NONE, ChunkState.exists());
     private static final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
-    private static final Color EXISTING_COLOR = new Color(.8, .8, .8, .2);
-    private static final Color UNSAVED_COLOR = new Color(1, 0, 0, .3);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
     private static final WritableImage BLACK = new WritableImage(1, 1);
     static {
@@ -264,7 +262,7 @@ public class GuiMap {
 
         // periodically clean up old images
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor((r) -> new Thread(r, "Chunk Image Cleaner"));
-        executor.scheduleWithFixedDelay(this::cleanFarImages, 120, 60, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(this::clearFarImages, 120, 60, TimeUnit.SECONDS);
 
         reload.setCycleCount(Animation.INDEFINITE);
         reload.play();
@@ -273,10 +271,9 @@ public class GuiMap {
     }
 
     /**
-     * Periodically we will try to remove older images so we don't use needless memory to store them all. It only
-     * removes them if they are over 8000 blocks away so it's fairly conservative.
+     * Remove images outside of given distance.
      */
-    private void cleanFarImages() {
+    private void clearFarImages() {
         Coordinate2D playerRegion = playerPos.discretize().globalToChunk().chunkToRegion();
         for (Coordinate2D c : chunkMap.keySet()) {
             Coordinate2D chunkRegion = c.chunkToRegion();
@@ -285,6 +282,17 @@ public class GuiMap {
                 chunkMap.remove(c);
             }
         }
+    }
+
+
+    public void unloadImages() {
+        Coordinate2D playerChunk = playerPos.discretize().globalToChunk();
+        for (Map.Entry<Coordinate2D, ChunkImage> c : chunkMap.entrySet()) {
+            if (playerChunk.blockDistance(c.getKey()) > 16) {
+                c.getValue().clearImage();
+            }
+        }
+        redrawAll(true);
     }
 
     /**
@@ -405,15 +413,11 @@ public class GuiMap {
         }
     }
 
-    void setChunkExists(CoordinateDim2D coord) {
-        chunkMap.put(coord.stripDimension(), NO_IMG);
-
-        hasChanged = true;
-    }
-
-    void markChunkSaved(CoordinateDim2D coord) {
+    void setChunkState(CoordinateDim2D coord, ChunkState state) {
         if (chunkMap.containsKey(coord.stripDimension())) {
-            chunkMap.get(coord.stripDimension()).setSaved(true);
+            chunkMap.get(coord.stripDimension()).setState(state);
+        } else if (!state.isLoaded()) {
+            chunkMap.put(coord.stripDimension(), new ChunkImage(NONE, state));
         }
 
         hasChanged = true;
@@ -430,7 +434,7 @@ public class GuiMap {
 
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
         imageFactory.onComplete(image -> {
-            chunkMap.put(coord.stripDimension(), new ChunkImage(image, chunk.isSaved()));
+            chunkMap.put(coord.stripDimension(), new ChunkImage(image, chunk.getState()));
             drawChunkAsync(coord.stripDimension());
 
             hasChanged = true;
@@ -471,7 +475,7 @@ public class GuiMap {
             newBounds = new Bounds(center, renderDistanceX, renderDistanceZ);
         }
 
-        if (!newBounds.equals(bounds)) {
+        if (force || !newBounds.equals(bounds)) {
             bounds = newBounds;
 
             double gridWidth = width.get() / bounds.getWidth();
@@ -597,9 +601,9 @@ public class GuiMap {
         int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
         int drawY = (pos.getZ() - bounds.getMinZ()) * gridSize;
 
-        if (chunkImage.getImage() == NONE) {
+        if (!chunkImage.getState().isLoaded()) {
             graphics.setLineWidth(1);
-            graphics.setFill(EXISTING_COLOR);
+            graphics.setFill(chunkImage.getState().getColor());
             graphics.setStroke(Color.WHITE);
 
             if (gridSize == 1) {
@@ -612,12 +616,10 @@ public class GuiMap {
             // draw black before drawing chunk so that we can tell void from missing chunks
             drawImage(graphics, drawX, drawY, gridSize, chunkImage.getImage(), drawBlack);
 
-            // if the chunk wasn't saved yet, mark it as such
-            if (Config.markUnsavedChunks() && !chunkImage.isSaved) {
-                graphics.setFill(UNSAVED_COLOR);
-                graphics.setStroke(Color.TRANSPARENT);
-                graphics.fillRect(drawX, drawY, gridSize, gridSize);
-            }
+            // draw state overlay
+            graphics.setFill(chunkImage.getState().getColor());
+            graphics.setStroke(Color.TRANSPARENT);
+            graphics.fillRect(drawX, drawY, gridSize, gridSize);
         }
     }
 
@@ -627,7 +629,7 @@ public class GuiMap {
 
     public void export() {
         List<Coordinate2D> drawables = chunkMap.entrySet().stream()
-                .filter((coord) -> coord.getValue() != NO_IMG)
+                .filter((coord) -> coord.getValue().getState().isLoaded())
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 

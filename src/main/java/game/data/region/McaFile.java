@@ -50,6 +50,22 @@ public class McaFile {
         }
     }
 
+    public static McaFile ofCoords(CoordinateDim2D regionCoords) {
+        File f = coordinatesToFile(PathUtils.toPath(Config.getWorldOutputDir(), regionCoords.getDimension().getPath(), "region"), regionCoords);
+
+        if (f == null) {
+            return null;
+        }
+
+        // Load the MCA file - if it cannot be loaded for any reason it's skipped.
+        try {
+            return new McaFile(f);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * Gets MCA files starting from the center, then increasing in radius.
      */
@@ -159,7 +175,13 @@ public class McaFile {
             int chunkDataStart = (location - 2) * SECTOR_SIZE;
             int chunkDataEnd = (location + size - 2) * SECTOR_SIZE;
 
-
+            // make sure the indices are valid
+            if (chunkDataStart < 0 || chunkDataStart >= chunkDataArray.length) {
+                continue;
+            }
+            if (chunkDataEnd < 0 || chunkDataEnd > chunkDataArray.length || chunkDataEnd < chunkDataStart) {
+                continue;
+            }
 
             byte[] chunkData = Arrays.copyOfRange(chunkDataArray, chunkDataStart, chunkDataEnd);
 
@@ -198,9 +220,8 @@ public class McaFile {
      * Generate an MCA file from a given map of chunk binaries. This method will try to read this MCA file to merge with
      * it so that existing chunks are not deleted.
      * @param pos      the positon of this file
-     * @param chunkMap the map of chunk binaries
      */
-    public McaFile(CoordinateDim2D pos, Map<Integer, ChunkBinary> chunkMap) {
+    public McaFile(CoordinateDim2D pos) {
         regionLocation = pos.offsetRegion();
 
         String filename = "r." + regionLocation.getX() + "." + regionLocation.getZ() + ".mca";
@@ -215,9 +236,12 @@ public class McaFile {
             }
         }
 
+        this.filePath = filePath;
+    }
+
+    public void addChunks(Map<Integer, ChunkBinary> chunkMap) {
         // merge new chunks into existing ones
         chunkMap.forEach((key, value) -> this.chunkMap.put(key, value));
-        this.filePath = filePath;
     }
 
     /**
@@ -343,7 +367,11 @@ public class McaFile {
         return res;
     }
 
-    public ChunkBinary getChunkBinary(CoordinateDim2D coord) {
+    public ChunkBinary getChunkBinary(Coordinate2D coord) {
         return chunkMap.get(coordinateToInt(coord));
+    }
+
+    public int countChunks() {
+        return chunkMap.size();
     }
 }
