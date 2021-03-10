@@ -122,8 +122,21 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.invalidateChunks();
         }
+        unloadChunksNotIn(dimension);
+
         GuiManager.setDimension(this.dimension);
         outlineExistingChunks();
+    }
+
+    /**
+     * Unload all chunks except those in the given dimension. Used when changing dimension or disconnecting.
+     */
+    private void unloadChunksNotIn(Dimension dimension) {
+        for (Map.Entry<CoordinateDim2D, Region> r : this.regions.entrySet()) {
+            if (!r.getKey().getDimension().equals(dimension)) {
+                r.getValue().unloadAll();
+            }
+        }
     }
 
     public double getPlayerRotation() {
@@ -284,6 +297,9 @@ public class WorldManager {
     }
 
     public void unloadChunk(CoordinateDim2D coordinate) {
+        Chunk.raiseEvent(coordinate, "unload");
+        chunkFactory.unloadChunk(coordinate);
+
         Region r = regions.get(coordinate.chunkToDimRegion());
         if (r != null) {
             r.removeChunk(coordinate);
@@ -435,6 +451,9 @@ public class WorldManager {
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.checkDistance();
         }
+
+        // suggest GC to clear up some memory that may have been freed by saving
+        System.gc();
     }
 
     public ContainerManager getContainerManager() {
@@ -586,6 +605,7 @@ public class WorldManager {
         }
         this.entityRegistry.reset();
         this.chunkFactory.reset();
+        this.unloadChunksNotIn(null);
     }
 
     public EntityRegistry getEntityRegistry() {
@@ -647,22 +667,29 @@ public class WorldManager {
      * it is given to the chunk to parse immediately.
      */
     public void updateLight(DataTypeProvider provider) {
-        int chunkX = provider.readVarInt();
-        int chunkZ = provider.readVarInt();
-        CoordinateDim2D coords = new CoordinateDim2D(chunkX, chunkZ, dimension);
-        Chunk c = getChunk(coords);
-        if (c == null) {
-            chunkFactory.updateLight(coords, provider);
-        } else {
-            chunkFactory.runOnFactoryThread(() -> {
+        chunkFactory.runOnFactoryThread(() -> {
+            int chunkX = provider.readVarInt();
+            int chunkZ = provider.readVarInt();
+            CoordinateDim2D coords = new CoordinateDim2D(chunkX, chunkZ, dimension);
+            Chunk c = getChunk(coords);
+            if (c == null) {
+                chunkFactory.updateLight(coords, provider);
+            } else {
                 c.updateLight(provider);
                 touchChunk(c);
 
                 GuiManager.setChunkState(coords, c.getState());
-            });
-        }
+            }
+        });
+
     }
 
+    public int countActiveRegions() {
+        return this.regions.size();
+    }
 
+    public int countActiveBinaryChunks() {
+        return this.regions.values().stream().mapToInt(el -> el.getFile().countChunks()).sum();
+    }
 }
 

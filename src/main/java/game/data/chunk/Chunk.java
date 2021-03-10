@@ -17,6 +17,7 @@ import se.llbit.nbt.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
@@ -43,11 +44,34 @@ public abstract class Chunk extends ChunkEntities {
         this.location = location;
         this.isNewChunk = false;
 
-        chunkSections = new ChunkSection[16];
+        chunkSections = new ChunkSection[getMaxSection() - getMinSection() + 1];
     }
 
-    protected ChunkSection[] getChunkSections() {
-        return chunkSections;
+    protected ChunkSection getChunkSection(int y) {
+        if (y < getMinSection()) { return null; }
+        if (y > getMaxSection()) { return null; }
+
+        return chunkSections[y - getMinSection()];
+    }
+
+    protected void setChunkSection(int y, ChunkSection section) {
+        if (y < getMinSection()) { return; }
+        if (y > getMaxSection()) { return; }
+
+        chunkSections[y - getMinSection()] = section;
+    }
+
+    protected int getMinSection() {
+        return 0;
+    }
+    protected int getMinBlockSection() {
+        return 0;
+    }
+    protected int getMaxSection() {
+        return 15;
+    }
+    protected Iterable<ChunkSection> getAllSections() {
+        return () -> Arrays.stream(chunkSections).filter(Objects::nonNull).iterator();
     }
 
     public abstract int getDataVersion();
@@ -87,9 +111,15 @@ public abstract class Chunk extends ChunkEntities {
     public void readChunkColumn(boolean full, int mask, DataTypeProvider dataProvider) {
         // We shift the mask left each iteration and check the unit bit. If the mask is 0, there will be no more chunks
         // so can stop the loop early.
-        for (int sectionY = 0; sectionY < (CHUNK_HEIGHT / SECTION_HEIGHT) && mask != 0; sectionY++, mask >>>= 1) {
+        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && mask != 0; sectionY++, mask >>>= 1) {
+            ChunkSection section = getChunkSection(sectionY);
+
             // Mask tells us if a section is present or not
             if ((mask & 1) == 0) {
+                if (full && section != null) {
+                    section.resetBlocks();
+                }
+
                 continue;
             }
 
@@ -101,7 +131,9 @@ public abstract class Chunk extends ChunkEntities {
             // A bitmask that contains bitsPerBlock set bits
             int dataArrayLength = dataProvider.readVarInt();
 
-            ChunkSection section = createNewChunkSection((byte) (sectionY & 0x0F), palette);
+            if (section == null) {
+                section = createNewChunkSection((byte) (sectionY & 0xFF), palette);
+            }
 
             // if the section has no blocks
             if (dataArrayLength == 0) {
@@ -115,7 +147,7 @@ public abstract class Chunk extends ChunkEntities {
             // don't set section if it only has air or nothing at all
             if (!palette.isEmpty()) {
                 // May replace an existing section or a null one
-                setSection(sectionY, section);
+                setChunkSection(sectionY, section);
             }
         }
 
@@ -149,10 +181,6 @@ public abstract class Chunk extends ChunkEntities {
         }
     }
 
-    private void setSection(int sectionY, ChunkSection section) {
-        chunkSections[sectionY] = section;
-    }
-
     /**
      * Convert this chunk to NBT tags.
      *
@@ -171,12 +199,7 @@ public abstract class Chunk extends ChunkEntities {
     }
 
     private boolean hasSections() {
-        for (ChunkSection section : chunkSections) {
-            if (section != null) {
-                return true;
-            }
-        }
-        return false;
+        return getAllSections().iterator().hasNext();
     }
 
     /**
@@ -228,6 +251,8 @@ public abstract class Chunk extends ChunkEntities {
      * @param full         indicates if its the full chunk or a part of it
      */
     void parse(DataTypeProvider dataProvider, boolean full) {
+        raiseEvent("parse from packet");
+
         int mask = dataProvider.readVarInt();
 
         // for 1.14+
@@ -256,12 +281,13 @@ public abstract class Chunk extends ChunkEntities {
 
 
     public int getNumericBlockStateAt(int x, int y, int z) {
-        int section = y / SECTION_HEIGHT;
-        if (chunkSections[section] == null) {
+        int sectionY = y / SECTION_HEIGHT;
+        ChunkSection section = getChunkSection(sectionY);
+        if (section == null) {
             return 0;
         }
 
-        return chunkSections[section].getNumericBlockStateAt(x, y % SECTION_HEIGHT, z);
+        return section.getNumericBlockStateAt(x, y % SECTION_HEIGHT, z);
     }
 
     public BlockState getBlockStateAt(Coordinate3D location) {
@@ -311,9 +337,9 @@ public abstract class Chunk extends ChunkEntities {
 
     protected PacketBuilder writeSectionData() {
         PacketBuilder column = new PacketBuilder();
-        for (int y = 0; y < (CHUNK_HEIGHT / SECTION_HEIGHT); y++) {
-            if (chunkSections[y] != null) {
-                chunkSections[y].write(column);
+        for (ChunkSection section : getAllSections()) {
+            if (section.getY() >= getMinBlockSection()) {
+                section.write(column);
             }
         }
 
@@ -322,9 +348,9 @@ public abstract class Chunk extends ChunkEntities {
 
     private void writeBitMask(PacketBuilder packet) {
         int res = 0;
-        for (int i = 0; i < chunkSections.length; i++) {
-            if (chunkSections[i] != null) {
-                res |= 1 << i;
+        for (ChunkSection section : getAllSections()) {
+            if (section.getY() >= getMinBlockSection()) {
+                res |= 1 << section.getY();
             }
         }
         packet.writeVarInt(res);
@@ -348,11 +374,11 @@ public abstract class Chunk extends ChunkEntities {
 
 
     public void parse(Tag tag) {
+        raiseEvent("parse from nbt");
+
         tag.get("Level").asCompound().get("Sections").asList().forEach(section -> {
             int sectionY = section.get("Y").byteValue();
-            if (sectionY >= 0 && sectionY < this.chunkSections.length) {
-                this.chunkSections[sectionY] = parseSection(sectionY, section);
-            }
+            setChunkSection(sectionY, parseSection(sectionY, section));
         });
         parseHeightMaps(tag);
         parseBiomes(tag);
@@ -401,6 +427,8 @@ public abstract class Chunk extends ChunkEntities {
     }
 
     public void unload() {
+        raiseEvent("unload");
+
         if (this.onUnload != null) {
             this.onUnload.run();
         }
@@ -422,19 +450,17 @@ public abstract class Chunk extends ChunkEntities {
     }
 
     public void updateBlock(Coordinate3D coords, int blockStateId, boolean suppressUpdate) {
-        int section = coords.getY() / SECTION_HEIGHT;
+        raiseEvent("update block");
 
-        // if the section is out of bounds, do nothing
-        if (section < 0 || section >= chunkSections.length) {
-            return;
-        }
+        int sectionY = coords.getY() / SECTION_HEIGHT;
 
         // if there's no section, we create an empty one
-        if (chunkSections[section] == null) {
-            chunkSections[section] = createNewChunkSection((byte) section, Palette.empty());
-            chunkSections[section].setBlocks(new long[256]);
+        if (getChunkSection(sectionY) == null) {
+            ChunkSection newChunkSection = createNewChunkSection((byte) sectionY, Palette.empty());
+            newChunkSection.setBlocks(new long[256]);
+            setChunkSection(sectionY, newChunkSection);
         }
-        chunkSections[section].setBlockAt(coords.chunkLocalToSectionLocal(), blockStateId);
+        getChunkSection(sectionY).setBlockAt(coords.chunkLocalToSectionLocal(), blockStateId);
 
         if (suppressUpdate) {
             return;
@@ -471,18 +497,13 @@ public abstract class Chunk extends ChunkEntities {
     }
 
     public void updateLight(DataTypeProvider provider) {
+        raiseEvent("update lighting");
+
         this.isLit = true;
-    };
+    }
 
     public ChunkState getState() {
-        return new ChunkState(true, isSaved(), isLit());
+        return new ChunkState(true, isSaved());
     }
 
-    public boolean isLit() {
-        return this.isLit;
-    }
-
-    public void setLit(boolean lit) {
-        this.isLit = lit;
-    }
 }

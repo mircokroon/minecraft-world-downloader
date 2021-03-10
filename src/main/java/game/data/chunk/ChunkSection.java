@@ -191,5 +191,10 @@ public abstract class ChunkSection {
 
     public byte[] getSkyLight() { return skyLight; }
     public byte[] getBlockLight() { return blockLight; }
+
+    public void resetBlocks() {
+        this.blocks = new long[256];
+        this.palette = Palette.empty();
+    }
 }
 

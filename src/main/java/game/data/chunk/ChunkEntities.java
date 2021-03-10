@@ -21,10 +21,12 @@ import java.util.Map;
 /**
  * Manage entities and tile entities for chunks.
  */
-public abstract class ChunkEntities {
+public abstract class ChunkEntities extends ChunkEvents {
     private final Map<Coordinate3D, SpecificTag> tileEntities;
 
     public ChunkEntities() {
+        super();
+
         tileEntities = new HashMap<>();
     }
 

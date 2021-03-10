@@ -2,6 +2,7 @@ package gui;
 
 import config.Config;
 import game.data.WorldManager;
+import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkImageFactory;
 import game.data.coordinates.CoordinateDim2D;
@@ -81,15 +82,28 @@ public class RightClickMenu extends ContextMenu {
         }));
 
         menu.add(construct("Print stats", e -> {
+            int regions = WorldManager.getInstance().countActiveRegions();
+            int binaryChunks = WorldManager.getInstance().countActiveBinaryChunks();
             int chunks = WorldManager.getInstance().countActiveChunks();
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
             int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
             int maps = WorldManager.getInstance().getMapRegistry().countActiveMaps();
             int images = handler.countImages();
 
-            System.out.printf("Statistics:\n\tActive chunks: %d\n\tActive entities: %d\n" +
-                    "\tActive players: %d\n\tActive maps: %d\n\tActive chunk images:%d\n",
-                    chunks, entities, players, maps, images);
+            System.out.printf("Statistics:" +
+                            "\n\tActive regions: %d" +
+                            "\n\tActive binary chunks: %d" +
+                            "\n\tActive chunks: %d" +
+                            "\n\tActive entities: %d" +
+                            "\n\tActive players: %d" +
+                            "\n\tActive maps: %d" +
+                            "\n\tActive chunk images:%d" +
+                            "\n",
+                    regions, binaryChunks, chunks, entities, players, maps, images);
+        }));
+
+        menu.add(construct("Print 0, 0 events", e -> {
+            Chunk.printEventLog(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
         }));
     }
 

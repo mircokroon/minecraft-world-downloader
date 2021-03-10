@@ -160,14 +160,6 @@ public class RenderDistanceExtender extends Thread {
         invalidated = true;
         this.activeChunks.clear();
         this.loaded.clear();
-
-        if (measuringRenderDistance) {
-            return;
-        }
-
-        synchronized (this) {
-            notify();
-        }
     }
 
 
@@ -203,9 +195,9 @@ public class RenderDistanceExtender extends Thread {
     }
 
     private void loadConditionally(Coordinate2D coords, Collection<Coordinate2D> desired, Collection<Coordinate2D> toUnload) {
-        if (isLoaded(coords)) { return; }
-
         Coordinate2D chunkCoords = playerChunk.add(coords);
+
+        if (isLoaded(chunkCoords)) { return; }
 
         if (!activeChunks.contains(chunkCoords)) {
             desired.add(chunkCoords);

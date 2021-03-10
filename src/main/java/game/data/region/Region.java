@@ -50,7 +50,9 @@ public class Region {
      * @param chunk      the chunk to add
      */
     public void addChunk(Coordinate2D coordinate, Chunk chunk, boolean overrideExisting) {
+
         if (overrideExisting) {
+            toDelete.remove(coordinate);
             try {
                 ChunkBinary cb = file.getChunkBinary(coordinate);
                 if (cb != null) {
@@ -61,7 +63,8 @@ public class Region {
             }
 
             chunks.put(coordinate, chunk);
-        } else {
+        } else if (!chunks.containsKey(coordinate)) {
+            toDelete.add(coordinate);
             chunks.putIfAbsent(coordinate, chunk);
         }
         updatedSinceLastWrite = true;
@@ -96,6 +99,8 @@ public class Region {
     }
 
     public Chunk getChunk(Coordinate2D coordinate) {
+        // if the chunk is already marked for deletion, don't return it
+        if (toDelete.contains(coordinate)) { return null; }
         return chunks.get(coordinate);
     }
 
@@ -160,6 +165,10 @@ public class Region {
         return file;
     }
 
+    public McaFile getFile() {
+        return file;
+    }
+
     /**
      * Mark region as having modified chunks.
      */
@@ -169,5 +178,14 @@ public class Region {
 
     public int countChunks() {
         return this.chunks.size();
+    }
+
+    /**
+     * Unload all chunks in this region. Used when player disconnects or changes dimension.
+     */
+    public void unloadAll() {
+        for (Coordinate2D co : this.chunks.keySet()) {
+            removeChunk(co);
+        }
     }
 }

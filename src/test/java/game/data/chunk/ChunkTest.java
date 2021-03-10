@@ -47,8 +47,12 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
         builder = c.toPacket();
 
+        DataTypeProvider parser = getParser();
+        CoordinateDim2D coords = new CoordinateDim2D(parser.readInt(), parser.readInt(), pos.getDimension());
+        UnparsedChunk up = new UnparsedChunk(coords);
+        up.provider = parser;
 
-        assertThat(ChunkFactory.parseChunk(new ChunkParserPair(getParser(), pos.getDimension()), mock)).isEqualTo(c);
+        assertThat(ChunkFactory.parseChunk(up, mock)).isEqualTo(c);
     }
 
     @Test
@@ -84,11 +88,11 @@ class ChunkTest extends PacketBuilderAndParserTest {
         int trueZ = 100;
 
         Chunk src = cb.toChunk(new CoordinateDim2D(trueX, trueZ, Dimension.OVERWORLD));
-        byte[] sky = src.getChunkSections()[0].getSkyLight();
+        byte[] sky = src.getChunkSection(0).getSkyLight();
         sky[0] = 42;
         sky[100] = 24;
 
-        byte[] block = src.getChunkSections()[0].getBlockLight();
+        byte[] block = src.getChunkSection(0).getBlockLight();
         block[100] = 42;
         block[0] = 24;
 
@@ -102,13 +106,13 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
         Chunk dst = cb.toChunk(pos);
 
-        assertThat(dst.getChunkSections()[0].getBlockLight()).isNotEqualTo(block);
-        assertThat(dst.getChunkSections()[0].getSkyLight()).isNotEqualTo(sky);
+        assertThat(dst.getChunkSection(0).getBlockLight()).isNotEqualTo(block);
+        assertThat(dst.getChunkSection(0).getSkyLight()).isNotEqualTo(sky);
 
         dst.updateLight(provider);
 
-        assertThat(dst.getChunkSections()[0].getBlockLight()).isEqualTo(block);
-        assertThat(dst.getChunkSections()[0].getSkyLight()).isEqualTo(sky);
+        assertThat(dst.getChunkSection(0).getBlockLight()).isEqualTo(block);
+        assertThat(dst.getChunkSection(0).getSkyLight()).isEqualTo(sky);
     }
 
 

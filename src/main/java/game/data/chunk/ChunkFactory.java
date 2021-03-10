@@ -27,9 +27,7 @@ import java.util.function.Function;
  * Class responsible for creating chunks.
  */
 public class ChunkFactory {
-    private Queue<ChunkParserPair> unparsedChunks;
-    private Map<CoordinateDim2D, ConcurrentLinkedQueue<TileEntity>> tileEntities;
-    private Map<CoordinateDim2D, DataTypeProvider> lighting;
+    private Map<CoordinateDim2D, UnparsedChunk> unparsedChunks;
 
     private ExecutorService executor;
 
@@ -38,9 +36,7 @@ public class ChunkFactory {
     }
 
     public void clear() {
-        this.lighting = new ConcurrentHashMap<>();
-        this.tileEntities = new ConcurrentHashMap<>();
-        this.unparsedChunks = new ConcurrentLinkedQueue<>();
+        this.unparsedChunks = new ConcurrentHashMap<>();
 
         this.executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Chunk Parser Service"));;
     }
@@ -57,10 +53,7 @@ public class ChunkFactory {
 
         // if the chunk doesn't exist yet, add it to the queue to process later
         if (chunk == null) {
-            Queue<TileEntity> queue = tileEntities
-                .computeIfAbsent(chunkPos, (pos) -> new ConcurrentLinkedQueue<>());
-
-            queue.add(new TileEntity(position, entityData));
+            getUnparsedIfFresh(chunkPos).addTileEntity(new TileEntity(position, entityData));
         } else {
             chunk.addTileEntity(position, entityData);
             chunk.setSaved(false);
@@ -76,58 +69,50 @@ public class ChunkFactory {
             return;
         }
 
-        unparsedChunks.add(new ChunkParserPair(provider, WorldManager.getInstance().getDimension()));
+        Runnable r = () -> {
+            CoordinateDim2D chunkPos = new CoordinateDim2D(provider.readInt(), provider.readInt(), WorldManager.getInstance().getDimension());
+            getUnparsed(chunkPos).setProvider(provider);
 
-        // check if executor is defined - there is a rare race condition where the proxy could receive chunks before
-        // it is initiated
+            this.parse();
+        };
+
         if (executor != null) {
-            executor.execute(this::parse);
+            executor.execute(r);
+        } else {
+            r.run();
         }
     }
 
     private void parse() {
-        ChunkParserPair parsePair;
-        while ((parsePair = getUnparsedChunk()) != null) {
+        for (CoordinateDim2D k : unparsedChunks.keySet()) {
             try {
-                readChunkDataPacket(parsePair);
+                boolean doRemove = readChunkDataPacket(unparsedChunks.get(k));
+
+                if (doRemove) {
+                    unparsedChunks.remove(k);
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
                 System.err.println("Chunk could not be parsed!");
+                unparsedChunks.remove(k);
             }
         }
     }
 
-    /**
-     * Gets an unparsed chunk from the list, or null if the list is empty.
-     */
-    private ChunkParserPair getUnparsedChunk() {
-        if (unparsedChunks.isEmpty()) {
-            return null;
-        }
-        return unparsedChunks.remove();
-    }
-
-    public static Chunk parseChunk(ChunkParserPair parser, WorldManager worldManager) {
+    public static Chunk parseChunk(UnparsedChunk parser, WorldManager worldManager) {
         DataTypeProvider dataProvider = parser.provider;
-
-        CoordinateDim2D chunkPos = new CoordinateDim2D(dataProvider.readInt(), dataProvider.readInt(), parser.dimension);
+        CoordinateDim2D chunkPos = parser.location;
 
         boolean full = dataProvider.readBoolean();
-        Chunk chunk;
-        if (full) {
+        Chunk chunk = worldManager.getChunk(chunkPos);
+        if (chunk == null) {
             chunk = getVersionedChunk(chunkPos);
-
             worldManager.loadChunk(chunk, true, true);
-        } else {
-            chunk = worldManager.getChunk(new CoordinateDim2D(chunkPos.getX(), chunkPos.getZ(), parser.dimension));
+        }
 
+        if (!full) {
             // if we don't have the partial chunk (anymore?), just make one from scratch
-            if (chunk == null) {
-                chunk = getVersionedChunk(chunkPos);
-            }
-
             chunk.markAsNew();
-            chunk.setSaved(false);
         }
 
         chunk.parse(dataProvider, full);
@@ -137,21 +122,31 @@ public class ChunkFactory {
     /**
      * Parse a chunk data packet. Largely based on: https://wiki.vg/Protocol
      */
-    private void readChunkDataPacket(ChunkParserPair parser) {
+    private boolean readChunkDataPacket(UnparsedChunk parser) {
+        if (parser.parsingInProgress) { return false; }
+
+        // If no chunk parser is present, the unparsed chunk will be removed if no chunk parser is added within a time
+        // limit. This can only happen in rare cases where data from a chunk arrives before the chunk.
+        if (parser.provider == null) {
+            return parser.isStale();
+        }
+        parser.parsingInProgress = true;
+
         Chunk chunk = parseChunk(parser, WorldManager.getInstance());
 
         // Add any tile entities that were sent before the chunk was parsed. We cannot delete the tile entities yet
         // (so we cannot remove them from the queue) as they are not always re-sent when the chunk is re-sent. (?)
-        if (tileEntities.containsKey(chunk.location)) {
-            Queue<TileEntity> queue = tileEntities.get(chunk.location);
-            for (TileEntity ent : queue) {
+        if (parser.tileEntities != null) {
+            for (TileEntity ent : parser.tileEntities) {
                 chunk.addTileEntity(ent.getPosition(), ent.getTag());
             }
         }
 
-        if (lighting.containsKey(chunk.location)) {
-            chunk.updateLight(lighting.remove(chunk.location));
+        if (parser.lighting != null) {
+            chunk.updateLight(parser.lighting);
+            chunk.raiseEvent("light from factory");
         }
+        return true;
     }
 
     /**
@@ -191,36 +186,17 @@ public class ChunkFactory {
 
         chunk.parse(tag.getTag());
         chunk.setSaved(true);
-        chunk.setLit(true);
 
         return chunk;
     }
 
     public void reset() {
         this.unparsedChunks.clear();
-        this.tileEntities.clear();
     }
 
     public void updateLight(CoordinateDim2D coords, DataTypeProvider provider) {
-        this.lighting.put(coords, provider);
-    }
-
-    private static class TileEntity {
-        Coordinate3D position;
-        SpecificTag tag;
-
-        public TileEntity(Coordinate3D position, SpecificTag tag) {
-            this.position = position;
-            this.tag = tag;
-        }
-
-        public Coordinate3D getPosition() {
-            return position;
-        }
-
-        public SpecificTag getTag() {
-            return tag;
-        }
+        UnparsedChunk unparsed = getUnparsedIfFresh(coords);
+        unparsed.lighting = provider;
     }
 
     public void runOnFactoryThread(Runnable r) {
@@ -228,16 +204,89 @@ public class ChunkFactory {
     }
 
     public void unloadChunk(CoordinateDim2D coord) {
-        this.tileEntities.remove(coord);
+        UnparsedChunk unparsedChunk = this.unparsedChunks.get(coord);
+        if (unparsedChunk != null) {
+            unparsedChunk.shouldUnload = true;
+        }
+    }
+
+    protected UnparsedChunk getUnparsed(CoordinateDim2D location) {
+        return unparsedChunks.computeIfAbsent(location, UnparsedChunk::new);
+    }
+
+    protected UnparsedChunk getUnparsedIfFresh(CoordinateDim2D location) {
+        UnparsedChunk current = unparsedChunks.get(location);
+
+        // if the old one is stale, remove it
+        if (current == null || current.shouldUnload) {
+            current = new UnparsedChunk(location);
+            unparsedChunks.put(location, current);
+        }
+
+        return current;
     }
 }
 
-class ChunkParserPair {
-    DataTypeProvider provider;
-    Dimension dimension;
+class UnparsedChunk {
+    private static final long MAX_WAIT_TIME = 1000 * 10;
 
-    public ChunkParserPair(DataTypeProvider provider, Dimension dimension) {
+    private final long initTime;
+
+    CoordinateDim2D location;
+    DataTypeProvider provider;
+    DataTypeProvider lighting;
+    Queue<TileEntity> tileEntities;
+    boolean shouldUnload;
+    boolean parsingInProgress;
+
+    public UnparsedChunk(CoordinateDim2D location) {
+        this.location = location;
+        this.initTime = System.currentTimeMillis();
+    }
+
+    public void addTileEntity(TileEntity tileEntity) {
+        if (this.tileEntities == null) {
+            this.tileEntities = new ConcurrentLinkedQueue<>();
+        }
+        tileEntities.add(tileEntity);
+    }
+
+    public void setProvider(DataTypeProvider provider) {
         this.provider = provider;
-        this.dimension = dimension;
+    }
+
+    public boolean isStale() {
+        return System.currentTimeMillis() - initTime > MAX_WAIT_TIME;
+    }
+
+    @Override
+    public String toString() {
+        return "UnparsedChunk{" +
+                "initTime=" + initTime +
+                ", location=" + location +
+                ", provider=" + provider +
+                ", lighting=" + lighting +
+                ", tileEntities=" + tileEntities +
+                ", shouldUnload=" + shouldUnload +
+                ", parsingInProgress=" + parsingInProgress +
+                '}';
+    }
+}
+
+class TileEntity {
+    Coordinate3D position;
+    SpecificTag tag;
+
+    public TileEntity(Coordinate3D position, SpecificTag tag) {
+        this.position = position;
+        this.tag = tag;
+    }
+
+    public Coordinate3D getPosition() {
+        return position;
+    }
+
+    public SpecificTag getTag() {
+        return tag;
     }
 }

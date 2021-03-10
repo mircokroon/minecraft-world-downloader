@@ -370,4 +370,8 @@ public class McaFile {
     public ChunkBinary getChunkBinary(Coordinate2D coord) {
         return chunkMap.get(coordinateToInt(coord));
     }
+
+    public int countChunks() {
+        return chunkMap.size();
+    }
 }
