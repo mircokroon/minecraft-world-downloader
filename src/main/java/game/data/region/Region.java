@@ -188,4 +188,8 @@ public class Region {
             removeChunk(co);
         }
     }
+
+    public boolean canRemove() {
+        return chunks.isEmpty();
+    }
 }

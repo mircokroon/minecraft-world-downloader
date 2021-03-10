@@ -26,4 +26,9 @@ public class ChunkImage {
     public ChunkState getState() {
         return state;
     }
+
+    public void clearImage() {
+        this.image = GuiMap.NONE;
+        this.state.setLoaded(false);
+    }
 }

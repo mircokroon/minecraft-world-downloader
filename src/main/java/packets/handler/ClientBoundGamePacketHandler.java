@@ -11,10 +11,6 @@ import game.data.dimension.Dimension;
 import game.data.entity.EntityRegistry;
 import game.data.entity.MobEntity;
 import game.data.entity.ObjectEntity;
-import game.protocol.Protocol;
-import packets.DataTypeProvider;
-import packets.builder.NetworkType;
-import packets.builder.PacketBuilder;
 import packets.handler.version.ClientBoundGamePacketHandler_1_14;
 import packets.handler.version.ClientBoundGamePacketHandler_1_15;
 import packets.handler.version.ClientBoundGamePacketHandler_1_16;
@@ -138,21 +134,6 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             worldManager.getChunkFactory().updateTileEntity(position, entityData);
             return true;
         });
-
-
-        PacketOperator updatePlayerPosition = provider -> {
-            double x = provider.readDouble();
-            double y = provider.readDouble();
-            double z = provider.readDouble();
-
-            CoordinateDouble3D playerPos = new CoordinateDouble3D(x, y, z);
-            worldManager.setPlayerPosition(playerPos);
-
-            return true;
-        };
-
-        operations.put("player_position_look", updatePlayerPosition);
-        operations.put("player_vehicle_move", updatePlayerPosition);
 
         operations.put("open_window", provider -> {
             int windowId = provider.readNext();

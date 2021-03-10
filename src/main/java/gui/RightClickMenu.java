@@ -11,9 +11,8 @@ import game.data.region.McaFile;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.SeparatorMenuItem;
+import javafx.scene.control.*;
+import javafx.stage.Stage;
 import util.PathUtils;
 
 import java.io.FileOutputStream;
@@ -41,14 +40,31 @@ public class RightClickMenu extends ContextMenu {
             }
         }));
 
-        menu.add(construct("Delete all downloaded chunks", e -> WorldManager.getInstance().deleteAllExisting()));
+        menu.add(construct("Delete all downloaded chunks", e -> {
+            Alert alert = new Alert(Alert.AlertType.NONE,
+                    "Are you sure you want to delete all downloaded chunks? This cannot be undone.",
+                    ButtonType.CANCEL, ButtonType.YES
+            );
+            GuiManager.addIcon((Stage) alert.getDialogPane().getScene().getWindow());
+            alert.setTitle("Confirm delete");
+            alert.getDialogPane().getStylesheets().add(getClass().getResource("/ui/dark.css").toExternalForm());
+            alert.showAndWait();
+
+            if (alert.getResult() == ButtonType.YES) {
+                WorldManager.getInstance().deleteAllExisting();
+            }
+        }));
+
+
         menu.add(new SeparatorMenuItem());
 
-        menu.add(construct("Save overview to file", e -> handler.export()));
+        menu.add(construct("Prune overview images", e -> handler.unloadImages()));
         menu.add(construct("Draw nearby existing chunks", e -> {
-
             new Thread(() -> WorldManager.getInstance().drawExistingChunks(handler.getCenter())).start();
         }));
+        menu.add(construct("Save overview to file", e -> handler.export()));
+
+        menu.add(new SeparatorMenuItem());
 
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
 

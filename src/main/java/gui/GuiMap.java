@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  * which can be redrawn any moment.
  */
 public class GuiMap {
-    private static final Image NONE = new WritableImage(1, 1);
+    public static final Image NONE = new WritableImage(1, 1);
     private static final ChunkImage NO_IMG = new ChunkImage(NONE, ChunkState.exists());
     private static final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
@@ -262,7 +262,7 @@ public class GuiMap {
 
         // periodically clean up old images
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor((r) -> new Thread(r, "Chunk Image Cleaner"));
-        executor.scheduleWithFixedDelay(this::cleanFarImages, 120, 60, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(this::clearFarImages, 120, 60, TimeUnit.SECONDS);
 
         reload.setCycleCount(Animation.INDEFINITE);
         reload.play();
@@ -271,10 +271,9 @@ public class GuiMap {
     }
 
     /**
-     * Periodically we will try to remove older images so we don't use needless memory to store them all. It only
-     * removes them if they are over 8000 blocks away so it's fairly conservative.
+     * Remove images outside of given distance.
      */
-    private void cleanFarImages() {
+    private void clearFarImages() {
         Coordinate2D playerRegion = playerPos.discretize().globalToChunk().chunkToRegion();
         for (Coordinate2D c : chunkMap.keySet()) {
             Coordinate2D chunkRegion = c.chunkToRegion();
@@ -283,6 +282,17 @@ public class GuiMap {
                 chunkMap.remove(c);
             }
         }
+    }
+
+
+    public void unloadImages() {
+        Coordinate2D playerChunk = playerPos.discretize().globalToChunk();
+        for (Map.Entry<Coordinate2D, ChunkImage> c : chunkMap.entrySet()) {
+            if (playerChunk.blockDistance(c.getKey()) > 16) {
+                c.getValue().clearImage();
+            }
+        }
+        redrawAll(true);
     }
 
     /**
@@ -465,7 +475,7 @@ public class GuiMap {
             newBounds = new Bounds(center, renderDistanceX, renderDistanceZ);
         }
 
-        if (!newBounds.equals(bounds)) {
+        if (force || !newBounds.equals(bounds)) {
             bounds = newBounds;
 
             double gridWidth = width.get() / bounds.getWidth();

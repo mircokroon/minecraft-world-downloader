@@ -43,8 +43,8 @@ public class GuiManager extends Application {
 
     private static String activeScene = "";
     private static GuiSettings settingController;
+    private static Image icon;
     private Stage stage;
-    private Image icon;
 
     private Stage settingsStage;
 
@@ -147,7 +147,7 @@ public class GuiManager extends Application {
         addIcon(settingsStage);
     }
 
-    private void addIcon(Stage s) {
+    public static void addIcon(Stage s) {
         s.getIcons().add(icon);
     }
 
@@ -225,7 +225,7 @@ public class GuiManager extends Application {
     public void start(Stage stage) throws Exception {
         instance = this;
         this.stage = stage;
-        this.icon = new Image(GuiManager.class.getResourceAsStream("/ui/icon/icon.png"));
+        icon = new Image(GuiManager.class.getResourceAsStream("/ui/icon/icon.png"));
         addIcon(this.stage);
 
         // when in GUI mode, close the application when the main stage is closed.

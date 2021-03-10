@@ -223,6 +223,7 @@ public class WorldManager {
 
             // Step 4: delete the newly added chunks
             toDelete.forEach(this::unloadChunk);
+
         }
     }
 
@@ -297,12 +298,16 @@ public class WorldManager {
     }
 
     public void unloadChunk(CoordinateDim2D coordinate) {
-        Chunk.raiseEvent(coordinate, "unload");
         chunkFactory.unloadChunk(coordinate);
 
-        Region r = regions.get(coordinate.chunkToDimRegion());
+        CoordinateDim2D regionCoordinate = coordinate.chunkToDimRegion();
+        Region r = regions.get(regionCoordinate);
         if (r != null) {
             r.removeChunk(coordinate);
+
+            if (r.canRemove()) {
+                regions.remove(regionCoordinate);
+            }
         }
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.notifyUnloaded(coordinate);
