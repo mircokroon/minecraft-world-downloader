@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Handle tracking of chunk events (e.g. loading, unloading, lighting data) for debugging purposes. Should not be
+ * enabled during normal usage as events are never deleted (so memory usage grows unbounded).
+ */
 public abstract class ChunkEvents {
     private static final Map<CoordinateDim2D, List<ChunkEvent>> events = new HashMap<>();
 
@@ -28,16 +32,18 @@ public abstract class ChunkEvents {
     }
 
     protected void printEventLog() {
-        System.out.println("Events for " + getLocation() + ": " + System.identityHashCode(this));
         if (events.get(getLocation()) == null) { return; }
+
+        System.out.println("Events for " + getLocation() + ": " + System.identityHashCode(this));
         for (ChunkEvent event : events.get(getLocation())) {
             System.out.println("\t" + event);
         }
     }
 
     public static void printEventLog(CoordinateDim2D pos) {
-        System.out.println("Events for " + pos + ": ");
         if (events.get(pos) == null) { return; }
+
+        System.out.println("Events for " + pos + ": ");
         for (ChunkEvent event : events.get(pos)) {
             System.out.println("\t" + event);
         }

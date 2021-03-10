@@ -144,7 +144,6 @@ public class ChunkFactory {
 
         if (parser.lighting != null) {
             chunk.updateLight(parser.lighting);
-            chunk.raiseEvent("light from factory");
         }
         return true;
     }
@@ -227,6 +226,9 @@ public class ChunkFactory {
     }
 }
 
+/**
+ * Hold unparsed chunks and any separately sent data that needs to be added to it (tile entities and light data).
+ */
 class UnparsedChunk {
     private static final long MAX_WAIT_TIME = 1000 * 10;
 
@@ -255,21 +257,11 @@ class UnparsedChunk {
         this.provider = provider;
     }
 
+    /**
+     * If the chunk data itself does not arrive within a few seconds, the lighting/tile entity datA is discarded.
+     */
     public boolean isStale() {
         return System.currentTimeMillis() - initTime > MAX_WAIT_TIME;
-    }
-
-    @Override
-    public String toString() {
-        return "UnparsedChunk{" +
-                "initTime=" + initTime +
-                ", location=" + location +
-                ", provider=" + provider +
-                ", lighting=" + lighting +
-                ", tileEntities=" + tileEntities +
-                ", shouldUnload=" + shouldUnload +
-                ", parsingInProgress=" + parsingInProgress +
-                '}';
     }
 }
 

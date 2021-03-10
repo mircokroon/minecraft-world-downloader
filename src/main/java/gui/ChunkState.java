@@ -4,6 +4,9 @@ import config.Config;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 
+/**
+ * Hold the state of a chunk for the GUI.
+ */
 public class ChunkState {
     public final Color COLOR_EXISTS = new Color(.8, .8, .8, .2);
     public final Color COLOR_UNSAVED = new Color(1, 0, 0, .3);
@@ -43,7 +46,6 @@ public class ChunkState {
     private void computeColor() {
         if (!isLoaded) {
             this.color = COLOR_EXISTS;
-            return;
         } else if (Config.markUnsavedChunks() && !isSaved) {
             this.color = COLOR_UNSAVED;
         } else {
@@ -54,14 +56,5 @@ public class ChunkState {
 
     public Paint getColor() {
         return color;
-    }
-
-    private Color add(Color a, Color b) {
-        return new Color(
-                a.getRed() + b.getRed(),
-                a.getGreen() + b.getGreen(),
-                a.getBlue() + b.getBlue(),
-                a.getOpacity()
-        );
     }
 }
