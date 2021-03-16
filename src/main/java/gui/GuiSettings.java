@@ -5,6 +5,7 @@ import config.Config;
 import gui.components.DefaultIntField;
 import gui.components.IntField;
 import gui.components.LongField;
+import gui.realms.RealmsTabController;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -55,6 +56,8 @@ public class GuiSettings {
     public Hyperlink openWorldDir;
     public CheckBox renderOtherPlayers;
     public CheckBox enableInfoMessages;
+    public Tab realmsTab;
+    public RealmsTabController realmsController;
     Config config;
     private boolean portInUse;
 
@@ -68,7 +71,6 @@ public class GuiSettings {
         if (config.isStarted()) {
             saveButton.setText("Save");
         }
-
 
         // connection tab
         server.setText(config.server);
@@ -95,6 +97,12 @@ public class GuiSettings {
         minecraftUsername.setText(config.username);
         accessToken.setText(config.accessToken);
 
+        // realms tab
+        tabPane.getSelectionModel().selectedItemProperty().addListener((e, oldVal, newVal) -> {
+            if (newVal == realmsTab) {
+                realmsController.opened(this);
+            }
+        });
         disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
 
         authTooltip = new Tooltip("");
@@ -313,5 +321,22 @@ public class GuiSettings {
         } catch (IOException e) {
             return true;
         }
+    }
+
+    public void setSelectedIp(String address) {
+        String[] parts = address.split(":");
+        if (parts.length != 2) { return; }
+
+        int port;
+        try {
+            port = Integer.parseInt(parts[1]);
+        } catch (Exception ex) {
+            return;
+        }
+
+        this.portRemote.setValue(port);
+        this.server.setText(parts[0]);
+
+        tabPane.getSelectionModel().select(0);
     }
 }

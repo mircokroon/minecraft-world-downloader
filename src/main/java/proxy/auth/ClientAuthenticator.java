@@ -2,6 +2,7 @@ package proxy.auth;
 
 import com.google.gson.Gson;
 import config.Config;
+import kong.unirest.GetRequest;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
@@ -13,12 +14,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 
+import static util.ExceptionHandling.attempt;
 import static util.PrintUtils.devPrint;
 
 public class ClientAuthenticator {
     private static final int STATUS_SUCCESS = 204;
     private static final String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/join";
+    private static final String REALMS_URL = "https://pc.realms.minecraft.net/";
+
+    private AuthDetails details;
 
     private LauncherProfiles profiles;
 
@@ -80,9 +86,14 @@ public class ClientAuthenticator {
      * because the other one won't be valid in this case.
      */
     private AuthDetails getAuthDetails() throws IOException {
-        AuthDetails manualDetails = Config.getAuthDetails();
+        if (details != null) {
+            return details;
+        }
+
+        AuthDetails manualDetails = Config.getManualAuthDetails();
 
         if (manualDetails != AuthDetails.INVALID) {
+            this.details = manualDetails;
             return manualDetails;
         }
 
@@ -92,6 +103,7 @@ public class ClientAuthenticator {
         if (accounts != null) {
             AuthDetails details = accounts.getAuthDetails();
             if (details != null) {
+                this.details = details;
                 return details;
             }
         }
@@ -100,6 +112,7 @@ public class ClientAuthenticator {
         if (profiles != null) {
             AuthDetails details = profiles.getAuthDetails();
             if (details != null) {
+                this.details = details;
                 return details;
             }
         }
@@ -172,6 +185,37 @@ public class ClientAuthenticator {
         }
 
         return status;
+    }
+
+    private void realmRequest(String url, Consumer<String> callback) {
+        AuthDetails details;
+        try {
+            details = getAuthDetails();
+        } catch (IOException e) {
+            printAuthErrorMessage();
+            callback.accept(null);
+            return;
+        }
+
+        Unirest.get(REALMS_URL + url)
+                .cookie("sid", "token:" + details.accessToken + ":" + details.getUuid())
+                .cookie("user", details.getUsername())
+                .cookie("version", "1.12.2")  // version doesn't seem to actually matter
+                .asStringAsync(res -> {
+                    if (!res.isSuccess()) {
+                        System.out.println("Could not request realms: " + res.getStatus());
+                        attempt(() -> callback.accept(""));
+                    } else {
+                        attempt(() -> callback.accept(res.getBody()));
+                    }
+                });
+    }
+
+    public void requestRealmIp(int id, Consumer<String> callback) {
+        realmRequest("worlds/v1/" + id + "/join/pc", callback);
+    }
+    public void requestRealms(Consumer<String> callback) {
+        realmRequest("worlds", callback);
     }
 }
 

@@ -442,7 +442,7 @@ public class Config {
 
 
 
-    public static AuthDetails getAuthDetails() {
+    public static AuthDetails getManualAuthDetails() {
         return AuthDetails.fromUsername(instance.username, instance.accessToken);
     }
 

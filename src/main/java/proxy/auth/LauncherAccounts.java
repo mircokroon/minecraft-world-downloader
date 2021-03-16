@@ -21,7 +21,7 @@ public class LauncherAccounts {
         if (accounts == null || !accounts.containsKey(activeAccountLocalId)) { return null; }
         LauncherAccount account = accounts.get(activeAccountLocalId);
 
-        return new AuthDetails(account.minecraftProfile.id, account.accessToken);
+        return new AuthDetails(account.minecraftProfile.name, account.minecraftProfile.id, account.accessToken);
     }
 }
 
