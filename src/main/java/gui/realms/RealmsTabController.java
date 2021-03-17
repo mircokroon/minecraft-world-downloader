@@ -3,6 +3,7 @@ package gui.realms;
 import com.google.gson.Gson;
 import gui.GuiSettings;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -15,6 +16,8 @@ import proxy.auth.ClientAuthenticator;
 
 import java.io.IOException;
 import java.util.Arrays;
+
+import static util.ExceptionHandling.attempt;
 
 public class RealmsTabController {
     public ListView<RealmEntry> serverList;
@@ -43,16 +46,15 @@ public class RealmsTabController {
                     return;
                 }
 
-                if (node == null) {
-                    try {
-                        FXMLLoader loader = new FXMLLoader(RealmsTabController.class.getResource("/ui/RealmItem.fxml"));
-                        loader.setController(new RealmItemController(realmEntry, settings));
+                try {
+                    FXMLLoader loader = new FXMLLoader(RealmsTabController.class.getResource("/ui/RealmItem.fxml"));
+                    loader.setController(new RealmItemController(realmEntry, settings));
 
-                        node = loader.load();
-                    } catch (IOException ioException) {
-                        ioException.printStackTrace();
-                        return;
-                    }
+                    node = loader.load();
+                    node = (Parent) node.lookup("#item");
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                    return;
                 }
                 setGraphic(node);
             }
@@ -66,8 +68,7 @@ public class RealmsTabController {
         requested = true;
         this.settings = guiSettings;
 
-        serverList.getItems().clear();
-        serverList.getItems().add(new RealmEntry("Loading..."));
+        serverList.setItems(FXCollections.observableArrayList(new RealmEntry("Loading...")));
 
         auth = new ClientAuthenticator();
         auth.requestRealms(str -> {
@@ -79,7 +80,7 @@ public class RealmsTabController {
             }
 
             final RealmServers servers = serversTemp;
-            Platform.runLater(() -> {
+            Platform.runLater(() -> attempt(() -> {
                 serverList.getItems().clear();
 
                 if (servers != null && servers.servers.length > 0) {
@@ -92,7 +93,8 @@ public class RealmsTabController {
                     serverList.getItems().add(new RealmEntry("No realms found for user " + auth.getDetails().getUsername()));
                     this.requested = false;
                 }
-            });
+                serverList.refresh();
+            }));
         });
     }
 

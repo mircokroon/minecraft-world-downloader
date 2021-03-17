@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="265.0" prefWidth="620.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
+<AnchorPane prefHeight="265.0" prefWidth="620.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
     <Button fx:id="saveButton" layoutX="491.0" layoutY="225.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
     <TabPane fx:id="tabPane" prefHeight="225.0" prefWidth="620.0" tabClosingPolicy="UNAVAILABLE">
         <Tab text="Connection">

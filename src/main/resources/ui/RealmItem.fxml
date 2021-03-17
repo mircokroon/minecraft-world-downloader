@@ -4,8 +4,8 @@
 <?import javafx.scene.image.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane fx:id="item" prefHeight="40.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/11.0.1"
-            xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane fx:id="item" prefHeight="40.0" prefWidth="300.0" xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml">
    <Label fx:id="server" layoutX="14.0" layoutY="14.0" text="..." AnchorPane.leftAnchor="14.0"
           AnchorPane.topAnchor="4.0"/>
    <Label fx:id="motd" layoutX="14.0" layoutY="31.0" text="..." AnchorPane.bottomAnchor="4.0"/>
