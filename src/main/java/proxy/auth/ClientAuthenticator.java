@@ -2,7 +2,6 @@ package proxy.auth;
 
 import com.google.gson.Gson;
 import config.Config;
-import kong.unirest.GetRequest;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
@@ -187,7 +186,7 @@ public class ClientAuthenticator {
         return status;
     }
 
-    private void realmRequest(String url, Consumer<String> callback) {
+    private void realmRequest(String url, boolean reportErrors, Consumer<String> callback) {
         AuthDetails details;
         try {
             details = getAuthDetails();
@@ -203,7 +202,9 @@ public class ClientAuthenticator {
                 .cookie("version", "1.12.2")  // version doesn't seem to actually matter
                 .asStringAsync(res -> {
                     if (!res.isSuccess()) {
-                        System.out.println("Could not request realms: " + res.getStatus());
+                        if (reportErrors || (res.getStatus() >= 400 && res.getStatus() < 500)) {
+                            new RealmsRequestException(res.getStatus() + " - " + res.getStatusText() + " (body: " + res.getBody() + ")").printStackTrace();
+                        }
                         attempt(() -> callback.accept(""));
                     } else {
                         attempt(() -> callback.accept(res.getBody()));
@@ -212,10 +213,14 @@ public class ClientAuthenticator {
     }
 
     public void requestRealmIp(int id, Consumer<String> callback) {
-        realmRequest("worlds/v1/" + id + "/join/pc", callback);
+        realmRequest("worlds/v1/" + id + "/join/pc", false ,callback);
     }
     public void requestRealms(Consumer<String> callback) {
-        realmRequest("worlds", callback);
+        realmRequest("worlds", true, callback);
+    }
+
+    public AuthDetails getDetails() {
+        return details;
     }
 }
 
@@ -226,4 +231,10 @@ interface Prompt {
 class UuidNameResponse {
     String id;
     String name;
+}
+
+class RealmsRequestException extends RuntimeException {
+    public RealmsRequestException(String message) {
+        super("Could not request realms. Reason: " +message);
+    }
 }

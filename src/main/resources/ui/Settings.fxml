@@ -4,9 +4,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="265.0" prefWidth="600.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
+<AnchorPane prefHeight="265.0" prefWidth="620.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
     <Button fx:id="saveButton" layoutX="491.0" layoutY="225.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
-    <TabPane fx:id="tabPane" prefHeight="225.0" prefWidth="600.0" tabClosingPolicy="UNAVAILABLE">
+    <TabPane fx:id="tabPane" prefHeight="225.0" prefWidth="620.0" tabClosingPolicy="UNAVAILABLE">
         <Tab text="Connection">
             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="254.0" prefWidth="600.0">
                 <GridPane layoutX="14.0" layoutY="6.0" prefHeight="187.0" prefWidth="579.0">

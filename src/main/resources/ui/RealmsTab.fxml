@@ -9,6 +9,6 @@
 <AnchorPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="gui.realms.RealmsTabController"
-            prefHeight="400.0" prefWidth="600.0">
-        <ListView fx:id="serverList" layoutX="14.0" layoutY="14.0" prefHeight="190.0" prefWidth="472.0"/>
+            prefHeight="340.0" prefWidth="600.0">
+        <ListView fx:id="serverList" layoutX="14.0" layoutY="14.0" prefHeight="160.0" prefWidth="580.0"/>
 </AnchorPane>

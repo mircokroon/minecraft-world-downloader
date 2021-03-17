@@ -3,11 +3,14 @@ package gui.realms;
 import com.google.gson.Gson;
 import gui.GuiSettings;
 import javafx.application.Platform;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.input.MouseEvent;
 import proxy.auth.ClientAuthenticator;
 
 import java.io.IOException;
@@ -26,6 +29,8 @@ public class RealmsTabController {
 
     @FXML
     void initialize() {
+        serverList.setFocusTraversable( false );
+        serverList.setSelectionModel(new NoSelectionModel<>());
         serverList.setCellFactory(e -> new ListCell<RealmEntry>() {
             Parent node;
 
@@ -61,23 +66,31 @@ public class RealmsTabController {
         requested = true;
         this.settings = guiSettings;
 
+        serverList.getItems().clear();
         serverList.getItems().add(new RealmEntry("Loading..."));
 
         auth = new ClientAuthenticator();
         auth.requestRealms(str -> {
-            RealmServers servers = new Gson().fromJson(str, RealmServers.class);
+            RealmServers serversTemp = null;
+            try {
+                serversTemp = new Gson().fromJson(str, RealmServers.class);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
 
+            final RealmServers servers = serversTemp;
             Platform.runLater(() -> {
                 serverList.getItems().clear();
 
-                if (servers.servers.length > 0) {
+                if (servers != null && servers.servers.length > 0) {
                     Arrays.stream(servers.servers).forEach(realm -> {
                         realm.setAuth(auth);
                         realm.reset();
                     });
                     serverList.getItems().addAll(servers.servers);
                 } else {
-                    serverList.getItems().add(new RealmEntry("No realms found"));
+                    serverList.getItems().add(new RealmEntry("No realms found for user " + auth.getDetails().getUsername()));
+                    this.requested = false;
                 }
             });
         });

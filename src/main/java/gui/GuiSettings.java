@@ -100,6 +100,7 @@ public class GuiSettings {
         // realms tab
         tabPane.getSelectionModel().selectedItemProperty().addListener((e, oldVal, newVal) -> {
             if (newVal == realmsTab) {
+                save();
                 realmsController.opened(this);
             }
         });
@@ -123,7 +124,7 @@ public class GuiSettings {
         accessToken.textProperty().addListener((ov, oldV, newV) -> {
             // trim invalid characters, remove accessToken at front in case they copied the entire line
             accessToken.setText(newV.trim()
-                    .replaceAll("[^A-Za-z0-9\\-.]*", "")
+                    .replaceAll("[^A-Za-z0-9\\-_.]*", "")
                     .replaceFirst("accessToken", ""));
         });
 
@@ -279,6 +280,19 @@ public class GuiSettings {
      * Write the settings from the GUI to the config file.
      */
     public void saveSettings(ActionEvent actionEvent) {
+        save();
+
+        if (!config.isStarted()) {
+            if (portInUse(config.portLocal)) {
+                System.err.println("Port in use");
+                return;
+            }
+        }
+        config.settingsComplete();
+        GuiManager.closeSettings();
+    }
+
+    private void save() {
         // connection tab
         config.server = server.getText();
         config.portRemote = Math.abs(portRemote.getAsInt());
@@ -302,15 +316,6 @@ public class GuiSettings {
         // auth tab
         config.username = minecraftUsername.getText();
         config.accessToken = accessToken.getText();
-
-        if (!config.isStarted()) {
-            if (portInUse(config.portLocal)) {
-                System.err.println("Port in use");
-                return;
-            }
-        }
-        config.settingsComplete();
-        GuiManager.closeSettings();
     }
 
     public boolean portInUse(int port) {
