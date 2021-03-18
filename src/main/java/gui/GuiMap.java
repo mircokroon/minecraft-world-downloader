@@ -363,10 +363,8 @@ public class GuiMap {
     private void setupContextMenu() {
         ContextMenu menu = new RightClickMenu(this);
         entityCanvas.setOnContextMenuRequested(e -> menu.show(entityCanvas, e.getScreenX(), e.getScreenY()));
-
-        entityCanvas.setOnMouseClicked(e ->
-		{
-			if(e.getButton() == MouseButton.PRIMARY) {
+        entityCanvas.setOnMouseClicked(e -> {
+			if (e.getButton() == MouseButton.PRIMARY) {
 				menu.hide();
 			}
 		});
