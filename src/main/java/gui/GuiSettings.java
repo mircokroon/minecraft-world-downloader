@@ -19,7 +19,10 @@ import util.PathUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -98,12 +101,16 @@ public class GuiSettings {
         accessToken.setText(config.accessToken);
 
         // realms tab
-        tabPane.getSelectionModel().selectedItemProperty().addListener((e, oldVal, newVal) -> {
-            if (newVal == realmsTab) {
-                save();
-                realmsController.opened(this);
-            }
-        });
+        if (config.isStarted()) {
+            tabPane.getTabs().remove(realmsTab);
+        } else {
+            tabPane.getSelectionModel().selectedItemProperty().addListener((e, oldVal, newVal) -> {
+                if (newVal == realmsTab) {
+                    save();
+                    realmsController.opened(this);
+                }
+            });
+        }
         disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
 
         authTooltip = new Tooltip("");
@@ -328,20 +335,24 @@ public class GuiSettings {
         }
     }
 
-    public void setSelectedIp(String address) {
-        String[] parts = address.split(":");
-        if (parts.length != 2) { return; }
+    public void setSelectedIp(String address) throws URISyntaxException, MalformedURLException {
+        // address needs to start with a scheme, so we just prefix https
+        URI uri = new URI("https://" + address);
 
-        int port;
-        try {
-            port = Integer.parseInt(parts[1]);
-        } catch (Exception ex) {
-            return;
+        String host = uri.getHost();
+        int port = uri.getPort();
+
+        // if the port is the default, maybe it is not actually reported(?), so just in case...
+        if (port < 0) { port = 25565; }
+
+        if (host == null) {
+            throw new MalformedURLException("No host present in " + address);
         }
 
         this.portRemote.setValue(port);
-        this.server.setText(parts[0]);
+        this.server.setText(host);
 
-        tabPane.getSelectionModel().select(0);
+        tabPane.getSelectionModel().selectFirst();
+        this.saveButton.requestFocus();
     }
 }

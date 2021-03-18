@@ -6,6 +6,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 
+import static util.ExceptionHandling.attempt;
+
 public class RealmItemController {
     @FXML
     Label server, motd;
@@ -30,7 +32,7 @@ public class RealmItemController {
         realmEntry.setController(this);
 
         requestButton.setOnAction(e -> realmEntry.requestIp());
-        useButton.setOnAction(e -> settings.setSelectedIp(realmEntry.getAddress()));
+        useButton.setOnAction(e -> attempt(() -> settings.setSelectedIp(realmEntry.getAddress())));
     }
 
     void refresh() {
