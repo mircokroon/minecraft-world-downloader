@@ -5,7 +5,6 @@ import config.Config;
 import gui.components.DefaultIntField;
 import gui.components.IntField;
 import gui.components.LongField;
-import gui.realms.RealmsTabController;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -14,7 +13,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import proxy.auth.AuthStatus;
-import proxy.auth.ClientAuthenticator;
+import proxy.auth.AuthDetailsManager;
 import util.PathUtils;
 
 import java.io.File;
@@ -215,7 +214,7 @@ public class GuiSettings {
 
     private void verifyAuthDetails() {
         String path = minecraftDir.getText();
-        AuthStatus status = ClientAuthenticator.authDetailsValid(path);
+        AuthStatus status = AuthDetailsManager.authDetailsValid(path);
 
         authDetailsVerifyLabel.getStyleClass().clear();
         if (status.isExpired()) {

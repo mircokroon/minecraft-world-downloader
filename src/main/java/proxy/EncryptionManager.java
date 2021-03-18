@@ -3,6 +3,7 @@ package proxy;
 import config.Config;
 import packets.builder.PacketBuilder;
 import packets.lib.ByteQueue;
+import proxy.auth.AuthDetailsManager;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
 
@@ -41,9 +42,9 @@ public class EncryptionManager {
     private OutputStream streamToServer;
     private KeyPair serverKeyPair;
     private String username;
-    private ConcurrentLinkedQueue<ByteQueue> insertedPackets;
-    private CompressionManager compressionManager;
-    private ClientAuthenticator clientAuthenticator;
+    private final ConcurrentLinkedQueue<ByteQueue> insertedPackets;
+    private final CompressionManager compressionManager;
+    private final ClientAuthenticator clientAuthenticator;
 
     {
         // generate the keypair for the local server

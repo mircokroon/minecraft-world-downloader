@@ -1,4 +1,4 @@
-package gui.realms;
+package gui.components;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

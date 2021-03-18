@@ -89,4 +89,11 @@ public class AuthDetails {
     public String getUsername() {
         return name;
     }
+
+    private static class UuidNameResponse {
+        String id, name;
+    }
 }
+
+
+
