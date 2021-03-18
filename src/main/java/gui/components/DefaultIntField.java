@@ -13,4 +13,10 @@ public class DefaultIntField extends DefaultTextField implements IComponentNumbe
         super(s);
         onChange();
     }
+
+    public void setValue(int i) {
+        setText(i + "");
+
+        handleFieldDefault();
+    }
 }

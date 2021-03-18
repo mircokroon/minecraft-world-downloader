@@ -16,15 +16,18 @@ public class AuthDetails {
 
     final String uuid;
     final String accessToken;
+    final String name;
     final boolean isValid;
 
-    public AuthDetails(String uuid, String accessToken) {
+    public AuthDetails(String name, String uuid, String accessToken) {
+        this.name = name;
         this.uuid = uuid;
         this.accessToken = accessToken;
         this.isValid = true;
     }
 
     private AuthDetails() {
+        name = "";
         uuid = "";
         accessToken = "";
         isValid = false;
@@ -47,7 +50,7 @@ public class AuthDetails {
 
         try {
             UuidNameResponse res = uuidFromUsername(username);
-            return new AuthDetails(res.id, accessToken);
+            return new AuthDetails(username, res.id, accessToken);
         } catch (IOException e) {
             e.printStackTrace(System.err);
             return INVALID;
@@ -82,4 +85,15 @@ public class AuthDetails {
             ", accessToken='" + accessToken + '\'' +
             '}';
     }
+
+    public String getUsername() {
+        return name;
+    }
+
+    private static class UuidNameResponse {
+        String id, name;
+    }
 }
+
+
+

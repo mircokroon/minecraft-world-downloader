@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="gui.RealmsTabController"
+            prefHeight="340.0" prefWidth="600.0">
+        <ListView fx:id="serverList" layoutX="14.0" layoutY="14.0" prefHeight="160.0" prefWidth="580.0"/>
+</AnchorPane>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane fx:id="item" prefHeight="40.0" prefWidth="300.0" xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml">
+   <Label fx:id="server" layoutX="14.0" layoutY="14.0" text="..." AnchorPane.leftAnchor="14.0"
+          AnchorPane.topAnchor="4.0"/>
+   <Label fx:id="motd" layoutX="14.0" layoutY="31.0" text="..." AnchorPane.bottomAnchor="4.0"/>
+   <Button fx:id="requestButton" mnemonicParsing="false" text="Request IP" AnchorPane.bottomAnchor="5.0"
+           AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
+   <Button fx:id="useButton" mnemonicParsing="false" text="Select" AnchorPane.bottomAnchor="5.0" visible="false"
+           AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0"/>
+   <ImageView fx:id="loading" fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true" visible="false"
+              AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="5.0">
+      <Image url="@loading.gif"/>
+   </ImageView>
+</AnchorPane>

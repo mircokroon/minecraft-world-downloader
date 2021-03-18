@@ -13,12 +13,15 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import proxy.auth.AuthStatus;
-import proxy.auth.ClientAuthenticator;
+import proxy.auth.AuthDetailsManager;
 import util.PathUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.ServerSocket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -55,6 +58,8 @@ public class GuiSettings {
     public Hyperlink openWorldDir;
     public CheckBox renderOtherPlayers;
     public CheckBox enableInfoMessages;
+    public Tab realmsTab;
+    public RealmsTabController realmsController;
     Config config;
     private boolean portInUse;
 
@@ -68,7 +73,6 @@ public class GuiSettings {
         if (config.isStarted()) {
             saveButton.setText("Save");
         }
-
 
         // connection tab
         server.setText(config.server);
@@ -95,6 +99,17 @@ public class GuiSettings {
         minecraftUsername.setText(config.username);
         accessToken.setText(config.accessToken);
 
+        // realms tab
+        if (config.isStarted()) {
+            tabPane.getTabs().remove(realmsTab);
+        } else {
+            tabPane.getSelectionModel().selectedItemProperty().addListener((e, oldVal, newVal) -> {
+                if (newVal == realmsTab) {
+                    save();
+                    realmsController.opened(this);
+                }
+            });
+        }
         disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
 
         authTooltip = new Tooltip("");
@@ -115,7 +130,7 @@ public class GuiSettings {
         accessToken.textProperty().addListener((ov, oldV, newV) -> {
             // trim invalid characters, remove accessToken at front in case they copied the entire line
             accessToken.setText(newV.trim()
-                    .replaceAll("[^A-Za-z0-9\\-.]*", "")
+                    .replaceAll("[^A-Za-z0-9\\-_.]*", "")
                     .replaceFirst("accessToken", ""));
         });
 
@@ -199,7 +214,7 @@ public class GuiSettings {
 
     private void verifyAuthDetails() {
         String path = minecraftDir.getText();
-        AuthStatus status = ClientAuthenticator.authDetailsValid(path);
+        AuthStatus status = AuthDetailsManager.authDetailsValid(path);
 
         authDetailsVerifyLabel.getStyleClass().clear();
         if (status.isExpired()) {
@@ -271,6 +286,19 @@ public class GuiSettings {
      * Write the settings from the GUI to the config file.
      */
     public void saveSettings(ActionEvent actionEvent) {
+        save();
+
+        if (!config.isStarted()) {
+            if (portInUse(config.portLocal)) {
+                System.err.println("Port in use");
+                return;
+            }
+        }
+        config.settingsComplete();
+        GuiManager.closeSettings();
+    }
+
+    private void save() {
         // connection tab
         config.server = server.getText();
         config.portRemote = Math.abs(portRemote.getAsInt());
@@ -294,15 +322,6 @@ public class GuiSettings {
         // auth tab
         config.username = minecraftUsername.getText();
         config.accessToken = accessToken.getText();
-
-        if (!config.isStarted()) {
-            if (portInUse(config.portLocal)) {
-                System.err.println("Port in use");
-                return;
-            }
-        }
-        config.settingsComplete();
-        GuiManager.closeSettings();
     }
 
     public boolean portInUse(int port) {
@@ -313,5 +332,26 @@ public class GuiSettings {
         } catch (IOException e) {
             return true;
         }
+    }
+
+    public void setSelectedIp(String address) throws URISyntaxException, MalformedURLException {
+        // address needs to start with a scheme, so we just prefix https
+        URI uri = new URI("https://" + address);
+
+        String host = uri.getHost();
+        int port = uri.getPort();
+
+        // if the port is the default, maybe it is not actually reported(?), so just in case...
+        if (port < 0) { port = 25565; }
+
+        if (host == null) {
+            throw new MalformedURLException("No host present in " + address);
+        }
+
+        this.portRemote.setValue(port);
+        this.server.setText(host);
+
+        tabPane.getSelectionModel().selectFirst();
+        this.saveButton.requestFocus();
     }
 }

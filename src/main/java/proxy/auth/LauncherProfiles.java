@@ -25,7 +25,7 @@ public class LauncherProfiles {
         Account account = authenticationDatabase.get(accountId);
         String accessToken = account.accessToken;
 
-        return new AuthDetails(uuid, accessToken);
+        return new AuthDetails(account.username, uuid, accessToken);
     }
 
     @Override

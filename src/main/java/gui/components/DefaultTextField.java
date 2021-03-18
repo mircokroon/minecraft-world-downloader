@@ -51,11 +51,12 @@ public class DefaultTextField extends TextField {
     /**
      * Check if the field has the default value, and act accordingly.
      */
-    private void handleFieldDefault() {
-        if (getText().equals(getDefaultVal())) {
+    protected void handleFieldDefault() {
+        isDefault = getText().equals(getDefaultVal());
+        pseudoClassStateChanged(isDefaultPseudoClass, isDefault);
+
+        if (isDefault) {
             setText(defaultPlaceholder);
-            pseudoClassStateChanged(isDefaultPseudoClass, true);
-            isDefault = true;
         }
     }
 
