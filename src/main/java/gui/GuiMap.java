@@ -25,6 +25,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.image.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -44,6 +45,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import java.util.function.DoubleConsumer;
 import java.util.stream.Collectors;
 
 /**
@@ -134,7 +136,7 @@ public class GuiMap {
         entityCanvas.setOnMouseEntered(e -> {
             mouseOver = true;
             if (playerHasConnected && !showErrorPrompt) {
-                helpLabel.setText("Right-click to open context menu. Scroll to zoom.");
+                helpLabel.setText("Right-click to open context menu. Scroll or +/- to zoom. Drag to pan.");
             }
         });
         entityCanvas.setOnMouseMoved(e -> {
@@ -375,13 +377,10 @@ public class GuiMap {
     }
 
     private void bindScroll() {
-        entityCanvas.setOnScroll(scrollEvent -> {
+        DoubleConsumer handleZoom = (multiplier) -> {
             int zoom = Config.getZoomLevel();
-            if (scrollEvent.getDeltaY() > 0) {
-                zoom /= 2;
-            } else {
-                zoom *= 2;
-            }
+            zoom *= multiplier;
+
             if (zoom > maxZoom) { zoom = maxZoom; }
             else if (zoom < 1) { zoom = 1; }
 
@@ -389,6 +388,18 @@ public class GuiMap {
                 Config.setZoomLevel(zoom);
                 redrawAll(true);
             }
+        };
+
+        entityCanvas.setFocusTraversable(true);
+        entityCanvas.getParent().setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.PLUS || e.getCode() == KeyCode.ADD || e.getCode() == KeyCode.EQUALS) {
+                handleZoom.accept(0.5);
+            } else if (e.getCode() == KeyCode.MINUS || e.getCode() == KeyCode.SUBTRACT) {
+                handleZoom.accept(2.0);
+            }
+        });
+        entityCanvas.getParent().setOnScroll(scrollEvent -> {
+            handleZoom.accept(scrollEvent.getDeltaY() > 0 ? 0.5 : 2.0);
         });
     }
 
