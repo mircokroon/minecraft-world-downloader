@@ -24,7 +24,7 @@ import java.util.stream.Stream;
 
 public class McaFile {
     public final static int SECTOR_SIZE = 4096;
-    private Map<Integer, ChunkBinary> chunkMap;
+    private HashMap<Integer, ChunkBinary> chunkMap;
     private final Path filePath;
     private final Coordinate2D regionLocation;
 
@@ -148,7 +148,7 @@ public class McaFile {
      * Convert the MCA file into individual chunk data.
      * For details on the MCA file format: https://minecraft.gamepedia.com/Region_file_format
      */
-    private Map<Integer, ChunkBinary> readFile(File mca) throws IOException {
+    private HashMap<Integer, ChunkBinary> readFile(File mca) throws IOException {
         FileInputStream inputStream = new FileInputStream(mca);
         byte[] bytes = IOUtils.toByteArray(inputStream);
         inputStream.close();
@@ -193,7 +193,7 @@ public class McaFile {
         if (chunkMap.size() == 1) {
             ChunkBinary first = chunkMap.values().iterator().next();
             if (first.getChunkData().length == SECTOR_SIZE) {
-                return Collections.emptyMap();
+                return new HashMap<>();
             }
         }
 
