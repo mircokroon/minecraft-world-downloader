@@ -611,6 +611,7 @@ public class GuiMap {
 
     private void drawChunk(GraphicsContext graphics, Coordinate2D pos, Bounds bounds, int gridSize, boolean drawBlack) {
         ChunkImage chunkImage = chunkMap.get(pos);
+        if (chunkImage == null) { return; }
 
         int drawX = (pos.getX() - bounds.getMinX()) * gridSize;
         int drawY = (pos.getZ() - bounds.getMinZ()) * gridSize;
