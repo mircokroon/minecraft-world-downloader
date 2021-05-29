@@ -47,7 +47,7 @@ public class PacketBuilder {
      */
     public static PacketBuilder constructClientMessage(Chat message, MessageTarget target) {
         Protocol protocol = Config.versionReporter().getProtocol();
-        PacketBuilder builder = new PacketBuilder(protocol.clientBound("message"));
+        PacketBuilder builder = new PacketBuilder(protocol.clientBound("Chat"));
 
         builder.writeString(message.toJson());
         builder.writeByte(target.getIdentifier());

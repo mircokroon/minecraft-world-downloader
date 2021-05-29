@@ -23,8 +23,8 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
         Protocol protocol = Config.versionReporter().getProtocol();
 
         Map<String, PacketOperator> operators = getOperators();
-        operators.put("join_game", provider -> {
-            PacketBuilder replacement = new PacketBuilder(protocol.clientBound("join_game"));
+        operators.put("Login", provider -> {
+            PacketBuilder replacement = new PacketBuilder(protocol.clientBound("Login"));
 
             replacement.copy(provider, INT, BOOL, BYTE, BYTE);
 
@@ -62,7 +62,7 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
             return false;
         });
 
-        operators.put("respawn", provider -> {
+        operators.put("Respawn", provider -> {
             SpecificTag dimensionNbt = provider.readNbtTag();
             Dimension dimension = Dimension.fromString(provider.readString());
             dimension.registerType(dimensionNbt);
@@ -72,7 +72,7 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
             return true;
         });
 
-        operators.put("chunk_multi_block_change", provider -> {
+        operators.put("SectionBlocksUpdate", provider -> {
             Coordinate3D pos = provider.readSectionCoordinates();
             WorldManager.getInstance().multiBlockChange(pos, provider);
 

@@ -148,7 +148,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
     protected PacketBuilder buildLightPacket() {
         Protocol p = Config.versionReporter().getProtocol();
         PacketBuilder packet = new PacketBuilder();
-        packet.writeVarInt(p.clientBound("chunk_update_light"));
+        packet.writeVarInt(p.clientBound("LightUpdate"));
 
         packet.writeVarInt(location.getX());
         packet.writeVarInt(location.getZ());

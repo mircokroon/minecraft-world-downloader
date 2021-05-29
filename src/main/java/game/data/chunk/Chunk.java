@@ -309,7 +309,7 @@ public abstract class Chunk extends ChunkEntities {
     public PacketBuilder toPacket() {
         Protocol p = Config.versionReporter().getProtocol();
         PacketBuilder packet = new PacketBuilder();
-        packet.writeVarInt(p.clientBound("chunk_data"));
+        packet.writeVarInt(p.clientBound("LevelChunk"));
 
         packet.writeInt(location.getX());
         packet.writeInt(location.getZ());

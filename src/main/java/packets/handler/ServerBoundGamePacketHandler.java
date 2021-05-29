@@ -30,16 +30,16 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             return true;
         };
 
-        operations.put("player_position", updatePlayerPosition);
-        operations.put("player_look", updatePlayerRotation);
-        operations.put("player_position_look", (provider) -> {
+        operations.put("MovePlayerPos", updatePlayerPosition);
+        operations.put("MovePlayerRot", updatePlayerRotation);
+        operations.put("MovePlayerPosRot", (provider) -> {
             updatePlayerPosition.apply(provider);
             updatePlayerRotation.apply(provider);
             return true;
         });
-        operations.put("player_vehicle_move", updatePlayerPosition);
+        operations.put("MoveVehicle", updatePlayerPosition);
 
-        operations.put("right_click", provider -> {
+        operations.put("UseItem", provider -> {
             // newer versions first include a VarInt with the hand
             if (Config.versionReporter().isAtLeast1_14()) {
                 provider.readVarInt();
@@ -49,7 +49,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
             return true;
         });
-        operations.put("close_window", provider -> {
+        operations.put("ContainerClose", provider -> {
             WorldManager.getInstance().getContainerManager().closeWindow(provider.readNext());
             return true;
         });
