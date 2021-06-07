@@ -4,18 +4,6 @@ import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
 
 public class VersionReporter {
-    private final static int DATA_VERSION_1_12 = 1022;
-    private final static int DATA_VERSION_1_13 = 1444;
-    private final static int DATA_VERSION_1_14 = 1901;
-    private final static int DATA_VERSION_1_15 = 2200;
-    private final static int DATA_VERSION_1_16 = 2504;
-
-    private final static int VERSION_1_12 = 317;
-    private final static int VERSION_1_13 = 341;
-    private final static int VERSION_1_14 = 440;
-    private final static int VERSION_1_15 = 550;
-    private final static int VERSION_1_16 = 701;
-
     private final int protocolVersion;
     public VersionReporter(int version) {
         this.protocolVersion = version;
@@ -52,50 +40,59 @@ public class VersionReporter {
     }
 
     public boolean isAtLeast1_12() {
-        return protocolVersion >= VERSION_1_12;
+        return protocolVersion >= Version.V1_12.protocolVersion;
     }
     public boolean isAtLeast1_13() {
-        return protocolVersion >= VERSION_1_13;
+        return protocolVersion >= Version.V1_13.protocolVersion;
     }
     public boolean isAtLeast1_14() {
-        return protocolVersion >= VERSION_1_14;
+        return protocolVersion >= Version.V1_14.protocolVersion;
     }
     public boolean isAtLeast1_15() {
-        return protocolVersion >= VERSION_1_15;
+        return protocolVersion >= Version.V1_15.protocolVersion;
     }
     public boolean isAtLeast1_16() {
-        return protocolVersion >= VERSION_1_16;
+        return protocolVersion >= Version.V1_16.protocolVersion;
+    }
+    public boolean isAtLeast1_17() {
+        return protocolVersion >= Version.V1_17.protocolVersion;
     }
 
     public static boolean isAtLeast1_12(int dataVersion) {
-        return dataVersion >= DATA_VERSION_1_12;
+        return dataVersion >= Version.V1_12.dataVersion;
     }
     public static boolean isAtLeast1_13(int dataVersion) {
-        return dataVersion >= DATA_VERSION_1_13;
+        return dataVersion >= Version.V1_13.dataVersion;
     }
     public static boolean isAtLeast1_14(int dataVersion) {
-        return dataVersion >= DATA_VERSION_1_14;
+        return dataVersion >= Version.V1_14.dataVersion;
     }
     public static boolean isAtLeast1_15(int dataVersion) {
-        return dataVersion >= DATA_VERSION_1_15;
+        return dataVersion >= Version.V1_15.dataVersion;
     }
     public static boolean isAtLeast1_16(int dataVersion) {
-        return dataVersion >= DATA_VERSION_1_16;
+        return dataVersion >= Version.V1_16.dataVersion;
+    }
+    public static boolean isAtLeast1_17(int dataVersion) {
+        return dataVersion >= Version.V1_17.dataVersion;
     }
 
     public boolean is1_12() {
-        return protocolVersion >= VERSION_1_12 && protocolVersion < VERSION_1_13;
+        return protocolVersion >= Version.V1_12.protocolVersion && protocolVersion < Version.V1_13.protocolVersion;
     }
     public boolean is1_13() {
-        return protocolVersion >= VERSION_1_13 && protocolVersion < VERSION_1_14;
+        return protocolVersion >= Version.V1_13.protocolVersion && protocolVersion < Version.V1_14.protocolVersion;
     }
     public boolean is1_14() {
-        return protocolVersion >= VERSION_1_14 && protocolVersion < VERSION_1_15;
+        return protocolVersion >= Version.V1_14.protocolVersion && protocolVersion < Version.V1_15.protocolVersion;
     }
     public boolean is1_15() {
-        return protocolVersion >= VERSION_1_15 && protocolVersion < VERSION_1_16;
+        return protocolVersion >= Version.V1_15.protocolVersion && protocolVersion < Version.V1_16.protocolVersion;
     }
     public boolean is1_16() {
-        return protocolVersion >= VERSION_1_16;
+        return protocolVersion >= Version.V1_16.protocolVersion && protocolVersion < Version.V1_17.protocolVersion;
+    }
+    public boolean is1_17() {
+        return protocolVersion >= Version.V1_17.protocolVersion;
     }
 }

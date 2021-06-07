@@ -4,17 +4,13 @@ import config.Config;
 import config.Option;
 import config.Version;
 import config.VersionReporter;
+import game.data.chunk.version.*;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.WorldManager;
 import game.data.entity.Entity;
-import game.data.chunk.version.Chunk_1_12;
-import game.data.chunk.version.Chunk_1_13;
-import game.data.chunk.version.Chunk_1_14;
-import game.data.chunk.version.Chunk_1_15;
-import game.data.chunk.version.Chunk_1_16;
 import packets.DataTypeProvider;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
@@ -103,19 +99,13 @@ public class ChunkFactory {
         DataTypeProvider dataProvider = parser.provider;
         CoordinateDim2D chunkPos = parser.location;
 
-        boolean full = dataProvider.readBoolean();
         Chunk chunk = worldManager.getChunk(chunkPos);
         if (chunk == null) {
             chunk = getVersionedChunk(chunkPos);
             worldManager.loadChunk(chunk, true, true);
         }
 
-        if (!full) {
-            // if we don't have the partial chunk (anymore?), just make one from scratch
-            chunk.markAsNew();
-        }
-
-        chunk.parse(dataProvider, full);
+        chunk.parse(dataProvider);
 
         return chunk;
     }
@@ -155,6 +145,7 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
         return Config.versionReporter().select(Chunk.class,
+                Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),
                 Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
                 Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos)),
                 Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos)),
@@ -170,6 +161,7 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
         return VersionReporter.select(dataVersion, Chunk.class,
+                Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),
                 Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
                 Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos)),
                 Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos)),

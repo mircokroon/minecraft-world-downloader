@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import config.Version;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
@@ -21,12 +22,14 @@ import java.util.function.IntUnaryOperator;
  * as the new versions do. As such this class is more lengthy than the new versions.
  */
 public class ChunkSection_1_12 extends ChunkSection {
-    protected int[][][] blockStates;
-
+    public static final Version VERSION = Version.V1_12;
     @Override
     public int getDataVersion() {
-        return Chunk_1_12.DATA_VERSION;
+        return VERSION.dataVersion;
     }
+
+    protected int[][][] blockStates;
+
 
     public ChunkSection_1_12(byte y, Palette palette) {
         super(y, palette);

@@ -74,6 +74,7 @@ public class WorldManager {
 
     protected WorldManager() {
         this.isStarted = false;
+        this.entityMap = new EntityNames();
         this.entityRegistry = new EntityRegistry(this);
         this.chunkFactory = new ChunkFactory();
         this.mapRegistry = new MapRegistry();

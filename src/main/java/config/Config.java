@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.stream.JsonReader;
 import game.data.WorldManager;
-import game.data.chunk.ChunkFactory;
 import game.data.registries.RegistryLoader;
 import game.protocol.Protocol;
 import game.protocol.ProtocolVersionHandler;
@@ -257,6 +256,7 @@ public class Config {
     private static void loadVersionRegistries(Protocol p) {
         try {
             RegistryLoader loader = RegistryLoader.forVersion(p.getVersion());
+            if (loader == null) { return; }
 
             WorldManager.getInstance().setEntityMap(loader.generateEntityNames());
             WorldManager.getInstance().setMenuRegistry(loader.generateMenuRegistry());
@@ -267,7 +267,6 @@ public class Config {
             loader.clean();
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(1);
         }
     }
 

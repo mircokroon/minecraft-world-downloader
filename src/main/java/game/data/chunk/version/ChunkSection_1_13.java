@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import config.Version;
 import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -16,9 +17,10 @@ import se.llbit.nbt.Tag;
  * convert the palette from the packet to an NBT palette.
  */
 public class ChunkSection_1_13 extends ChunkSection {
+    public static final Version VERSION = Version.V1_13;
     @Override
     public int getDataVersion() {
-        return Chunk_1_13.DATA_VERSION;
+        return VERSION.dataVersion;
     }
 
     public ChunkSection_1_13(byte y, Palette palette) {

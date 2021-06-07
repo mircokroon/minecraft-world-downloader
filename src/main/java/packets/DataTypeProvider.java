@@ -18,6 +18,7 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -262,6 +263,12 @@ public class DataTypeProvider {
             res[i] = readString();
         }
         return res;
+    }
+
+    public BitSet readBitSet() {
+        int numLongs = readVarInt();
+        long[] longs = readLongArray(numLongs);
+        return BitSet.valueOf(longs);
     }
 
     public CoordinateDouble3D readDoubleCoordinates() {

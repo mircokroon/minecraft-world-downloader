@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 
 public class PacketBuilder {
     ByteQueue bytes;
@@ -258,6 +259,13 @@ public class PacketBuilder {
         ((Buffer) buffer).flip();
         writeByteArray(buffer.array());
     }
+
+    public void writeBitSet(BitSet bits) {
+        long[] longs = bits.toLongArray();
+        writeVarInt(longs.length);
+        writeLongArray(longs);
+    }
+
 
     public void copyRemainder(DataTypeProvider provider) {
         writeByteArray(provider.readByteArray(provider.remaining()));

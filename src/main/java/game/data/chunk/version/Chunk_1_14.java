@@ -1,6 +1,7 @@
 package game.data.chunk.version;
 
 import config.Config;
+import config.Version;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -24,16 +25,16 @@ import java.util.function.Function;
  * this was moved to a different packet. Also, a block count?
  */
 public class Chunk_1_14 extends Chunk_1_13 {
-    public static final int DATA_VERSION = 1901;
+    public static final Version VERSION = Version.V1_14;
+
+    @Override
+    public int getDataVersion() { return VERSION.dataVersion; }
 
     SpecificTag heightMap;
 
     public Chunk_1_14(CoordinateDim2D location) {
         super(location);
     }
-
-    @Override
-    public int getDataVersion() { return DATA_VERSION; }
 
     @Override
     protected void addLevelNbtTags(CompoundTag map) {

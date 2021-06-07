@@ -3,6 +3,7 @@ package game.data.dimension;
 import com.google.gson.Gson;
 import config.Config;
 import game.data.WorldManager;
+import game.data.chunk.version.Chunk_1_17;
 import se.llbit.nbt.SpecificTag;
 import util.PathUtils;
 
@@ -111,9 +112,13 @@ public class Dimension {
 
     /**
      * When we join a dimension, we can use the dimension type information to try and link this to the registered
-     * type in the codec.
+     * type in the codec. For 1.17+ we need to give the world height/depth information to the chunk.
      */
     public void registerType(SpecificTag dimensionNbt) {
+        if (Config.versionReporter().isAtLeast1_17()) {
+            Chunk_1_17.setWorldHeight(dimensionNbt.get("min_y").intValue(), dimensionNbt.get("height").intValue());
+        }
+
         if (this.type != null) {
             return;
         }

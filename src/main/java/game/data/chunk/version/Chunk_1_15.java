@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import config.Version;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -8,14 +9,14 @@ import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
 
 public class Chunk_1_15 extends Chunk_1_14 {
-    public static final int DATA_VERSION = 2200;
+    public static final Version VERSION = Version.V1_15;
+
+    @Override
+    public int getDataVersion() { return VERSION.dataVersion; }
 
     public Chunk_1_15(CoordinateDim2D location) {
         super(location);
     }
-
-    @Override
-    public int getDataVersion() { return DATA_VERSION; }
 
     @Override
     protected void parse2DBiomeData(DataTypeProvider dataProvider) { }

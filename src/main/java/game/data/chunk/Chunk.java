@@ -108,20 +108,22 @@ public abstract class Chunk extends ChunkEntities {
     /**
      * Read a chunk column. Largely based on: https://wiki.vg/Protocol
      */
-    public void readChunkColumn(boolean full, int mask, DataTypeProvider dataProvider) {
+    public void readChunkColumn(boolean full, BitSet mask, DataTypeProvider dataProvider) {
         // We shift the mask left each iteration and check the unit bit. If the mask is 0, there will be no more chunks
         // so can stop the loop early.
-        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && mask != 0; sectionY++, mask >>>= 1) {
+        int maskIndex = 0;
+        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && !mask.isEmpty(); sectionY++, maskIndex++) {
             ChunkSection section = getChunkSection(sectionY);
 
             // Mask tells us if a section is present or not
-            if ((mask & 1) == 0) {
+            if (!mask.get(maskIndex)) {
                 if (full && section != null) {
                     section.resetBlocks();
                 }
 
                 continue;
             }
+            mask.set(maskIndex, false);
 
             readBlockCount(dataProvider);
 
@@ -248,12 +250,20 @@ public abstract class Chunk extends ChunkEntities {
      * Parse the chunk data.
      *
      * @param dataProvider network input
-     * @param full         indicates if its the full chunk or a part of it
      */
-    void parse(DataTypeProvider dataProvider, boolean full) {
+    protected void parse(DataTypeProvider dataProvider) {
         raiseEvent("parse from packet");
 
-        int mask = dataProvider.readVarInt();
+        boolean full = dataProvider.readBoolean();
+        // if we don't have the partial chunk (anymore?), just make one from scratch
+        if (!full) {
+            this.markAsNew();
+        }
+
+        // for older versions, we use a BitSet as 1.17+ does. We construct it manually by turning the single int into
+        // a long.
+        long maskLong = dataProvider.readVarInt();
+        BitSet mask = BitSet.valueOf(new long[]{maskLong});
 
         // for 1.14+
         parseHeightMaps(dataProvider);
@@ -265,11 +275,18 @@ public abstract class Chunk extends ChunkEntities {
         int size = dataProvider.readVarInt();
         readChunkColumn(full, mask, dataProvider.ofLength(size));
 
+        parseTileEntities(dataProvider);
+        afterParse();
+    }
+
+    protected void parseTileEntities(DataTypeProvider dataProvider) {
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
             addTileEntity(dataProvider.readNbtTag());
         }
+    }
 
+    protected void afterParse() {
         // ensure the chunk is (re)saved
         this.saved = false;
 
