@@ -7,7 +7,6 @@ import game.data.chunk.palette.BlockColors;
 import game.data.dimension.Dimension;
 import org.junit.jupiter.api.Test;
 import packets.DataTypeProvider;
-import packets.builder.PacketBuilder;
 import packets.builder.PacketBuilderAndParserTest;
 
 import java.io.IOException;
@@ -53,6 +52,44 @@ class ChunkTest extends PacketBuilderAndParserTest {
         up.provider = parser;
 
         assertThat(ChunkFactory.parseChunk(up, mock)).isEqualTo(c);
+    }
+
+    /**
+     * Tests that reading in binary chunk data (as stored in MCA Files), writing it to a network packet and parsing the
+     * network packet leads to the same block states. Note that this does not ensure that the client is necessarily able
+     * to understand the chunk, just that it is internally consistent.
+     */
+    private void testForWithLight(int protocolVersion, String dataFile) throws IOException, ClassNotFoundException {
+        // set up mock
+        WorldManager mock = mock(WorldManager.class);
+        when(mock.getBlockColors()).thenReturn(mock(BlockColors.class));
+        when(mock.getChunkFactory()).thenReturn(new ChunkFactory());
+
+        WorldManager.setInstance(mock);
+
+        Config.setInstance(new Config());
+        Config.setProtocolVersion(protocolVersion);
+
+        ObjectInputStream in = new ObjectInputStream(ChunkTest.class.getClassLoader().getResourceAsStream(dataFile));
+        cb = (ChunkBinary) in.readObject();
+
+        Chunk c = cb.toChunk(pos);
+
+        builder = c.toPacket();
+        DataTypeProvider parser = getParser();
+
+        CoordinateDim2D coords = new CoordinateDim2D(parser.readInt(), parser.readInt(), pos.getDimension());
+        UnparsedChunk up = new UnparsedChunk(coords);
+        up.provider = parser;
+
+        builder = c.toLightPacket();
+        DataTypeProvider lightParser = getParser();
+
+        Chunk parsed = ChunkFactory.parseChunk(up, mock);
+        assertThat(lightParser.readVarInt()).isEqualTo(0);
+        assertThat(lightParser.readVarInt()).isEqualTo(0);
+        parsed.updateLight(lightParser);
+        assertThat(parsed).isEqualTo(c);
     }
 
     @Test
@@ -113,6 +150,11 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
         assertThat(dst.getChunkSection(0).getBlockLight()).isEqualTo(block);
         assertThat(dst.getChunkSection(0).getSkyLight()).isEqualTo(sky);
+    }
+
+    @Test
+    void chunk_1_17() throws IOException, ClassNotFoundException {
+        testForWithLight(755, "chunkdata_1_17");
     }
 
 

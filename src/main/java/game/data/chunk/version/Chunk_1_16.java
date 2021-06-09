@@ -1,23 +1,16 @@
 package game.data.chunk.version;
 
-import config.Config;
 import config.Version;
-import game.data.coordinates.Coordinate3D;
-import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
-import game.protocol.Protocol;
-import javafx.util.Pair;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
 import packets.DataTypeProvider;
-import packets.builder.DebugPacketBuilder;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * Support for chunks of version 1.16.2+. 1.16.0 and 1.16.1 are not supported.

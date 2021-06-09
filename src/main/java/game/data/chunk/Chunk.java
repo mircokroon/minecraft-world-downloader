@@ -26,7 +26,6 @@ public abstract class Chunk extends ChunkEntities {
     public static final int SECTION_HEIGHT = 16;
     public static final int SECTION_WIDTH = 16;
     protected static final int LIGHT_SIZE = 2048;
-    protected static final int CHUNK_HEIGHT = 256;
     private final ChunkSection[] chunkSections;
     public CoordinateDim2D location;
     private Runnable afterParse;
@@ -64,9 +63,11 @@ public abstract class Chunk extends ChunkEntities {
     protected int getMinSection() {
         return 0;
     }
+
     protected int getMinBlockSection() {
         return 0;
     }
+
     protected int getMaxSection() {
         return 15;
     }
@@ -111,19 +112,17 @@ public abstract class Chunk extends ChunkEntities {
     public void readChunkColumn(boolean full, BitSet mask, DataTypeProvider dataProvider) {
         // We shift the mask left each iteration and check the unit bit. If the mask is 0, there will be no more chunks
         // so can stop the loop early.
-        int maskIndex = 0;
-        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && !mask.isEmpty(); sectionY++, maskIndex++) {
+        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && !mask.isEmpty(); sectionY++) {
             ChunkSection section = getChunkSection(sectionY);
 
             // Mask tells us if a section is present or not
-            if (!mask.get(maskIndex)) {
+            if (!mask.get(sectionY - getMinBlockSection())) {
                 if (full && section != null) {
                     section.resetBlocks();
                 }
-
                 continue;
             }
-            mask.set(maskIndex, false);
+            mask.set(sectionY - getMinBlockSection(), false);
 
             readBlockCount(dataProvider);
 
@@ -141,16 +140,14 @@ public abstract class Chunk extends ChunkEntities {
             if (dataArrayLength == 0) {
                 continue;
             }
+
             // parse blocks
             section.setBlocks(dataProvider.readLongArray(dataArrayLength));
 
             parseLights(section, dataProvider);
 
-            // don't set section if it only has air or nothing at all
-            if (!palette.isEmpty()) {
-                // May replace an existing section or a null one
-                setChunkSection(sectionY, section);
-            }
+            // May replace an existing section or a null one
+            setChunkSection(sectionY, section);
         }
 
         // biome data is only present in full chunks, for <= 1.14.4
@@ -335,16 +332,18 @@ public abstract class Chunk extends ChunkEntities {
         writeBitMask(packet);
         writeHeightMaps(packet);
         writeBiomes(packet);
-
-        // sections
-        PacketBuilder columns = writeSectionData();
-        byte[] columnArr = columns.toArray();
-        packet.writeVarInt(columnArr.length);
-        packet.writeByteArray(columnArr);
+        writeChunkSections(packet);
 
         // we don't include block entities - these chunks will be far away so they shouldn't be rendered anyway
         packet.writeVarInt(0);
         return packet;
+    }
+
+    protected void writeChunkSections(PacketBuilder packet) {
+        PacketBuilder columns = writeSectionData();
+        byte[] columnArr = columns.toArray();
+        packet.writeVarInt(columnArr.length);
+        packet.writeByteArray(columnArr);
     }
 
     public PacketBuilder toLightPacket() { return null; }
@@ -355,7 +354,7 @@ public abstract class Chunk extends ChunkEntities {
     protected PacketBuilder writeSectionData() {
         PacketBuilder column = new PacketBuilder();
         for (ChunkSection section : getAllSections()) {
-            if (section.getY() >= getMinBlockSection()) {
+            if (section.getY() >= getMinSection()) {
                 section.write(column);
             }
         }
@@ -366,10 +365,11 @@ public abstract class Chunk extends ChunkEntities {
     private void writeBitMask(PacketBuilder packet) {
         int res = 0;
         for (ChunkSection section : getAllSections()) {
-            if (section.getY() >= getMinBlockSection()) {
-                res |= 1 << section.getY();
+            if (section.getY() >= getMinSection()) {
+                res |= 1 << (section.getY() - getMinSection());
             }
         }
+
         packet.writeVarInt(res);
     }
 

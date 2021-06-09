@@ -166,17 +166,6 @@ public class ChunkSection_1_12 extends ChunkSection {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        ChunkSection_1_12 that = (ChunkSection_1_12) o;
-
-        return Arrays.deepEquals(blockStates, that.blockStates);
-    }
-
-    @Override
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + Arrays.deepHashCode(blockStates);

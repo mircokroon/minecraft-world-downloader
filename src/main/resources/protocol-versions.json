@@ -171,9 +171,9 @@
                 "0x0A": "ContainerClose"
 			}
 		},
-		"1073741859": {
-			"version": "1.17-rc2",
-			"dataVersion": 2716,
+		"755": {
+			"version": "1.17",
+			"dataVersion": 2724,
 			"clientBound": {
 				"0x00": "AddEntity",
 				"0x02": "AddMob",

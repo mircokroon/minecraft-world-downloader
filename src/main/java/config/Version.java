@@ -6,7 +6,7 @@ public enum Version {
     V1_14(440, 1901),
     V1_15(550, 2200),
     V1_16(701, 2504),
-    V1_17(0x4000001D, 2716),
+    V1_17(755, 2724),
     ANY(0, 0);
 
     public final int dataVersion;

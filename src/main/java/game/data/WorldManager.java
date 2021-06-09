@@ -72,7 +72,7 @@ public class WorldManager {
     private final EntityRegistry entityRegistry;
     private final ChunkFactory chunkFactory;
 
-    protected WorldManager() {
+    public WorldManager() {
         this.isStarted = false;
         this.entityMap = new EntityNames();
         this.entityRegistry = new EntityRegistry(this);

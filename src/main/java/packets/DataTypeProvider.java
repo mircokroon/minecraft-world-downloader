@@ -282,4 +282,12 @@ public class DataTypeProvider {
     public int remaining() {
         return this.finalFullPacket.length - pos;
     }
+
+    @Override
+    public String toString() {
+        return "DataTypeProvider{" +
+                "finalFullPacket=" + Arrays.toString(finalFullPacket) +
+                ", pos=" + pos +
+                '}';
+    }
 }
