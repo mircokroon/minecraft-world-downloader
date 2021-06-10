@@ -1,5 +1,8 @@
 package game.data.entity.specific;
 
+import config.Config;
+import config.Option;
+import config.Version;
 import game.data.container.Slot;
 import game.data.entity.ObjectEntity;
 import game.data.entity.metadata.MetaData_1_13;
@@ -51,7 +54,10 @@ public class ItemFrame extends ObjectEntity {
     @Override
     public void parseMetadata(DataTypeProvider provider) {
         if (metaData == null) {
-            metaData = new ItemFrameMetaData();
+            metaData = Config.versionReporter().select(ItemFrameMetaData.class,
+                    Option.of(Version.V1_17, ItemFrameMetaData_1_17::new),
+                    Option.of(Version.ANY, ItemFrameMetaData::new)
+            );
         }
         try {
             metaData.parse(provider);
@@ -76,9 +82,22 @@ class ItemFrameMetaData extends MetaData_1_13 {
 
     @Override
     public Consumer<DataTypeProvider> getIndexHandler(int i) {
+        System.out.println("Item frame index " + i);
         switch (i) {
             case 7: return provider -> item = provider.readSlot();
             case 8: return provider -> rotation = provider.readVarInt();
+        }
+        return super.getIndexHandler(i);
+    }
+}
+
+class ItemFrameMetaData_1_17 extends ItemFrameMetaData {
+    @Override
+    public Consumer<DataTypeProvider> getIndexHandler(int i) {
+        // order of metadata fields for item frames changed a little bit in 1.17
+        switch (i) {
+            case 7: return provider -> rotation = provider.readVarInt();
+            case 8: return provider -> item = provider.readSlot();
         }
         return super.getIndexHandler(i);
     }

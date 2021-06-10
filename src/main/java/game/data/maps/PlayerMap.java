@@ -35,6 +35,7 @@ public abstract class PlayerMap {
 
     public static PlayerMap getVersioned(int id) {
         return Config.versionReporter().select(PlayerMap.class,
+                Option.of(Version.V1_17, () -> new PlayerMap_1_17(id)),
                 Option.of(Version.V1_14, () -> new PlayerMap_1_14(id)),
                 Option.of(Version.V1_12, () -> new PlayerMap_1_12(id))
         );
