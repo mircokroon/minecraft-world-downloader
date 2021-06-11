@@ -198,4 +198,8 @@ public class Chunk_1_17 extends Chunk_1_16 {
         return maxBlockSectionY;
     }
 
+    @Override
+    public boolean hasSeparateEntities() {
+        return true;
+    }
 }

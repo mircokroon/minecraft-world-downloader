@@ -82,7 +82,6 @@ class ItemFrameMetaData extends MetaData_1_13 {
 
     @Override
     public Consumer<DataTypeProvider> getIndexHandler(int i) {
-        System.out.println("Item frame index " + i);
         switch (i) {
             case 7: return provider -> item = provider.readSlot();
             case 8: return provider -> rotation = provider.readVarInt();

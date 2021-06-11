@@ -523,4 +523,7 @@ public abstract class Chunk extends ChunkEntities {
         return new ChunkState(true, isSaved());
     }
 
+    public boolean hasSeparateEntities() {
+        return false;
+    }
 }

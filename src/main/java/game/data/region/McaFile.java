@@ -27,16 +27,51 @@ public class McaFile {
     private HashMap<Integer, ChunkBinary> chunkMap;
     private final Path filePath;
     private final Coordinate2D regionLocation;
+    private final boolean isEntityFile;
+
 
     /**
      * Parse MCA from a given file location.
      * @param file the MCA file to be used
      */
-    public McaFile(File file) throws IOException {
+    public McaFile(File file, boolean isEntityFile) throws IOException {
+        this.isEntityFile = isEntityFile;
+
         chunkMap = readFile(file);
         filePath = PathUtils.toPath(file.getAbsolutePath());
         String[] bits = file.getName().split("\\.");
         regionLocation = new Coordinate2D(Integer.parseInt(bits[1]), Integer.parseInt(bits[2]));
+    }
+    public McaFile(File file) throws IOException {
+        this(file, false);
+    }
+
+    /**
+     * Generate an MCA file from a given map of chunk binaries. This method will try to read this MCA file to merge with
+     * it so that existing chunks are not deleted.
+     * @param pos      the positon of this file
+     */
+    public McaFile(CoordinateDim2D pos, boolean isEntityFile) {
+        this.isEntityFile = isEntityFile;
+        regionLocation = pos.offsetRegion();
+
+        String filename = "r." + regionLocation.getX() + "." + regionLocation.getZ() + ".mca";
+        String directory = this.isEntityFile ? "entities" : "region";
+        Path filePath = PathUtils.toPath(Config.getWorldOutputDir(), pos.getDimension().getPath(), directory, filename);
+
+        this.chunkMap = new HashMap<>();
+        if (filePath.toFile().exists()) {
+            try {
+                this.chunkMap = readFile(filePath.toFile());
+            } catch (IOException e) {
+                // fail silently, we will just overwrite the file instead
+            }
+        }
+
+        this.filePath = filePath;
+    }
+    public McaFile(CoordinateDim2D pos) {
+        this(pos, false);
     }
 
     public static File coordinatesToFile(Path dir, Coordinate2D coords) {
@@ -216,29 +251,6 @@ public class McaFile {
         return res;
     }
 
-    /**
-     * Generate an MCA file from a given map of chunk binaries. This method will try to read this MCA file to merge with
-     * it so that existing chunks are not deleted.
-     * @param pos      the positon of this file
-     */
-    public McaFile(CoordinateDim2D pos) {
-        regionLocation = pos.offsetRegion();
-
-        String filename = "r." + regionLocation.getX() + "." + regionLocation.getZ() + ".mca";
-        Path filePath = PathUtils.toPath(Config.getWorldOutputDir(),pos.getDimension().getPath(), "region", filename);
-
-        this.chunkMap = new HashMap<>();
-        if (filePath.toFile().exists()) {
-            try {
-                this.chunkMap = readFile(filePath.toFile());
-            } catch (IOException e) {
-                // fail silently, we will just overwrite the file instead
-            }
-        }
-
-        this.filePath = filePath;
-    }
-
     public void addChunks(Map<Integer, ChunkBinary> chunkMap) {
         // merge new chunks into existing ones
         chunkMap.forEach((key, value) -> this.chunkMap.put(key, value));
@@ -270,7 +282,6 @@ public class McaFile {
 
         // create directory if it doesn't already exist
         Files.createDirectories(filePath.getParent());
-
         Files.write(filePath, toWrite);
     }
 
@@ -373,5 +384,9 @@ public class McaFile {
 
     public int countChunks() {
         return chunkMap.size();
+    }
+
+    public boolean isEmpty() {
+        return chunkMap.isEmpty();
     }
 }
