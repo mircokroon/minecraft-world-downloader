@@ -1,6 +1,7 @@
 package game.data.chunk;
 
 import config.Config;
+import config.Version;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockColors;
@@ -94,32 +95,32 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
     @Test
     void chunk_1_12() throws IOException, ClassNotFoundException {
-        testFor(340, "chunkdata_1_12");
+        testFor(Version.V1_12.protocolVersion, "chunkdata_1_12");
     }
 
     @Test
     void chunk_1_13() throws IOException, ClassNotFoundException {
-        testFor(404, "chunkdata_1_13");
+        testFor(Version.V1_13.protocolVersion, "chunkdata_1_13");
     }
 
     @Test
     void chunk_1_14() throws IOException, ClassNotFoundException {
-        testFor(498, "chunkdata_1_14");
+        testFor(Version.V1_14.protocolVersion, "chunkdata_1_14");
     }
 
     @Test
     void chunk_1_15() throws IOException, ClassNotFoundException {
-        testFor(578, "chunkdata_1_15");
+        testFor(Version.V1_15.protocolVersion, "chunkdata_1_15");
     }
 
     @Test
     void chunk_1_16() throws IOException, ClassNotFoundException {
-        testFor(751, "chunkdata_1_16");
+        testFor(Version.V1_16.protocolVersion, "chunkdata_1_16");
     }
 
     @Test
     void chunk_1_16_light() throws IOException, ClassNotFoundException {
-        testFor(751, "chunkdata_1_16");
+        testFor(Version.V1_16.protocolVersion, "chunkdata_1_16");
 
         int trueX = -100;
         int trueZ = 100;
@@ -154,8 +155,6 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
     @Test
     void chunk_1_17() throws IOException, ClassNotFoundException {
-        testForWithLight(755, "chunkdata_1_17");
+        testForWithLight(Version.V1_17.protocolVersion, "chunkdata_1_17");
     }
-
-
 }
