@@ -24,11 +24,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class LevelData {
-    WorldManager worldManager;
-    Path outputDir;
-    File file;
-    Tag root;
-    CompoundTag data;
+    private final WorldManager worldManager;
+    private final Path outputDir;
+    private final File file;
+    private Tag root;
+    private CompoundTag data;
+    private boolean savingBroken;
 
     public LevelData(WorldManager worldManager) {
         this.worldManager = worldManager;
@@ -91,6 +92,13 @@ public class LevelData {
      * the resource folder.
      */
     public void save() throws IOException {
+        if (savingBroken) { return; }
+        if (data == null) {
+            savingBroken = true;
+            System.err.println("Unable to read in valid 'level.dat' file. Chunks will be saved, but they cannot be opened in-game without manually providing a 'level.dat' file.");
+            return;
+        }
+
         // add the player's position
         if (worldManager.getPlayerPosition() != null) {
             Tag playerTag = data.get("Player");
