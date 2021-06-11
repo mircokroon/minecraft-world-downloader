@@ -167,6 +167,10 @@ public abstract class ChunkEntities extends ChunkEvents {
     public abstract int getDataVersion();
 
 
+    /**
+     * For 1.17+, entities are stored separately from blocks and tile entities. This method constructs the NBT object
+     * of just the entity file.
+     */
     public NamedTag toEntityNbt() {
         if (!hasSeparateEntities()) {
             return null;
