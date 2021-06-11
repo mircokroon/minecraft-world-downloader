@@ -1,11 +1,12 @@
 package config;
 
 public enum Version {
-    V1_12(317, 1022),
-    V1_13(341, 1444),
-    V1_14(440, 1901),
-    V1_15(550, 2200),
-    V1_16(701, 2504),
+    // version numbers correspond to the earlier full release
+    V1_12(317, 1139),
+    V1_13(341, 1519),
+    V1_14(440, 1952),
+    V1_15(550, 2225),
+    V1_16(701, 2578),
     V1_17(755, 2724),
     ANY(0, 0);
 

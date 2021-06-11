@@ -1,7 +1,7 @@
 package game.data.region;
 
 /**
- * Class to hold the combination of entity and region MCA files for. 
+ * Class to hold the combination of entity and region MCA files for.
  */
 public class McaFilePair {
     McaFile region;

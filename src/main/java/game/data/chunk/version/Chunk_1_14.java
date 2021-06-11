@@ -60,7 +60,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
 
     @Override
     protected int getMinBlockSection() {
-        return -1;
+        return 0;
     }
 
     @Override

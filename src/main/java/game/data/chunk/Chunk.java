@@ -110,19 +110,22 @@ public abstract class Chunk extends ChunkEntities {
      * Read a chunk column. Largely based on: https://wiki.vg/Protocol
      */
     public void readChunkColumn(boolean full, BitSet mask, DataTypeProvider dataProvider) {
-        // We shift the mask left each iteration and check the unit bit. If the mask is 0, there will be no more chunks
-        // so can stop the loop early.
+        // Loop through section Y values, starting from the lowest section that has blocks inside it. Compute the index
+        // in the mask by subtracting the minimum chunk packet section, e.g. the lowest Y value we will find in the
+        // mask.
         for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && !mask.isEmpty(); sectionY++) {
             ChunkSection section = getChunkSection(sectionY);
 
-            // Mask tells us if a section is present or not
-            if (!mask.get(sectionY - getMinBlockSection())) {
+            // A 1 in the position of the mask indicates this chunk section is present in the data buffer
+            int maskIndex = sectionY - getMinBlockSection();
+            if (!mask.get(maskIndex)) {
                 if (full && section != null) {
                     section.resetBlocks();
                 }
                 continue;
             }
-            mask.set(sectionY - getMinBlockSection(), false);
+            // Set indices to 0 when read so that we can stop once the mask is empty
+            mask.set(maskIndex, false);
 
             readBlockCount(dataProvider);
 
@@ -354,7 +357,7 @@ public abstract class Chunk extends ChunkEntities {
     protected PacketBuilder writeSectionData() {
         PacketBuilder column = new PacketBuilder();
         for (ChunkSection section : getAllSections()) {
-            if (section.getY() >= getMinSection()) {
+            if (section.getY() >= getMinBlockSection()) {
                 section.write(column);
             }
         }
@@ -365,8 +368,8 @@ public abstract class Chunk extends ChunkEntities {
     private void writeBitMask(PacketBuilder packet) {
         int res = 0;
         for (ChunkSection section : getAllSections()) {
-            if (section.getY() >= getMinSection()) {
-                res |= 1 << (section.getY() - getMinSection());
+            if (section.getY() >= getMinBlockSection()) {
+                res |= 1 << section.getY() - getMinBlockSection();
             }
         }
 
