@@ -30,6 +30,7 @@ public class Region {
     private final Set<Coordinate2D> toDelete;
 
     private final McaFile file;
+    private final McaFile fileEntities;
 
     /**
      * Initialise the region with the given coordinates.
@@ -42,6 +43,7 @@ public class Region {
         this.toDelete = new HashSet<>();
 
         this.file = new McaFile(regionCoordinates);
+        this.fileEntities = new McaFile(regionCoordinates, true);
     }
 
     /**
@@ -109,7 +111,7 @@ public class Region {
      * been saved. Will update the Gui with the chunk that's about to be saved.
      * @return the McaFile corresponding to this region
      */
-    public McaFile toFile(Coordinate2D playerPos) {
+    public McaFilePair toFile(Coordinate2D playerPos) {
         if (!updatedSinceLastWrite) {
             return null;
         }
@@ -117,6 +119,7 @@ public class Region {
         updatedSinceLastWrite = false;
 
         Map<Integer, ChunkBinary> chunkBinaryMap = new HashMap<>();
+        Map<Integer, ChunkBinary> chunkEntityBinaryMap = new HashMap<>();
         chunks.keySet().forEach(coordinate -> {
             try {
                 Chunk chunk = chunks.get(coordinate);
@@ -137,14 +140,19 @@ public class Region {
                 // get the chunk in binary format and get its coordinates as an Mca compatible integer. Then add
                 // these to the map of chunk binaries.
                 ChunkBinary binary = ChunkBinary.fromChunk(chunk);
-
-                if (binary == null) {
-                    return;
+                ChunkBinary entityBinary = null;
+                if (chunk.hasSeparateEntities()) {
+                    entityBinary = ChunkBinary.entitiesFromChunk(chunk);
                 }
 
                 Coordinate2D localCoordinate = coordinate.toRegionLocal();
                 int pos = 4 * ((localCoordinate.getX() & 31) + (localCoordinate.getZ() & 31) * 32);
-                chunkBinaryMap.put(pos, binary);
+                if (binary != null) {
+                    chunkBinaryMap.put(pos, binary);
+                }
+                if (entityBinary != null) {
+                    chunkEntityBinaryMap.put(pos, entityBinary);
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -157,12 +165,13 @@ public class Region {
         }
         toDelete.clear();
 
-        if (chunkBinaryMap.isEmpty()) {
+        if (chunkBinaryMap.isEmpty() && chunkEntityBinaryMap.isEmpty()) {
             return null;
         }
 
         file.addChunks(chunkBinaryMap);
-        return file;
+        fileEntities.addChunks(chunkEntityBinaryMap);
+        return new McaFilePair(file, fileEntities);
     }
 
     public McaFile getFile() {

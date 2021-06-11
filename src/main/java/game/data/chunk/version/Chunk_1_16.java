@@ -1,35 +1,29 @@
 package game.data.chunk.version;
 
-import config.Config;
-import game.data.coordinates.Coordinate3D;
-import game.data.coordinates.CoordinateDim2D;
+import config.Version;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
-import game.protocol.Protocol;
-import javafx.util.Pair;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDim2D;
 import packets.DataTypeProvider;
-import packets.builder.DebugPacketBuilder;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * Support for chunks of version 1.16.2+. 1.16.0 and 1.16.1 are not supported.
  */
 public class Chunk_1_16 extends Chunk_1_15 {
-    public static final int DATA_VERSION = 2578;
+    public static final Version VERSION = Version.V1_16;
+
+    @Override
+    public int getDataVersion() { return VERSION.dataVersion; }
 
     public Chunk_1_16(CoordinateDim2D location) {
         super(location);
     }
-
-    @Override
-    public int getDataVersion() { return DATA_VERSION; }
 
 
     // 1.16.2 changes biomes from int[1024] to varint[given length]

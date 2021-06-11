@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import config.Version;
 import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -10,15 +11,18 @@ import se.llbit.nbt.ListTag;
 import se.llbit.nbt.LongArrayTag;
 import se.llbit.nbt.Tag;
 
+import java.util.Arrays;
+
 /**
  * Starting with 1.13, the chunk format requires a palette and the palette indices. This is actually
  * much easier for us as the packet also comes in palette indices, so we can just copy those over and
  * convert the palette from the packet to an NBT palette.
  */
 public class ChunkSection_1_13 extends ChunkSection {
+    public static final Version VERSION = Version.V1_13;
     @Override
     public int getDataVersion() {
-        return Chunk_1_13.DATA_VERSION;
+        return VERSION.dataVersion;
     }
 
     public ChunkSection_1_13(byte y, Palette palette) {
@@ -54,5 +58,16 @@ public class ChunkSection_1_13 extends ChunkSection {
 
     private ListTag createPalette() {
         return new ListTag(Tag.TAG_COMPOUND, palette.toNbt());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ChunkSection_1_13 that = (ChunkSection_1_13) o;
+
+        if (getY() != that.getY()) return false;
+        return Arrays.equals(blocks, that.blocks);
     }
 }

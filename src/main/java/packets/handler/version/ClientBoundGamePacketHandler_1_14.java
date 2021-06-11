@@ -21,8 +21,8 @@ public class ClientBoundGamePacketHandler_1_14 extends ClientBoundGamePacketHand
         Protocol protocol = Config.versionReporter().getProtocol();
 
         Map<String, PacketOperator> operators = getOperators();
-        operators.put("join_game", provider -> {
-            PacketBuilder replacement = new PacketBuilder(protocol.clientBound("join_game"));
+        operators.put("Login", provider -> {
+            PacketBuilder replacement = new PacketBuilder(protocol.clientBound("Login"));
             replacement.copy(provider, INT, BYTE);
 
             // current dimension
@@ -43,7 +43,7 @@ public class ClientBoundGamePacketHandler_1_14 extends ClientBoundGamePacketHand
             return false;
         });
 
-        operators.put("open_window", provider -> {
+        operators.put("OpenScreen", provider -> {
             int windowId = provider.readNext();
 
             int windowType = provider.readVarInt();

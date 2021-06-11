@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.BitSet;
 
 public class PacketBuilder {
     ByteQueue bytes;
@@ -47,7 +48,7 @@ public class PacketBuilder {
      */
     public static PacketBuilder constructClientMessage(Chat message, MessageTarget target) {
         Protocol protocol = Config.versionReporter().getProtocol();
-        PacketBuilder builder = new PacketBuilder(protocol.clientBound("message"));
+        PacketBuilder builder = new PacketBuilder(protocol.clientBound("Chat"));
 
         builder.writeString(message.toJson());
         builder.writeByte(target.getIdentifier());
@@ -258,6 +259,13 @@ public class PacketBuilder {
         ((Buffer) buffer).flip();
         writeByteArray(buffer.array());
     }
+
+    public void writeBitSet(BitSet bits) {
+        long[] longs = bits.toLongArray();
+        writeVarInt(longs.length);
+        writeLongArray(longs);
+    }
+
 
     public void copyRemainder(DataTypeProvider provider) {
         writeByteArray(provider.readByteArray(provider.remaining()));

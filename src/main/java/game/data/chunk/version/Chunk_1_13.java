@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import config.Version;
 import game.data.chunk.IncompleteChunkException;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
@@ -15,7 +16,10 @@ import java.util.Arrays;
  * Chunk format for 1.13+. Now includes a status tag and the biomes are integers.
  */
 public class Chunk_1_13 extends Chunk {
-    public static final int DATA_VERSION = 1444;
+    public static final Version VERSION = Version.V1_13;
+
+    @Override
+    public int getDataVersion() { return VERSION.dataVersion; }
 
     private int[] biomes;
 
@@ -23,8 +27,6 @@ public class Chunk_1_13 extends Chunk {
         super(location);
     }
 
-    @Override
-    public int getDataVersion() { return DATA_VERSION; }
 
     @Override
     protected ChunkSection createNewChunkSection(byte y, Palette palette) {

@@ -28,55 +28,55 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         WorldManager worldManager = WorldManager.getInstance();
         EntityRegistry entityRegistry = WorldManager.getInstance().getEntityRegistry();
 
-        operations.put("entity_data", provider -> {
+        operations.put("SetEntityData", provider -> {
             entityRegistry.addMetadata(provider);
             return true;
         });
 
-        operations.put("entity_equipment", provider -> {
+        operations.put("SetEquipment", provider -> {
             entityRegistry.addEquipment(provider);
             return true;
         });
 
-        operations.put("spawn_mob", provider -> {
+        operations.put("AddMob", provider -> {
             entityRegistry.addEntity(provider, MobEntity::parse);
             return true;
         });
 
-        operations.put("spawn_object", provider -> {
+        operations.put("AddEntity", provider -> {
             entityRegistry.addEntity(provider, ObjectEntity::parse);
             return true;
         });
 
-        operations.put("spawn_player", provider -> {
+        operations.put("AddPlayer", provider -> {
             entityRegistry.addPlayer(provider);
             return true;
         });
 
-        operations.put("destroy_entities", provider -> {
+        operations.put("RemoveEntities", provider -> {
             entityRegistry.destroyEntities(provider);
             return true;
         });
 
-        operations.put("entity_position", provider -> {
+        operations.put("MoveEntityPos", provider -> {
             entityRegistry.updatePositionRelative(provider);
             return true;
         });
-        operations.put("entity_position_rotation", provider -> {
+        operations.put("MoveEntityPosRot", provider -> {
             entityRegistry.updatePositionRelative(provider);
             return true;
         });
-        operations.put("entity_teleport", provider -> {
+        operations.put("TeleportEntity", provider -> {
             entityRegistry.updatePositionAbsolute(provider);
             return true;
         });
 
-        operations.put("map_data", provider -> {
+        operations.put("MapItemData", provider -> {
             worldManager.getMapRegistry().readMap(provider);
             return true;
         });
 
-        operations.put("join_game", provider -> {
+        operations.put("Login", provider -> {
             provider.readInt();
             provider.readNext();
             int dimensionEnum = provider.readInt();
@@ -86,14 +86,14 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("respawn", provider -> {
+        operations.put("Respawn", provider -> {
             int dimensionEnum = provider.readInt();
             worldManager.setDimension(Dimension.fromId(dimensionEnum));
             worldManager.getEntityRegistry().reset();
             return true;
         });
 
-        operations.put("chunk_data", provider -> {
+        operations.put("LevelChunk", provider -> {
             try {
                 worldManager.getChunkFactory().addChunk(provider);
             } catch (Exception ex) {
@@ -102,17 +102,17 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("chunk_update_light", provider -> {
+        operations.put("LightUpdate", provider -> {
             worldManager.updateLight(provider);
 
             return true;
         });
 
-        operations.put("chunk_block_change", provider -> {
+        operations.put("BlockUpdate", provider -> {
             WorldManager.getInstance().blockChange(provider);
             return true;
         });
-        operations.put("chunk_multi_block_change", provider -> {
+        operations.put("SectionBlocksUpdate", provider -> {
             int x = provider.readInt();
             int z = provider.readInt();
             worldManager.multiBlockChange(new Coordinate3D(x, 0, z), provider);
@@ -120,13 +120,13 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("chunk_unload", provider -> {
+        operations.put("ForgetLevelChunk", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), WorldManager.getInstance().getDimension());
             worldManager.unloadChunk(co);
             return Config.getExtendedRenderDistance() == 0;
         });
 
-        operations.put("update_block_entity", provider -> {
+        operations.put("BlockEntityData", provider -> {
             Coordinate3D position = provider.readCoordinates();
             byte action = provider.readNext();
             SpecificTag entityData = provider.readNbtTag();
@@ -135,7 +135,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("open_window", provider -> {
+        operations.put("OpenScreen", provider -> {
             int windowId = provider.readNext();
             String windowType = provider.readString();
             String windowTitle = provider.readChat();
@@ -146,12 +146,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
             return true;
         });
-        operations.put("close_window", provider -> {
+        operations.put("ContainerClose", provider -> {
             worldManager.getContainerManager().closeWindow(provider.readNext());
             return true;
         });
 
-        operations.put("window_items", provider -> {
+        operations.put("ContainerSetContent", provider -> {
             int windowId = provider.readNext();
 
             worldManager.getContainerManager().items(windowId, provider);

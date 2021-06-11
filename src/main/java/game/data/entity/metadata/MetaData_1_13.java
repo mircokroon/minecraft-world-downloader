@@ -13,6 +13,7 @@ import java.util.function.Consumer;
 public class MetaData_1_13 extends MetaData {
     private static Map<Integer, Consumer<DataTypeProvider>> typeHandlers;
     static {
+        // network.syncher.EntityDataSerializers
         typeHandlers = new HashMap<>();
         typeHandlers.put(0, DataTypeProvider::readNext);
         typeHandlers.put(1, DataTypeProvider::readVarInt);

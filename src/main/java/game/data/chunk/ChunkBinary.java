@@ -41,9 +41,7 @@ public class ChunkBinary implements Serializable {
      * @param chunk the chunk
      * @return the binary version of the chunk
      */
-    public static ChunkBinary fromChunk(Chunk chunk) throws IOException {
-        NamedTag nbt = chunk.toNbt();
-
+    public static ChunkBinary fromChunk(Chunk chunk, NamedTag nbt) throws IOException {
         // this only happens for empty chunks (hopefully)
         if (nbt == null) {
             return null;
@@ -88,6 +86,15 @@ public class ChunkBinary implements Serializable {
         binary.setTimestamp((int) (System.currentTimeMillis() / 1000));
 
         return binary;
+    }
+    public static ChunkBinary fromChunk(Chunk chunk) throws IOException {
+        NamedTag nbt = chunk.toNbt();
+        return fromChunk(chunk, nbt);
+    }
+
+    public static ChunkBinary entitiesFromChunk(Chunk chunk) throws IOException {
+        NamedTag nbt = chunk.toEntityNbt();
+        return fromChunk(chunk, nbt);
     }
 
     public Chunk toChunk(CoordinateDim2D coordinate2D) {

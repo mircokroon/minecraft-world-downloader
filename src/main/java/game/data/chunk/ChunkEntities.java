@@ -14,8 +14,8 @@ import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -76,8 +76,13 @@ public abstract class ChunkEntities extends ChunkEvents {
     protected void addLevelNbtTags(CompoundTag map) {
         map.add("TileEntities", new ListTag(Tag.TAG_COMPOUND, new ArrayList<>(tileEntities.values())));
 
-        List<SpecificTag> entities = WorldManager.getInstance().getEntityRegistry().getEntitiesNbt(this.getLocation());
-        map.add("Entities", new ListTag(Tag.TAG_COMPOUND, entities));
+        if (!hasSeparateEntities()) {
+            map.add("Entities", getEntitiesNbt());
+        }
+    }
+
+    private ListTag getEntitiesNbt() {
+        return new ListTag(Tag.TAG_COMPOUND, WorldManager.getInstance().getEntityRegistry().getEntitiesNbt(this.getLocation()));
     }
 
 
@@ -158,4 +163,33 @@ public abstract class ChunkEntities extends ChunkEvents {
     public abstract CoordinateDim2D getLocation();
     public abstract BlockState getBlockStateAt(Coordinate3D location);
     public abstract void touch();
+    public abstract boolean hasSeparateEntities();
+    public abstract int getDataVersion();
+
+
+    /**
+     * For 1.17+, entities are stored separately from blocks and tile entities. This method constructs the NBT object
+     * of just the entity file.
+     */
+    public NamedTag toEntityNbt() {
+        if (!hasSeparateEntities()) {
+            return null;
+        }
+
+        CompoundTag root = new CompoundTag();
+
+        ListTag entities = new ListTag(Tag.TAG_COMPOUND, WorldManager.getInstance().getEntityRegistry().getEntitiesNbt(this.getLocation()));
+        if (entities.size() == 0) {
+            return null;
+        }
+
+        root.add("Entities", entities);
+        root.add("DataVersion", new IntTag(getDataVersion()));
+        root.add("Position", new IntArrayTag(new int[]{
+                getLocation().getX(),
+                getLocation().getZ()
+        }));
+
+        return new NamedTag("", root);
+    }
 }

@@ -17,6 +17,7 @@ import game.data.entity.EntityNames;
 import game.data.entity.EntityRegistry;
 import game.data.maps.MapRegistry;
 import game.data.region.McaFile;
+import game.data.region.McaFilePair;
 import game.data.region.Region;
 import gui.GuiManager;
 import org.apache.commons.io.FileUtils;
@@ -72,8 +73,9 @@ public class WorldManager {
     private final EntityRegistry entityRegistry;
     private final ChunkFactory chunkFactory;
 
-    protected WorldManager() {
+    public WorldManager() {
         this.isStarted = false;
+        this.entityMap = new EntityNames();
         this.entityRegistry = new EntityRegistry(this);
         this.chunkFactory = new ChunkFactory();
         this.mapRegistry = new MapRegistry();
@@ -421,16 +423,13 @@ public class WorldManager {
             // convert the values to an array first to prevent blocking any threads
             Region[] r = regions.values().toArray(new Region[0]);
             for (Region region : r) {
-                McaFile file = region.toFile(getPlayerPosition().globalToChunk());
-                if (file == null) {
+                McaFilePair files = region.toFile(getPlayerPosition().globalToChunk());
+                if (files == null) {
                     continue;
                 }
 
-                try {
-                    file.write();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                write(files.getRegion());
+                write(files.getEntities());
             }
         }
 
@@ -459,6 +458,18 @@ public class WorldManager {
 
         // suggest GC to clear up some memory that may have been freed by saving
         System.gc();
+    }
+
+    private void write(McaFile file) {
+        if (file == null || file.isEmpty()) {
+            return;
+        }
+
+        try {
+            file.write();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public ContainerManager getContainerManager() {

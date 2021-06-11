@@ -1,6 +1,7 @@
 package game.data.chunk.version;
 
 import config.Config;
+import config.Version;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -13,8 +14,7 @@ import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.StringTag;
 import se.llbit.nbt.Tag;
 
-import java.util.Arrays;
-import java.util.Iterator;
+import java.util.BitSet;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -24,16 +24,16 @@ import java.util.function.Function;
  * this was moved to a different packet. Also, a block count?
  */
 public class Chunk_1_14 extends Chunk_1_13 {
-    public static final int DATA_VERSION = 1901;
+    public static final Version VERSION = Version.V1_14;
+
+    @Override
+    public int getDataVersion() { return VERSION.dataVersion; }
 
     SpecificTag heightMap;
 
     public Chunk_1_14(CoordinateDim2D location) {
         super(location);
     }
-
-    @Override
-    public int getDataVersion() { return DATA_VERSION; }
 
     @Override
     protected void addLevelNbtTags(CompoundTag map) {
@@ -56,6 +56,11 @@ public class Chunk_1_14 extends Chunk_1_13 {
     @Override
     protected int getMinSection() {
         return -1;
+    }
+
+    @Override
+    protected int getMinBlockSection() {
+        return 0;
     }
 
     @Override
@@ -106,19 +111,18 @@ public class Chunk_1_14 extends Chunk_1_13 {
     public void updateLight(DataTypeProvider provider) {
         super.updateLight(provider);
 
-        int skyLightMask = provider.readVarInt();
-        int blockLightMask = provider.readVarInt();
+        BitSet skyLightMask = BitSet.valueOf(new long[]{(long) provider.readVarInt()});
+        BitSet blockLightMask = BitSet.valueOf(new long[]{(long) provider.readVarInt()});
 
-        int emptySkyLightMask = provider.readVarInt();
-        int emptyBlockLightMask = provider.readVarInt();
+        BitSet emptySkyLightMask = BitSet.valueOf(new long[]{(long) provider.readVarInt()});
+        BitSet emptyBlockLightMask = BitSet.valueOf(new long[]{(long) provider.readVarInt()});
 
         parseLightArray(skyLightMask, emptySkyLightMask, provider, ChunkSection::setSkyLight, ChunkSection::getSkyLight);
         parseLightArray(blockLightMask, emptyBlockLightMask, provider, ChunkSection::setBlockLight, ChunkSection::getBlockLight);
     }
 
-    private void parseLightArray(int mask, int emptyMask, DataTypeProvider provider, BiConsumer<ChunkSection, byte[]> c, Function<ChunkSection, byte[]> get) {
-        for (int sectionY = getMinSection(); mask > 0 || emptyMask > 0; sectionY++, mask >>>= 1, emptyMask >>>= 1) {
-
+    protected void parseLightArray(BitSet mask, BitSet emptyMask, DataTypeProvider provider, BiConsumer<ChunkSection, byte[]> c, Function<ChunkSection, byte[]> get) {
+        for (int sectionY = getMinSection(); sectionY <= getMaxSection() && (!mask.isEmpty() || !emptyMask.isEmpty()); sectionY++) {
             ChunkSection s = getChunkSection(sectionY);
             if (s == null) {
                 s = createNewChunkSection((byte) sectionY, Palette.empty());
@@ -128,12 +132,14 @@ public class Chunk_1_14 extends Chunk_1_13 {
             }
 
             // Mask tells us if a section is present or not
-            if ((mask & 1) == 0) {
-                if ((emptyMask & 1) != 0) {
+            if (!mask.get(sectionY - getMinSection())) {
+                if (!emptyMask.get(sectionY - getMinSection())) {
                     c.accept(s, new byte[2048]);
                 }
+                emptyMask.set(sectionY - getMinSection(), false);
                 continue;
             }
+            mask.set(sectionY - getMinSection(), false);
 
             int skyLength = provider.readVarInt();
             byte[] data = provider.readByteArray(skyLength);
@@ -148,7 +154,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
     protected PacketBuilder buildLightPacket() {
         Protocol p = Config.versionReporter().getProtocol();
         PacketBuilder packet = new PacketBuilder();
-        packet.writeVarInt(p.clientBound("chunk_update_light"));
+        packet.writeVarInt(p.clientBound("LightUpdate"));
 
         packet.writeVarInt(location.getX());
         packet.writeVarInt(location.getZ());

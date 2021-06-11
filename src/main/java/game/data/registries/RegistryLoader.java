@@ -2,6 +2,8 @@ package game.data.registries;
 
 import com.google.gson.Gson;
 
+import config.Config;
+import config.Version;
 import game.UnsupportedMinecraftVersionException;
 import game.data.entity.EntityNames;
 import game.data.chunk.palette.GlobalPalette;
@@ -78,25 +80,42 @@ public class RegistryLoader {
     }
 
     /**
+     * Get the current major java version.
+     * Source: https://stackoverflow.com/a/2591122
+     */
+    private static int getJavaVersion() {
+        String version = System.getProperty("java.version");
+        if (version.startsWith("1.")) {
+            version = version.substring(2, 3);
+        } else {
+            int dot = version.indexOf(".");
+            if (dot != -1) {
+                version = version.substring(0, dot);
+            }
+        }
+        return Integer.parseInt(version);
+    }
+
+    /**
      * If we don't have the report, we'll have to download the relevant server.jar and generate them. We'll print some
      * helpful messages as well to put the user at ease about the delay.
      */
     private void getReportsFromServerJar() throws IOException, InterruptedException {
         System.out.println("Looks like we have not run in version " + version + " before.");
-        String file = "server.json";
-        InputStream input = EntityNames.class.getClassLoader().getResourceAsStream(file);
 
-        if (input == null) {
-            throw new FileNotFoundException("Version.json not found");
+        String serverUrl = VersionManifestHandler.findServerUrl(version);
+
+        /*
+         * Since newer Minecraft versions use Java 1.16, we can't generate reports if the user is still using an older
+         * version of Java. To maintain support for older Java versions, this check is only done at this stage.
+         */
+        if (Config.versionReporter().isAtLeast1_17() && getJavaVersion() < 16) {
+            System.err.println("Cannot run Minecraft version 1.17+ with a Java version below 16. You are currently using Java version " + getJavaVersion() + ".");
+            System.err.println("Please consider upgrading your Java version to at least version 16.\n");
+            throw new UnsupportedMinecraftVersionException("Minecraft version 1.17 is not supported for java version " + getJavaVersion());
         }
 
-        VersionMap map = new Gson().fromJson(new InputStreamReader(input), VersionMap.class);
-
-        if (!map.containsKey(version)) {
-            throw new IllegalArgumentException("Cannot find given version: " + version + ". Are you using the latest world downloader version?");
-        }
-
-        downloadServerJar(map.get(version));
+        downloadServerJar(serverUrl);
         generateReports();
         moveReports();
         clean();
@@ -137,7 +156,16 @@ public class RegistryLoader {
 
         // instead of directly forwarding the output, we handle it manually. This way we can indent it and get rid
         // of the annoying teleport command spam.
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        printStream(p.getInputStream());
+        printStream(p.getErrorStream());
+
+        p.waitFor();
+
+        System.out.println("Completed generating reports!");
+    }
+
+    private void printStream(InputStream str) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(str));
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.contains("Ambiguity between arguments")) {
@@ -145,10 +173,6 @@ public class RegistryLoader {
             }
             System.out.println("\t" + line);
         }
-
-        p.waitFor();
-
-        System.out.println("Completed generating reports!");
     }
 
     /**
@@ -157,10 +181,10 @@ public class RegistryLoader {
     private void moveReports() throws IOException {
         Files.createDirectories(destinationPath);
 
-        if (versionSupportsGenerators()) {
+        if (versionSupportsGenerators() && Files.exists(registriesGeneratedPath)) {
             Files.move(registriesGeneratedPath, registryPath, StandardCopyOption.REPLACE_EXISTING);
         }
-        if (versionSupportsBlockGenerator()) {
+        if (versionSupportsBlockGenerator() && Files.exists(blocksGeneratedPath)) {
             Files.move(blocksGeneratedPath, blocksPath, StandardCopyOption.REPLACE_EXISTING);
         }
     }
@@ -221,5 +245,3 @@ public class RegistryLoader {
         return versionSupportsBlockGenerator() && !version.startsWith("1.13");
     }
 }
-
-class VersionMap extends HashMap<String, String> { }

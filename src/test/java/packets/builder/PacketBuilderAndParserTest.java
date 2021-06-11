@@ -12,6 +12,7 @@ import packets.version.DataTypeProvider_1_14;
 import se.llbit.nbt.*;
 
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -206,6 +207,20 @@ public class PacketBuilderAndParserTest {
         Coordinate3D after = getParser().readCoordinates();
 
         assertThat(after).isEqualTo(new Coordinate3D(x, y, z));
+    }
+
+    @Test
+    void parseBit() {
+        BitSet before = new BitSet();
+        before.set(2);
+        before.set(4);
+        before.set(6);
+        before.set(9);
+        builder.writeBitSet(before);
+
+        BitSet after = getParser().readBitSet();
+
+        assertThat(after).isEqualTo(before);
     }
 
     @Test
