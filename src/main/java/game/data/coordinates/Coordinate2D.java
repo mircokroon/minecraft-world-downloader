@@ -121,4 +121,8 @@ public class Coordinate2D {
         }
         return new Coordinate2D(this.x / size, this.z / size);
     }
+
+    public boolean isZero() {
+        return this.x == 0 && this.z == 0;
+    }
 }

@@ -21,8 +21,8 @@ public class ChunkSection_1_16 extends ChunkSection_1_15 {
         return blockLocationEncoder;
     }
 
-    public ChunkSection_1_16(byte y, Palette palette) {
-        super(y, palette);
+    public ChunkSection_1_16(byte y, Palette palette, Chunk chunk) {
+        super(y, palette, chunk);
     }
 
     public ChunkSection_1_16(int sectionY, Tag nbt) {

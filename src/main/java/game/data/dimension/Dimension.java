@@ -10,9 +10,7 @@ import util.PathUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Class to hold both custom and default dimensions. For custom dimensions, it can write a partial definition file.
@@ -23,6 +21,7 @@ public class Dimension {
     public static final Dimension OVERWORLD = new Dimension("minecraft", "overworld", "minecraft:overworld");
     public static final Dimension NETHER = new Dimension("minecraft", "the_nether", "minecraft:the_nether");
     public static final Dimension END = new Dimension("minecraft", "the_end", "minecraft:the_end");
+    public static final List<Dimension> DEFAULTS = Arrays.asList(OVERWORLD, NETHER, END);
 
     private final String namespace;
     private final String name;

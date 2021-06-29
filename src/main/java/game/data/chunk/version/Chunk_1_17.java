@@ -39,8 +39,8 @@ public class Chunk_1_17 extends Chunk_1_16 {
 
 
     @Override
-    protected ChunkSection createNewChunkSection(byte y, Palette palette) {
-        return new ChunkSection_1_17(y, palette);
+    public ChunkSection createNewChunkSection(byte y, Palette palette) {
+        return new ChunkSection_1_17(y, palette, this);
     }
 
     @Override

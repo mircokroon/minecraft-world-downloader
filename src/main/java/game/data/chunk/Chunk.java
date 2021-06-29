@@ -165,7 +165,7 @@ public abstract class Chunk extends ChunkEntities {
     protected void readBlockCount(DataTypeProvider provider) {
     }
 
-    protected abstract ChunkSection createNewChunkSection(byte y, Palette palette);
+    public abstract ChunkSection createNewChunkSection(byte y, Palette palette);
 
     protected abstract SpecificTag getNbtBiomes();
 

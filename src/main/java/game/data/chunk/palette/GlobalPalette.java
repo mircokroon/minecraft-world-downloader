@@ -50,6 +50,10 @@ public class GlobalPalette {
         }));
     }
 
+    public int getRequiredBits() {
+        return (int) Math.ceil(Math.log(states.size()) / Math.log(2));
+    }
+
     /**
      * Get a block state from a given index. Used to convert packet palettes to the global palette.
      */

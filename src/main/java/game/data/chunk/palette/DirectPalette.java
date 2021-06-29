@@ -5,10 +5,17 @@ import se.llbit.nbt.SpecificTag;
 
 import java.util.List;
 
-public class DummyPalette extends Palette {
+public class DirectPalette extends Palette {
+    int bitsPerBlock;
 
-    public DummyPalette() {
+    public DirectPalette() {
+        this(GlobalPaletteProvider.getGlobalPalette().getRequiredBits());
+    }
+
+    public DirectPalette(int bitsPerBlock) {
         super();
+
+        this.bitsPerBlock = bitsPerBlock;
     }
 
     @Override
@@ -18,7 +25,7 @@ public class DummyPalette extends Palette {
 
     @Override
     public int getBitsPerBlock() {
-        return 12;
+        return bitsPerBlock;
     }
 
     @Override
@@ -33,6 +40,13 @@ public class DummyPalette extends Palette {
 
     @Override
     public void write(PacketBuilder packet) {
-        packet.writeByte((byte) 12);
+        packet.writeByte((byte) bitsPerBlock);
+    }
+
+    @Override
+    public String toString() {
+        return "DirectPalette{" +
+                "bitsPerBlock=" + bitsPerBlock +
+                '}';
     }
 }

@@ -30,8 +30,8 @@ public class Chunk_1_12 extends Chunk {
     }
 
     @Override
-    protected ChunkSection createNewChunkSection(byte y, Palette palette) {
-        return new ChunkSection_1_12(y, palette);
+    public ChunkSection createNewChunkSection(byte y, Palette palette) {
+        return new ChunkSection_1_12(y, palette, this);
     }
 
     private void setBiome(int x, int z, byte biomeId) {

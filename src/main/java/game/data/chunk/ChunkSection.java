@@ -1,8 +1,10 @@
 package game.data.chunk;
 
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.DirectPalette;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.version.ChunkSection_1_13;
 import game.data.chunk.version.encoder.BlockLocationEncoder;
 import game.data.coordinates.Coordinate3D;
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -18,6 +20,8 @@ import java.util.Arrays;
  * Class to hold a 16 block tall chunk section.
  */
 public abstract class ChunkSection {
+    protected Chunk chunk;
+
     protected long[] blocks;
     protected byte[] blockLight;
     protected byte[] skyLight;
@@ -28,7 +32,8 @@ public abstract class ChunkSection {
 
     public abstract int getDataVersion();
 
-    public ChunkSection(byte y, Palette palette) {
+    public ChunkSection(byte y, Palette palette, Chunk chunk) {
+        this.chunk = chunk;
         this.y = y;
         this.blockLight = new byte[2048];
         this.skyLight = new byte[2048];
@@ -195,6 +200,11 @@ public abstract class ChunkSection {
     public void resetBlocks() {
         this.blocks = new long[256];
         this.palette = Palette.empty();
+    }
+
+    public void copyTo(ChunkSection other) {
+        other.blocks = this.blocks;
+        other.palette = this.palette;
     }
 }
 
