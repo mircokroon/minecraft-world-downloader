@@ -40,7 +40,7 @@ public class Region {
         this.regionCoordinates = regionCoordinates;
         this.chunks = new ConcurrentHashMap<>();
         this.updatedSinceLastWrite = false;
-        this.toDelete = new HashSet<>();
+        this.toDelete = ConcurrentHashMap.newKeySet();
 
         this.file = new McaFile(regionCoordinates);
         this.fileEntities = new McaFile(regionCoordinates, true);
