@@ -1,6 +1,7 @@
 package game.data.chunk.version;
 
 import config.Version;
+import game.data.chunk.Chunk;
 import game.data.chunk.palette.Palette;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.Tag;
@@ -12,8 +13,8 @@ public class ChunkSection_1_14 extends ChunkSection_1_13 {
         return VERSION.dataVersion;
     }
 
-    public ChunkSection_1_14(byte y, Palette palette) {
-        super(y, palette);
+    public ChunkSection_1_14(byte y, Palette palette, Chunk chunk) {
+        super(y, palette, chunk);
     }
 
     public ChunkSection_1_14(int sectionY, Tag nbt) {

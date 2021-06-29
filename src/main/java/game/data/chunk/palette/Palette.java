@@ -78,7 +78,7 @@ public class Palette {
      */
     public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
         if (bitsPerBlock > 8) {
-            return new DummyPalette();
+            return new DirectPalette(bitsPerBlock);
         }
         int size = dataTypeProvider.readVarInt();
 
@@ -161,7 +161,7 @@ public class Palette {
     public String toString() {
         return "Palette{" +
                 "bitsPerBlock=" + bitsPerBlock +
-                ", palette=" + Arrays.toString(palette) +
+                ", palette(" + palette.length + ")=" + Arrays.toString(palette) +
                 '}';
     }
 

@@ -2,8 +2,11 @@ package game.data.chunk.version;
 
 import config.Version;
 import game.data.WorldManager;
+import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
+import game.data.chunk.palette.DirectPalette;
 import game.data.chunk.palette.Palette;
+import game.data.coordinates.Coordinate3D;
 import game.data.dimension.Dimension;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.CompoundTag;
@@ -25,8 +28,8 @@ public class ChunkSection_1_13 extends ChunkSection {
         return VERSION.dataVersion;
     }
 
-    public ChunkSection_1_13(byte y, Palette palette) {
-        super(y, palette);
+    public ChunkSection_1_13(byte y, Palette palette, Chunk chunk) {
+        super(y, palette, chunk);
     }
     public ChunkSection_1_13(int sectionY, Tag nbt) {
         super(sectionY, nbt);
@@ -52,13 +55,39 @@ public class ChunkSection_1_13 extends ChunkSection {
 
     @Override
     protected void addNbtTags(CompoundTag map) {
+        if (palette instanceof DirectPalette) {
+            convertToIndirectPalette();
+        }
+        
         map.add("BlockStates", new LongArrayTag(blocks));
         map.add("Palette", createPalette());
     }
 
+    /**
+     * Before saving chunks, we need to ensure that it's correctly using a palette. Chunk sections with a large variety of
+     * blocks need to be converted.
+     */
+    private void convertToIndirectPalette() {
+        ChunkSection newSection = this.chunk.createNewChunkSection(this.y, Palette.empty());
+        newSection.setBlocks(new long[256]);
+
+        for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    newSection.setBlockAt(new Coordinate3D(x, y, z), getNumericBlockStateAt(x, y, z));
+                }
+            }
+        }
+
+        newSection.copyTo(this);
+    }
+
+
     private ListTag createPalette() {
         return new ListTag(Tag.TAG_COMPOUND, palette.toNbt());
     }
+
+
 
     @Override
     public boolean equals(Object o) {

@@ -4,7 +4,7 @@ import config.Version;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkSection;
-import game.data.chunk.palette.DummyPalette;
+import game.data.chunk.palette.DirectPalette;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.palette.PaletteBuilder;
 import game.data.coordinates.Coordinate3D;
@@ -31,15 +31,15 @@ public class ChunkSection_1_12 extends ChunkSection {
     protected int[][][] blockStates;
 
 
-    public ChunkSection_1_12(byte y, Palette palette) {
-        super(y, palette);
+    public ChunkSection_1_12(byte y, Palette palette, Chunk chunk) {
+        super(y, palette, chunk);
         this.blockStates = new int[16][16][16];
     }
 
     public ChunkSection_1_12(int sectionY, Tag nbt) {
         super(sectionY, nbt);
         this.blockStates = new int[16][16][16];
-        this.palette = new DummyPalette();
+        this.palette = new DirectPalette();
 
         long[] blocks = encodeBlocks(nbt.get("Blocks").byteArray(), nbt.get("Data").byteArray(), this.palette);
 
