@@ -1,15 +1,9 @@
 package game.data;
 
 import config.Config;
-import game.data.WorldManager;
 import game.data.coordinates.Coordinate3D;
-import game.data.coordinates.CoordinateDim2D;
-import game.data.coordinates.CoordinateDim3D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
-import org.apache.commons.io.IOUtils;
-import proxy.CompressionManager;
 import se.llbit.nbt.*;
 import util.NbtUtil;
 import util.PathUtils;
@@ -20,7 +14,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class LevelData {
@@ -28,6 +21,7 @@ public class LevelData {
     private final Path outputDir;
     private final File file;
     private Tag root;
+    private SpecificTag worldGenSettings;
     private CompoundTag data;
     private boolean savingBroken;
 
@@ -63,13 +57,14 @@ public class LevelData {
 
     public void load() throws IOException {
         load(false);
+        loadGeneratorSettings();
     }
     private void load(boolean forceInternal) throws IOException {
         Files.createDirectories(outputDir);
 
         InputStream fileInput;
         if (!file.exists() || !file.isFile() || forceInternal) {
-            fileInput = WorldManager.class.getClassLoader().getResourceAsStream("level.dat");
+            fileInput = LevelData.class.getClassLoader().getResourceAsStream("level.dat");
         } else {
             fileInput = new FileInputStream(file);
         }
@@ -85,6 +80,18 @@ public class LevelData {
         }
 
         this.data = (CompoundTag) root.unpack().get("Data");
+    }
+
+    /**
+     * Loads the default generator settings used in 1.16+. They are more complicated than before so loading them from a
+     * file is easier.
+     */
+    private void loadGeneratorSettings() throws IOException {
+        this.worldGenSettings = NbtUtil
+                .read(LevelData.class.getClassLoader().getResourceAsStream("world-gen-settings.dat"))
+                .unpack()
+                .get("WorldGenSettings")
+                .asCompound();
     }
 
     /**
@@ -150,7 +157,19 @@ public class LevelData {
     }
 
     private void enableWorldGeneration(CompoundTag data) {
-        if (Config.getDataVersion() < 2504) {
+        if (Config.versionReporter().isAtLeast1_16()) {
+            LongTag seed = new LongTag(Config.getLevelSeed());
+
+            CompoundTag dimensions = this.worldGenSettings.get("dimensions").asCompound();
+            for (Dimension dim : Dimension.DEFAULTS)  {
+                Tag generator = dimensions.get(dim.getName()).get("generator");
+                generator.asCompound().add("seed", seed);
+                generator.get("biome_source").asCompound().add("seed", seed);
+            }
+            this.worldGenSettings.asCompound().add("seed", seed);
+
+            data.add("WorldGenSettings", this.worldGenSettings);
+        } else {
             data.add("generatorVersion", new IntTag(1));
             data.add("generatorName", new StringTag("default"));
             // this is the 1.12.2 superflat format, but it still works in later versions.
@@ -159,16 +178,12 @@ public class LevelData {
     }
 
 
+
     /**
      * Set world type to a superflat void world.
      */
     private void disableWorldGeneration(CompoundTag data) {
-        if (Config.getDataVersion() < 2504) {
-            data.add("generatorVersion", new IntTag(1));
-            data.add("generatorName", new StringTag("flat"));
-            // this is the 1.12.2 superflat format, but it still works in later versions.
-            data.add("generatorOptions", new StringTag("3;minecraft:air;127"));
-        } else {
+        if (Config.versionReporter().isAtLeast1_16()) {
             CompoundTag generator = new CompoundTag();
             generator.add("type", new StringTag("minecraft:flat"));
             generator.add("settings", new CompoundTag(Arrays.asList(
@@ -197,6 +212,11 @@ public class LevelData {
                     new NamedTag("seed", new LongTag(Config.getLevelSeed())),
                     new NamedTag("dimensions", dimensions)
             )));
+        } else {
+            data.add("generatorVersion", new IntTag(1));
+            data.add("generatorName", new StringTag("flat"));
+            // this is the 1.12.2 superflat format, but it still works in later versions.
+            data.add("generatorOptions", new StringTag("3;minecraft:air;127"));
         }
     }
 
