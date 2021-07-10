@@ -164,11 +164,10 @@ public class ContainerManager {
         }
     }
 
-    public void items(int windowId, DataTypeProvider provider) {
+    public void items(int windowId, int count, DataTypeProvider provider) {
         InventoryWindow window = knownWindows.get(windowId);
 
         if (window != null) {
-            int count = provider.readShort();
             List<Slot> slots = provider.readSlots(count);
 
             window.setSlots(slots);
