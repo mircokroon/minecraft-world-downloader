@@ -14,6 +14,7 @@ import game.data.entity.ObjectEntity;
 import packets.handler.version.ClientBoundGamePacketHandler_1_14;
 import packets.handler.version.ClientBoundGamePacketHandler_1_15;
 import packets.handler.version.ClientBoundGamePacketHandler_1_16;
+import packets.handler.version.ClientBoundGamePacketHandler_1_17;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 
@@ -154,7 +155,8 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("ContainerSetContent", provider -> {
             int windowId = provider.readNext();
 
-            worldManager.getContainerManager().items(windowId, provider);
+            int count = provider.readShort();
+            worldManager.getContainerManager().items(windowId, count, provider);
 
             return true;
         });
@@ -167,6 +169,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
     public static PacketHandler of(ConnectionManager connectionManager) {
         return Config.versionReporter().select(PacketHandler.class,
+                Option.of(Version.V1_17, () -> new ClientBoundGamePacketHandler_1_17(connectionManager)),
                 Option.of(Version.V1_16, () -> new ClientBoundGamePacketHandler_1_16(connectionManager)),
                 Option.of(Version.V1_15, () -> new ClientBoundGamePacketHandler_1_15(connectionManager)),
                 Option.of(Version.V1_14, () -> new ClientBoundGamePacketHandler_1_14(connectionManager)),
