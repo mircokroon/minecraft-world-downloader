@@ -1,82 +1,25 @@
 package proxy.auth;
 
-import com.google.gson.Gson;
 import config.Config;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
-import kong.unirest.UnirestException;
 
 import javax.security.sasl.AuthenticationException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import static util.ExceptionHandling.attempt;
-import static util.PrintUtils.devPrint;
 
 /**
  * Class to handle retrieving authentication details from either user input, or the relevant launcher files.
  */
 public abstract class AuthDetailsManager {
     private AuthDetails details;
+    private String username;
 
-    private LauncherProfiles profiles;
-
-    private long authDetailsLastModified = 0;
-
-    // for launcher versions 2.2+
-    private LauncherAccounts accounts;
-
-    /**
-     * Initialise the authenticator class by reading from the JSON file.
-     */
     public AuthDetailsManager() { }
 
+    public AuthDetailsManager(String username) {
+        this.username = username;
+    }
+
     private void retrieveAuthDetails() throws IOException {
-        Gson g = new Gson();
-
-        readProfiles(g);
-        readAccounts(g);
-    }
-
-    protected void printAuthErrorMessage() {
-        System.err.println("Something went wrong while trying to authenticate your Minecraft account.\n");
-
-        if (Config.inGuiMode()) {
-            System.err.println("Set the correct Minecraft installation path in the Connection tab.");
-            System.err.println("If you are using a custom launcher, set the correct username and token in the authentication tab.");
-        } else {
-            System.err.println("Use launch option \"-m /path/to/.minecraft/\" to indicate the location of your Minecraft installation.");
-            System.err.println("If you are using a custom launcher, use options --username and --token.");
-        }
-        System.err.println("See https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication for more details.");
-        System.err.println();
-    }
-
-    private void readAccounts(Gson g) throws IOException {
-        Path p = Paths.get(Config.getMinecraftPath(), "launcher_accounts.json");
-
-        if (!p.toFile().exists()) {
-            // probably not the right version of the launcher
-            return;
-        }
-
-        authDetailsLastModified = p.toFile().lastModified();
-
-        String path =  String.join("\n", Files.readAllLines(p));
-
-        accounts = g.fromJson(path, LauncherAccounts.class);
-    }
-
-    private void readProfiles(Gson g) throws IOException {
-        Path p = Paths.get(Config.getMinecraftPath(), "launcher_profiles.json");
-        String path =  String.join("\n", Files.readAllLines(p));
-
-        profiles = g.fromJson(path, LauncherProfiles.class);
+        details = new AuthDetailsFromProcess(username).getDetails();
     }
 
     /**
@@ -97,61 +40,30 @@ public abstract class AuthDetailsManager {
 
         retrieveAuthDetails();
 
-        // Launcher after version 2.2
-        if (accounts != null) {
-            AuthDetails details = accounts.getAuthDetails();
-            if (details != null) {
-                this.details = details;
-                return details;
-            }
-        }
-
-        // Launcher before version 2.2
-        if (profiles != null) {
-            AuthDetails details = profiles.getAuthDetails();
-            if (details != null) {
-                this.details = details;
-                return details;
-            }
+        if (details != null) {
+            return details;
         }
 
         throw new AuthenticationException("Cannot find authentication details.");
     }
 
-    public static boolean hasProbablyExpired(Path p) {
-        return hasProbablyExpired(p.toFile().lastModified());
-    }
+    protected void printAuthErrorMessage() {
+        System.err.println("Something went wrong while trying to authenticate your Minecraft account.\n");
 
-    public static boolean hasProbablyExpired(long time) {
-        long oneDay = 24 * 60 * 60 * 1000;
-        return time + oneDay < System.currentTimeMillis();
-    }
-
-    public static AuthStatus authDetailsValid(String path) {
-        Path profiles = Paths.get(path, "launcher_profiles.json");
-        Path accounts = Paths.get(path, "launcher_accounts.json");
-
-        if (!profiles.toFile().exists()) {
-            return new AuthStatus(false, "Cannot find profiles");
-        }
-        if (!accounts.toFile().exists()) {
-            return new AuthStatus(false, "Cannot find accounts");
+        if (Config.inGuiMode()) {
+            System.err.println("Authentication details are retrieved from the Minecraft game directly. Make sure that the game is running.");
+            System.err.println("If you have a username set in the authentication tab, ensure that it matches the one you are trying to connect with.");
+            System.err.println("If you are in an environment where this does not work, please set the correct username and token in the authentication tab.");
+        } else {
+            System.err.println("Authentication details are retrieved from the Minecraft process's launch arguments. The game must be running for this to work.");
+            System.err.println("Alternatively, use options --username and --token to specify the details manually.");
         }
 
-        AuthStatus status = new AuthStatus(true, "");
-
-        if (hasProbablyExpired(accounts) || hasProbablyExpired(profiles)) {
-            status.isProbablyExpired = true;
-        }
-
-        return status;
+        System.err.println("See https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication for more details.");
+        System.err.println();
     }
 
     public AuthDetails getDetails() {
         return details;
-    }
-
-    protected long getDetailsLastModified() {
-        return authDetailsLastModified;
     }
 }

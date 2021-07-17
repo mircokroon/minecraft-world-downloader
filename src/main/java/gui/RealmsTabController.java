@@ -4,13 +4,11 @@ import com.google.gson.Gson;
 import gui.components.NoSelectionModel;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import proxy.auth.AuthDetailsManager;
 import proxy.auth.RealmsApiHandler;
@@ -22,10 +20,13 @@ import static util.ExceptionHandling.attempt;
  */
 public class RealmsTabController {
     public ListView<RealmEntry> serverList;
+    public Button loadButton;
 
     private boolean requested;
     private RealmsApiHandler auth;
     private GuiSettings settings;
+
+    public TextField minecraftUsername;
 
     @FXML
     void initialize() {
@@ -50,6 +51,17 @@ public class RealmsTabController {
                 });
             }
         });
+
+        minecraftUsername.textProperty().addListener((a, oldText, newText) -> {
+            loadButton.setDisable(newText == null || newText.length() == 0);
+        });
+
+        minecraftUsername.focusedProperty().addListener((a, wasInFocus, isInFocus) -> {
+            if (wasInFocus && !isInFocus) {
+                GuiManager.getConfig().username = minecraftUsername.getText().trim();
+            }
+        });
+
     }
 
     /**
@@ -58,6 +70,11 @@ public class RealmsTabController {
     public void opened(GuiSettings guiSettings) {
         this.settings = guiSettings;
 
+        minecraftUsername.setText(GuiManager.getConfig().username);
+    }
+    
+    @FXML
+    private void requestList(ActionEvent actionEvent) {
         // if the tab is closed and opened again, we shouldn't restart the request
         if (requested) {
             return;
@@ -67,7 +84,7 @@ public class RealmsTabController {
         // initially set list to loading text
         serverList.setItems(FXCollections.observableArrayList(new RealmEntry("Loading...")));
 
-        auth = new RealmsApiHandler();
+        auth = new RealmsApiHandler(minecraftUsername.getText());
         auth.requestRealms(str -> {
             RealmServers serversTemp = null;
             try {

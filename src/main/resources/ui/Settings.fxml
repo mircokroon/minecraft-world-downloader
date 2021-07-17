@@ -29,8 +29,6 @@
                     <Label text="Server port" GridPane.rowIndex="1" />
                     <Label text="Local port" GridPane.rowIndex="2" />
                     <DefaultIntField fx:id="portLocal" defaultVal="25565" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                    <TextField fx:id="minecraftDir" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                    <Label text="Minecraft location" GridPane.rowIndex="4" />
                     <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="4">
                         <Label fx:id="authDetailsVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
                     </AnchorPane>
@@ -154,7 +152,7 @@
                     <Hyperlink fx:id="authHelpLink" text="?" GridPane.columnIndex="1" GridPane.rowIndex="1" />
                     <TextField fx:id="accessToken" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                 </GridPane>
-                <Label layoutX="9.0" prefHeight="53.0" prefWidth="577.0" text="Authentication details are usually retrieved automatically. If you are using a custom launcher they can be entered here instead." wrapText="true" />
+                <Label layoutX="9.0" prefHeight="53.0" prefWidth="577.0" text="Authentication details are usually retrieved automatically. If you this is not working, they can be entered here instead." wrapText="true" />
             </AnchorPane>
         </Tab>
         <Tab fx:id="realmsTab" text="Realms">

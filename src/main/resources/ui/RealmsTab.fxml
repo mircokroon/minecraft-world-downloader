@@ -7,5 +7,24 @@
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="gui.RealmsTabController"
             prefHeight="340.0" prefWidth="600.0">
-        <ListView fx:id="serverList" layoutX="14.0" layoutY="14.0" prefHeight="160.0" prefWidth="580.0"/>
+        <GridPane layoutX="11.0" layoutY="10.0" prefHeight="187.0" prefWidth="579.0">
+                <columnConstraints>
+                        <ColumnConstraints prefWidth="125.0" />
+                        <ColumnConstraints prefWidth="200.0" />
+                        <ColumnConstraints prefWidth="200.0" />
+                        <ColumnConstraints prefWidth="100.0" />
+                </columnConstraints>
+                <rowConstraints>
+                        <RowConstraints prefHeight="45.0" />
+                        <RowConstraints prefHeight="150.0" />
+                </rowConstraints>
+                <Label GridPane.columnIndex="0" GridPane.rowIndex="0" text="Minecraft username" />
+                <TextField GridPane.columnIndex="1" GridPane.rowIndex="0"  fx:id="minecraftUsername" />
+                <Button GridPane.columnIndex="3" GridPane.rowIndex="0" fx:id="loadButton"  mnemonicParsing="false" onAction="#requestList" prefHeight="27.0" prefWidth="60.0" text="Load" />
+
+
+               <ListView GridPane.columnSpan="4" GridPane.rowIndex="1" fx:id="serverList" layoutX="14.0" layoutY="14.0" prefHeight="150.0" prefWidth="580.0"/>
+        </GridPane>
+
+
 </AnchorPane>

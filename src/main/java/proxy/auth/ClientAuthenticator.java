@@ -19,6 +19,12 @@ public class ClientAuthenticator extends AuthDetailsManager {
     private static final int STATUS_SUCCESS = 204;
     private static final String AUTH_URL = "https://sessionserver.mojang.com/session/minecraft/join";
 
+    public ClientAuthenticator() { }
+
+    public ClientAuthenticator(String username) {
+        super(username);
+    }
+
     /**
      * Make the authentication request to the Mojang session server. We need to do this as the one sent by the
      * real client will have had our 'fake' public key instead of the server's real one, and as such the server will
@@ -47,10 +53,6 @@ public class ClientAuthenticator extends AuthDetailsManager {
                 .asString();
 
         if (str.getStatus() != STATUS_SUCCESS) {
-            if (getDetailsLastModified() != 0 && hasProbablyExpired(getDetailsLastModified())) {
-                System.err.println("WARNING: authentication details seem to be outdated. " +
-                        "Run with --manual-auth if you are using a custom launcher.");
-            }
             throw new RuntimeException("Client not authenticated! " + str.getBody());
         } else {
             devPrint("Successfully authenticated user with Mojang session server.");
