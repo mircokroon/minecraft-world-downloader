@@ -81,9 +81,11 @@ public class AuthDetails {
     @Override
     public String toString() {
         return "AuthDetails{" +
-            "uuid='" + uuid + '\'' +
-            ", accessToken='" + accessToken + '\'' +
-            '}';
+                "uuid='" + uuid + '\'' +
+                ", name='" + name + '\'' +
+                ", isValid=" + isValid + '\'' +
+                ", accessToken='" + accessToken +
+                '}';
     }
 
     public String getUsername() {

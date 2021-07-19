@@ -69,6 +69,12 @@ When running headless Java, the GUI should be disabled by including the GUI opti
 java -jar world-downloader.jar -s address.to.server.com --no-gui
 ```
 
+Some linux distributions may require `-Djdk.gtk.version=2` for the GUI to work:
+```
+java -Djdk.gtk.version=2 -jar world-downloader.jar
+```
+
+
 ### Building from source
 <details>
   <summary>Dependencies on linux</summary>

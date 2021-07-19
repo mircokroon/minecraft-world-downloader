@@ -14,6 +14,13 @@ public class RealmsApiHandler extends ClientAuthenticator {
     private static final String REALMS_URL = "https://pc.realms.minecraft.net/";
 
     /**
+     * Initialise the authenticator class by reading from the JSON file.
+     */
+    public RealmsApiHandler(String username) {
+        super(username);
+    }
+
+    /**
      * Set up the basic request with the required headers.
      * @param url the relative URL.
      * @param reportErrors if true, reports errors in the console.

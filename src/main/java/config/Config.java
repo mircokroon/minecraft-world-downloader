@@ -140,6 +140,10 @@ public class Config {
         return instance.debugTrackEvents;
     }
 
+    public static String getUsername() {
+        return instance.username;
+    }
+
     public boolean startWithSettings() {
         return guiOnlyMode;
     }
@@ -274,15 +278,6 @@ public class Config {
         return !disableWriteChunks;
     }
 
-
-    /**
-     * Get the contents of the Minecraft launcher_profiles.json from the given installation path.
-     * @return the contents of the file
-     */
-    public static String getMinecraftPath() {
-        return instance.minecraftDir;
-    }
-
     /**
      * Packet injector allows new packets to be sent to the client.
      */
@@ -331,10 +326,6 @@ public class Config {
     @Option(name = "--seed",
             usage = "Numeric level seed for output world.")
     public long levelSeed = 0;
-
-    @Option(name = "--minecraft-dir", aliases = "-m",
-            usage = "Path to your Minecraft installation, used to retrieve Minecraft authentication details.")
-    public String minecraftDir = getDefaultMinecraftPath();
 
     @Option(name = "--output", aliases = "-o",
             usage = "The world output directory. If the world already exists, it will be updated.")
@@ -398,6 +389,7 @@ public class Config {
 
     @Option(name = "--disable-messages",
             usage = "Disable various info messages (e.g. chest saving).")
+
     public boolean disableInfoMessages = false;
 
     // getters

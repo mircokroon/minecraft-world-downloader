@@ -45,7 +45,6 @@ public class GuiSettings {
     public Tab errTab;
     public TabPane tabPane;
     public TextArea errOutput;
-    public TextField minecraftDir;
     public Label authDetailsVerifyLabel;
     public Tooltip authTooltip;
     public CheckBox disableWorldGen;
@@ -78,7 +77,6 @@ public class GuiSettings {
         server.setText(config.server);
         portRemote.setText("" + config.portRemote);
         portLocal.setText("" + config.portLocal);
-        minecraftDir.setText(Config.getMinecraftPath());
 
         // output tab
         worldOutputDir.setText(config.worldOutputDir);
@@ -107,6 +105,9 @@ public class GuiSettings {
                 if (newVal == realmsTab) {
                     save();
                     realmsController.opened(this);
+                }
+                if (oldVal == realmsTab) {
+                    minecraftUsername.setText(config.username);
                 }
             });
         }
@@ -151,14 +152,6 @@ public class GuiSettings {
             server.pseudoClassStateChanged(empty, newText.isEmpty());
         });
         server.pseudoClassStateChanged(empty, server.getText() == null || server.getText().isEmpty());
-
-        // verify auth details on focus loss
-        minecraftDir.focusedProperty().addListener((ov, oldVal, newVal) -> {
-            if (oldVal && !newVal) {
-                verifyAuthDetails();
-            }
-        });
-        verifyAuthDetails();
 
         // verify port on focus loss
         portLocal.focusedProperty().addListener((ov, oldVal, newVal) -> verifyLocalPort());
@@ -210,26 +203,6 @@ public class GuiSettings {
             portInUse = false;
         }
         updateSaveButtonState();
-    }
-
-    private void verifyAuthDetails() {
-        String path = minecraftDir.getText();
-        AuthStatus status = AuthDetailsManager.authDetailsValid(path);
-
-        authDetailsVerifyLabel.getStyleClass().clear();
-        if (status.isExpired()) {
-            authDetailsVerifyLabel.getStyleClass().add("label-warn");
-            authDetailsVerifyLabel.setText("Expired?");
-            authTooltip.setText("Your authentication details are more than a day old. If you are using a custom launcher,\n enter your details in the Authentication tab.");
-        } else if (status.isValid()) {
-            authDetailsVerifyLabel.getStyleClass().add("label-valid");
-            authDetailsVerifyLabel.setText("Found");
-            authTooltip.setText("Details found. Authentication should be automatic.");
-        } else {
-            authDetailsVerifyLabel.getStyleClass().add("label-err");
-            authDetailsVerifyLabel.setText("Not found");
-            authTooltip.setText("Cannot find authentication files. Enter the correct location, \nor open the Authentication tab to enter your details.");
-        }
     }
 
     public void refreshErrorTab() {
@@ -303,7 +276,6 @@ public class GuiSettings {
         config.server = server.getText();
         config.portRemote = Math.abs(portRemote.getAsInt());
         config.portLocal = Math.abs(portLocal.getAsInt());
-        config.minecraftDir = minecraftDir.getText();
 
         // output tab
         config.worldOutputDir = worldOutputDir.getText();
