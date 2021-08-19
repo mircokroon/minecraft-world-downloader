@@ -109,15 +109,11 @@ public class AuthDetailsFromProcess {
         BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
         List<String> res = new ArrayList<>();
-        int index = -1;
+
         String line;
         while ((line = input.readLine()) != null) {
-            if (index == -1) {
-                index = line.indexOf("CMD");
-            }
-
             if (line.contains("java") && line.contains("--accessToken")) {
-                res.add(line.substring(index));
+                res.add(line);
             }
         }
         input.close();
