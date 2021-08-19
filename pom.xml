@@ -9,7 +9,7 @@
     <version>1.0.0.0</version>
     <packaging>jar</packaging>
     <properties>
-        <java.version>8</java.version>
+        <java.version>16</java.version>
         <java.version.max>16</java.version.max>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -93,7 +93,7 @@
             <plugin>
                 <groupId>com.akathist.maven.plugins.launch4j</groupId>
                 <artifactId>launch4j-maven-plugin</artifactId>
-                <version>2.1.1</version>
+                <version>2.1.2</version>
                 <executions>
                     <execution>
                         <id>l4j-gui</id>
@@ -111,6 +111,11 @@
                             </classPath>
                             <icon>src/main/resources/ui/icon/icon.ico</icon>
                             <jre>
+                                <!--
+                                    Include a few possible paths for the correct Java Runtime, including Minecraft's
+                                    own Java runtime.
+                                  -->
+                                <path>%JAVA_HOME%;%PATH%;C:\Program Files (x86)\Minecraft Launcher\runtime\jre-x64\bin</path>
                                 <minVersion>${java.version}</minVersion>
                                 <initialHeapSize>256</initialHeapSize>
                                 <maxHeapSize>2048</maxHeapSize>
