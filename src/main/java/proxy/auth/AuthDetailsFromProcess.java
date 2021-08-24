@@ -71,9 +71,6 @@ public class AuthDetailsFromProcess {
                     .map(this::getLaunchParametersWindows)
                     .filter(line -> line.contains("--accessToken"))
                     .collect(Collectors.toList());
-        } else if (SystemUtils.IS_OS_MAC_OSX) {
-            return findCandidateProcessMacOS().stream()
-            .map(a -> "" + a).collect(Collectors.toList());
         } else {
             return findCandidateProcessUnix().stream()
                     .map(a -> "" + a).collect(Collectors.toList());
@@ -103,33 +100,17 @@ public class AuthDetailsFromProcess {
     }
 
     /**
-     * For unix (non-macOS) systems we can use one command to get all java processes and their arguments. The first line will be a
+     * For unix systems we can use one command to get all java processes and their arguments. The first line will be a
      * header that we can read out to get the required index for the arguments.
      */
     private List<String> findCandidateProcessUnix() throws IOException {
-        Process p = Runtime.getRuntime().exec("ps -fC java");
-
-        BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        List<String> res = new ArrayList<>();
-
-        String line;
-        while ((line = input.readLine()) != null) {
-            if (line.contains("java") && line.contains("--accessToken")) {
-                res.add(line);
-            }
+        Process p;
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            p = Runtime.getRuntime().exec("ps ax");
         }
-        input.close();
-
-        return res;
-    }
-
-    /**
-     * macOS systems have a different version of ps installed which requires different arguments,
-     * but we can just get the entire process list and filter through it.
-     */
-    private List<String> findCandidateProcessMacOS() throws IOException {
-        Process p = Runtime.getRuntime().exec("ps ax");
+        else {
+            p = Runtime.getRuntime().exec("ps -fC java");
+        }
 
         BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
