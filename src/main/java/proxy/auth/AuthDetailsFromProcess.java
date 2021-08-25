@@ -104,7 +104,13 @@ public class AuthDetailsFromProcess {
      * header that we can read out to get the required index for the arguments.
      */
     private List<String> findCandidateProcessUnix() throws IOException {
-        Process p = Runtime.getRuntime().exec("ps -fC java");
+        Process p;
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            p = Runtime.getRuntime().exec("ps ax");
+        }
+        else {
+            p = Runtime.getRuntime().exec("ps -fC java");
+        }
 
         BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
