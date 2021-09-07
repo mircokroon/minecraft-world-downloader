@@ -1,6 +1,11 @@
 .root {
      -fx-background: #262626;
 }
+
+* {
+    -fx-font-family: "SansSerif";
+}
+
  .tab-header-area {
      -fx-background-color: transparent;
      -fx-text-base-color: #ffffff;

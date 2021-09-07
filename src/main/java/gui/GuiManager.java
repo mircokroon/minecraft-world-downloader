@@ -15,13 +15,11 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.awt.*;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.URI;
 import java.util.List;
 import java.util.function.Consumer;
@@ -223,6 +221,9 @@ public class GuiManager extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        // load in all font families, apparently this may fix issues with fonts on some systems
+        Font.getFamilies().forEach(Font::font);
+
         instance = this;
         this.stage = stage;
         icon = new Image(GuiManager.class.getResourceAsStream("/ui/icon/icon.png"));
