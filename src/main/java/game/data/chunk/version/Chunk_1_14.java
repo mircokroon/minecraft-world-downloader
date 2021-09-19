@@ -122,7 +122,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
     }
 
     protected void parseLightArray(BitSet mask, BitSet emptyMask, DataTypeProvider provider, BiConsumer<ChunkSection, byte[]> c, Function<ChunkSection, byte[]> get) {
-        for (int sectionY = getMinSection(); sectionY <= getMaxSection() && (!mask.isEmpty() || !emptyMask.isEmpty()); sectionY++) {
+        for (int sectionY = getMinSection(); sectionY <= (getMaxSection() + 1) && (!mask.isEmpty() || !emptyMask.isEmpty()); sectionY++) {
             ChunkSection s = getChunkSection(sectionY);
             if (s == null) {
                 s = createNewChunkSection((byte) sectionY, Palette.empty());

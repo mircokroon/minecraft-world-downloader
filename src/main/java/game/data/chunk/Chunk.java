@@ -480,7 +480,12 @@ public abstract class Chunk extends ChunkEntities {
             newChunkSection.setBlocks(new long[256]);
             setChunkSection(sectionY, newChunkSection);
         }
-        getChunkSection(sectionY).setBlockAt(coords.chunkLocalToSectionLocal(), blockStateId);
+
+        // if the section is still null, that means it's likely out of the world bounds so just ignore this update
+        ChunkSection section = getChunkSection(sectionY);
+        if (section == null) { return; }
+
+        section.setBlockAt(coords.chunkLocalToSectionLocal(), blockStateId);
 
         if (suppressUpdate) {
             return;
