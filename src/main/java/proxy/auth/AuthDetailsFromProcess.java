@@ -89,7 +89,7 @@ public class AuthDetailsFromProcess {
         List<Long> res = new ArrayList<>();
         String line;
         while ((line = input.readLine()) != null) {
-            if (line.startsWith("javaw.exe")) {
+            if (line.startsWith("javaw.exe") || line.startsWith("java.exe")) {
                 String[] parts = line.split(" +");
                 res.add(Long.valueOf(parts[1]));
             }
