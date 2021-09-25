@@ -41,13 +41,6 @@ public class AuthDetails {
             return INVALID;
         }
 
-        if (accessToken.length() != 308) {
-            new AuthenticationException("Invalid access token length! Expected 308, found " + accessToken.length())
-                    .printStackTrace();
-
-            return INVALID;
-        }
-
         try {
             UuidNameResponse res = uuidFromUsername(username);
             return new AuthDetails(username, res.id, accessToken);
