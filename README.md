@@ -26,6 +26,8 @@ Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.co
 
 Additional settings can be changed in the other tabs of the settings window.
 
+If you run into any problems, check the [FAQ](https://github.com/mircokroon/minecraft-world-downloader/wiki/FAQ) page for some common issues. 
+
 
 ### Commandline
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the cross-platform `world-downloader.jar` and run it using the commandline:
