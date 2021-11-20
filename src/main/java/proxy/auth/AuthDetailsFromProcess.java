@@ -128,29 +128,21 @@ public class AuthDetailsFromProcess {
     }
 
     /**
-     * Retrieve launch parameters from a given PID on Windows.
-     *
-     * Source: https://stackoverflow.com/a/54790608
+     * Retrieve launch parameters from a given PID on Windows. Uses PowerShell since WMIC is removed in windows 11.
      */
     private String getLaunchParametersWindows(long pid) {
+        String query = "SELECT CommandLine FROM Win32_Process WHERE ProcessID = \"" + pid + "\"";
+        String formatter = "| Select-Object -Property CommandLine | Out-String -width 9999";
+        String cmd = "\"Get-WmiObject -Query \\\"" + query + "\\\" " + formatter + "\"";
         try {
             Process process = new ProcessBuilder(
-                    "wmic", "process", "where", "ProcessID=" + pid, "get", "commandline", "/format:list"
+                    "Powershell.exe", "-Command", cmd
             ).redirectErrorStream(true).start();
 
-            try (InputStreamReader inputStreamReader = new InputStreamReader(process.getInputStream());
-                 BufferedReader reader = new BufferedReader(inputStreamReader)) {
-                while (true) {
-                    String line = reader.readLine();
-                    if (line == null) {
-                        return "";
-                    }
-                    if (!line.startsWith("CommandLine=")) {
-                        continue;
-                    }
-                    return line.substring("CommandLine=".length());
-                }
-            }
+            String res = new BufferedReader(new InputStreamReader(process.getInputStream()))
+                    .lines().filter(line -> line.contains("accessToken")).collect(Collectors.joining());
+
+            return res;
         } catch (IOException e) {
             e.printStackTrace();
             return "";
