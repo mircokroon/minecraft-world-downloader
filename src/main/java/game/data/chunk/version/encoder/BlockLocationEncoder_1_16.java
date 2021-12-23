@@ -40,6 +40,11 @@ public class BlockLocationEncoder_1_16 extends BlockLocationEncoder {
         int indexInLong = blockNumber % blocksPerLong;
         this.startOffset = indexInLong * bitsPerBlock;
 
+        if (longIndex < 0) {
+            System.out.println("INVALID LONG INDEX: ");
+            System.out.println("\t" + x +", " + y + ", " + z + " :: " + bitsPerBlock);
+        }
+
         return this;
     }
 }

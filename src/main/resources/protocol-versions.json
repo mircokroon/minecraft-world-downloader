@@ -16,7 +16,6 @@
 				"0x14": "ContainerSetContent",
 				"0x24": "MapItemData",
 				"0x0F": "Chat",
-
 				"0x00": "AddEntity",
 				"0x03": "AddMob",
 				"0x05": "AddPlayer",
@@ -25,7 +24,6 @@
 				"0x26": "MoveEntityPos",
 				"0x4C": "TeleportEntity",
 				"0x32": "RemoveEntities"
-
 			},
 			"serverBound": {
 				"0x0D": "MovePlayerPos",
@@ -35,7 +33,7 @@
 				"0x1F": "UseItem",
 				"0x08": "ContainerClose"
 			}
-		},		
+		},
 		"404": {
 			"version": "1.13.2",
 			"dataVersion": 1631,
@@ -77,7 +75,6 @@
 				"0x14": "ContainerSetContent",
 				"0x27": "MapItemData",
 				"0x0E": "Chat",
-
 				"0x00": "AddEntity",
 				"0x03": "AddMob",
 				"0x05": "AddPlayer",
@@ -97,7 +94,7 @@
 				"0x0A": "ContainerClose"
 			}
 		},
-		"578":  {
+		"578": {
 			"version": "1.15.2",
 			"dataVersion": 2225,
 			"clientBound": {
@@ -110,11 +107,10 @@
 				"0x26": "Login",
 				"0x3B": "Respawn",
 				"0x2F": "OpenScreen",
-                "0x14": "ContainerClose",
-                "0x15": "ContainerSetContent",
+				"0x14": "ContainerClose",
+				"0x15": "ContainerSetContent",
 				"0x27": "MapItemData",
 				"0x0F": "Chat",
-
 				"0x00": "AddEntity",
 				"0x03": "AddMob",
 				"0x05": "AddPlayer",
@@ -131,10 +127,10 @@
 				"0x13": "MovePlayerRot",
 				"0x15": "MoveVehicle",
 				"0x2C": "UseItem",
-                "0x0A": "ContainerClose"
+				"0x0A": "ContainerClose"
 			}
 		},
-		"754":  {
+		"754": {
 			"version": "1.16.2",
 			"dataVersion": 2578,
 			"clientBound": {
@@ -144,14 +140,13 @@
 				"0x1C": "ForgetLevelChunk",
 				"0x23": "LightUpdate",
 				"0x09": "BlockEntityData",
-                "0x24": "Login",
+				"0x24": "Login",
 				"0x39": "Respawn",
 				"0x2D": "OpenScreen",
 				"0x12": "ContainerClose",
 				"0x13": "ContainerSetContent",
 				"0x25": "MapItemData",
 				"0x0E": "Chat",
-
 				"0x00": "AddEntity",
 				"0x02": "AddMob",
 				"0x04": "AddPlayer",
@@ -168,7 +163,7 @@
 				"0x14": "MovePlayerRot",
 				"0x16": "MoveVehicle",
 				"0x2E": "UseItem",
-                "0x0A": "ContainerClose"
+				"0x0A": "ContainerClose"
 			}
 		},
 		"755": {
@@ -205,7 +200,42 @@
 				"0x15": "MoveVehicle",
 				"0x2e": "UseItem"
 			}
+		},
+		"757": {
+			"version": "1.18",
+			"dataVersion": 2860,
+			"clientBound": {
+				"0x00": "AddEntity",
+				"0x02": "AddMob",
+				"0x04": "AddPlayer",
+				"0x0a": "BlockEntityData",
+				"0x0c": "_BlockUpdate",
+				"0x0f": "Chat",
+				"0x13": "ContainerClose",
+				"0x14": "ContainerSetContent",
+				"0x1d": "ForgetLevelChunk",
+				"0x22": "LevelChunkWithLight",
+				"0x25": "LightUpdate",
+				"0x26": "Login",
+				"0x27": "MapItemData",
+				"0x29": "MoveEntityPos",
+				"0x2a": "MoveEntityPosRot",
+				"0x2e": "OpenScreen",
+				"0x3a": "RemoveEntities",
+				"0x3d": "Respawn",
+				"0x3f": "_SectionBlocksUpdate",
+				"0x4d": "SetEntityData",
+				"0x50": "SetEquipment",
+				"0x62": "TeleportEntity"
+			},
+			"serverBound": {
+				"0x09": "ContainerClose",
+				"0x11": "MovePlayerPos",
+				"0x12": "MovePlayerPosRot",
+				"0x13": "MovePlayerRot",
+				"0x15": "MoveVehicle",
+				"0x2f": "_UseItem"
+			}
 		}
-		
 	}
 }

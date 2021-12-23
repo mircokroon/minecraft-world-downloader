@@ -17,7 +17,6 @@ import se.llbit.nbt.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
@@ -200,7 +199,7 @@ public abstract class Chunk extends ChunkEntities {
         return new NamedTag("", root);
     }
 
-    private boolean hasSections() {
+    protected boolean hasSections() {
         return getAllSections().iterator().hasNext();
     }
 
@@ -222,21 +221,25 @@ public abstract class Chunk extends ChunkEntities {
     protected void addLevelNbtTags(CompoundTag map) {
         super.addLevelNbtTags(map);
 
+        addGeneralLevelTags(map);
+
+        map.add("Biomes", getNbtBiomes());
+        map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
+    }
+
+    protected void addGeneralLevelTags(CompoundTag map) {
         Coordinate2D offset = this.location.offsetChunk();
         map.add("xPos", new IntTag(offset.getX()));
         map.add("zPos", new IntTag(offset.getZ()));
 
         map.add("InhabitedTime", new LongTag(0));
         map.add("LastUpdate", new LongTag(0));
-
-        map.add("Biomes", getNbtBiomes());
-        map.add("Sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
     }
 
     /**
      * Get a list of section tags for the NBT.
      */
-    private List<SpecificTag> getSectionList() {
+    protected List<SpecificTag> getSectionList() {
         return Arrays.stream(chunkSections)
                 .filter(Objects::nonNull)
                 .sorted(Comparator.comparingInt(ChunkSection::getY))
@@ -275,14 +278,14 @@ public abstract class Chunk extends ChunkEntities {
         int size = dataProvider.readVarInt();
         readChunkColumn(full, mask, dataProvider.ofLength(size));
 
-        parseTileEntities(dataProvider);
+        parseBlockEntities(dataProvider);
         afterParse();
     }
 
-    protected void parseTileEntities(DataTypeProvider dataProvider) {
+    protected void parseBlockEntities(DataTypeProvider dataProvider) {
         int tileEntityCount = dataProvider.readVarInt();
         for (int i = 0; i < tileEntityCount; i++) {
-            addTileEntity(dataProvider.readNbtTag());
+            addBlockEntity(dataProvider.readNbtTag());
         }
     }
 
@@ -298,13 +301,13 @@ public abstract class Chunk extends ChunkEntities {
 
 
     public int getNumericBlockStateAt(int x, int y, int z) {
-        int sectionY = y / SECTION_HEIGHT;
+        int sectionY = (int) Math.floor((double) y / SECTION_HEIGHT);
         ChunkSection section = getChunkSection(sectionY);
         if (section == null) {
             return 0;
         }
 
-        return section.getNumericBlockStateAt(x, y % SECTION_HEIGHT, z);
+        return section.getNumericBlockStateAt(x, Math.floorMod(y, SECTION_HEIGHT), z);
     }
 
     public BlockState getBlockStateAt(Coordinate3D location) {

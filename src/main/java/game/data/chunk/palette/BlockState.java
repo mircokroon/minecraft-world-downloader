@@ -13,7 +13,7 @@ import java.util.Map;
 /**
  * A block state in the global palette (1.13+).
  */
-public class BlockState {
+public class BlockState implements State {
     private static final Map<String, IBlendEquation> transparency;
     static {
         transparency = new HashMap<>();
@@ -65,6 +65,7 @@ public class BlockState {
     /**
      * Convert this palette state to NBT format.
      */
+    @Override
     public CompoundTag toNbt() {
         CompoundTag rootTag = new CompoundTag();
         rootTag.add("Name", new StringTag(name));

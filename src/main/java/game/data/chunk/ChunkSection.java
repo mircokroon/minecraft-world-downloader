@@ -67,7 +67,6 @@ public abstract class ChunkSection {
         CompoundTag tag = new CompoundTag();
         tag.add("Y", new ByteTag(y));
 
-
         if (blockLight != null && blockLight.length != 0) {
             tag.add("BlockLight", new ByteArrayTag(blockLight));
         }
@@ -119,7 +118,7 @@ public abstract class ChunkSection {
     }
 
     private synchronized int getPaletteIndex(int x, int y, int z, int bitsPerBlock) {
-        if (blocks.length == 0) {
+        if (blocks.length == 0 || bitsPerBlock == 0) {
             return 0;
         }
 
@@ -159,9 +158,9 @@ public abstract class ChunkSection {
         int index = palette.getIndexFor(this, blockStateId);
 
         getLocationEncoder().setTo(
-               coords.getX(), coords.getY(), coords.getZ(),
-               palette.getBitsPerBlock()
-       );
+                coords.getX(), coords.getY(), coords.getZ(),
+                palette.getBitsPerBlock()
+        );
         getLocationEncoder().write(blocks, index);
     }
 

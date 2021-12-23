@@ -1,10 +1,12 @@
 package game.data.chunk.palette;
 
+import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
 
 import java.util.*;
 
@@ -14,25 +16,36 @@ import java.util.*;
 public class Palette {
     protected int bitsPerBlock;
     private int[] palette;
+    StateProvider stateProvider;
 
-    protected Palette() { }
+    protected Palette() {
+        this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
+    }
 
     private Palette(int bitsPerBlock, int[] palette) {
         this.bitsPerBlock = bitsPerBlock;
         this.palette = palette;
-
+        this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
         synchronizeBitsPerBlock();
     }
 
     Palette(int[] arr) {
         this.palette = arr;
         this.bitsPerBlock = computeBitsPerBlock(arr.length - 1);
+        this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
+    }
+
+    public void biomePalette() {
+        this.stateProvider = WorldManager.getInstance().getBiomeRegistry();
     }
 
     public static Palette empty() {
         return new Palette(4, new int[1]);
     }
 
+    public boolean hasData() {
+        return true;
+    }
 
     /**
      * Some non-vanilla servers will use more bits per block than needed, which will cause
@@ -73,15 +86,25 @@ public class Palette {
 
     /**
      * Read the palette from the network stream.
+     * @param dataTypeProvider network stream reader
+     */
+    public static Palette readPalette(DataTypeProvider dataTypeProvider) {
+        byte bitsPerBlock = dataTypeProvider.readNext();
+        return readPalette(bitsPerBlock, dataTypeProvider);
+    }
+
+    /**
+     * Read the palette from the network stream.
      * @param bitsPerBlock the number of bits per block that is used, indicates the palette type
      * @param dataTypeProvider network stream reader
      */
     public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
-        if (bitsPerBlock > 8) {
+        if (bitsPerBlock == 0) {
+            return new SingleValuePalette(dataTypeProvider.readVarInt());
+        } else if (bitsPerBlock > 8) {
             return new DirectPalette(bitsPerBlock);
         }
         int size = dataTypeProvider.readVarInt();
-
         int[] palette = dataTypeProvider.readVarIntArray(size);
 
         return new Palette(bitsPerBlock, palette);
@@ -113,15 +136,14 @@ public class Palette {
      */
     public List<SpecificTag> toNbt() {
         List<SpecificTag> tags = new ArrayList<>();
-        GlobalPalette globalPalette = GlobalPaletteProvider.getGlobalPalette();
 
-        if (globalPalette == null) {
+        if (stateProvider == null) {
             throw new UnsupportedOperationException("Cannot create palette NBT without a global palette.");
         }
 
         for (int i : palette) {
-            BlockState state = globalPalette.getState(i);
-            if (state == null) { state = globalPalette.getDefaultState(); }
+            State state = stateProvider.getState(i);
+            if (state == null) { state = stateProvider.getDefaultState(); }
 
             tags.add(state.toNbt());
 
@@ -192,3 +214,4 @@ public class Palette {
         return palette.length;
     }
 }
+

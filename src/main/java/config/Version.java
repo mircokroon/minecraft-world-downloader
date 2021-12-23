@@ -8,6 +8,7 @@ public enum Version {
     V1_15(550, 2200),
     V1_16(701, 2578),
     V1_17(755, 2724),
+    V1_18(757, 2860),
     ANY(0, 0);
 
     public final int dataVersion;
@@ -19,16 +20,17 @@ public enum Version {
     }
 
     boolean isVersion(VersionReporter versionReporter) {
-        switch (this) {
-            case V1_12: return versionReporter.isAtLeast1_12();
-            case V1_13: return versionReporter.isAtLeast1_13();
-            case V1_14: return versionReporter.isAtLeast1_14();
-            case V1_15: return versionReporter.isAtLeast1_15();
-            case V1_16: return versionReporter.isAtLeast1_16();
-            case V1_17: return versionReporter.isAtLeast1_17();
-            case ANY: return true;
-            default: return false;
-        }
+        return switch (this) {
+            case V1_12 -> versionReporter.isAtLeast1_12();
+            case V1_13 -> versionReporter.isAtLeast1_13();
+            case V1_14 -> versionReporter.isAtLeast1_14();
+            case V1_15 -> versionReporter.isAtLeast1_15();
+            case V1_16 -> versionReporter.isAtLeast1_16();
+            case V1_17 -> versionReporter.isAtLeast1_17();
+            case V1_18 -> versionReporter.isAtLeast1_18();
+            case ANY -> true;
+            default -> false;
+        };
     }
 
     public boolean isDataVersion(int dataVersion) {
@@ -39,6 +41,7 @@ public enum Version {
             case V1_15: return VersionReporter.isAtLeast1_15(dataVersion);
             case V1_16: return VersionReporter.isAtLeast1_16(dataVersion);
             case V1_17: return VersionReporter.isAtLeast1_17(dataVersion);
+            case V1_18: return VersionReporter.isAtLeast1_18(dataVersion);
             case ANY: return true;
             default: return false;
         }

@@ -162,7 +162,7 @@ public class Config {
         centerX = (centerX >> 9) << 9;
         centerZ = (centerZ >> 9) << 9;
 
-        WorldManager.getInstance().setSaveServiceVariables(markNewChunks, writeChunks());
+        WorldManager.getInstance().setWorldManagerVariables(markNewChunks, writeChunks());
         WorldManager.getInstance().updateExtendedRenderDistance(extendedRenderDistance);
 
         writeSettings();
@@ -265,6 +265,7 @@ public class Config {
             WorldManager.getInstance().setEntityMap(loader.generateEntityNames());
             WorldManager.getInstance().setMenuRegistry(loader.generateMenuRegistry());
             WorldManager.getInstance().setItemRegistry(loader.generateItemRegistry());
+            WorldManager.getInstance().initialiseRegistries();
 
             WorldManager.getInstance().startSaveService();
 
