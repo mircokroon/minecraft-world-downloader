@@ -2,6 +2,7 @@ package game.data;
 
 import config.Config;
 import game.data.chunk.*;
+import game.data.chunk.palette.BiomeRegistry;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
 import game.data.container.ContainerManager;
@@ -54,7 +55,9 @@ public class WorldManager {
     private EntityNames entityMap;
     private MenuRegistry menuRegistry;
     private ItemRegistry itemRegistry;
+    private BiomeRegistry biomeRegistry;
     private BlockColors blockColors;
+
 
     private boolean markNewChunks;
     private boolean writeChunks;
@@ -232,11 +235,9 @@ public class WorldManager {
     /**
      * Set the config variables for the save service.
      */
-    public void setSaveServiceVariables(boolean markNewChunks, Boolean writeChunks) {
+    public void setWorldManagerVariables(boolean markNewChunks, Boolean writeChunks) {
         this.markNewChunks = markNewChunks;
         this.writeChunks = writeChunks;
-
-        blockColors = BlockColors.create();
     }
 
     /**
@@ -337,6 +338,10 @@ public class WorldManager {
 
     public BlockColors getBlockColors() {
         return blockColors;
+    }
+
+    public BiomeRegistry getBiomeRegistry() {
+        return biomeRegistry;
     }
 
     public boolean markNewChunks() {
@@ -706,6 +711,13 @@ public class WorldManager {
 
     public int countActiveBinaryChunks() {
         return this.regions.values().stream().mapToInt(el -> el.getFile().countChunks()).sum();
+    }
+
+    public void initialiseRegistries() {
+        blockColors = BlockColors.create();
+        if (Config.versionReporter().isAtLeast1_18()) {
+            biomeRegistry = BiomeRegistry.create();
+        }
     }
 }
 

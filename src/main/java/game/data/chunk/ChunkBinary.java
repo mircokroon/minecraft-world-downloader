@@ -41,7 +41,7 @@ public class ChunkBinary implements Serializable {
      * @param chunk the chunk
      * @return the binary version of the chunk
      */
-    public static ChunkBinary fromChunk(Chunk chunk, NamedTag nbt) throws IOException {
+    public static ChunkBinary fromChunk(Chunk chunk, NamedTag nbt, boolean isEntities) throws IOException {
         // this only happens for empty chunks (hopefully)
         if (nbt == null) {
             return null;
@@ -49,7 +49,7 @@ public class ChunkBinary implements Serializable {
 
         // debug option - write all chunks nbt as text to files so it can be easily verified
         if (Config.writeChunksAsNbt()) {
-            String filename = chunk.location.getX() + "_" + chunk.location.getZ();
+            String filename = (isEntities ? "E" : "B") + chunk.location.getX() + "_" + chunk.location.getZ();
 
             Path output = PathUtils.toPath(Config.getWorldOutputDir(), "debug", filename);
             Files.createDirectories(output.getParent());
@@ -89,12 +89,12 @@ public class ChunkBinary implements Serializable {
     }
     public static ChunkBinary fromChunk(Chunk chunk) throws IOException {
         NamedTag nbt = chunk.toNbt();
-        return fromChunk(chunk, nbt);
+        return fromChunk(chunk, nbt, false);
     }
 
     public static ChunkBinary entitiesFromChunk(Chunk chunk) throws IOException {
         NamedTag nbt = chunk.toEntityNbt();
-        return fromChunk(chunk, nbt);
+        return fromChunk(chunk, nbt, true);
     }
 
     public Chunk toChunk(CoordinateDim2D coordinate2D) {

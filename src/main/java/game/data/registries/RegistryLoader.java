@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 
 import config.Config;
 import config.Version;
+import config.VersionReporter;
 import game.UnsupportedMinecraftVersionException;
 import game.data.entity.EntityNames;
 import game.data.chunk.palette.GlobalPalette;
@@ -148,9 +149,17 @@ public class RegistryLoader {
         System.out.println("We'll generate some reports now, this may take a minute.");
         System.out.println("Starting output of Minecraft server.jar:");
 
-        ProcessBuilder pb = new ProcessBuilder(
-                "java", "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
-        );
+        ProcessBuilder pb;
+        if (Config.versionReporter().isAtLeast1_18()) {
+            pb = new ProcessBuilder(
+                    "java", "-DbundlerMainClass=net.minecraft.data.Main", "-jar", "server.jar", "--reports"
+            );
+        } else {
+            pb = new ProcessBuilder(
+                    "java", "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
+            );
+        }
+
         pb.directory(PathUtils.toPath(CACHE).toFile());
         Process p = pb.start();
 

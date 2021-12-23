@@ -56,7 +56,11 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
             WorldManager.getInstance().setServerRenderDistance(viewDist);
             replacement.writeVarInt(Math.max(viewDist, Config.getExtendedRenderDistance()));
 
-            replacement.copy(provider, BOOL, BOOL, BOOL, BOOL);
+            if (Config.versionReporter().isAtLeast1_18()) {
+                replacement.copy(provider, VARINT, BOOL, BOOL, BOOL, BOOL);
+            } else {
+                replacement.copy(provider, BOOL, BOOL, BOOL, BOOL);
+            }
 
             getConnectionManager().getEncryptionManager().sendImmediately(replacement);
             return false;

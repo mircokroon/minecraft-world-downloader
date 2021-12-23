@@ -67,7 +67,7 @@ public class Chunk_1_17 extends Chunk_1_16 {
         int size = dataProvider.readVarInt();
         readChunkColumn(true, mask, dataProvider.ofLength(size));
 
-        parseTileEntities(dataProvider);
+        parseBlockEntities(dataProvider);
         afterParse();
     }
 
