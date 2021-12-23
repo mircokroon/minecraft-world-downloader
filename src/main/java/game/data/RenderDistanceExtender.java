@@ -81,6 +81,12 @@ public class RenderDistanceExtender extends Thread {
 
         // only set active to true if the extended distance is actually greater than the server distance
         this.active = this.serverDistance < this.extendedDistance;
+
+        // temporarily disabled for 1.18
+        if (Config.versionReporter().isAtLeast1_18()) {
+            this.active = false;
+            System.out.println("Extending render distance is not yet supported for 1.18.");
+        }
     }
 
     public void start() {

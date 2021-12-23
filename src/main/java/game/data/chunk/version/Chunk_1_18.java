@@ -93,7 +93,8 @@ public class Chunk_1_18 extends Chunk_1_17 {
             int type = dataProvider.readVarInt();
 
             // TODO: make tile entities work for 1.18
-            // addTileEntity(dataProvider.readNbtTag());
+            dataProvider.readNbtTag();
+//             addBlockEntity(dataProvider.readNbtTag());
         }
     }
 

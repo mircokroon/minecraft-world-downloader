@@ -35,7 +35,7 @@ public class DirectPalette extends Palette {
 
     @Override
     public List<SpecificTag> toNbt() {
-        throw new UnsupportedOperationException("Cannot convert a dummy palette to NBT");
+        return List.of();
     }
 
     @Override
