@@ -92,7 +92,7 @@ public class Dimension {
                 case "the_end": return "DIM1";
                 case "overworld": return"";
             }
-            return "";
+            return name;
         }
 
         return Paths.get("dimensions", namespace, name).toString();
