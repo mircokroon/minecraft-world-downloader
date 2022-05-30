@@ -1,7 +1,38 @@
 package game.data;
 
+import static util.ExceptionHandling.attempt;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
 import config.Config;
-import game.data.chunk.*;
+import game.data.chunk.BlockEntityRegistry;
+import game.data.chunk.Chunk;
+import game.data.chunk.ChunkBinary;
+import game.data.chunk.ChunkEntities;
+import game.data.chunk.ChunkFactory;
+import game.data.chunk.IncompleteChunkException;
 import game.data.chunk.palette.BiomeRegistry;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
@@ -16,28 +47,16 @@ import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
 import game.data.entity.EntityNames;
 import game.data.entity.EntityRegistry;
+import game.data.entity.specific.VillagerProfessionRegistry;
+import game.data.entity.specific.VillagerTypeRegistry;
 import game.data.maps.MapRegistry;
 import game.data.region.McaFile;
 import game.data.region.McaFilePair;
 import game.data.region.Region;
 import gui.GuiManager;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import util.PathUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-
-import static util.ExceptionHandling.attempt;
 
 /**
  * Manage the world, including saving, parsing and updating the GUI.
@@ -57,7 +76,9 @@ public class WorldManager {
     private ItemRegistry itemRegistry;
     private BiomeRegistry biomeRegistry;
     private BlockColors blockColors;
-
+    private BlockEntityRegistry blockEntityRegistry;
+    private VillagerProfessionRegistry villagerProfessionRegistry;
+    private VillagerTypeRegistry villagerTypeRegistry;
 
     private boolean markNewChunks;
     private boolean writeChunks;
@@ -362,6 +383,30 @@ public class WorldManager {
 
     public void setItemRegistry(ItemRegistry items) {
         itemRegistry = items;
+    }
+    
+    public BlockEntityRegistry getBlockEntityMap() {
+        return blockEntityRegistry;
+    }
+
+    public void setBlockEntityMap(BlockEntityRegistry blockEntities) {
+        blockEntityRegistry = blockEntities;
+    }
+
+    public VillagerProfessionRegistry getVillagerProfessionMap() {
+        return villagerProfessionRegistry;
+    }
+
+    public void setBlockEntityMap(VillagerProfessionRegistry villagerProfessions) {
+        villagerProfessionRegistry = villagerProfessions;
+    }
+    
+    public VillagerTypeRegistry getVillagerTypeMap() {
+        return villagerTypeRegistry;
+    }
+
+    public void setBlockEntityMap(VillagerTypeRegistry villagerTypes) {
+        villagerTypeRegistry = villagerTypes;
     }
 
     /**

@@ -22,6 +22,14 @@ public class MenuRegistry {
         NUM_SLOTS.put("minecraft:generic_9x6", 54);
 
         NUM_SLOTS.put("minecraft:shulker_box", 27);
+
+        // From https://wiki.vg/Inventory
+        NUM_SLOTS.put("minecraft:blast_furnace", 3);
+        NUM_SLOTS.put("minecraft:brewing_stand", 5);
+        NUM_SLOTS.put("minecraft:furnace", 3);
+        NUM_SLOTS.put("minecraft:hopper", 5);
+        NUM_SLOTS.put("minecraft:lectern", 1);
+        NUM_SLOTS.put("minecraft:smoker", 3);
     }
 
     private Map<Integer, String> menus;

@@ -1,12 +1,14 @@
 package game.data.entity;
 
+import java.util.function.Supplier;
+
 import game.data.WorldManager;
 import game.data.entity.specific.ArmorStand;
+import game.data.entity.specific.Cat;
 import game.data.entity.specific.ItemFrame;
+import game.data.entity.specific.Villager;
 import packets.DataTypeProvider;
 import packets.UUID;
-
-import java.util.function.Supplier;
 
 /**
  * Handle the initial entity fields, we need to know the type before we can instantiate the correct object.
@@ -37,6 +39,10 @@ public class PrimitiveEntity {
             return moveTo(new ArmorStand());
         } else if (typeName.endsWith("item_frame")) {
             return moveTo(new ItemFrame());
+        } else if (typeName.endsWith("villager")) {
+            return moveTo(new Villager());
+        } else if (typeName.endsWith("cat")) {
+            return moveTo(new Cat());
         } else {
             return moveTo(generate.get());
         }

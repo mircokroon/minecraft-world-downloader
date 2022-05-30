@@ -17,7 +17,7 @@ public class ArmorStand extends MobEntity {
     private ArmorStandMetaData metaData;
 
     /**
-     * Add additional fields needed to render item frames.
+     * Add additional fields needed for armor stands.
      */
     @Override
     protected void addNbtData(CompoundTag root) {

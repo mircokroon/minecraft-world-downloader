@@ -1,12 +1,38 @@
 package game.data.chunk.version;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+
+import config.Config;
 import config.Version;
+import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
+import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
+import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
+import game.data.registries.RegistriesJson;
+import game.data.registries.RegistryLoader;
+import game.protocol.Protocol;
+import game.protocol.ProtocolVersionHandler;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
-import se.llbit.nbt.*;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.IntTag;
+import se.llbit.nbt.ListTag;
+import se.llbit.nbt.NamedTag;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
+import se.llbit.nbt.Tag;
 import util.CompoundTagDebug;
 
 public class Chunk_1_18 extends Chunk_1_17 {
@@ -65,16 +91,56 @@ public class Chunk_1_18 extends Chunk_1_17 {
             if (section == null) {
                 section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
             }
-            // parse blocks
-            section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
 
-            // biomes
-            section.setBiomePalette(Palette.readPalette(dataProvider));
-            section.setBiomes(dataProvider.readLongArray(dataProvider.readVarInt()));
+            // For some reason, there's a chance that the packet has no more data. Instead of erroring,
+            // just check if the packet has any more data.
+            if(dataProvider.hasNext()) {
+                // parse blocks
+                section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
+
+                // biomes
+                if(dataProvider.hasNext()) {
+                    section.setBiomePalette(Palette.readPalette(dataProvider));
+                    section.setBiomes(dataProvider.readLongArray(dataProvider.readVarInt()));
+                }
+            }
 
             // May replace an existing section or a null one
             setChunkSection(sectionY, section);
+
+            // For some reason that I can't figure out, servers don't include containers
+            // in the list of block_entities. We need to know that these block entities
+            // exist, otherwise we'll end up not writing block entity data which results
+            // in certain block entities that don't render!
+            for(SpecificTag tag : blockPalette.toNbt()) {
+                // Only iterate over the chunk section if the palette contains a block entity
+                String blockName = tag.get("Name").stringValue();
+                if(isBlockEntity(blockName)) {
+                    for (int y = 0; y < 16; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            for (int x = 0; x < 16; x++) {
+                                final BlockState state = GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(section.getNumericBlockStateAt(x, y, z));
+                                if(isBlockEntity(state.getName())) {
+                                    Coordinate3D coords = new Coordinate3D(getLocation().getX() * 16 + x, sectionY * 16 + y, getLocation().getZ() * 16 + z);
+                                    this.addBlockEntity(coords, this.generateBlockEntity(state.getName(), coords));
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+    }
+
+    // Checks if a resource location is a block state (TODO: This isn't exhaustive. This should probably
+    // use a registry or something)
+    public boolean isBlockEntity(String blockStateName) {
+        final Set<String> blockEntities = Set.of("minecraft:chest", "minecraft:barrel", "minecraft:hopper",
+                "minecraft:ender_chest", "minecraft:dispenser", "minecraft:dropper", "minecraft:blast_furnace",
+                "minecraft:brewing_stand", "minecraft:furnace", "minecraft:hopper", "minecraft:lectern",
+                "minecraft:smoker", "minecraft:conduit", "minecraft:bell");
+        return blockStateName.endsWith("shulker_box") || blockStateName.endsWith("_bed")
+                || blockEntities.contains(blockStateName);
     }
 
     @Override
@@ -92,9 +158,17 @@ public class Chunk_1_18 extends Chunk_1_17 {
             int y = dataProvider.readShort();
             int type = dataProvider.readVarInt();
 
-            // TODO: make tile entities work for 1.18
-            dataProvider.readNbtTag();
-//             addBlockEntity(dataProvider.readNbtTag());
+            // Get the exact coordinates in the world
+            x = (this.getLocation().getX() * 16) + x;
+            z = (this.getLocation().getZ() * 16) + z;
+
+            SpecificTag tag = dataProvider.readNbtTag();
+            if (tag instanceof CompoundTag entity) {
+                String blockEntityID = WorldManager.getInstance().getBlockEntityMap().getBlockEntityName(type);
+
+                entity.add("id", new StringTag(blockEntityID));
+                addBlockEntity(new Coordinate3D(x, y, z), entity);
+            }
         }
     }
 

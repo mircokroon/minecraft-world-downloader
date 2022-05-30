@@ -3,6 +3,8 @@ package game.data.chunk.version;
 import config.Version;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.palette.SingleValuePalette;
+import game.data.coordinates.Coordinate3D;
 import se.llbit.nbt.*;
 
 import java.util.List;
@@ -69,5 +71,24 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
         }
 
         return tag;
+    }
+    
+    @Override
+    public synchronized void setBlockAt(Coordinate3D coords, int blockStateId) {
+        int index = palette.getIndexFor(this, blockStateId);
+
+        if(palette instanceof SingleValuePalette svp) {
+            if(blocks == null || blocks.length == 0) {
+                resetBlocks();
+            }
+
+            this.palette = svp.asNormalPalette();
+        }
+
+        getLocationEncoder().setTo(
+                coords.getX(), coords.getY(), coords.getZ(),
+                palette.getBitsPerBlock()
+        );
+        getLocationEncoder().write(blocks, index);
     }
 }

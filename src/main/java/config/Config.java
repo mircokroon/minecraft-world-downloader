@@ -265,6 +265,7 @@ public class Config {
             WorldManager.getInstance().setEntityMap(loader.generateEntityNames());
             WorldManager.getInstance().setMenuRegistry(loader.generateMenuRegistry());
             WorldManager.getInstance().setItemRegistry(loader.generateItemRegistry());
+            WorldManager.getInstance().setBlockEntityMap(loader.generateBlockEntityRegistry());
             WorldManager.getInstance().initialiseRegistries();
 
             WorldManager.getInstance().startSaveService();

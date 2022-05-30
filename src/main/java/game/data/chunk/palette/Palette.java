@@ -1,14 +1,15 @@
 package game.data.chunk.palette;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.StringTag;
-
-import java.util.*;
 
 /**
  * Class to hold a palette of a chunk.
@@ -19,6 +20,8 @@ public class Palette {
     StateProvider stateProvider;
 
     protected Palette() {
+        // palette needs initializing
+        this.palette = new int[1];
         this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
     }
 

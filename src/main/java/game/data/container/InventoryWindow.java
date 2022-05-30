@@ -67,6 +67,9 @@ public class InventoryWindow {
         return slotList;
     }
 
+    public int getType() {
+        return windowType;
+    }
 
     public InventoryWindow[] split() {
         InventoryWindow first = new InventoryWindow(this);

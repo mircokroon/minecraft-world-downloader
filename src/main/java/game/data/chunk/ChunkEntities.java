@@ -46,7 +46,16 @@ public abstract class ChunkEntities extends ChunkEvents {
             blockEntities.put(window.getContainerLocation(), blockEntity);
         }
 
-        blockEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
+        // A lectern. This should be accessed via a registry, but I was in a rush.
+        if(window.getType() == 16) {
+            CompoundTag book = new CompoundTag();
+            book.add("Count", new IntTag(1));
+            book.add("id", new StringTag("minecraft:written_book"));
+            book.add("tag", window.getSlotsNbt().get(0).asCompound().get("tag").asCompound());
+            blockEntity.add("Book", book);
+        } else {
+            blockEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
+        }
 
         if (window.hasCustomName()) {
             blockEntity.add("CustomName", new StringTag(window.getWindowTitle()));
@@ -97,6 +106,10 @@ public abstract class ChunkEntities extends ChunkEvents {
 
 
     public void addBlockEntity(Coordinate3D location, SpecificTag tag) {
+        if(tag.tagType() == Tag.TAG_END) {
+            // We shouldn't reach this state, but just in case we do, return.
+            return;
+        }
         CompoundTag entity = (CompoundTag) tag;
 
         // validate entity identifer
@@ -157,7 +170,7 @@ public abstract class ChunkEntities extends ChunkEvents {
         addBlockEntity(position, nbtTag);
     }
 
-    private CompoundTag generateBlockEntity(String id, Coordinate3D containerLocation) {
+    protected CompoundTag generateBlockEntity(String id, Coordinate3D containerLocation) {
         String entId = id;
 
         // all shulker colours have the same block entity
