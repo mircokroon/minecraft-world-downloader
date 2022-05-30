@@ -70,7 +70,7 @@ class CatMetaData extends MetaData_1_13 {
                 byte next = provider.readNext();
                 isSitting = (next & 0x01) > 0;
             };
-            case 18: return provider -> owner = provider.readUUID();
+            case 18: return provider -> owner = provider.readOptUUID();
             case 19: return provider -> type = provider.readVarInt();
         }
         return super.getIndexHandler(i);

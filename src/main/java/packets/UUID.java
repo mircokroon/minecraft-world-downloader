@@ -47,8 +47,6 @@ public class UUID {
     }
 
     public int[] asIntArray() {
-        long long1 = upper;
-        long long2 = lower;
-        return new int[]{(int) (long1 >> 32), (int) long1, (int) (long2 >> 32), (int) long2};
+        return new int[]{(int) (lower >> 32), (int) lower, (int) (upper >> 32), (int) upper};
     }
 }

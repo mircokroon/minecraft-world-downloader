@@ -132,12 +132,12 @@ public class Chunk_1_18 extends Chunk_1_17 {
         }
     }
 
-    // Checks if a resource location is a block state (TODO: This isn't exhaustive. This should probably
-    // use a registry or something)
+    // Checks if a resource location (for a block state) is a block entity (TODO:
+    // This isn't exhaustive. This should probably use a registry or something)
     public boolean isBlockEntity(String blockStateName) {
         final Set<String> blockEntities = Set.of("minecraft:chest", "minecraft:barrel", "minecraft:hopper",
                 "minecraft:ender_chest", "minecraft:dispenser", "minecraft:dropper", "minecraft:blast_furnace",
-                "minecraft:brewing_stand", "minecraft:furnace", "minecraft:hopper", "minecraft:lectern",
+                "minecraft:brewing_stand", "minecraft:furnace", "minecraft:lectern",
                 "minecraft:smoker", "minecraft:conduit", "minecraft:bell");
         return blockStateName.endsWith("shulker_box") || blockStateName.endsWith("_bed")
                 || blockEntities.contains(blockStateName);
