@@ -1,6 +1,7 @@
 package packets.handler;
 
 import config.Config;
+import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.WorldManager;
 import proxy.ConnectionManager;
@@ -37,6 +38,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             updatePlayerRotation.apply(provider);
             return true;
         });
+
         operations.put("MoveVehicle", updatePlayerPosition);
 
         operations.put("UseItem", provider -> {
@@ -45,12 +47,23 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
                 provider.readVarInt();
             }
 
-            WorldManager.getInstance().getContainerManager().lastInteractedWith(provider.readCoordinates());
-
             return true;
         });
+
         operations.put("ContainerClose", provider -> {
             WorldManager.getInstance().getContainerManager().closeWindow(provider.readNext());
+            return true;
+        });
+
+        operations.put("PlayerBlockPlacement", provider -> {
+            provider.readVarInt();  // Hand
+            Coordinate3D coords = provider.readCoordinates(); // Position
+            provider.readVarInt();  // Block face
+            provider.readFloat();   // Cursor x
+            provider.readFloat();   // Cursor y
+            provider.readFloat();   // Cursor z
+            provider.readBoolean(); // If the player's head is inside of a block
+            WorldManager.getInstance().getContainerManager().lastInteractedWith(coords);
             return true;
         });
     }

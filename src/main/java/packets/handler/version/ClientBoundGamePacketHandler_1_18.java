@@ -36,19 +36,6 @@ public class ClientBoundGamePacketHandler_1_18 extends ClientBoundGamePacketHand
             worldManager.getChunkFactory().updateTileEntity(position, entityData);
             return true;
         });
-
-        operators.put("PlayerBlockPlacement", provider -> {
-            provider.readVarInt();  // Hand
-            Coordinate3D coords = provider.readCoordinates(); // Position
-            provider.readVarInt();  // Block face
-            provider.readFloat();   // Cursor x
-            provider.readFloat();   // Cursor y
-            provider.readFloat();   // Cursor z
-            provider.readBoolean(); // If the player's head is inside of a block
-
-            worldManager.getContainerManager().lastInteractedWith(coords);
-            return true;
-        });
     }
 
 }

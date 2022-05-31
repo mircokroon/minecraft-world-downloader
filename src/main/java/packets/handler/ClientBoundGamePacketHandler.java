@@ -1,22 +1,25 @@
 package packets.handler;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import config.Config;
 import config.Option;
 import config.Version;
 import game.data.WorldManager;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
-import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
 import game.data.entity.EntityRegistry;
 import game.data.entity.MobEntity;
 import game.data.entity.ObjectEntity;
-import packets.handler.version.*;
+import packets.handler.version.ClientBoundGamePacketHandler_1_14;
+import packets.handler.version.ClientBoundGamePacketHandler_1_15;
+import packets.handler.version.ClientBoundGamePacketHandler_1_16;
+import packets.handler.version.ClientBoundGamePacketHandler_1_17;
+import packets.handler.version.ClientBoundGamePacketHandler_1_18;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class ClientBoundGamePacketHandler extends PacketHandler {
     private final HashMap<String, PacketOperator> operations = new HashMap<>();
