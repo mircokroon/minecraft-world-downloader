@@ -397,7 +397,7 @@ public class WorldManager {
         return villagerProfessionRegistry;
     }
 
-    public void setBlockEntityMap(VillagerProfessionRegistry villagerProfessions) {
+    public void setVillagerProfessionMap(VillagerProfessionRegistry villagerProfessions) {
         villagerProfessionRegistry = villagerProfessions;
     }
     
@@ -405,7 +405,7 @@ public class WorldManager {
         return villagerTypeRegistry;
     }
 
-    public void setBlockEntityMap(VillagerTypeRegistry villagerTypes) {
+    public void setVillagerTypeMap(VillagerTypeRegistry villagerTypes) {
         villagerTypeRegistry = villagerTypes;
     }
 

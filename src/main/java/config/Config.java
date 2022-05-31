@@ -1,23 +1,5 @@
 package config;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
-import game.data.WorldManager;
-import game.data.registries.RegistryLoader;
-import game.protocol.Protocol;
-import game.protocol.ProtocolVersionHandler;
-import gui.GuiManager;
-import org.apache.commons.lang3.SystemUtils;
-import org.kohsuke.args4j.CmdLineException;
-import org.kohsuke.args4j.CmdLineParser;
-import org.kohsuke.args4j.Option;
-import packets.builder.PacketBuilder;
-import proxy.ConnectionDetails;
-import proxy.ConnectionManager;
-import proxy.auth.AuthDetails;
-import util.PathUtils;
-
 import java.io.File;
 import java.io.FileReader;
 import java.nio.file.Files;
@@ -25,6 +7,26 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.function.Consumer;
+
+import org.apache.commons.lang3.SystemUtils;
+import org.kohsuke.args4j.CmdLineException;
+import org.kohsuke.args4j.CmdLineParser;
+import org.kohsuke.args4j.Option;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+
+import game.data.WorldManager;
+import game.data.registries.RegistryLoader;
+import game.protocol.Protocol;
+import game.protocol.ProtocolVersionHandler;
+import gui.GuiManager;
+import packets.builder.PacketBuilder;
+import proxy.ConnectionDetails;
+import proxy.ConnectionManager;
+import proxy.auth.AuthDetails;
+import util.PathUtils;
 
 public class Config {
     private static final int DEFAULT_VERSION = 340;
@@ -266,6 +268,8 @@ public class Config {
             WorldManager.getInstance().setMenuRegistry(loader.generateMenuRegistry());
             WorldManager.getInstance().setItemRegistry(loader.generateItemRegistry());
             WorldManager.getInstance().setBlockEntityMap(loader.generateBlockEntityRegistry());
+            WorldManager.getInstance().setVillagerProfessionMap(loader.generateVillagerProfessionRegistry());
+            WorldManager.getInstance().setVillagerTypeMap(loader.generateVillagerTypeRegistry());
             WorldManager.getInstance().initialiseRegistries();
 
             WorldManager.getInstance().startSaveService();
