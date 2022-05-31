@@ -147,6 +147,7 @@ public abstract class ChunkEntities extends ChunkEvents {
         entity.add("z", new IntTag(offset.getZ()));
 
         blockEntities.put(location, tag);
+        WorldManager.getInstance().touchChunk(this);
 
         // check for inventory contents we previously saved
         CoordinateDim3D pos = location.addDimension3D(getDimension());

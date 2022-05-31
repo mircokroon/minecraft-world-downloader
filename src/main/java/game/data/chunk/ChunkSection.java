@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
+import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
@@ -161,6 +162,7 @@ public abstract class ChunkSection {
                 palette.getBitsPerBlock()
         );
         getLocationEncoder().write(blocks, index);
+        WorldManager.getInstance().touchChunk(chunk);
     }
 
     /**
