@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import game.data.WorldManager;
 import game.data.entity.specific.ArmorStand;
 import game.data.entity.specific.Cat;
+import game.data.entity.specific.Item;
 import game.data.entity.specific.ItemFrame;
 import game.data.entity.specific.Villager;
 import packets.DataTypeProvider;
@@ -43,6 +44,8 @@ public class PrimitiveEntity {
             return moveTo(new Villager());
         } else if (typeName.endsWith("cat")) {
             return moveTo(new Cat());
+        } else if (typeName.endsWith("item")) {
+            return moveTo(new Item());
         } else {
             return moveTo(generate.get());
         }
