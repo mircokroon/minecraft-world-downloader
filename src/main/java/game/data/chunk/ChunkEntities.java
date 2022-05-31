@@ -178,6 +178,9 @@ public abstract class ChunkEntities extends ChunkEvents {
         if (id.endsWith("shulker_box")) {
             entId =  "minecraft:shulker_box";
         }
+        if (id.endsWith("_bed")) {
+            entId =  "minecraft:bed";
+        }
 
         CompoundTag entity = new CompoundTag();
         entity.add("id", new StringTag(entId));
