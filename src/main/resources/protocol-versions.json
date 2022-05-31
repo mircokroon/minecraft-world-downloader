@@ -218,6 +218,7 @@
 				"0x25": "LightUpdate",
 				"0x26": "Login",
 				"0x27": "MapItemData",
+				"0x28": "TradeList",
 				"0x29": "MoveEntityPos",
 				"0x2a": "MoveEntityPosRot",
 				"0x2e": "OpenScreen",

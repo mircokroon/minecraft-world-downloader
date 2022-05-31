@@ -161,6 +161,11 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        operations.put("TradeList", provider -> {
+            entityRegistry.addVillagerTrades(provider);
+            return true;
+        });
+
         operations.put("update_view_distance", provider -> {
             System.out.println("Server tried to change view distance to " + provider.readVarInt());
            return false;
