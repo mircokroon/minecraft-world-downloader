@@ -74,7 +74,6 @@ public class EntityRegistry {
             
             if(ent instanceof Villager villager) {
                 villager.registerOnTradeUpdate((pos) -> {
-                    System.out.println("Villager requested save to chunk");
                     markUnsaved(pos.globalToDimChunk());
                 });
             }

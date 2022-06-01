@@ -96,7 +96,6 @@ public class Villager extends MobEntity {
         offers.add("Recipes", new ListTag(Tag.TAG_COMPOUND, tradeOptions));
         root.add("Offers", offers);
 
-        System.out.println("Added " + tradeOptions.size() + " trades");
         root.add("Xp", new IntTag(villagerExp));
     }
 }

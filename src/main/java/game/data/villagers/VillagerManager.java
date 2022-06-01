@@ -37,11 +37,9 @@ public class VillagerManager {
     
     public void parseAndStoreVillagerTrade(DataTypeProvider provider) {
         if(lastInteractedWith == null) {
-            System.out.println("Last interacted with nothing!");
             return; // This should be impossible
         }
-        
-        System.out.println("Saving villager trades");
+
         trades = new ArrayList<>();
 
         provider.readVarInt(); // Window ID
@@ -70,7 +68,7 @@ public class VillagerManager {
         villagerExp = provider.readVarInt(); // Total experience for this villager
         provider.readBoolean(); // Is regular villager
         provider.readBoolean(); // Can restock
-        
+
         lastInteractedWith.updateTrades(trades, villagerLevel, villagerExp, lastInteractedLocation);
     }
 }
