@@ -33,17 +33,26 @@ public class ChunkSection_1_16 extends ChunkSection_1_15 {
      * When the bits per block increases, we must rewrite the blocks array.
      */
     @Override
-    public synchronized void resizeBlocks(int newBitsPerBlock) {
-        int blocksPerLong = 64 / newBitsPerBlock;
-        int newSize = (int) Math.ceil(4096.0 / blocksPerLong);
-        long[] newBlocks = new long[newSize];
+    public synchronized void resizeBlocksIfRequired(int newBitsPerBlock) {
+        int newSize = longsRequired(newBitsPerBlock);
 
-        if (blocks == null) {
-            this.blocks = newBlocks;
+        // if blocks is empty or isn't the correct size, no need to copy
+        if (blocks == null || blocks.length != longsRequired(palette.getBitsPerBlock())) {
+            this.blocks = new long[newSize];
             return;
         }
 
-        copyBlocks(newBlocks, newBitsPerBlock);
+        // if the length didn't change we don't have to do anything
+        if (blocks.length == newSize) {
+            return;
+        }
+
+        copyBlocks(new long[newSize], newBitsPerBlock);
+    }
+
+    private static int longsRequired(int bitsPerBlock) {
+        int blocksPerLong = 64 / bitsPerBlock;
+        return (int) Math.ceil(4096.0 / blocksPerLong);
     }
 }
 

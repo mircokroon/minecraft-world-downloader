@@ -205,7 +205,7 @@ public class Palette {
 
         int newBitsPerBlock = computeBitsPerBlock(palette.length - 1);
         if (bitsPerBlock != newBitsPerBlock) {
-            section.resizeBlocks(newBitsPerBlock);
+            section.resizeBlocksIfRequired(newBitsPerBlock);
             this.bitsPerBlock = newBitsPerBlock;
         }
 

@@ -168,7 +168,7 @@ public abstract class ChunkSection {
     /**
      * When the bits per block increases, we must rewrite the blocks array.
      */
-    public synchronized void resizeBlocks(int newBitsPerBlock) {
+    public synchronized void resizeBlocksIfRequired(int newBitsPerBlock) {
         int newSize = newBitsPerBlock * 64;
         long[] newBlocks = new long[newSize];
 

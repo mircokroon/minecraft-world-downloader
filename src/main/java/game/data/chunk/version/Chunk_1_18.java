@@ -57,7 +57,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
             // seems to happen when there's blocks above 192 under some conditions
             System.out.println("Can't (fully?) parse chunk at " + location + ". Cause: " + ex.getMessage());
         }
-        
+
         afterParse();
     }
 
