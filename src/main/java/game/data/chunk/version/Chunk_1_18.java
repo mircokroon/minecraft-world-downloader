@@ -46,12 +46,18 @@ public class Chunk_1_18 extends Chunk_1_17 {
         parseHeightMaps(dataProvider);
 
         int size = dataProvider.readVarInt();
-        readChunkColumn(dataProvider.ofLength(size));
 
-        parseBlockEntities(dataProvider);
+        try {
+            readChunkColumn(dataProvider.ofLength(size));
 
-        updateLight(dataProvider);
+            parseBlockEntities(dataProvider);
 
+            updateLight(dataProvider);
+        } catch (Exception ex) {
+            // seems to happen when there's blocks above 192 under some conditions
+            System.out.println("Can't (fully?) parse chunk at " + location + ". Cause: " + ex.getMessage());
+        }
+        
         afterParse();
     }
 
@@ -61,38 +67,30 @@ public class Chunk_1_18 extends Chunk_1_17 {
      */
     public void readChunkColumn(DataTypeProvider dataProvider) {
         // Loop through section Y values, starting from the lowest section that has blocks inside it.
-       for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() + 1 && dataProvider.hasNext(); sectionY++) {
-           ChunkSection_1_18 section = (ChunkSection_1_18) getChunkSection(sectionY);
+        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() + 1 && dataProvider.hasNext(); sectionY++) {
+            ChunkSection_1_18 section = (ChunkSection_1_18) getChunkSection(sectionY);
 
-           int blockCount = dataProvider.readShort();
-           Palette blockPalette = Palette.readPalette(dataProvider);
+            int blockCount = dataProvider.readShort();
+            Palette blockPalette = Palette.readPalette(dataProvider);
 
-           if (section == null) {
-               section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
-           }
+            if (section == null) {
+                section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
+            }
 
-           // For some reason, there's a chance that the packet has no more data. Instead of erroring,
-           // just check if the packet has any more data.
-           if (dataProvider.hasNext()) {
-               // parse blocks
-               section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
+            section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
 
-               // biomes
-               if (dataProvider.hasNext()) {
-                   section.setBiomePalette(Palette.readPalette(dataProvider));
-                   section.setBiomes(dataProvider.readLongArray(dataProvider.readVarInt()));
-               }
-           }
+            section.setBiomePalette(Palette.readPalette(dataProvider));
+            section.setBiomes(dataProvider.readLongArray(dataProvider.readVarInt()));
 
-           // May replace an existing section or a null one
-           setChunkSection(sectionY, section);
+            // May replace an existing section or a null one
+            setChunkSection(sectionY, section);
 
-           // servers don't (always?) include containers in the list of block_entities. We need to know that these block
-           // entities exist, otherwise we'll end up not writing block entity data for them
-           if (containsBlockEntities(blockPalette)) {
-               findBlockEntities(section, sectionY);
-           }
-       }
+            // servers don't (always?) include containers in the list of block_entities. We need to know that these block
+            // entities exist, otherwise we'll end up not writing block entity data for them
+            if (containsBlockEntities(blockPalette)) {
+                findBlockEntities(section, sectionY);
+            }
+        }
     }
 
     private void findBlockEntities(ChunkSection section, int sectionY) {
