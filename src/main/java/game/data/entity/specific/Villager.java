@@ -81,6 +81,7 @@ public class Villager extends MobEntity {
             if(trade.secondItem() != null) {
                 tradeOption.add("buy2", trade.secondItem().toNbt());
             }
+            tradeOption.add("sell", trade.sellingItem().toNbt());
             tradeOption.add("demand", new IntTag(trade.demand()));
             tradeOption.add("maxUses", new IntTag(trade.maxUses()));
             tradeOption.add("priceMultiplier", new FloatTag(trade.priceMultiplier()));
