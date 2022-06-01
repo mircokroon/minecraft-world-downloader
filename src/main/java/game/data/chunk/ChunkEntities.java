@@ -58,11 +58,7 @@ public abstract class ChunkEntities extends ChunkEvents {
         String type = RegistryManager.getInstance().getMenuRegistry().getName(window.getType());
 
         if (type.equals("minecraft:lectern")) {
-            CompoundTag book = new CompoundTag();
-            book.add("Count", new IntTag(1));
-            book.add("id", new StringTag("minecraft:written_book"));
-            book.add("tag", window.getSlotsNbt().get(0).asCompound().get("tag").asCompound());
-            blockEntity.add("Book", book);
+            blockEntity.add("Book", window.getSlotsNbt().get(0).asCompound());
         } else {
             blockEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
         }
