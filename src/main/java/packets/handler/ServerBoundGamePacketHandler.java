@@ -1,13 +1,13 @@
 package packets.handler;
 
-import config.Config;
-import game.data.coordinates.Coordinate3D;
-import game.data.coordinates.CoordinateDouble3D;
-import game.data.WorldManager;
-import proxy.ConnectionManager;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import config.Config;
+import game.data.WorldManager;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDouble3D;
+import proxy.ConnectionManager;
 
 public class ServerBoundGamePacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
@@ -64,6 +64,11 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             provider.readFloat();   // Cursor z
             provider.readBoolean(); // If the player's head is inside of a block
             WorldManager.getInstance().getContainerManager().lastInteractedWith(coords);
+            return true;
+        });
+
+        operations.put("UpdateCommandBlock", provider -> {
+            WorldManager.getInstance().getCommandBlockManager().readAndStoreCommandBlock(provider);
             return true;
         });
     }

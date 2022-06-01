@@ -36,6 +36,7 @@ import game.data.chunk.IncompleteChunkException;
 import game.data.chunk.palette.BiomeRegistry;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
+import game.data.commandblock.CommandBlockManager;
 import game.data.container.ContainerManager;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
@@ -87,6 +88,7 @@ public class WorldManager {
     private boolean isSaving;
 
     private ContainerManager containerManager;
+    private CommandBlockManager commandBlockManager;
     private DimensionCodec dimensionCodec;
     private RenderDistanceExtender renderDistanceExtender;
 
@@ -527,6 +529,13 @@ public class WorldManager {
             containerManager = new ContainerManager();
         }
         return containerManager;
+    }
+    
+    public CommandBlockManager getCommandBlockManager() {
+        if(commandBlockManager == null) {
+            commandBlockManager = new CommandBlockManager();
+        }
+        return commandBlockManager;
     }
 
     public void pauseSaving() {

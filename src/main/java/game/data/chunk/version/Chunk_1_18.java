@@ -1,17 +1,7 @@
 package game.data.chunk.version;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonSyntaxException;
-
-import config.Config;
 import config.Version;
 import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
@@ -20,10 +10,6 @@ import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
-import game.data.registries.RegistriesJson;
-import game.data.registries.RegistryLoader;
-import game.protocol.Protocol;
-import game.protocol.ProtocolVersionHandler;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.CompoundTag;
@@ -139,7 +125,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
                 "minecraft:ender_chest", "minecraft:dispenser", "minecraft:dropper", "minecraft:blast_furnace",
                 "minecraft:brewing_stand", "minecraft:furnace", "minecraft:lectern",
                 "minecraft:smoker", "minecraft:conduit", "minecraft:bell");
-        return blockStateName.endsWith("shulker_box") || blockStateName.endsWith("_bed")
+        return blockStateName.endsWith("shulker_box") || blockStateName.endsWith("_bed") || blockStateName.endsWith("command_block")
                 || blockEntities.contains(blockStateName);
     }
 
