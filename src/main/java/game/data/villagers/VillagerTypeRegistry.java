@@ -1,4 +1,4 @@
-package game.data.entity.specific;
+package game.data.villagers;
 
 import java.io.FileInputStream;
 import java.io.InputStreamReader;

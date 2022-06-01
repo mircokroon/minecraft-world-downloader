@@ -231,6 +231,7 @@
 			},
 			"serverBound": {
 				"0x09": "ContainerClose",
+				"0x0d": "InteractEntity",
 				"0x11": "MovePlayerPos",
 				"0x12": "MovePlayerPosRot",
 				"0x13": "MovePlayerRot",

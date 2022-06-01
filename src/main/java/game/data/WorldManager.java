@@ -27,19 +27,15 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import config.Config;
-import game.data.chunk.BlockEntityRegistry;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
 import game.data.chunk.ChunkEntities;
 import game.data.chunk.ChunkFactory;
 import game.data.chunk.IncompleteChunkException;
-import game.data.chunk.palette.BiomeRegistry;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
 import game.data.commandblock.CommandBlockManager;
 import game.data.container.ContainerManager;
-import game.data.container.ItemRegistry;
-import game.data.container.MenuRegistry;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
@@ -48,12 +44,11 @@ import game.data.dimension.Dimension;
 import game.data.dimension.DimensionCodec;
 import game.data.entity.EntityNames;
 import game.data.entity.EntityRegistry;
-import game.data.entity.specific.VillagerProfessionRegistry;
-import game.data.entity.specific.VillagerTypeRegistry;
 import game.data.maps.MapRegistry;
 import game.data.region.McaFile;
 import game.data.region.McaFilePair;
 import game.data.region.Region;
+import game.data.villagers.VillagerManager;
 import gui.GuiManager;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
@@ -83,6 +78,7 @@ public class WorldManager {
 
     private ContainerManager containerManager;
     private CommandBlockManager commandBlockManager;
+    private VillagerManager villagerManager;
     private DimensionCodec dimensionCodec;
     private RenderDistanceExtender renderDistanceExtender;
 
@@ -488,6 +484,13 @@ public class WorldManager {
             commandBlockManager = new CommandBlockManager();
         }
         return commandBlockManager;
+    }
+    
+    public VillagerManager getVillagerManager() {
+        if(villagerManager == null) {
+            villagerManager = new VillagerManager();
+        }
+        return villagerManager;
     }
 
     public void pauseSaving() {

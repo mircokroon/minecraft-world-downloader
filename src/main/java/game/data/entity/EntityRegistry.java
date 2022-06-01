@@ -71,6 +71,13 @@ public class EntityRegistry {
                 markUnsaved(newChunk);
 
             });
+            
+            if(ent instanceof Villager villager) {
+                villager.registerOnTradeUpdate((pos) -> {
+                    System.out.println("Villager requested save to chunk");
+                    markUnsaved(pos.globalToDimChunk());
+                });
+            }
         }));
     }
 
@@ -142,6 +149,10 @@ public class EntityRegistry {
         return entities.get(entId);
     }
 
+    public Entity getEntity(int entityId) {
+        return (Entity) getMovableEntity(entityId);
+    }
+
     public List<SpecificTag> getEntitiesNbt(CoordinateDim2D location) {
         Set<Entity> entities = perChunk.get(location);
 
@@ -198,9 +209,7 @@ public class EntityRegistry {
 
     public void addVillagerTrades(DataTypeProvider provider) {
         this.executor.execute(() -> attempt(() -> {
-            // Check the last interacted with entity. This should be a villager(?)
-            Villager villager = null; // TODO: = do lookup
-            villager.parseTrades(provider);
+            worldManager.getVillagerManager().parseAndStoreVillagerTrade(provider);
         }));
     }
 }

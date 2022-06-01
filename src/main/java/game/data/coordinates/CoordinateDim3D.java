@@ -10,6 +10,10 @@ public class CoordinateDim3D extends Coordinate3D {
         this.dimension = dimension;
     }
 
+    public CoordinateDim2D globalToDimChunk() {
+        return new CoordinateDim2D(x >> CHUNK_SHIFT, z >> CHUNK_SHIFT, this.dimension);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

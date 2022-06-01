@@ -71,6 +71,11 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             WorldManager.getInstance().getCommandBlockManager().readAndStoreCommandBlock(provider);
             return true;
         });
+
+        operations.put("InteractEntity", provider -> {
+            WorldManager.getInstance().getVillagerManager().lastInteractedWith(provider);
+            return true;
+        });
     }
 
     @Override

@@ -5,8 +5,8 @@ import game.data.chunk.BlockEntityRegistry;
 import game.data.chunk.palette.BiomeRegistry;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
-import game.data.entity.specific.VillagerProfessionRegistry;
-import game.data.entity.specific.VillagerTypeRegistry;
+import game.data.villagers.VillagerProfessionRegistry;
+import game.data.villagers.VillagerTypeRegistry;
 
 import java.io.IOException;
 

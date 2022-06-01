@@ -162,7 +162,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         });
 
         operations.put("TradeList", provider -> {
-            entityRegistry.addVillagerTrades(provider);
+            worldManager.getEntityRegistry().addVillagerTrades(provider);
             return true;
         });
 
