@@ -1,5 +1,6 @@
 package game.data.container;
 
+import game.data.RegistryManager;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.WorldManager;
@@ -36,7 +37,7 @@ public class InventoryWindow {
         this.windowTitle = windowTitle;
         this.containerLocation = containerLocation;
 
-        this.slotCount = WorldManager.getInstance().getMenuRegistry().getSlotCount(windowType);
+        this.slotCount = RegistryManager.getInstance().getMenuRegistry().getSlotCount(windowType);
     }
 
     private InventoryWindow(InventoryWindow other) {

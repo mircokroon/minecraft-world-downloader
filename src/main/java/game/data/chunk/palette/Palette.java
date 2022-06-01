@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import game.data.RegistryManager;
 import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
@@ -39,7 +40,7 @@ public class Palette {
     }
 
     public void biomePalette() {
-        this.stateProvider = WorldManager.getInstance().getBiomeRegistry();
+        this.stateProvider = RegistryManager.getInstance().getBiomeRegistry();
     }
 
     public static Palette empty() {

@@ -2,6 +2,7 @@ package packets.handler.version;
 
 import java.util.Map;
 
+import game.data.RegistryManager;
 import game.data.WorldManager;
 import game.data.coordinates.Coordinate3D;
 import packets.handler.PacketOperator;
@@ -31,7 +32,7 @@ public class ClientBoundGamePacketHandler_1_18 extends ClientBoundGamePacketHand
             SpecificTag entityData = provider.readNbtTag();
 
             if(entityData instanceof CompoundTag entity) {
-                entity.add("id", new StringTag(worldManager.getBlockEntityMap().getBlockEntityName(action)));
+                entity.add("id", new StringTag(RegistryManager.getInstance().getBlockEntityRegistry().getBlockEntityName(action)));
             }
             worldManager.getChunkFactory().updateTileEntity(position, entityData);
             return true;

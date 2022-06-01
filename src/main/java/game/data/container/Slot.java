@@ -1,5 +1,6 @@
 package game.data.container;
 
+import game.data.RegistryManager;
 import game.data.WorldManager;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -21,7 +22,7 @@ public class Slot {
     public String toString() {
         return "Slot{" +
             "itemId=" + itemId +
-            ", Name=" + WorldManager.getInstance().getItemRegistry().getItemName(itemId) +
+            ", Name=" + RegistryManager.getInstance().getItemRegistry().getItemName(itemId) +
             ", count=" + count +
             ", nbt=" + nbt +
             '}';
@@ -29,7 +30,7 @@ public class Slot {
 
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
-        tag.add("id", new StringTag(WorldManager.getInstance().getItemRegistry().getItemName(itemId)));
+        tag.add("id", new StringTag(RegistryManager.getInstance().getItemRegistry().getItemName(itemId)));
         tag.add("Count", new ByteTag(count));
 
         if (nbt instanceof CompoundTag) {

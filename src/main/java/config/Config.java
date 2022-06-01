@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.function.Consumer;
 
+import game.data.RegistryManager;
 import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -265,12 +266,9 @@ public class Config {
             if (loader == null) { return; }
 
             WorldManager.getInstance().setEntityMap(loader.generateEntityNames());
-            WorldManager.getInstance().setMenuRegistry(loader.generateMenuRegistry());
-            WorldManager.getInstance().setItemRegistry(loader.generateItemRegistry());
-            WorldManager.getInstance().setBlockEntityMap(loader.generateBlockEntityRegistry());
-            WorldManager.getInstance().setVillagerProfessionMap(loader.generateVillagerProfessionRegistry());
-            WorldManager.getInstance().setVillagerTypeMap(loader.generateVillagerTypeRegistry());
             WorldManager.getInstance().initialiseRegistries();
+
+            RegistryManager.getInstance().setRegistries(loader);
 
             WorldManager.getInstance().startSaveService();
 

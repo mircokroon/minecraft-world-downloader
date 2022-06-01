@@ -2,6 +2,7 @@ package game.data.entity.specific;
 
 import java.util.function.Consumer;
 
+import game.data.RegistryManager;
 import game.data.WorldManager;
 import game.data.entity.MobEntity;
 import game.data.entity.metadata.MetaData_1_13;
@@ -57,8 +58,11 @@ class VillagerMetaData extends MetaData_1_13 {
         nbt.add("NoAI", new ByteTag(noAI ? 1 : 0));
 
         CompoundTag villagerData = new CompoundTag();
-        villagerData.add("type", new StringTag(WorldManager.getInstance().getVillagerTypeMap().getType(type)));
-        villagerData.add("profession", new StringTag(WorldManager.getInstance().getVillagerProfessionMap().getProfession(profession)));
+
+        String typeName = RegistryManager.getInstance().getVillagerTypeRegistry().getType(type);
+        String professionName = RegistryManager.getInstance().getVillagerProfessionRegistry().getProfession(profession);
+        villagerData.add("type", new StringTag(typeName));
+        villagerData.add("profession", new StringTag(professionName));
         villagerData.add("level", new IntTag(level));
 
         nbt.add("VillagerData", villagerData);

@@ -3,6 +3,7 @@ package game.data.chunk.version;
 import java.util.Set;
 
 import config.Version;
+import game.data.RegistryManager;
 import game.data.WorldManager;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.BlockState;
@@ -150,7 +151,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
 
             SpecificTag tag = dataProvider.readNbtTag();
             if (tag instanceof CompoundTag entity) {
-                String blockEntityID = WorldManager.getInstance().getBlockEntityMap().getBlockEntityName(type);
+                String blockEntityID = RegistryManager.getInstance().getBlockEntityRegistry().getBlockEntityName(type);
 
                 entity.add("id", new StringTag(blockEntityID));
                 addBlockEntity(new Coordinate3D(x, y, z), entity);

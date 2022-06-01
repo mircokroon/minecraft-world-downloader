@@ -73,13 +73,7 @@ public class WorldManager {
     private final Set<Dimension> existingLoaded = new HashSet<>();
 
     private EntityNames entityMap;
-    private MenuRegistry menuRegistry;
-    private ItemRegistry itemRegistry;
-    private BiomeRegistry biomeRegistry;
     private BlockColors blockColors;
-    private BlockEntityRegistry blockEntityRegistry;
-    private VillagerProfessionRegistry villagerProfessionRegistry;
-    private VillagerTypeRegistry villagerTypeRegistry;
 
     private boolean markNewChunks;
     private boolean writeChunks;
@@ -363,53 +357,11 @@ public class WorldManager {
         return blockColors;
     }
 
-    public BiomeRegistry getBiomeRegistry() {
-        return biomeRegistry;
-    }
 
     public boolean markNewChunks() {
         return markNewChunks;
     }
 
-    public MenuRegistry getMenuRegistry() {
-        return menuRegistry;
-    }
-
-    public void setMenuRegistry(MenuRegistry menus) {
-        menuRegistry = menus;
-    }
-
-    public ItemRegistry getItemRegistry() {
-        return itemRegistry;
-    }
-
-    public void setItemRegistry(ItemRegistry items) {
-        itemRegistry = items;
-    }
-    
-    public BlockEntityRegistry getBlockEntityMap() {
-        return blockEntityRegistry;
-    }
-
-    public void setBlockEntityMap(BlockEntityRegistry blockEntities) {
-        blockEntityRegistry = blockEntities;
-    }
-
-    public VillagerProfessionRegistry getVillagerProfessionMap() {
-        return villagerProfessionRegistry;
-    }
-
-    public void setVillagerProfessionMap(VillagerProfessionRegistry villagerProfessions) {
-        villagerProfessionRegistry = villagerProfessions;
-    }
-    
-    public VillagerTypeRegistry getVillagerTypeMap() {
-        return villagerTypeRegistry;
-    }
-
-    public void setVillagerTypeMap(VillagerTypeRegistry villagerTypes) {
-        villagerTypeRegistry = villagerTypes;
-    }
 
     /**
      * Mark a chunk and it's region as having unsaved changes.
@@ -532,7 +484,7 @@ public class WorldManager {
     }
     
     public CommandBlockManager getCommandBlockManager() {
-        if(commandBlockManager == null) {
+        if (commandBlockManager == null) {
             commandBlockManager = new CommandBlockManager();
         }
         return commandBlockManager;
@@ -769,9 +721,6 @@ public class WorldManager {
 
     public void initialiseRegistries() {
         blockColors = BlockColors.create();
-        if (Config.versionReporter().isAtLeast1_18()) {
-            biomeRegistry = BiomeRegistry.create();
-        }
     }
 }
 
