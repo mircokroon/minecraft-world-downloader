@@ -2,33 +2,24 @@ package game.data.entity.specific;
 
 import java.util.function.Consumer;
 
-import game.data.container.Slot;
-import game.data.entity.ObjectEntity;
+import game.data.entity.MobEntity;
 import game.data.entity.metadata.MetaData_1_13;
 import packets.DataTypeProvider;
+import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.ShortTag;
 
 /**
- * Handle dropped items
+ * Handle sheep as they have sheep type metadata.
  */
-public class Item extends ObjectEntity {
-    private ItemMetaData metaData;
-
-    public Item() {
-        super();
-    }
+public class Sheep extends MobEntity {
+    private SheepMetaData metaData;
 
     /**
-     * Add additional fields needed for dropped items.
+     * Add additional fields needed for sheep.
      */
     @Override
     protected void addNbtData(CompoundTag root) {
         super.addNbtData(root);
-
-        // TODO: make option in menu for whether items should despawn or stay permanently
-        root.add("Age", new ShortTag((short) -32768)); // Default age: 6000. Set to -32768 to never despawn
-        root.add("Health", new ShortTag((short) 5)); // Default health
 
         if (metaData != null) {
             metaData.addNbtTags(root);
@@ -38,7 +29,7 @@ public class Item extends ObjectEntity {
     @Override
     public void parseMetadata(DataTypeProvider provider) {
         if (metaData == null) {
-            metaData = new ItemMetaData();
+            metaData = new SheepMetaData();
         }
         try {
             metaData.parse(provider);
@@ -47,20 +38,26 @@ public class Item extends ObjectEntity {
         }
     }
 
-    private class ItemMetaData extends MetaData_1_13 {
-        Slot item;
+    private class SheepMetaData extends MetaData_1_13 {
+
+        byte colorID = 0;
+        boolean isSheared = false;
 
         @Override
         public void addNbtTags(CompoundTag nbt) {
-            if (item != null) {
-                nbt.add("Item", item.toNbt());
-            }
-        }
+            super.addNbtTags(nbt);
 
+            nbt.add("Color", new ByteTag(colorID));
+            nbt.add("Sheared", new ByteTag(isSheared ? 1 : 0));
+        }
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
             switch (i) {
-                case 8: return provider -> item = provider.readSlot();
+                case 17: return provider -> {
+                    byte flags = provider.readNext();
+                    colorID = (byte) (flags & 0x0F);
+                    isSheared = (flags & 0x10) > 0;
+                };
             }
             return super.getIndexHandler(i);
         }

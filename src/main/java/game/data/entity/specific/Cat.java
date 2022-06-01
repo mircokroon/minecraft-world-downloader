@@ -40,39 +40,39 @@ public class Cat extends MobEntity {
             // couldn't parse metadata, whatever
         }
     }
-}
 
-class CatMetaData extends MetaData_1_13 {
+    private class CatMetaData extends MetaData_1_13 {
 
-    int type = 1;
-    int collarColor = 14;
+        int type = 1;
+        int collarColor = 14;
 
-    boolean isSitting = false;
-    UUID owner = null;
+        boolean isSitting = false;
+        UUID owner = null;
 
-    @Override
-    public void addNbtTags(CompoundTag nbt) {
-        super.addNbtTags(nbt);
+        @Override
+        public void addNbtTags(CompoundTag nbt) {
+            super.addNbtTags(nbt);
 
-        nbt.add("CatType", new IntTag(type));
-        nbt.add("CollarColor", new ByteTag(collarColor));
-        if(owner != null) {
-            nbt.add("Owner", new IntArrayTag(owner.asIntArray()));
+            nbt.add("CatType", new IntTag(type));
+            nbt.add("CollarColor", new ByteTag(collarColor));
+            if(owner != null) {
+                nbt.add("Owner", new IntArrayTag(owner.asIntArray()));
+            }
+            nbt.add("Sitting", new ByteTag(isSitting ? 1 : 0));
         }
-        nbt.add("Sitting", new ByteTag(isSitting ? 1 : 0));
-    }
 
-    @Override
-    public Consumer<DataTypeProvider> getIndexHandler(int i) {
-        switch (i) {
-            case 2: return provider -> collarColor = provider.readVarInt();
-            case 17: return provider -> {
-                byte next = provider.readNext();
-                isSitting = (next & 0x01) > 0;
-            };
-            case 18: return provider -> owner = provider.readOptUUID();
-            case 19: return provider -> type = provider.readVarInt();
+        @Override
+        public Consumer<DataTypeProvider> getIndexHandler(int i) {
+            switch (i) {
+                case 2: return provider -> collarColor = provider.readVarInt();
+                case 17: return provider -> {
+                    byte next = provider.readNext();
+                    isSitting = (next & 0x01) > 0;
+                };
+                case 18: return provider -> owner = provider.readOptUUID();
+                case 19: return provider -> type = provider.readVarInt();
+            }
+            return super.getIndexHandler(i);
         }
-        return super.getIndexHandler(i);
     }
 }

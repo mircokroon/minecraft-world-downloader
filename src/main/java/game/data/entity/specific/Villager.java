@@ -58,7 +58,7 @@ public class Villager extends MobEntity {
     public void registerOnTradeUpdate(Consumer<CoordinateDim3D> handler) {
         this.onTrade = handler;
     }
-    
+
     public void updateTrades(List<VillagerTrade> trades, int villagerLevel, int villagerExp, CoordinateDim3D lastInteractedLocation) {
         this.trades = trades;
         this.villagerLevel = villagerLevel;
@@ -67,12 +67,12 @@ public class Villager extends MobEntity {
             onTrade.accept(lastInteractedLocation);
         }
     }
-    
+
     private void addTradeNbtTags(CompoundTag root) {
         if(trades == null || trades.size() == 0) {
             return;
         }
-        
+
         List<CompoundTag> tradeOptions = new ArrayList<>();
         for(VillagerTrade trade : trades) {
             CompoundTag tradeOption = new CompoundTag();
@@ -98,47 +98,47 @@ public class Villager extends MobEntity {
 
         root.add("Xp", new IntTag(villagerExp));
     }
-}
 
-class VillagerMetaData extends MetaData_1_13 {
+    private class VillagerMetaData extends MetaData_1_13 {
 
-    boolean noAI;
-    int headShakeTimer;
-    int type;
-    int profession;
-    int level;
+        boolean noAI;
+        int headShakeTimer;
+        int type;
+        int profession;
+        int level;
 
-    @Override
-    public void addNbtTags(CompoundTag nbt) {
-        super.addNbtTags(nbt);
+        @Override
+        public void addNbtTags(CompoundTag nbt) {
+            super.addNbtTags(nbt);
 
-        nbt.add("NoAI", new ByteTag(noAI ? 1 : 0));
+            nbt.add("NoAI", new ByteTag(noAI ? 1 : 0));
 
-        CompoundTag villagerData = new CompoundTag();
+            CompoundTag villagerData = new CompoundTag();
 
-        String typeName = RegistryManager.getInstance().getVillagerTypeRegistry().getType(type);
-        String professionName = RegistryManager.getInstance().getVillagerProfessionRegistry().getProfession(profession);
-        villagerData.add("type", new StringTag(typeName));
-        villagerData.add("profession", new StringTag(professionName));
-        villagerData.add("level", new IntTag(level));
+            String typeName = RegistryManager.getInstance().getVillagerTypeRegistry().getType(type);
+            String professionName = RegistryManager.getInstance().getVillagerProfessionRegistry().getProfession(profession);
+            villagerData.add("type", new StringTag(typeName));
+            villagerData.add("profession", new StringTag(professionName));
+            villagerData.add("level", new IntTag(level));
 
-        nbt.add("VillagerData", villagerData);
-    }
-
-    @Override
-    public Consumer<DataTypeProvider> getIndexHandler(int i) {
-        switch (i) {
-            case 15:
-                return provider -> noAI = (provider.readNext() & 0x01) > 0;
-            case 17:
-                return provider -> headShakeTimer = provider.readVarInt();
-            case 18:
-                return provider -> {
-                    type = provider.readVarInt();
-                    profession = provider.readVarInt();
-                    level = provider.readVarInt();
-                };
+            nbt.add("VillagerData", villagerData);
         }
-        return super.getIndexHandler(i);
+
+        @Override
+        public Consumer<DataTypeProvider> getIndexHandler(int i) {
+            switch (i) {
+                case 15:
+                    return provider -> noAI = (provider.readNext() & 0x01) > 0;
+                case 17:
+                    return provider -> headShakeTimer = provider.readVarInt();
+                case 18:
+                    return provider -> {
+                        type = provider.readVarInt();
+                        profession = provider.readVarInt();
+                        level = provider.readVarInt();
+                    };
+            }
+            return super.getIndexHandler(i);
+        }
     }
 }

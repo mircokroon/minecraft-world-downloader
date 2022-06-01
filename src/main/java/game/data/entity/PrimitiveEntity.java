@@ -4,9 +4,12 @@ import java.util.function.Supplier;
 
 import game.data.WorldManager;
 import game.data.entity.specific.ArmorStand;
+import game.data.entity.specific.Axolotl;
 import game.data.entity.specific.Cat;
+import game.data.entity.specific.Horse;
 import game.data.entity.specific.Item;
 import game.data.entity.specific.ItemFrame;
+import game.data.entity.specific.Sheep;
 import game.data.entity.specific.Villager;
 import packets.DataTypeProvider;
 import packets.UUID;
@@ -36,19 +39,17 @@ public class PrimitiveEntity {
             return null;
         }
 
-        if (typeName.endsWith("armor_stand")) {
-            return moveTo(new ArmorStand());
-        } else if (typeName.endsWith("item_frame")) {
-            return moveTo(new ItemFrame());
-        } else if (typeName.endsWith("villager")) {
-            return moveTo(new Villager());
-        } else if (typeName.endsWith("cat")) {
-            return moveTo(new Cat());
-        } else if (typeName.endsWith("item")) {
-            return moveTo(new Item());
-        } else {
-            return moveTo(generate.get());
-        }
+        return moveTo(switch(typeName) {
+            case "minecraft:armor_stand" -> new ArmorStand();
+            case "minecraft:axolotl" -> new Axolotl();
+            case "minecraft:cat" -> new Cat();
+            case "minecraft:horse" -> new Horse();
+            case "minecraft:item" -> new Item();
+            case "minecraft:item_frame", "minecraft:glow_item_frame" -> new ItemFrame();
+            case "minecraft:sheep" -> new Sheep();
+            case "minecraft:villager" -> new Villager();
+            default -> generate.get();
+        });
     }
 
     private Entity moveTo(Entity ent) {
