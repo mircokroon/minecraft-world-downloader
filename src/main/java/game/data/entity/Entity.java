@@ -24,7 +24,6 @@ import se.llbit.nbt.Tag;
 
 public abstract class Entity extends PrimitiveEntity implements IMovableEntity {
     private static EquipmentReader equipmentReader;
-
     public final static double CHANGE_MULTIPLIER = 4096.0;
     public final static float ROTATION_MULTIPLIER = 360f / 256f;
 
@@ -57,7 +56,7 @@ public abstract class Entity extends PrimitiveEntity implements IMovableEntity {
         // https://minecraft.fandom.com/wiki/Universally_unique_identifier#Representation
         // The "Most/Least representation is deprecated in 1.16. Should use the
         // new version instead for 1.16 and beyond
-        if(VersionReporter.isAtLeast1_16(Config.getDataVersion())) {
+        if (VersionReporter.isAtLeast1_16(Config.getDataVersion())) {
             root.add("UUID", new IntArrayTag(uuid.asIntArray()));
         } else {
             root.add("UUIDLeast", new LongTag(uuid.getLower()));

@@ -77,8 +77,8 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
     public synchronized void setBlockAt(Coordinate3D coords, int blockStateId) {
         int index = palette.getIndexFor(this, blockStateId);
 
-        if(palette instanceof SingleValuePalette svp) {
-            if(blocks == null || blocks.length == 0) {
+        if (palette instanceof SingleValuePalette svp) {
+            if (blocks == null || blocks.length == 0) {
                 resetBlocks();
             }
 

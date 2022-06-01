@@ -1,10 +1,9 @@
 package game.data.chunk.version;
 
-import java.util.Set;
-
 import config.Version;
-import game.data.RegistryManager;
-import game.data.WorldManager;
+import game.data.chunk.BlockEntityRegistry;
+import game.data.chunk.palette.GlobalPalette;
+import game.data.registries.RegistryManager;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
@@ -13,14 +12,7 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
-import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.IntTag;
-import se.llbit.nbt.ListTag;
-import se.llbit.nbt.NamedTag;
-import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.StringTag;
-import se.llbit.nbt.Tag;
-import util.CompoundTagDebug;
+import se.llbit.nbt.*;
 
 public class Chunk_1_18 extends Chunk_1_17 {
     public static final Version VERSION = Version.V1_18;
@@ -70,65 +62,69 @@ public class Chunk_1_18 extends Chunk_1_17 {
     public void readChunkColumn(DataTypeProvider dataProvider) {
         // Loop through section Y values, starting from the lowest section that has blocks inside it.
        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() + 1 && dataProvider.hasNext(); sectionY++) {
-            ChunkSection_1_18 section = (ChunkSection_1_18) getChunkSection(sectionY);
+           ChunkSection_1_18 section = (ChunkSection_1_18) getChunkSection(sectionY);
 
            int blockCount = dataProvider.readShort();
            Palette blockPalette = Palette.readPalette(dataProvider);
 
-            if (section == null) {
-                section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
-            }
+           if (section == null) {
+               section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
+           }
 
-            // For some reason, there's a chance that the packet has no more data. Instead of erroring,
-            // just check if the packet has any more data.
-            if(dataProvider.hasNext()) {
-                // parse blocks
-                section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
+           // For some reason, there's a chance that the packet has no more data. Instead of erroring,
+           // just check if the packet has any more data.
+           if (dataProvider.hasNext()) {
+               // parse blocks
+               section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
 
-                // biomes
-                if(dataProvider.hasNext()) {
-                    section.setBiomePalette(Palette.readPalette(dataProvider));
-                    section.setBiomes(dataProvider.readLongArray(dataProvider.readVarInt()));
-                }
-            }
+               // biomes
+               if (dataProvider.hasNext()) {
+                   section.setBiomePalette(Palette.readPalette(dataProvider));
+                   section.setBiomes(dataProvider.readLongArray(dataProvider.readVarInt()));
+               }
+           }
 
-            // May replace an existing section or a null one
-            setChunkSection(sectionY, section);
+           // May replace an existing section or a null one
+           setChunkSection(sectionY, section);
 
-            // For some reason that I can't figure out, servers don't include containers
-            // in the list of block_entities. We need to know that these block entities
-            // exist, otherwise we'll end up not writing block entity data which results
-            // in certain block entities that don't render!
-            for(SpecificTag tag : blockPalette.toNbt()) {
-                // Only iterate over the chunk section if the palette contains a block entity
-                String blockName = tag.get("Name").stringValue();
-                if(isBlockEntity(blockName)) {
-                    for (int y = 0; y < 16; y++) {
-                        for (int z = 0; z < 16; z++) {
-                            for (int x = 0; x < 16; x++) {
-                                final BlockState state = GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(section.getNumericBlockStateAt(x, y, z));
-                                if(isBlockEntity(state.getName())) {
-                                    Coordinate3D coords = new Coordinate3D(getLocation().getX() * 16 + x, sectionY * 16 + y, getLocation().getZ() * 16 + z);
-                                    this.addBlockEntity(coords, this.generateBlockEntity(state.getName(), coords));
-                                }
-                            }
-                        }
+           // servers don't (always?) include containers in the list of block_entities. We need to know that these block
+           // entities exist, otherwise we'll end up not writing block entity data for them
+           if (containsBlockEntities(blockPalette)) {
+               findBlockEntities(section, sectionY);
+           }
+       }
+    }
+
+    private void findBlockEntities(ChunkSection section, int sectionY) {
+        BlockEntityRegistry blockEntities = RegistryManager.getInstance().getBlockEntityRegistry();
+        GlobalPalette globalPalette = GlobalPaletteProvider.getGlobalPalette(getDataVersion());
+
+        for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    BlockState state = globalPalette.getState(section.getNumericBlockStateAt(x, y, z));
+
+                    if (blockEntities.isBlockEntity(state.getName())) {
+                        Coordinate3D coords = new Coordinate3D(x, y, z).sectionLocalToGlobal(sectionY, this.location);
+                        this.addBlockEntity(coords, this.generateBlockEntity(state.getName(), coords));
                     }
                 }
             }
         }
     }
 
-    // Checks if a resource location (for a block state) is a block entity (TODO:
-    // This isn't exhaustive. This should probably use a registry or something)
-    public boolean isBlockEntity(String blockStateName) {
-        final Set<String> blockEntities = Set.of("minecraft:chest", "minecraft:barrel", "minecraft:hopper",
-                "minecraft:ender_chest", "minecraft:dispenser", "minecraft:dropper", "minecraft:blast_furnace",
-                "minecraft:brewing_stand", "minecraft:furnace", "minecraft:lectern",
-                "minecraft:smoker", "minecraft:conduit", "minecraft:bell");
-        return blockStateName.endsWith("shulker_box") || blockStateName.endsWith("_bed") || blockStateName.endsWith("command_block")
-                || blockEntities.contains(blockStateName);
+    private boolean containsBlockEntities(Palette p) {
+        BlockEntityRegistry blockEntities = RegistryManager.getInstance().getBlockEntityRegistry();
+        for (SpecificTag tag : p.toNbt()) {
+            if (blockEntities.isBlockEntity(tag.get("Name").stringValue())) {
+                return true;
+            }
+        }
+        return false;
     }
+
+
+
 
     @Override
     public PacketBuilder toLightPacket() {
@@ -170,9 +166,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
         }
 
         CompoundTag root = new CompoundTag();
-        if (getLocation().getX() == -7 && getLocation().getZ() == -7) {
-            root = new CompoundTagDebug();
-        }
+
         addLevelNbtTags(root);
         root.add("DataVersion", new IntTag(getDataVersion()));
 

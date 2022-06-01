@@ -95,4 +95,8 @@ public class Coordinate3D extends Coordinate2D {
         int newY = ((y % 16) + 16) % 16;
         return new Coordinate3D(x, newY, z);
     }
+
+    public Coordinate3D sectionLocalToGlobal(int sectionY, Coordinate2D chunkPos) {
+        return new Coordinate3D(chunkPos.getX() * 16 + x, sectionY * 16 + y, chunkPos.getZ() * 16 + z);
+    }
 }

@@ -26,6 +26,7 @@ public class Item extends ObjectEntity {
     protected void addNbtData(CompoundTag root) {
         super.addNbtData(root);
 
+        // TODO: make option in menu for whether items should despawn or stay permanently
         root.add("Age", new ShortTag((short) -32768)); // Default age: 6000. Set to -32768 to never despawn
         root.add("Health", new ShortTag((short) 5)); // Default health
 

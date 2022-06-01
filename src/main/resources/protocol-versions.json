@@ -223,7 +223,7 @@
 				"0x2e": "OpenScreen",
 				"0x3a": "RemoveEntities",
 				"0x3d": "Respawn",
-				"0x3f": "SectionBlocksUpdate",
+				"0x3f": "_SectionBlocksUpdate",
 				"0x4d": "SetEntityData",
 				"0x50": "SetEquipment",
 				"0x62": "TeleportEntity"

@@ -10,9 +10,9 @@ import se.llbit.nbt.StringTag;
 
 public class CommandBlock {
 
-    private CoordinateDim3D location;
-    private String command;
-    private CommandMode mode; // Not stored in NBT, but useful to know
+    private final CoordinateDim3D location;
+    private final String command;
+    private final CommandMode mode; // Not stored in NBT, but useful to know
 
     /**
      * Whether this command block tracks output or not. If true, opening this
@@ -20,17 +20,17 @@ public class CommandBlock {
      * visible in the menu). If false, this command block displays the "X" character
      * (with a previous output text box visible in the menu)
      */
-    private boolean trackOutput;
+    private final boolean trackOutput;
 
     /**
      * Whether this command block is Conditional (true) or Unconditional (false)
      */
-    private boolean isConditional; // Not stored in NBT
+    private final boolean isConditional; // Not stored in NBT
 
     /**
      * Whether this command block is Always Active (true) or Needs Redstone (false)
      */
-    private boolean isAlwaysActive;
+    private final boolean isAlwaysActive;
 
     public CommandBlock(Coordinate3D coords, String command, int mode, byte flags) {
         this.location = coords.addDimension3D(WorldManager.getInstance().getDimension());
@@ -54,37 +54,27 @@ public class CommandBlock {
         return this.location;
     }
 
-    public String getBlockStateName() {
-        return this.mode.getResourceLocation();
-    }
-
     @Override
     public String toString() {
-        return "CommandBlock{" + "location=" + location + ", command='" + command + '\'' + ", mode=" + mode
-                + ", alwaysActive=" + isAlwaysActive + ", isConditional=" + isConditional + ", trackOutput="
-                + trackOutput + '}';
+        return "CommandBlock{" +
+                "location=" + location +
+                ", command='" + command + '\'' +
+                ", mode=" + mode +
+                ", trackOutput=" + trackOutput +
+                ", isConditional=" + isConditional +
+                ", isAlwaysActive=" + isAlwaysActive +
+                '}';
     }
 
     private enum CommandMode {
-        /**
-         * Chain command blocks (also known as "sequence" in wiki.vg)
-         */
         CHAIN("minecraft:chain_command_block"),
-
-        /**
-         * Repeating command blocks (also known as "auto" in wiki.vg)
-         */
         REPEAT("minecraft:repeating_command_block"),
-
-        /**
-         * Impulse (normal) command blocks (also known as "redstone" in wiki.vg)
-         */
         IMPULSE("minecraft:command_block");
 
-        private final String resourceLocation;
+        private final String stateName;
 
         CommandMode(String resourceLocation) {
-            this.resourceLocation = resourceLocation;
+            this.stateName = resourceLocation;
         }
 
         static CommandMode fromMode(int mode) {
@@ -92,12 +82,12 @@ public class CommandBlock {
                 case 0 -> CHAIN;
                 case 1 -> REPEAT;
                 case 2 -> IMPULSE;
-                default -> throw new IllegalArgumentException("Unexpected value: " + mode);
+                default -> throw new IllegalArgumentException("Unexpected CommandBlock mode: " + mode);
             };
         }
 
-        public String getResourceLocation() {
-            return this.resourceLocation;
+        public String getStateName() {
+            return stateName;
         }
 
         @Override

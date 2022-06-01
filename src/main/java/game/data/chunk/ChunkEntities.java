@@ -13,6 +13,7 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
+import game.data.registries.RegistryManager;
 import packets.builder.Chat;
 import packets.builder.MessageTarget;
 import packets.builder.PacketBuilder;
@@ -54,8 +55,9 @@ public abstract class ChunkEntities extends ChunkEvents {
             blockEntities.put(window.getContainerLocation(), blockEntity);
         }
 
-        // A lectern. This should be accessed via a registry, but I was in a rush.
-        if(window.getType() == 16) {
+        String type = RegistryManager.getInstance().getMenuRegistry().getName(window.getType());
+
+        if (type.equals("minecraft:lectern")) {
             CompoundTag book = new CompoundTag();
             book.add("Count", new IntTag(1));
             book.add("id", new StringTag("minecraft:written_book"));
@@ -97,12 +99,12 @@ public abstract class ChunkEntities extends ChunkEvents {
 
         // if a block entity is missing, try to generate it first. If there's no block there we don't save anything.
         if (blockEntity == null) {
-            BlockState bs = getBlockStateAt(commandBlock.getLocation().withinChunk());
-            if (bs == null) {
+            BlockState state = getBlockStateAt(commandBlock.getLocation().withinChunk());
+            if (state == null) {
 //                sendInventoryFailureMessage(window);
                 return;
             }
-            blockEntity = generateBlockEntity(bs.getName(), commandBlock.getLocation());
+            blockEntity = generateBlockEntity(state.getName(), commandBlock.getLocation());
             blockEntities.put(commandBlock.getLocation(), blockEntity);
         }
         
@@ -135,8 +137,8 @@ public abstract class ChunkEntities extends ChunkEvents {
 
 
     public void addBlockEntity(Coordinate3D location, SpecificTag tag) {
-        if(tag.tagType() == Tag.TAG_END) {
-            // We shouldn't reach this state, but just in case we do, return.
+        // we shouldn't reach this state, but just in case we do
+        if (tag.tagType() == Tag.TAG_END) {
             return;
         }
         CompoundTag entity = (CompoundTag) tag;
@@ -206,15 +208,15 @@ public abstract class ChunkEntities extends ChunkEvents {
 
         // all shulker colours have the same block entity
         if (id.endsWith("shulker_box")) {
-            entId =  "minecraft:shulker_box";
+            entId = "minecraft:shulker_box";
         }
         // Covers all bed colours
         if (id.endsWith("_bed")) {
-            entId =  "minecraft:bed";
+            entId = "minecraft:bed";
         }
         // Covers command blocks, chain and repeating command blocks
         if (id.endsWith("command_block")) {
-            entId =  "minecraft:command_block";
+            entId = "minecraft:command_block";
         }
 
         CompoundTag entity = new CompoundTag();

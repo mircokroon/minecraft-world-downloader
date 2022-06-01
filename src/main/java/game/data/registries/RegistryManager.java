@@ -1,4 +1,4 @@
-package game.data;
+package game.data.registries;
 
 import config.Config;
 import game.data.chunk.BlockEntityRegistry;
@@ -7,7 +7,6 @@ import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
 import game.data.entity.specific.VillagerProfessionRegistry;
 import game.data.entity.specific.VillagerTypeRegistry;
-import game.data.registries.RegistryLoader;
 
 import java.io.IOException;
 

@@ -2,8 +2,7 @@ package game.data.entity.specific;
 
 import java.util.function.Consumer;
 
-import game.data.RegistryManager;
-import game.data.WorldManager;
+import game.data.registries.RegistryManager;
 import game.data.entity.MobEntity;
 import game.data.entity.metadata.MetaData_1_13;
 import packets.DataTypeProvider;

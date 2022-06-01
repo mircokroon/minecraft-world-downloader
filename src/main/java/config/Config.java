@@ -8,7 +8,7 @@ import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.function.Consumer;
 
-import game.data.RegistryManager;
+import game.data.registries.RegistryManager;
 import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;

@@ -37,14 +37,14 @@ public class BlockLocationEncoder_1_16 extends BlockLocationEncoder {
 
         // bitsPerBlock can be 0 if we're trying to call the BlockLocationEncoder
         // on a SingleValuePalette. Doing so would cause division by 0 errors!
-        if(bitsPerBlock != 0) {
+        if (bitsPerBlock == 0) {
+            longIndex = 0;
+            startOffset = 0;
+        } else {
             int blocksPerLong = 64 / bitsPerBlock;
             this.longIndex = blockNumber / blocksPerLong;
             int indexInLong = blockNumber % blocksPerLong;
             this.startOffset = indexInLong * bitsPerBlock;
-        } else {
-            longIndex = 0;
-            startOffset = 0;
         }
 
         if (longIndex < 0) {

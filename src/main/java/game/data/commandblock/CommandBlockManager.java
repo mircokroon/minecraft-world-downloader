@@ -24,10 +24,12 @@ public class CommandBlockManager {
     }
 
     public void readAndStoreCommandBlock(DataTypeProvider provider) {
-        final Coordinate3D coords = provider.readCoordinates(); // Position
-        final String command = provider.readString(); // Command
-        final int mode = provider.readVarInt(); // Mode (0 = chain, 1 = repeating, 2 = impulse)
-        final byte flags = provider.readNext(); // Flags
+        final Coordinate3D coords = provider.readCoordinates();
+        final String command = provider.readString();
+
+        // Mode (0 = chain, 1 = repeating, 2 = impulse)
+        final int mode = provider.readVarInt();
+        final byte flags = provider.readNext();
         
         CommandBlock commandblock = new CommandBlock(coords, command, mode, flags);
         storedCommandBlocks.put(coords.addDimension3D(WorldManager.getInstance().getDimension()), commandblock);
@@ -39,10 +41,10 @@ public class CommandBlockManager {
                 c.addCommandBlock(commandblock);
                 sendCommandBlockMessage(commandblock);
             } else {
-                sendCommandBlockFailureMessage(commandblock, "Block not found");
+                sendCommandBlockFailureMessage(commandblock, "Block not found.");
             }
         } else {
-            sendCommandBlockFailureMessage(commandblock, "Chunk not loaded");
+            sendCommandBlockFailureMessage(commandblock, "Chunk not loaded.");
         }
     }
     

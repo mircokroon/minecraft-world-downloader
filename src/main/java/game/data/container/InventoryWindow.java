@@ -1,9 +1,8 @@
 package game.data.container;
 
-import game.data.RegistryManager;
+import game.data.registries.RegistryManager;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
-import game.data.WorldManager;
 import se.llbit.nbt.CompoundTag;
 
 import java.util.ArrayList;

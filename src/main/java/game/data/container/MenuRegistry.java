@@ -21,15 +21,13 @@ public class MenuRegistry {
         NUM_SLOTS.put("minecraft:generic_9x5", 45);
         NUM_SLOTS.put("minecraft:generic_9x6", 54);
 
-        NUM_SLOTS.put("minecraft:shulker_box", 27);
-
-        // From https://wiki.vg/Inventory
         NUM_SLOTS.put("minecraft:blast_furnace", 3);
         NUM_SLOTS.put("minecraft:brewing_stand", 5);
         NUM_SLOTS.put("minecraft:furnace", 3);
         NUM_SLOTS.put("minecraft:hopper", 5);
-        NUM_SLOTS.put("minecraft:lectern", 1);
+        NUM_SLOTS.put("minecraft:shulker_box", 27);
         NUM_SLOTS.put("minecraft:smoker", 3);
+        NUM_SLOTS.put("minecraft:lectern", 1);
     }
 
     private Map<Integer, String> menus;
@@ -53,7 +51,11 @@ public class MenuRegistry {
     }
 
     public int getSlotCount(int protocolId) {
-        String inventoryName = menus.get(protocolId);
+        String inventoryName = getName(protocolId);
         return NUM_SLOTS.getOrDefault(inventoryName, 0);
+    }
+
+    public String getName(int protocolId) {
+        return menus.getOrDefault(protocolId, "");
     }
 }

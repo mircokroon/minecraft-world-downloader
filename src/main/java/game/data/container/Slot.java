@@ -1,7 +1,6 @@
 package game.data.container;
 
-import game.data.RegistryManager;
-import game.data.WorldManager;
+import game.data.registries.RegistryManager;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.SpecificTag;
