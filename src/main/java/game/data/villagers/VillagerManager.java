@@ -25,7 +25,7 @@ public class VillagerManager {
         }
 
         int interactionType = provider.readVarInt();
-        if (interactionType == InteractionType.USE.index) {
+        if (interactionType == InteractionType.INTERACT_AT.index) {
             lastInteractedWith = (Villager) entity;
             float x = provider.readFloat();
             float y = provider.readFloat();
@@ -74,7 +74,7 @@ public class VillagerManager {
     }
 
     private enum InteractionType {
-        INTERACT(0), ATTACK(1), USE(2);
+        INTERACT(0), ATTACK(1), INTERACT_AT(2);
 
         final int index;
 
