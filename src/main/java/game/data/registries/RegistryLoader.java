@@ -1,27 +1,31 @@
 package game.data.registries;
 
-import com.google.gson.Gson;
-
-import config.Config;
-import config.Version;
-import config.VersionReporter;
-import game.UnsupportedMinecraftVersionException;
-import game.data.entity.EntityNames;
-import game.data.chunk.palette.GlobalPalette;
-import game.data.container.ItemRegistry;
-import game.data.container.MenuRegistry;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
-import org.apache.commons.io.FileUtils;
-import util.PathUtils;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.io.FileUtils;
+
+import config.Config;
+import game.UnsupportedMinecraftVersionException;
+import game.data.chunk.BlockEntityRegistry;
+import game.data.chunk.palette.GlobalPalette;
+import game.data.container.ItemRegistry;
+import game.data.container.MenuRegistry;
+import game.data.entity.EntityNames;
+import game.data.villagers.VillagerProfessionRegistry;
+import game.data.villagers.VillagerTypeRegistry;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
+import util.PathUtils;
 
 /**
  * Download the relevant server.jar file and generate the reports, including entity IDs and block IDs.
@@ -243,6 +247,30 @@ public class RegistryLoader {
             return ItemRegistry.fromJson(version);
         } else {
             return new ItemRegistry();
+        }
+    }
+
+    public BlockEntityRegistry generateBlockEntityRegistry() throws IOException {
+        if (versionSupportsGenerators()) {
+            return BlockEntityRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+        } else {
+            return new BlockEntityRegistry();
+        }
+    }
+
+    public VillagerProfessionRegistry generateVillagerProfessionRegistry() throws FileNotFoundException {
+        if (versionSupportsGenerators()) {
+            return VillagerProfessionRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+        } else {
+            return new VillagerProfessionRegistry();
+        }
+    }
+
+    public VillagerTypeRegistry generateVillagerTypeRegistry() throws FileNotFoundException {
+        if (versionSupportsGenerators()) {
+            return VillagerTypeRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+        } else {
+            return new VillagerTypeRegistry();
         }
     }
 

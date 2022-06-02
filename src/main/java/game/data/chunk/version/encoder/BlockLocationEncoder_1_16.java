@@ -35,10 +35,17 @@ public class BlockLocationEncoder_1_16 extends BlockLocationEncoder {
 
         int blockNumber = (((y * Chunk.SECTION_HEIGHT) + z) * Chunk.SECTION_WIDTH) + x;
 
-        int blocksPerLong = 64 / bitsPerBlock;
-        this.longIndex = blockNumber / blocksPerLong;
-        int indexInLong = blockNumber % blocksPerLong;
-        this.startOffset = indexInLong * bitsPerBlock;
+        // bitsPerBlock can be 0 if we're trying to call the BlockLocationEncoder
+        // on a SingleValuePalette. Doing so would cause division by 0 errors!
+        if (bitsPerBlock == 0) {
+            longIndex = 0;
+            startOffset = 0;
+        } else {
+            int blocksPerLong = 64 / bitsPerBlock;
+            this.longIndex = blockNumber / blocksPerLong;
+            int indexInLong = blockNumber % blocksPerLong;
+            this.startOffset = indexInLong * bitsPerBlock;
+        }
 
         if (longIndex < 0) {
             System.out.println("INVALID LONG INDEX: ");

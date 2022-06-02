@@ -1,8 +1,8 @@
 package game.data.container;
 
+import game.data.registries.RegistryManager;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
-import game.data.WorldManager;
 import se.llbit.nbt.CompoundTag;
 
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public class InventoryWindow {
         this.windowTitle = windowTitle;
         this.containerLocation = containerLocation;
 
-        this.slotCount = WorldManager.getInstance().getMenuRegistry().getSlotCount(windowType);
+        this.slotCount = RegistryManager.getInstance().getMenuRegistry().getSlotCount(windowType);
     }
 
     private InventoryWindow(InventoryWindow other) {
@@ -67,6 +67,9 @@ public class InventoryWindow {
         return slotList;
     }
 
+    public int getType() {
+        return windowType;
+    }
 
     public InventoryWindow[] split() {
         InventoryWindow first = new InventoryWindow(this);

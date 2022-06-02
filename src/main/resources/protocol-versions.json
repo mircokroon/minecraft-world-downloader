@@ -209,7 +209,7 @@
 				"0x02": "AddMob",
 				"0x04": "AddPlayer",
 				"0x0a": "BlockEntityData",
-				"0x0c": "_BlockUpdate",
+				"0x0c": "BlockUpdate",
 				"0x0f": "Chat",
 				"0x13": "ContainerClose",
 				"0x14": "ContainerSetContent",
@@ -218,23 +218,27 @@
 				"0x25": "LightUpdate",
 				"0x26": "Login",
 				"0x27": "MapItemData",
+				"0x28": "TradeList",
 				"0x29": "MoveEntityPos",
 				"0x2a": "MoveEntityPosRot",
 				"0x2e": "OpenScreen",
 				"0x3a": "RemoveEntities",
 				"0x3d": "Respawn",
-				"0x3f": "_SectionBlocksUpdate",
+				"0x3f": "SectionBlocksUpdate",
 				"0x4d": "SetEntityData",
 				"0x50": "SetEquipment",
 				"0x62": "TeleportEntity"
 			},
 			"serverBound": {
 				"0x09": "ContainerClose",
+				"0x0d": "Interact",
 				"0x11": "MovePlayerPos",
 				"0x12": "MovePlayerPosRot",
 				"0x13": "MovePlayerRot",
 				"0x15": "MoveVehicle",
-				"0x2f": "_UseItem"
+				"0x26": "SetCommandBlock",
+				"0x2e": "UseItemOn",
+				"0x2f": "UseItem"
 			}
 		}
 	}

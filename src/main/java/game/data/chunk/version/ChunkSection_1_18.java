@@ -3,6 +3,9 @@ package game.data.chunk.version;
 import config.Version;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.palette.SingleValuePalette;
+import game.data.chunk.version.encoder.BlockLocationEncoder_1_16;
+import game.data.coordinates.Coordinate3D;
 import se.llbit.nbt.*;
 
 import java.util.List;
@@ -69,5 +72,28 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
         }
 
         return tag;
+    }
+    
+    @Override
+    public synchronized void setBlockAt(Coordinate3D coords, int blockStateId) {
+        int index = palette.getIndexFor(this, blockStateId);
+
+        if (palette instanceof SingleValuePalette svp) {
+            if (blocks == null || blocks.length == 0) {
+                resetBlocks();
+            }
+
+            this.palette = svp.asNormalPalette();
+        }
+
+        // Some servers seem to send a palette with a bits-per-block that doesn't match the number of provided longs
+        // when the section is empty. In this case we assume the section was empty before and remake the array.
+        resizeBlocksIfRequired(palette.getBitsPerBlock());
+
+        getLocationEncoder().setTo(
+                coords.getX(), coords.getY(), coords.getZ(),
+                palette.getBitsPerBlock()
+        );
+        getLocationEncoder().write(blocks, index);
     }
 }

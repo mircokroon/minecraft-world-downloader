@@ -1,12 +1,13 @@
 package packets.handler;
 
-import config.Config;
-import game.data.coordinates.CoordinateDouble3D;
-import game.data.WorldManager;
-import proxy.ConnectionManager;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import config.Config;
+import game.data.WorldManager;
+import game.data.coordinates.Coordinate3D;
+import game.data.coordinates.CoordinateDouble3D;
+import proxy.ConnectionManager;
 
 public class ServerBoundGamePacketHandler extends PacketHandler {
     private HashMap<String, PacketOperator> operations = new HashMap<>();
@@ -37,6 +38,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             updatePlayerRotation.apply(provider);
             return true;
         });
+
         operations.put("MoveVehicle", updatePlayerPosition);
 
         operations.put("UseItem", provider -> {
@@ -45,12 +47,35 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
                 provider.readVarInt();
             }
 
-            WorldManager.getInstance().getContainerManager().lastInteractedWith(provider.readCoordinates());
-
             return true;
         });
+
         operations.put("ContainerClose", provider -> {
             WorldManager.getInstance().getContainerManager().closeWindow(provider.readNext());
+            return true;
+        });
+
+        // block placements
+        operations.put("UseItemOn", provider -> {
+            provider.readVarInt();  // Hand
+            Coordinate3D coords = provider.readCoordinates();
+            provider.readVarInt();  // Block face
+            provider.readFloat();   // Cursor x
+            provider.readFloat();   // Cursor y
+            provider.readFloat();   // Cursor z
+            provider.readBoolean(); // If the player's head is inside of a block
+
+            WorldManager.getInstance().getContainerManager().lastInteractedWith(coords);
+            return true;
+        });
+
+        operations.put("SetCommandBlock", provider -> {
+            WorldManager.getInstance().getCommandBlockManager().readAndStoreCommandBlock(provider);
+            return true;
+        });
+
+        operations.put("Interact", provider -> {
+            WorldManager.getInstance().getVillagerManager().lastInteractedWith(provider);
             return true;
         });
     }

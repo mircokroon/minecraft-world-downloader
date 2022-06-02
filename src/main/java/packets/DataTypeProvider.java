@@ -216,6 +216,13 @@ public class DataTypeProvider {
     public UUID readUUID() {
         return new UUID(readLong(), readLong());
     }
+    
+    public UUID readOptUUID() {
+        if (readBoolean()) {
+            return readUUID();
+        }
+        return null;
+    }
 
     public String readChat() {
         return readString();

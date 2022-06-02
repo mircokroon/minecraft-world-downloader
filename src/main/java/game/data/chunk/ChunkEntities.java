@@ -1,21 +1,30 @@
 package game.data.chunk;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import config.Config;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
+import game.data.commandblock.CommandBlock;
 import game.data.container.InventoryWindow;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.dimension.Dimension;
+import game.data.registries.RegistryManager;
 import packets.builder.Chat;
 import packets.builder.MessageTarget;
 import packets.builder.PacketBuilder;
-import se.llbit.nbt.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.IntArrayTag;
+import se.llbit.nbt.IntTag;
+import se.llbit.nbt.ListTag;
+import se.llbit.nbt.NamedTag;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
+import se.llbit.nbt.Tag;
 
 /**
  * Manage entities and block entities for chunks.
@@ -46,7 +55,13 @@ public abstract class ChunkEntities extends ChunkEvents {
             blockEntities.put(window.getContainerLocation(), blockEntity);
         }
 
-        blockEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
+        String type = RegistryManager.getInstance().getMenuRegistry().getName(window.getType());
+
+        if (type.equals("minecraft:lectern")) {
+            blockEntity.add("Book", window.getSlotsNbt().get(0).asCompound());
+        } else {
+            blockEntity.add("Items", new ListTag(Tag.TAG_COMPOUND, window.getSlotsNbt()));
+        }
 
         if (window.hasCustomName()) {
             blockEntity.add("CustomName", new StringTag(window.getWindowTitle()));
@@ -70,6 +85,27 @@ public abstract class ChunkEntities extends ChunkEvents {
             String message = "Recorded inventory at " + blockEntity.getContainerLocation();
             Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
+    }
+
+    /**
+     * Add command block data to a block entity (a command block)
+     */
+    public void addCommandBlock(CommandBlock commandBlock) {
+        CompoundTag blockEntity = (CompoundTag) blockEntities.get(commandBlock.getLocation());
+
+        // if a block entity is missing, try to generate it first. If there's no block there we don't save anything.
+        if (blockEntity == null) {
+            BlockState state = getBlockStateAt(commandBlock.getLocation().withinChunk());
+            if (state == null) {
+//                sendInventoryFailureMessage(window);
+                return;
+            }
+            blockEntity = generateBlockEntity(state.getName(), commandBlock.getLocation());
+            blockEntities.put(commandBlock.getLocation(), blockEntity);
+        }
+        
+        commandBlock.addNbt(blockEntity);
+        WorldManager.getInstance().touchChunk(this);
     }
 
     /**
@@ -97,6 +133,10 @@ public abstract class ChunkEntities extends ChunkEvents {
 
 
     public void addBlockEntity(Coordinate3D location, SpecificTag tag) {
+        // we shouldn't reach this state, but just in case we do
+        if (tag.tagType() == Tag.TAG_END) {
+            return;
+        }
         CompoundTag entity = (CompoundTag) tag;
 
         // validate entity identifer
@@ -134,10 +174,12 @@ public abstract class ChunkEntities extends ChunkEvents {
         entity.add("z", new IntTag(offset.getZ()));
 
         blockEntities.put(location, tag);
+        WorldManager.getInstance().touchChunk(this);
 
         // check for inventory contents we previously saved
         CoordinateDim3D pos = location.addDimension3D(getDimension());
         WorldManager.getInstance().getContainerManager().loadPreviousInventoriesAt(this, pos);
+        WorldManager.getInstance().getCommandBlockManager().loadPreviousCommandBlockAt(this, pos);
     }
 
     /**
@@ -157,12 +199,20 @@ public abstract class ChunkEntities extends ChunkEvents {
         addBlockEntity(position, nbtTag);
     }
 
-    private CompoundTag generateBlockEntity(String id, Coordinate3D containerLocation) {
+    protected CompoundTag generateBlockEntity(String id, Coordinate3D containerLocation) {
         String entId = id;
 
         // all shulker colours have the same block entity
         if (id.endsWith("shulker_box")) {
-            entId =  "minecraft:shulker_box";
+            entId = "minecraft:shulker_box";
+        }
+        // Covers all bed colours
+        if (id.endsWith("_bed")) {
+            entId = "minecraft:bed";
+        }
+        // Covers command blocks, chain and repeating command blocks
+        if (id.endsWith("command_block")) {
+            entId = "minecraft:command_block";
         }
 
         CompoundTag entity = new CompoundTag();

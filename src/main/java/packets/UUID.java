@@ -1,7 +1,5 @@
 package packets;
 
-import java.util.Locale;
-
 public class UUID {
     long lower;
     long upper;
@@ -46,5 +44,9 @@ public class UUID {
 
     public long getLower() {
         return lower;
+    }
+
+    public int[] asIntArray() {
+        return new int[]{(int) (lower >> 32), (int) lower, (int) (upper >> 32), (int) upper};
     }
 }

@@ -1,20 +1,20 @@
 package game.data.chunk;
 
+import java.util.Arrays;
+
+import org.apache.commons.lang3.mutable.MutableBoolean;
+
+import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
-import game.data.chunk.palette.DirectPalette;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
-import game.data.chunk.version.ChunkSection_1_13;
 import game.data.chunk.version.encoder.BlockLocationEncoder;
 import game.data.coordinates.Coordinate3D;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.Tag;
-
-import java.util.Arrays;
 
 /**
  * Class to hold a 16 block tall chunk section.
@@ -162,12 +162,13 @@ public abstract class ChunkSection {
                 palette.getBitsPerBlock()
         );
         getLocationEncoder().write(blocks, index);
+        WorldManager.getInstance().touchChunk(chunk);
     }
 
     /**
      * When the bits per block increases, we must rewrite the blocks array.
      */
-    public synchronized void resizeBlocks(int newBitsPerBlock) {
+    public synchronized void resizeBlocksIfRequired(int newBitsPerBlock) {
         int newSize = newBitsPerBlock * 64;
         long[] newBlocks = new long[newSize];
 

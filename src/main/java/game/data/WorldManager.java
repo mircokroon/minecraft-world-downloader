@@ -1,13 +1,41 @@
 package game.data;
 
+import static util.ExceptionHandling.attempt;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+
 import config.Config;
-import game.data.chunk.*;
-import game.data.chunk.palette.BiomeRegistry;
+import game.data.chunk.Chunk;
+import game.data.chunk.ChunkBinary;
+import game.data.chunk.ChunkEntities;
+import game.data.chunk.ChunkFactory;
+import game.data.chunk.IncompleteChunkException;
 import game.data.chunk.palette.BlockColors;
 import game.data.chunk.palette.BlockState;
+import game.data.commandblock.CommandBlockManager;
 import game.data.container.ContainerManager;
-import game.data.container.ItemRegistry;
-import game.data.container.MenuRegistry;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
@@ -20,24 +48,11 @@ import game.data.maps.MapRegistry;
 import game.data.region.McaFile;
 import game.data.region.McaFilePair;
 import game.data.region.Region;
+import game.data.villagers.VillagerManager;
 import gui.GuiManager;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import util.PathUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
-
-import static util.ExceptionHandling.attempt;
 
 /**
  * Manage the world, including saving, parsing and updating the GUI.
@@ -53,11 +68,7 @@ public class WorldManager {
     private final Set<Dimension> existingLoaded = new HashSet<>();
 
     private EntityNames entityMap;
-    private MenuRegistry menuRegistry;
-    private ItemRegistry itemRegistry;
-    private BiomeRegistry biomeRegistry;
     private BlockColors blockColors;
-
 
     private boolean markNewChunks;
     private boolean writeChunks;
@@ -66,6 +77,8 @@ public class WorldManager {
     private boolean isSaving;
 
     private ContainerManager containerManager;
+    private CommandBlockManager commandBlockManager;
+    private VillagerManager villagerManager;
     private DimensionCodec dimensionCodec;
     private RenderDistanceExtender renderDistanceExtender;
 
@@ -340,29 +353,11 @@ public class WorldManager {
         return blockColors;
     }
 
-    public BiomeRegistry getBiomeRegistry() {
-        return biomeRegistry;
-    }
 
     public boolean markNewChunks() {
         return markNewChunks;
     }
 
-    public MenuRegistry getMenuRegistry() {
-        return menuRegistry;
-    }
-
-    public void setMenuRegistry(MenuRegistry menus) {
-        menuRegistry = menus;
-    }
-
-    public ItemRegistry getItemRegistry() {
-        return itemRegistry;
-    }
-
-    public void setItemRegistry(ItemRegistry items) {
-        itemRegistry = items;
-    }
 
     /**
      * Mark a chunk and it's region as having unsaved changes.
@@ -482,6 +477,20 @@ public class WorldManager {
             containerManager = new ContainerManager();
         }
         return containerManager;
+    }
+    
+    public CommandBlockManager getCommandBlockManager() {
+        if (commandBlockManager == null) {
+            commandBlockManager = new CommandBlockManager();
+        }
+        return commandBlockManager;
+    }
+    
+    public VillagerManager getVillagerManager() {
+        if (villagerManager == null) {
+            villagerManager = new VillagerManager();
+        }
+        return villagerManager;
     }
 
     public void pauseSaving() {
@@ -715,9 +724,6 @@ public class WorldManager {
 
     public void initialiseRegistries() {
         blockColors = BlockColors.create();
-        if (Config.versionReporter().isAtLeast1_18()) {
-            biomeRegistry = BiomeRegistry.create();
-        }
     }
 }
 

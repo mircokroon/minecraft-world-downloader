@@ -1,20 +1,24 @@
 package game.data.entity;
 
-import config.Config;
-import game.data.WorldManager;
-import game.data.chunk.Chunk;
-import game.data.coordinates.CoordinateDim2D;
-import packets.DataTypeProvider;
-import se.llbit.nbt.SpecificTag;
+import static util.ExceptionHandling.attempt;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static util.ExceptionHandling.attempt;
+import game.data.WorldManager;
+import game.data.chunk.Chunk;
+import game.data.coordinates.CoordinateDim2D;
+import game.data.entity.specific.Villager;
+import packets.DataTypeProvider;
+import se.llbit.nbt.SpecificTag;
 
 public class EntityRegistry {
 
@@ -67,6 +71,10 @@ public class EntityRegistry {
                 markUnsaved(newChunk);
 
             });
+            
+            if (ent instanceof Villager villager) {
+                villager.registerOnTradeUpdate((pos) -> markUnsaved(pos.globalToDimChunk()));
+            }
         }));
     }
 
@@ -138,6 +146,10 @@ public class EntityRegistry {
         return entities.get(entId);
     }
 
+    public Entity getEntity(int entityId) {
+        return (Entity) getMovableEntity(entityId);
+    }
+
     public List<SpecificTag> getEntitiesNbt(CoordinateDim2D location) {
         Set<Entity> entities = perChunk.get(location);
 
@@ -190,5 +202,11 @@ public class EntityRegistry {
 
     public Collection<PlayerEntity> getPlayerSet() {
         return players.values();
+    }
+
+    public void addVillagerTrades(DataTypeProvider provider) {
+        this.executor.execute(() -> attempt(() -> {
+            worldManager.getVillagerManager().parseAndStoreVillagerTrade(provider);
+        }));
     }
 }

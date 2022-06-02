@@ -65,39 +65,38 @@ public class ItemFrame extends ObjectEntity {
             // couldn't parse metadata, whatever
         }
     }
-}
 
+    private class ItemFrameMetaData extends MetaData_1_13 {
+        Slot item;
+        int rotation;
 
-class ItemFrameMetaData extends MetaData_1_13 {
-    Slot item;
-    int rotation;
-
-    @Override
-    public void addNbtTags(CompoundTag nbt) {
-        if (item != null) {
-            nbt.add("Item", item.toNbt());
+        @Override
+        public void addNbtTags(CompoundTag nbt) {
+            if (item != null) {
+                nbt.add("Item", item.toNbt());
+            }
+            nbt.add("ItemRotation", new IntTag(rotation));
         }
-        nbt.add("ItemRotation", new IntTag(rotation));
+
+        @Override
+        public Consumer<DataTypeProvider> getIndexHandler(int i) {
+            return switch (i) {
+                case 7 -> provider -> item = provider.readSlot();
+                case 8 -> provider -> rotation = provider.readVarInt();
+                default -> super.getIndexHandler(i);
+            };
+        }
     }
 
-    @Override
-    public Consumer<DataTypeProvider> getIndexHandler(int i) {
-        switch (i) {
-            case 7: return provider -> item = provider.readSlot();
-            case 8: return provider -> rotation = provider.readVarInt();
+    private class ItemFrameMetaData_1_17 extends ItemFrameMetaData {
+        @Override
+        public Consumer<DataTypeProvider> getIndexHandler(int i) {
+            // order of metadata fields for item frames changed a little bit in 1.17
+            return switch (i) {
+                case 7 -> provider -> rotation = provider.readVarInt();
+                case 8 -> provider -> item = provider.readSlot();
+                default -> super.getIndexHandler(i);
+            };
         }
-        return super.getIndexHandler(i);
-    }
-}
-
-class ItemFrameMetaData_1_17 extends ItemFrameMetaData {
-    @Override
-    public Consumer<DataTypeProvider> getIndexHandler(int i) {
-        // order of metadata fields for item frames changed a little bit in 1.17
-        switch (i) {
-            case 7: return provider -> rotation = provider.readVarInt();
-            case 8: return provider -> item = provider.readSlot();
-        }
-        return super.getIndexHandler(i);
     }
 }

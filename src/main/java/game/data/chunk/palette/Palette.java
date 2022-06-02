@@ -1,14 +1,15 @@
 package game.data.chunk.palette;
 
-import game.data.WorldManager;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import game.data.registries.RegistryManager;
 import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.SpecificTag;
-import se.llbit.nbt.StringTag;
-
-import java.util.*;
 
 /**
  * Class to hold a palette of a chunk.
@@ -19,6 +20,8 @@ public class Palette {
     StateProvider stateProvider;
 
     protected Palette() {
+        // palette needs initializing
+        this.palette = new int[1];
         this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
     }
 
@@ -36,7 +39,7 @@ public class Palette {
     }
 
     public void biomePalette() {
-        this.stateProvider = WorldManager.getInstance().getBiomeRegistry();
+        this.stateProvider = RegistryManager.getInstance().getBiomeRegistry();
     }
 
     public static Palette empty() {
@@ -202,7 +205,7 @@ public class Palette {
 
         int newBitsPerBlock = computeBitsPerBlock(palette.length - 1);
         if (bitsPerBlock != newBitsPerBlock) {
-            section.resizeBlocks(newBitsPerBlock);
+            section.resizeBlocksIfRequired(newBitsPerBlock);
             this.bitsPerBlock = newBitsPerBlock;
         }
 

@@ -17,7 +17,7 @@ public class ArmorStand extends MobEntity {
     private ArmorStandMetaData metaData;
 
     /**
-     * Add additional fields needed to render item frames.
+     * Add additional fields needed for armor stands.
      */
     @Override
     protected void addNbtData(CompoundTag root) {
@@ -74,22 +74,22 @@ class ArmorStandMetaData extends MetaData_1_13 {
 
     @Override
     public Consumer<DataTypeProvider> getIndexHandler(int i) {
-        switch (i) {
-            case 14: return provider -> {
+        return switch (i) {
+            case 14 -> provider -> {
                 byte status = provider.readNext();
                 isSmall = (status & 0x01) > 0;
                 hasArms = (status & 0x04) > 0;
                 hasNoBasePlate = (status & 0x08) > 0;
                 isMarker = (status & 0x10) > 0;
             };
-            case 15: return provider -> pose.put("Head", Rotation.read(provider));
-            case 16: return provider -> pose.put("Body", Rotation.read(provider));
-            case 17: return provider -> pose.put("LeftArm", Rotation.read(provider));
-            case 18: return provider -> pose.put("RightArm", Rotation.read(provider));
-            case 19: return provider -> pose.put("LeftLeg", Rotation.read(provider));
-            case 20: return provider -> pose.put("RightLeg", Rotation.read(provider));
-        }
-        return super.getIndexHandler(i);
+            case 15 -> provider -> pose.put("Head", Rotation.read(provider));
+            case 16 -> provider -> pose.put("Body", Rotation.read(provider));
+            case 17 -> provider -> pose.put("LeftArm", Rotation.read(provider));
+            case 18 -> provider -> pose.put("RightArm", Rotation.read(provider));
+            case 19 -> provider -> pose.put("LeftLeg", Rotation.read(provider));
+            case 20 -> provider -> pose.put("RightLeg", Rotation.read(provider));
+            default -> super.getIndexHandler(i);
+        };
     }
 }
 

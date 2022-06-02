@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import game.data.chunk.palette.GlobalPalette;
 import game.data.registries.RegistriesJson;
 
-import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -13,7 +12,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ItemRegistry {
-    private Map<Integer, String> items;
+    private Map<Integer, String> idToName;
+    private Map<String, Integer> nameToId;
 
     public static ItemRegistry fromJson(String version) {
         InputStream x = GlobalPalette.class.getClassLoader().getResourceAsStream("items-" + version + ".json");
@@ -32,17 +32,24 @@ public class ItemRegistry {
         // convert JSON structure into protocol_id->name map
         ItemRegistry itemRegistry = new ItemRegistry();
         map.get("minecraft:item").getEntries().forEach(
-            (name, properties) -> itemRegistry.items.put(properties.get("protocol_id"), name)
+            (name, properties) -> {
+                itemRegistry.idToName.put(properties.get("protocol_id"), name);
+                itemRegistry.nameToId.put(name, properties.get("protocol_id"));
+            }
         );
 
         return itemRegistry;
     }
 
     public ItemRegistry() {
-        items = new HashMap<>();
+        idToName = new HashMap<>();
+        nameToId = new HashMap<>();
     }
 
     public String getItemName(int protocolId) {
-        return items.get(protocolId);
+        return idToName.get(protocolId);
+    }
+    public int getItemId(String name) {
+        return nameToId.get(name);
     }
 }
