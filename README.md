@@ -1,7 +1,8 @@
 # minecraft-world-downloader
 A Minecraft world downloader that works by intercepting & decrypting network traffic between the client and the server to read & save chunk data. Chunks can be sent back to the client to extend the render distance.
 
-### Downloads
+
+### Downloads  <a href="https://github.com/mircokroon/minecraft-world-downloader/releases/latest"><img align="right" src="https://img.shields.io/github/downloads/mircokroon/minecraft-world-downloader/total.svg"></a>
 Latest Windows release (GUI): [world-downloader.exe](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe)
 
 Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
@@ -17,12 +18,12 @@ Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.co
 
 ### Requirements
 - Java 16 or higher
-- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+
+- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+
 
 ### Basic usage
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe) the latest release and run it. Enter the server address in the address field and press start. Instead of connecting to the server itself, connect to `localhost` in Minecraft to start downloading the world.
 
-<img src="https://i.imgur.com/bo3i1oA.png">
+<img src="https://i.imgur.com/lpjEdPB.png">
 
 Additional settings can be changed in the other tabs of the settings window.
 
