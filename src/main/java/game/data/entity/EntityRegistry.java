@@ -72,10 +72,8 @@ public class EntityRegistry {
 
             });
             
-            if(ent instanceof Villager villager) {
-                villager.registerOnTradeUpdate((pos) -> {
-                    markUnsaved(pos.globalToDimChunk());
-                });
+            if (ent instanceof Villager villager) {
+                villager.registerOnTradeUpdate((pos) -> markUnsaved(pos.globalToDimChunk()));
             }
         }));
     }

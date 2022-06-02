@@ -487,7 +487,7 @@ public class WorldManager {
     }
     
     public VillagerManager getVillagerManager() {
-        if(villagerManager == null) {
+        if (villagerManager == null) {
             villagerManager = new VillagerManager();
         }
         return villagerManager;

@@ -55,24 +55,26 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("PlayerBlockPlacement", provider -> {
+        // block placements
+        operations.put("UseItemOn", provider -> {
             provider.readVarInt();  // Hand
-            Coordinate3D coords = provider.readCoordinates(); // Position
+            Coordinate3D coords = provider.readCoordinates();
             provider.readVarInt();  // Block face
             provider.readFloat();   // Cursor x
             provider.readFloat();   // Cursor y
             provider.readFloat();   // Cursor z
             provider.readBoolean(); // If the player's head is inside of a block
+
             WorldManager.getInstance().getContainerManager().lastInteractedWith(coords);
             return true;
         });
 
-        operations.put("UpdateCommandBlock", provider -> {
+        operations.put("SetCommandBlock", provider -> {
             WorldManager.getInstance().getCommandBlockManager().readAndStoreCommandBlock(provider);
             return true;
         });
 
-        operations.put("InteractEntity", provider -> {
+        operations.put("Interact", provider -> {
             WorldManager.getInstance().getVillagerManager().lastInteractedWith(provider);
             return true;
         });

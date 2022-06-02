@@ -63,22 +63,22 @@ public class Villager extends MobEntity {
         this.trades = trades;
         this.villagerLevel = villagerLevel;
         this.villagerExp = villagerExp;
-        if(this.onTrade != null) {
+        if (this.onTrade != null) {
             onTrade.accept(lastInteractedLocation);
         }
     }
 
     private void addTradeNbtTags(CompoundTag root) {
-        if(trades == null || trades.size() == 0) {
+        if (trades == null || trades.size() == 0) {
             return;
         }
 
         List<CompoundTag> tradeOptions = new ArrayList<>();
-        for(VillagerTrade trade : trades) {
+        for (VillagerTrade trade : trades) {
             CompoundTag tradeOption = new CompoundTag();
 
             tradeOption.add("buy", trade.firstItem().toNbt());
-            if(trade.secondItem() != null) {
+            if (trade.secondItem() != null) {
                 tradeOption.add("buy2", trade.secondItem().toNbt());
             }
             tradeOption.add("sell", trade.sellingItem().toNbt());
@@ -126,19 +126,16 @@ public class Villager extends MobEntity {
 
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
-            switch (i) {
-                case 15:
-                    return provider -> noAI = (provider.readNext() & 0x01) > 0;
-                case 17:
-                    return provider -> headShakeTimer = provider.readVarInt();
-                case 18:
-                    return provider -> {
-                        type = provider.readVarInt();
-                        profession = provider.readVarInt();
-                        level = provider.readVarInt();
-                    };
-            }
-            return super.getIndexHandler(i);
+            return switch (i) {
+                case 15 -> provider -> noAI = (provider.readNext() & 0x01) > 0;
+                case 17 -> provider -> headShakeTimer = provider.readVarInt();
+                case 18 -> provider -> {
+                    type = provider.readVarInt();
+                    profession = provider.readVarInt();
+                    level = provider.readVarInt();
+                };
+                default -> super.getIndexHandler(i);
+            };
         }
     }
 }

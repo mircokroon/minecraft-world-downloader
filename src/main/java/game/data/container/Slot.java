@@ -17,6 +17,10 @@ public class Slot {
         this.nbt = nbt;
     }
 
+    public Slot(String itemName, byte count) {
+        this(RegistryManager.getInstance().getItemRegistry().getItemId(itemName), count, null);
+    }
+
     @Override
     public String toString() {
         return "Slot{" +

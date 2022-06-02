@@ -12,21 +12,20 @@ import game.data.entity.specific.Villager;
 import packets.DataTypeProvider;
 
 public class VillagerManager {
-
     private Villager lastInteractedWith;
     private CoordinateDim3D lastInteractedLocation;
     private List<VillagerTrade> trades;
-    int villagerLevel = 0;
-    int villagerExp = 0;
+    private int villagerLevel = 0;
+    private int villagerExp = 0;
 
     public void lastInteractedWith(DataTypeProvider provider) {
         Entity entity = WorldManager.getInstance().getEntityRegistry().getEntity(provider.readVarInt());
-        if(entity == null || !(entity instanceof Villager)) {
+        if (!(entity instanceof Villager)) {
             return;
         }
 
-        int interactionType = provider.readVarInt(); // Interact type
-        if(interactionType == 2) {
+        int interactionType = provider.readVarInt();
+        if (interactionType == InteractionType.USE.index) {
             lastInteractedWith = (Villager) entity;
             float x = provider.readFloat();
             float y = provider.readFloat();
@@ -36,23 +35,24 @@ public class VillagerManager {
     }
     
     public void parseAndStoreVillagerTrade(DataTypeProvider provider) {
-        if(lastInteractedWith == null) {
+        if (lastInteractedWith == null) {
             return; // This should be impossible
         }
 
         trades = new ArrayList<>();
 
         provider.readVarInt(); // Window ID
-        byte numberofTrades = provider.readNext(); // number of trades
-        for (byte i = 0; i < numberofTrades; i++) {
-            Slot firstItemSlot = provider.readSlot();
-            Slot itemToReceive = provider.readSlot();
+        byte numberOfTrades = provider.readNext();
+        for (byte i = 0; i < numberOfTrades; i++) {
+            Slot firstItem = provider.readSlot();
+            Slot receivedItem = provider.readSlot();
             boolean hasSecondItem = provider.readBoolean();
 
             Slot secondItem = null;
             if (hasSecondItem) {
                 secondItem = provider.readSlot();
             }
+
             provider.readBoolean(); // Trade disabled
             int uses = provider.readInt();
             int maxUses = provider.readInt();
@@ -61,14 +61,28 @@ public class VillagerManager {
             float priceMultiplier = provider.readFloat();
             int demand = provider.readInt();
 
-            trades.add(new VillagerTrade(firstItemSlot, secondItem, itemToReceive, demand, maxUses, priceMultiplier,
-                    specialPrice, uses, xp));
+            trades.add(new VillagerTrade(
+                    firstItem, secondItem, receivedItem, demand, maxUses, priceMultiplier, specialPrice, uses, xp
+            ));
         }
-        villagerLevel = provider.readVarInt(); // Current villager level
-        villagerExp = provider.readVarInt(); // Total experience for this villager
+        villagerLevel = provider.readVarInt();
+        villagerExp = provider.readVarInt();
         provider.readBoolean(); // Is regular villager
         provider.readBoolean(); // Can restock
 
         lastInteractedWith.updateTrades(trades, villagerLevel, villagerExp, lastInteractedLocation);
     }
+
+    private enum InteractionType {
+        INTERACT(0), ATTACK(1), USE(2);
+
+        final int index;
+
+        InteractionType(int type) {
+            this.index = type;
+        }
+    }
+
 }
+
+

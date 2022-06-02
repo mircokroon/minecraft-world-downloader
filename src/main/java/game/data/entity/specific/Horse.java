@@ -2,6 +2,7 @@ package game.data.entity.specific;
 
 import java.util.function.Consumer;
 
+import game.data.container.Slot;
 import game.data.entity.MobEntity;
 import game.data.entity.metadata.MetaData_1_13;
 import packets.DataTypeProvider;
@@ -61,29 +62,23 @@ public class Horse extends MobEntity {
             nbt.add("Tame", new ByteTag(isTame ? 1 : 0));
 
             if (isSaddled) {
-                CompoundTag saddleItem = new CompoundTag();
-                saddleItem.add("Count", new ByteTag(1));
-                saddleItem.add("Slot", new ByteTag(0));
-                saddleItem.add("id", new StringTag("minecraft:saddle"));
-                nbt.add("SaddleItem", saddleItem);
+                Slot saddle = new Slot("minecraft:saddle", (byte) 1);
+                nbt.add("SaddleItem", saddle.toNbt(0));
             }
         }
 
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
-            switch (i) {
-                case 17:
-                    return provider -> {
-                        byte flags = provider.readNext();
-                        isTame = (flags & 0x02) > 0;
-                        isSaddled = (flags & 0x04) > 0;
-                    };
-                case 18:
-                    return provider -> owner = provider.readOptUUID();
-                case 19:
-                    return provider -> variant = provider.readVarInt();
-            }
-            return super.getIndexHandler(i);
+            return switch (i) {
+                case 17 -> provider -> {
+                    byte flags = provider.readNext();
+                    isTame = (flags & 0x02) > 0;
+                    isSaddled = (flags & 0x04) > 0;
+                };
+                case 18 -> provider -> owner = provider.readOptUUID();
+                case 19 -> provider -> variant = provider.readVarInt();
+                default -> super.getIndexHandler(i);
+            };
         }
     }
 }

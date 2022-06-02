@@ -7,7 +7,7 @@ import game.data.entity.specific.ArmorStand;
 import game.data.entity.specific.Axolotl;
 import game.data.entity.specific.Cat;
 import game.data.entity.specific.Horse;
-import game.data.entity.specific.Item;
+import game.data.entity.specific.DroppedItem;
 import game.data.entity.specific.ItemFrame;
 import game.data.entity.specific.Sheep;
 import game.data.entity.specific.Villager;
@@ -44,7 +44,7 @@ public class PrimitiveEntity {
             case "minecraft:axolotl" -> new Axolotl();
             case "minecraft:cat" -> new Cat();
             case "minecraft:horse" -> new Horse();
-            case "minecraft:item" -> new Item();
+            case "minecraft:item" -> new DroppedItem();
             case "minecraft:item_frame", "minecraft:glow_item_frame" -> new ItemFrame();
             case "minecraft:sheep" -> new Sheep();
             case "minecraft:villager" -> new Villager();

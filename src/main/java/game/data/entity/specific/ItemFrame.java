@@ -80,11 +80,11 @@ public class ItemFrame extends ObjectEntity {
 
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
-            switch (i) {
-                case 7: return provider -> item = provider.readSlot();
-                case 8: return provider -> rotation = provider.readVarInt();
-            }
-            return super.getIndexHandler(i);
+            return switch (i) {
+                case 7 -> provider -> item = provider.readSlot();
+                case 8 -> provider -> rotation = provider.readVarInt();
+                default -> super.getIndexHandler(i);
+            };
         }
     }
 
@@ -92,11 +92,11 @@ public class ItemFrame extends ObjectEntity {
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
             // order of metadata fields for item frames changed a little bit in 1.17
-            switch (i) {
-                case 7: return provider -> rotation = provider.readVarInt();
-                case 8: return provider -> item = provider.readSlot();
-            }
-            return super.getIndexHandler(i);
+            return switch (i) {
+                case 7 -> provider -> rotation = provider.readVarInt();
+                case 8 -> provider -> item = provider.readSlot();
+                default -> super.getIndexHandler(i);
+            };
         }
     }
 }

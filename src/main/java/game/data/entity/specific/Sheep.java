@@ -52,8 +52,8 @@ public class Sheep extends MobEntity {
         }
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
-            switch (i) {
-                case 17: return provider -> {
+            if (i == 17) {
+                return provider -> {
                     byte flags = provider.readNext();
                     colorID = (byte) (flags & 0x0F);
                     isSheared = (flags & 0x10) > 0;

@@ -231,13 +231,13 @@
 			},
 			"serverBound": {
 				"0x09": "ContainerClose",
-				"0x0d": "InteractEntity",
+				"0x0d": "Interact",
 				"0x11": "MovePlayerPos",
 				"0x12": "MovePlayerPosRot",
 				"0x13": "MovePlayerRot",
 				"0x15": "MoveVehicle",
-				"0x26": "UpdateCommandBlock",
-				"0x2e": "PlayerBlockPlacement",
+				"0x26": "SetCommandBlock",
+				"0x2e": "UseItemOn",
 				"0x2f": "UseItem"
 			}
 		}

@@ -63,16 +63,16 @@ public class Cat extends MobEntity {
 
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
-            switch (i) {
-                case 2: return provider -> collarColor = provider.readVarInt();
-                case 17: return provider -> {
+            return switch (i) {
+                case 2 -> provider -> collarColor = provider.readVarInt();
+                case 17 -> provider -> {
                     byte next = provider.readNext();
                     isSitting = (next & 0x01) > 0;
                 };
-                case 18: return provider -> owner = provider.readOptUUID();
-                case 19: return provider -> type = provider.readVarInt();
-            }
-            return super.getIndexHandler(i);
+                case 18 -> provider -> owner = provider.readOptUUID();
+                case 19 -> provider -> type = provider.readVarInt();
+                default -> super.getIndexHandler(i);
+            };
         }
     }
 }

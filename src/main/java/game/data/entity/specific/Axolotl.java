@@ -53,11 +53,11 @@ public class Axolotl extends MobEntity {
         }
         @Override
         public Consumer<DataTypeProvider> getIndexHandler(int i) {
-            switch (i) {
-                case 17: return provider -> variant = provider.readVarInt();
-                case 19: return provider -> wasSpawnedFromBucket = provider.readBoolean();
-            }
-            return super.getIndexHandler(i);
+            return switch (i) {
+                case 17 -> provider -> variant = provider.readVarInt();
+                case 19 -> provider -> wasSpawnedFromBucket = provider.readBoolean();
+                default -> super.getIndexHandler(i);
+            };
         }
     }
 }

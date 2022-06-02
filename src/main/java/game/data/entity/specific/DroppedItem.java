@@ -12,10 +12,10 @@ import se.llbit.nbt.ShortTag;
 /**
  * Handle dropped items
  */
-public class Item extends ObjectEntity {
+public class DroppedItem extends ObjectEntity {
     private ItemMetaData metaData;
 
-    public Item() {
+    public DroppedItem() {
         super();
     }
 
