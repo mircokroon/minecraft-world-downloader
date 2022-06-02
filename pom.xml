@@ -48,17 +48,18 @@
                     <minimizeJar>true</minimizeJar>
                     <filters>
                         <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/**</exclude>
+                                <exclude>module-info.class</exclude>
+                            </excludes>
+                        </filter>
+                        <filter>
                             <artifact>org.openjfx</artifact>
                             <excludeDefaults>false</excludeDefaults>
                             <includes>
                                 <include>com/sun/**</include>
                                 <include>javafx/**</include>
-                            </includes>
-                        </filter>
-                        <filter>
-                            <artifact>log4j:log4j</artifact>
-                            <includes>
-                                <include>**</include>
                             </includes>
                         </filter>
                         <filter>
@@ -74,7 +75,7 @@
                         </transformer>
                     </transformers>
                     <finalName>world-downloader</finalName>
-            </configuration>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -128,12 +129,12 @@
                                 <maxHeapSize>2048</maxHeapSize>
                             </jre>
                             <versionInfo>
-                                <fileVersion>${version}</fileVersion>
-                                <txtFileVersion>${version}</txtFileVersion>
+                                <fileVersion>${project.version}</fileVersion>
+                                <txtFileVersion>${project.version}</txtFileVersion>
                                 <fileDescription>Minecraft world downloader</fileDescription>
-                                <productVersion>${version}</productVersion>
+                                <productVersion>${project.version}</productVersion>
                                 <copyright>!</copyright>
-                                <txtProductVersion>${version}</txtProductVersion>
+                                <txtProductVersion>${project.version}</txtProductVersion>
                                 <productName>Minecraft world downloader</productName>
                                 <internalName>Minecraft world downloader</internalName>
                                 <originalFilename>world-downloader.exe</originalFilename>
@@ -200,11 +201,6 @@
 
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx-controls</artifactId>
-            <version>15.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>11</version>
         </dependency>
@@ -265,19 +261,19 @@
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx-graphics </artifactId>
+            <artifactId>javafx-graphics</artifactId>
             <version>11</version>
             <classifier>win</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx-graphics </artifactId>
+            <artifactId>javafx-graphics</artifactId>
             <version>11</version>
             <classifier>linux</classifier>
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
-            <artifactId>javafx-graphics </artifactId>
+            <artifactId>javafx-graphics</artifactId>
             <version>11</version>
             <classifier>mac</classifier>
         </dependency>
