@@ -17,7 +17,7 @@ Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.co
 <img src="https://i.imgur.com/nSM6mLw.png" width="50%" title="Example of the GUI showing previously downloaded chunks as white squares, chunks sent from the downloader to the client to extend the render distance in normal colours, and chunks sent by server directly to the client in red.">
 
 ### Requirements
-- Java 16 or higher
+- Java 17 or higher
 - Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+
 
 ### Basic usage
