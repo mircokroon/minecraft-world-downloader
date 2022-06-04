@@ -12,6 +12,7 @@ import java.io.IOException;
  */
 public class AuthDetails {
     private static final String UUID_URL = "https://api.mojang.com/users/profiles/minecraft/";
+    private static final String ACCESSTOKEN_URL = "https://api.minecraftservices.com/minecraft/profile";
     public final static AuthDetails INVALID = new AuthDetails();
 
     final String uuid;
@@ -31,6 +32,28 @@ public class AuthDetails {
         uuid = "";
         accessToken = "";
         isValid = false;
+    }
+
+    public static AuthDetails fromAccessToken(String accessToken) {
+        if (accessToken == null || accessToken.length() == 0) {
+            return INVALID;
+        }
+
+        try {
+            HttpResponse<String> str = Unirest.get(ACCESSTOKEN_URL)
+                .header("Authorization", "Bearer " + accessToken).asString();
+
+            if (!str.isSuccess() || str.getStatus() != 200) {
+                System.err.println("Could not get details from access token'. Status: " + str.getStatus());
+                throw new IOException("Cannot find username");
+            }
+
+            UuidNameResponse res = new Gson().fromJson(str.getBody(), UuidNameResponse.class);
+            return new AuthDetails(res.name, res.id, accessToken);
+        } catch (IOException e) {
+            e.printStackTrace(System.err);
+            return INVALID;
+        }
     }
 
     /**

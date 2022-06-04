@@ -1,21 +1,12 @@
 package gui;
 
 
+import static util.ExceptionHandling.attemptQuiet;
+
 import config.Config;
 import gui.components.DefaultIntField;
 import gui.components.IntField;
 import gui.components.LongField;
-import javafx.application.Platform;
-import javafx.collections.ListChangeListener;
-import javafx.collections.ObservableList;
-import javafx.css.PseudoClass;
-import javafx.event.ActionEvent;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import proxy.auth.AuthStatus;
-import proxy.auth.AuthDetailsManager;
-import util.PathUtils;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -25,8 +16,24 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-
-import static util.ExceptionHandling.attemptQuiet;
+import javafx.application.Platform;
+import javafx.collections.ListChangeListener;
+import javafx.collections.ObservableList;
+import javafx.css.PseudoClass;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.Control;
+import javafx.scene.control.Hyperlink;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import util.PathUtils;
 
 public class GuiSettings {
     public TextField server;
@@ -325,5 +332,9 @@ public class GuiSettings {
 
         tabPane.getSelectionModel().selectFirst();
         this.saveButton.requestFocus();
+    }
+
+    public void runMsAuth(ActionEvent actionEvent) {
+        GuiManager.loadWebView();
     }
 }

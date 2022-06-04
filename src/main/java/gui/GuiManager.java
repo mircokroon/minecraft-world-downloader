@@ -45,6 +45,7 @@ public class GuiManager extends Application {
     private Stage stage;
 
     private Stage settingsStage;
+    private Stage webviewStage;
 
     public static void setConfig(Config config) {
         GuiManager.config = config;
@@ -129,6 +130,13 @@ public class GuiManager extends Application {
         }
     }
 
+    public static void closeWebView() {
+        if (instance.webviewStage != null) {
+            instance.webviewStage.close();
+            instance.webviewStage = null;
+        }
+    }
+
     private void loadSettingsInWindow() {
         if (settingsStage != null) {
             settingsStage.requestFocus();
@@ -141,8 +149,23 @@ public class GuiManager extends Application {
             settingsStage = null;
         });
         attempt(() -> loadScene("Settings", settingsStage));
-
         addIcon(settingsStage);
+    }
+    public static void loadWebView() {
+        instance.loadWebview();
+    }
+    private void loadWebview() {
+        if (webviewStage != null) {
+            webviewStage.requestFocus();
+            return;
+        }
+
+        webviewStage = new Stage();
+        webviewStage.setOnCloseRequest(e -> {
+            webviewStage = null;
+        });
+        attempt(() -> loadScene("MicrosoftAuth", webviewStage));
+        addIcon(webviewStage);
     }
 
     public static void addIcon(Stage s) {
@@ -173,6 +196,8 @@ public class GuiManager extends Application {
 
         if (name.equals("Settings")) {
             stage.setTitle(TITLE + " - Settings");
+        } else if (name.equals("MicrosoftAuth")) {
+            stage.setTitle(TITLE + " - Microsoft Authentication");
         } else {
             stage.setTitle(TITLE);
         }

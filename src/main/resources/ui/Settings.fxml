@@ -153,6 +153,8 @@
                     <TextField fx:id="accessToken" GridPane.columnIndex="2" GridPane.rowIndex="1" />
                 </GridPane>
                 <Label layoutX="9.0" prefHeight="53.0" prefWidth="577.0" text="Authentication details are usually retrieved automatically. If you this is not working, they can be entered here instead." wrapText="true" />
+                <Button fx:id="microsoftAuth"  layoutX="40" layoutY="140.0" onAction="#runMsAuth" prefHeight="27.0" prefWidth="200.0" text="Microsoft auth" />
+
             </AnchorPane>
         </Tab>
         <Tab fx:id="realmsTab" text="Realms">

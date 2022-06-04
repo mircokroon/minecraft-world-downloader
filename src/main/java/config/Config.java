@@ -1,32 +1,31 @@
 package config;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import game.data.WorldManager;
+import game.data.registries.RegistryLoader;
+import game.data.registries.RegistryManager;
+import game.protocol.Protocol;
+import game.protocol.ProtocolVersionHandler;
+import gui.GuiManager;
 import java.io.File;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.function.Consumer;
-
-import game.data.registries.RegistryManager;
 import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
-
-import game.data.WorldManager;
-import game.data.registries.RegistryLoader;
-import game.protocol.Protocol;
-import game.protocol.ProtocolVersionHandler;
-import gui.GuiManager;
 import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
 import proxy.auth.AuthDetails;
+import proxy.auth.MicrosoftAuthDetails;
+import util.LocalDateTimeAdapter;
 import util.PathUtils;
 
 public class Config {
@@ -50,6 +49,8 @@ public class Config {
     private transient boolean debugTrackEvents = false;
     private transient VersionReporter versionReporter;
 
+    private MicrosoftAuthDetails microsoftAuth;
+
     public Config() {
         this.versionReporter = new VersionReporter(0);
     }
@@ -65,7 +66,10 @@ public class Config {
         try {
             File file = configPath.toFile();
             if (file.exists() && file.isFile()) {
-                return new Gson().fromJson(new JsonReader(new FileReader(file)), Config.class);
+                return new GsonBuilder()
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                    .create()
+                    .fromJson(new JsonReader(new FileReader(file)), Config.class);
             }
         } catch (Exception ex) {
             System.out.println("Cannot read " + configPath.toString());
@@ -188,7 +192,9 @@ public class Config {
 
     private void writeSettings() {
         try {
-            String contents = new GsonBuilder().setPrettyPrinting().create().toJson(this);
+            String contents = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .setPrettyPrinting().create().toJson(this);
             Files.createDirectories(configPath.getParent());
             Files.write(configPath, Collections.singleton(contents));
         } catch (Exception ex) {
@@ -393,7 +399,6 @@ public class Config {
 
     @Option(name = "--disable-messages",
             usage = "Disable various info messages (e.g. chest saving).")
-
     public boolean disableInfoMessages = false;
 
     // getters
@@ -438,6 +443,7 @@ public class Config {
 
 
     public static AuthDetails getManualAuthDetails() {
+        // TODO: from MsAuth
         return AuthDetails.fromUsername(instance.username, instance.accessToken);
     }
 
@@ -459,6 +465,14 @@ public class Config {
     // setters
     public static void setZoomLevel(int val) {
         instance.zoomLevel = val;
+    }
+
+    public MicrosoftAuthDetails getMicrosoftAuth() {
+        return microsoftAuth;
+    }
+
+    public void setMicrosoftAuth(MicrosoftAuthDetails microsoftAuth) {
+        this.microsoftAuth = microsoftAuth;
     }
 }
 
