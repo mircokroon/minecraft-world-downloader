@@ -21,6 +21,8 @@ import java.util.stream.Stream;
 public class AuthDetailsFromProcess {
     private String username;
 
+    public AuthDetailsFromProcess() { }
+
     public AuthDetailsFromProcess(String username) {
         this.username = username;
         if (username == null || username.equals("")) {
@@ -31,17 +33,17 @@ public class AuthDetailsFromProcess {
     public AuthDetails getDetails() throws IOException {
         List<String> candidates = findCandidateProcesses();
         if (candidates.isEmpty()) {
-            return null;
+            return AuthDetails.INVALID;
         }
 
         Stream<AuthDetails> details = candidates.stream().map(this::parseDetails);
 
         // filter for the specific username - only really useful if there's multiple instances open
-        if (username != null && !username.equals("")) {
-            details = details.filter(d -> d.name.equalsIgnoreCase(username));
-        }
+//        if (username != null && !username.equals("")) {
+//            details = details.filter(d -> d.name.equalsIgnoreCase(username));
+//        }
 
-        return details.findAny().orElse(null);
+        return details.findAny().orElse(AuthDetails.INVALID);
     }
 
     /**

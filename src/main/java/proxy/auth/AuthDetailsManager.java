@@ -18,33 +18,28 @@ public abstract class AuthDetailsManager {
         this.username = username;
     }
 
-    private void retrieveAuthDetails() throws IOException {
-        details = new AuthDetailsFromProcess(username).getDetails();
+    private static AuthDetails retrieveDetailsFromProcess() throws IOException {
+        return new AuthDetailsFromProcess().getDetails();
+    }
+
+    private static AuthDetails retrieveDetailsFromMicrosoft() {
+        MicrosoftAuthHandler msAuth = Config.getMicrosoftAuth();
+        if (msAuth == null) {
+            return AuthDetails.INVALID;
+        }
+        return msAuth.getAuthDetails();
     }
 
     /**
      * Get the auth details from the profiles file. If launcher_accounts.json exists, we use that accessToken instead
      * because the other one won't be valid in this case.
      */
-    protected AuthDetails getAuthDetails() throws IOException {
-        if (details != null) {
-            return details;
-        }
-
-        AuthDetails manualDetails = Config.getManualAuthDetails();
-
-        if (manualDetails != AuthDetails.INVALID) {
-            this.details = manualDetails;
-            return manualDetails;
-        }
-
-        retrieveAuthDetails();
-
-        if (details != null) {
-            return details;
-        }
-
-        throw new AuthenticationException("Cannot find authentication details.");
+    public static AuthDetails getAuthDetails() throws IOException {
+        return switch (Config.getAuthMethod()) {
+            case AUTOMATIC -> retrieveDetailsFromProcess();
+            case MICROSOFT -> retrieveDetailsFromMicrosoft();
+            case MANUAL -> Config.getManualAuthDetails();
+        };
     }
 
     protected void printAuthErrorMessage() {

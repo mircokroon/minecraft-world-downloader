@@ -134,26 +134,8 @@
                 </GridPane>
             </AnchorPane>
         </Tab>
-        <Tab text="Authentication">
-            <AnchorPane>
-                <GridPane layoutX="11.0" layoutY="53.0" prefHeight="187.0" prefWidth="579.0">
-                    <columnConstraints>
-                        <ColumnConstraints prefWidth="125.0" />
-                        <ColumnConstraints prefWidth="20.0" />
-                        <ColumnConstraints prefWidth="300.0" />
-                    </columnConstraints>
-                    <rowConstraints>
-                        <RowConstraints prefHeight="32.0" />
-                        <RowConstraints prefHeight="32.0" />
-                    </rowConstraints>
-                    <Label text="Minecraft username" />
-                    <TextField fx:id="minecraftUsername" GridPane.columnIndex="2" />
-                    <Label text="Access token" GridPane.rowIndex="1" />
-                    <Hyperlink fx:id="authHelpLink" text="?" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                    <TextField fx:id="accessToken" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                </GridPane>
-                <Label layoutX="9.0" prefHeight="53.0" prefWidth="577.0" text="Authentication details are usually retrieved automatically. If you this is not working, they can be entered here instead." wrapText="true" />
-            </AnchorPane>
+        <Tab fx:id="authTab" text="Authentication">
+            <fx:include fx:id="auth" source="AuthTab.fxml"/>
         </Tab>
         <Tab fx:id="realmsTab" text="Realms">
             <fx:include fx:id="realms" source="RealmsTab.fxml"/>

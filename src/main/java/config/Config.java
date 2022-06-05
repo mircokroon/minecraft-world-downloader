@@ -1,32 +1,33 @@
 package config;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
+import game.data.WorldManager;
+import game.data.registries.RegistryLoader;
+import game.data.registries.RegistryManager;
+import game.protocol.Protocol;
+import game.protocol.ProtocolVersionHandler;
+import gui.GuiManager;
 import java.io.File;
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.function.Consumer;
-
-import game.data.registries.RegistryManager;
+import javafx.application.Platform;
 import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
-
-import game.data.WorldManager;
-import game.data.registries.RegistryLoader;
-import game.protocol.Protocol;
-import game.protocol.ProtocolVersionHandler;
-import gui.GuiManager;
 import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
 import proxy.auth.AuthDetails;
+import proxy.auth.AuthenticationMethod;
+import proxy.auth.MicrosoftAuthHandler;
+import util.LocalDateTimeAdapter;
 import util.PathUtils;
 
 public class Config {
@@ -50,6 +51,10 @@ public class Config {
     private transient boolean debugTrackEvents = false;
     private transient VersionReporter versionReporter;
 
+    private MicrosoftAuthHandler microsoftAuth;
+    private AuthDetails manualAuth;
+    private AuthenticationMethod authMethod = AuthenticationMethod.AUTOMATIC;
+
     public Config() {
         this.versionReporter = new VersionReporter(0);
     }
@@ -65,7 +70,10 @@ public class Config {
         try {
             File file = configPath.toFile();
             if (file.exists() && file.isFile()) {
-                return new Gson().fromJson(new JsonReader(new FileReader(file)), Config.class);
+                return new GsonBuilder()
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                    .create()
+                    .fromJson(new JsonReader(new FileReader(file)), Config.class);
             }
         } catch (Exception ex) {
             System.out.println("Cannot read " + configPath.toString());
@@ -147,18 +155,28 @@ public class Config {
         return instance.username;
     }
 
+    public static void handleErrorOutput() {
+        instance.handleGuiOnlyMode();
+    }
+
     public boolean startWithSettings() {
         return guiOnlyMode;
     }
+
 
     public void settingsComplete() {
         GuiManager.setConfig(this);
 
         if (guiOnlyMode && !GuiManager.isStarted()) {
-            handleGuiOnlyMode();
-
             GuiManager.loadSceneSettings();
             return;
+        }
+
+        // auth
+        boolean hasAccessToken = this.accessToken != null && !this.accessToken.equals("");
+        if (hasAccessToken) {
+            this.manualAuth = AuthDetails.fromAccessToken(accessToken);
+            this.authMethod = AuthenticationMethod.MANUAL;
         }
 
         // round to regions
@@ -188,12 +206,28 @@ public class Config {
 
     private void writeSettings() {
         try {
-            String contents = new GsonBuilder().setPrettyPrinting().create().toJson(this);
+            // clear other auth settings
+            switch (authMethod) {
+                case AUTOMATIC -> {
+                    manualAuth = null;
+                    microsoftAuth = null;
+                }
+                case MICROSOFT -> manualAuth = null;
+                case MANUAL -> microsoftAuth = null;
+            }
+
+            String contents = new GsonBuilder()
+                .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                .setPrettyPrinting().create().toJson(this);
             Files.createDirectories(configPath.getParent());
             Files.write(configPath, Collections.singleton(contents));
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public static void save() {
+        instance.writeSettings();
     }
 
     public static void clearSettings() {
@@ -216,7 +250,7 @@ public class Config {
             System.out.println("Application seems to be running without console. Redirecting error output to GUI. " +
                     "If this is not desired, run with --force-console.");
 
-            GuiManager.redirectErrorOutput();
+            Platform.runLater(GuiManager::redirectErrorOutput);
         }
     }
 
@@ -305,11 +339,11 @@ public class Config {
 
     @Option(name = "--token", aliases = "-t",
             usage = "Minecraft access token. Found in launcher_accounts.json by default.")
-    public String accessToken;
+    public transient String accessToken;
 
     @Option(name = "--username", aliases = "-u",
             usage = "Your Minecraft username.")
-    public String username;
+    public transient String username;
 
     @Option(name = "--port", aliases = "-p",
             usage = "The port on which the remote server runs.")
@@ -393,7 +427,6 @@ public class Config {
 
     @Option(name = "--disable-messages",
             usage = "Disable various info messages (e.g. chest saving).")
-
     public boolean disableInfoMessages = false;
 
     // getters
@@ -435,10 +468,12 @@ public class Config {
         return instance.versionReporter;
     }
 
-
-
     public static AuthDetails getManualAuthDetails() {
-        return AuthDetails.fromUsername(instance.username, instance.accessToken);
+        return instance.manualAuth;
+    }
+
+    public static void setManualAuthDetails(AuthDetails details) {
+        instance.manualAuth = details;
     }
 
     // inverted boolean getters
@@ -459,6 +494,22 @@ public class Config {
     // setters
     public static void setZoomLevel(int val) {
         instance.zoomLevel = val;
+    }
+
+    public static MicrosoftAuthHandler getMicrosoftAuth() {
+        return instance.microsoftAuth;
+    }
+
+    public static void setMicrosoftAuth(MicrosoftAuthHandler microsoftAuth) {
+        instance.microsoftAuth = microsoftAuth;
+    }
+
+    public static AuthenticationMethod getAuthMethod() {
+        return instance.authMethod;
+    }
+
+    public static void setAuthMethod(AuthenticationMethod authMethod) {
+        instance.authMethod = authMethod;
     }
 }
 

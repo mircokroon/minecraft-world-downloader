@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -45,6 +44,7 @@ public class GuiManager extends Application {
     private Stage stage;
 
     private Stage settingsStage;
+    private Stage microsoftLoginStage;
 
     public static void setConfig(Config config) {
         GuiManager.config = config;
@@ -94,6 +94,12 @@ public class GuiManager extends Application {
         }));
     }
 
+    public static void setStatusMessage(String str) {
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.setStatusMessage(str);
+        }
+    }
+
     private static void notifyNewError() {
         if (!GuiManager.hasErrors) {
             GuiManager.hasErrors = true;
@@ -129,6 +135,13 @@ public class GuiManager extends Application {
         }
     }
 
+    public static void closeMicrosoftLogin() {
+        if (instance.microsoftLoginStage != null) {
+            instance.microsoftLoginStage.close();
+            instance.microsoftLoginStage = null;
+        }
+    }
+
     private void loadSettingsInWindow() {
         if (settingsStage != null) {
             settingsStage.requestFocus();
@@ -141,8 +154,29 @@ public class GuiManager extends Application {
             settingsStage = null;
         });
         attempt(() -> loadScene("Settings", settingsStage));
-
         addIcon(settingsStage);
+    }
+    public static MsAuthController loadMicrosoftLogin() {
+        return instance.loadMicrosoftLoginStage();
+    }
+    private MsAuthController loadMicrosoftLoginStage() {
+        if (microsoftLoginStage != null) {
+            microsoftLoginStage.requestFocus();
+            return null;
+        }
+
+        microsoftLoginStage = new Stage();
+        microsoftLoginStage.setOnCloseRequest(e -> {
+            microsoftLoginStage = null;
+        });
+        addIcon(microsoftLoginStage);
+
+        try {
+            return loadScene("MicrosoftAuth", microsoftLoginStage, MsAuthController.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static void addIcon(Stage s) {
@@ -166,18 +200,31 @@ public class GuiManager extends Application {
 
     }
 
-    private void loadScene(String name, Stage stage) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("/ui/" + name + ".fxml"));
+    private <T> T loadScene(String name, Stage stage) throws IOException {
+        return loadScene(name, stage, null);
+    }
 
-        Scene scene = new Scene(root);
+    private <T> T loadScene(String name, Stage stage, Class<T> controllerType) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/" + name + ".fxml"));
+
+
+        Scene scene = new Scene(loader.load());
 
         if (name.equals("Settings")) {
             stage.setTitle(TITLE + " - Settings");
+        } else if (name.equals("MicrosoftAuth")) {
+            stage.setTitle(TITLE + " - Microsoft Authentication");
         } else {
             stage.setTitle(TITLE);
         }
         stage.setScene(scene);
         stage.show();
+
+        if (controllerType != null) {
+            return controllerType.cast(loader.getController());
+        }
+
+        return null;
     }
 
     public static void openWebLink(String text) {
@@ -221,6 +268,8 @@ public class GuiManager extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        Config.handleErrorOutput();
+
         // load in all font families, apparently this may fix issues with fonts on some systems
         Font.getFamilies().forEach(Font::font);
 
