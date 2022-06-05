@@ -3,6 +3,7 @@ package game.data.chunk.version;
 import config.Version;
 import game.data.chunk.BlockEntityRegistry;
 import game.data.chunk.palette.GlobalPalette;
+import game.data.chunk.palette.PaletteType;
 import game.data.registries.RegistryManager;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.BlockState;
@@ -67,11 +68,11 @@ public class Chunk_1_18 extends Chunk_1_17 {
      */
     public void readChunkColumn(DataTypeProvider dataProvider) {
         // Loop through section Y values, starting from the lowest section that has blocks inside it.
-        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() + 1 && dataProvider.hasNext(); sectionY++) {
+        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && dataProvider.hasNext(); sectionY++) {
             ChunkSection_1_18 section = (ChunkSection_1_18) getChunkSection(sectionY);
 
             int blockCount = dataProvider.readShort();
-            Palette blockPalette = Palette.readPalette(dataProvider);
+            Palette blockPalette = Palette.readPalette(dataProvider, PaletteType.BLOCKS);
 
             if (section == null) {
                 section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
@@ -79,7 +80,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
 
             section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
 
-            section.setBiomePalette(Palette.readPalette(dataProvider));
+            section.setBiomePalette(Palette.readPalette(dataProvider, PaletteType.BIOMES));
             section.setBiomes(dataProvider.readLongArray(dataProvider.readVarInt()));
 
             // May replace an existing section or a null one

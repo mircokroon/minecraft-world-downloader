@@ -18,6 +18,7 @@ public class Palette {
     protected int bitsPerBlock;
     private int[] palette;
     StateProvider stateProvider;
+    private PaletteType type = PaletteType.BLOCKS;
 
     protected Palette() {
         // palette needs initializing
@@ -84,16 +85,18 @@ public class Palette {
 
     private int computeBitsPerBlock(int maxIndex) {
         int bitsNeeded = Integer.SIZE - Integer.numberOfLeadingZeros(maxIndex);
-        return Math.max(4, bitsNeeded);
+        return Math.max(type.getMinBitsPerBlock(), bitsNeeded);
     }
 
     /**
      * Read the palette from the network stream.
      * @param dataTypeProvider network stream reader
      */
-    public static Palette readPalette(DataTypeProvider dataTypeProvider) {
+    public static Palette readPalette(DataTypeProvider dataTypeProvider, PaletteType type) {
         byte bitsPerBlock = dataTypeProvider.readNext();
-        return readPalette(bitsPerBlock, dataTypeProvider);
+        Palette palette = readPalette(bitsPerBlock, dataTypeProvider, type);
+        palette.type = type;
+        return palette;
     }
 
     /**
@@ -101,10 +104,10 @@ public class Palette {
      * @param bitsPerBlock the number of bits per block that is used, indicates the palette type
      * @param dataTypeProvider network stream reader
      */
-    public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
+    public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider, PaletteType type) {
         if (bitsPerBlock == 0) {
             return new SingleValuePalette(dataTypeProvider.readVarInt());
-        } else if (bitsPerBlock > 8) {
+        } else if (bitsPerBlock > type.getMaxBitsPerBlock()) {
             return new DirectPalette(bitsPerBlock);
         }
         int size = dataTypeProvider.readVarInt();
