@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.function.Consumer;
+import javafx.application.Platform;
 import org.apache.commons.lang3.SystemUtils;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
@@ -154,6 +155,10 @@ public class Config {
         return instance.username;
     }
 
+    public static void handleErrorOutput() {
+        instance.handleGuiOnlyMode();
+    }
+
     public boolean startWithSettings() {
         return guiOnlyMode;
     }
@@ -163,8 +168,6 @@ public class Config {
         GuiManager.setConfig(this);
 
         if (guiOnlyMode && !GuiManager.isStarted()) {
-            handleGuiOnlyMode();
-
             GuiManager.loadSceneSettings();
             return;
         }
@@ -247,7 +250,7 @@ public class Config {
             System.out.println("Application seems to be running without console. Redirecting error output to GUI. " +
                     "If this is not desired, run with --force-console.");
 
-            GuiManager.redirectErrorOutput();
+            Platform.runLater(GuiManager::redirectErrorOutput);
         }
     }
 

@@ -262,6 +262,8 @@ public class GuiManager extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        Config.handleErrorOutput();
+
         // load in all font families, apparently this may fix issues with fonts on some systems
         Font.getFamilies().forEach(Font::font);
 
