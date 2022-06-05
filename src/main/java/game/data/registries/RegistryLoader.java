@@ -1,5 +1,6 @@
 package game.data.registries;
 
+import gui.GuiManager;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -106,6 +107,7 @@ public class RegistryLoader {
      * helpful messages as well to put the user at ease about the delay.
      */
     private void getReportsFromServerJar() throws IOException, InterruptedException {
+        GuiManager.setStatusMessage("Running version " + version + " for the first time. Generating reports... (this may take a few minutes)");
         System.out.println("Looks like we have not run in version " + version + " before.");
 
         String serverUrl = VersionManifestHandler.findServerUrl(version);
@@ -124,6 +126,8 @@ public class RegistryLoader {
         generateReports();
         moveReports();
         clean();
+
+        GuiManager.setStatusMessage("");
     }
 
     /**

@@ -94,6 +94,12 @@ public class GuiManager extends Application {
         }));
     }
 
+    public static void setStatusMessage(String str) {
+        if (chunkGraphicsHandler != null) {
+            chunkGraphicsHandler.setStatusMessage(str);
+        }
+    }
+
     private static void notifyNewError() {
         if (!GuiManager.hasErrors) {
             GuiManager.hasErrors = true;

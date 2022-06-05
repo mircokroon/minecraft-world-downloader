@@ -67,6 +67,7 @@ public class GuiMap {
     public Label helpLabel;
     public Label coordsLabel;
     public Button playerLockButton;
+    public Label statusLabel;
 
     private CoordinateDouble3D playerPos;
     private double playerRotation;
@@ -92,6 +93,8 @@ public class GuiMap {
     private boolean isDragging = false;
     private boolean draggingHasMoved = false;
     private boolean lockedToPlayer = true;
+
+    private String statusMessage = "";
 
     private double mouseX = -1;
     private double mouseY = -1;
@@ -693,15 +696,23 @@ public class GuiMap {
     }
 
     public void showErrorMessage() {
-        this.helpLabel.setText("An error has occured. 'Right click' -> 'Settings' to view.");
-        this.helpLabel.setStyle("-fx-text-fill: red;");
         this.showErrorPrompt = true;
+        this.updateStatusPrompt();
     }
 
     public void hideErrorMessage() {
-        this.helpLabel.setText("");
-        this.helpLabel.setStyle("-fx-text-fill: white;");
         this.showErrorPrompt = false;
+        this.updateStatusPrompt();
+    }
+
+    private void updateStatusPrompt() {
+        if (this.showErrorPrompt) {
+            this.statusLabel.setText("An error has occured. 'Right click' -> 'Settings' to view.");
+            this.statusLabel.setStyle("-fx-text-fill: red;");
+        } else {
+            this.statusLabel.setText(statusMessage);
+            this.statusLabel.setStyle("-fx-text-fill: white;");
+        }
     }
 
     public int countImages() {
@@ -718,5 +729,11 @@ public class GuiMap {
         } else {
             return center;
         }
+    }
+
+    public void setStatusMessage(String str) {
+        this.statusMessage = str;
+
+        Platform.runLater(this::updateStatusPrompt);
     }
 }
