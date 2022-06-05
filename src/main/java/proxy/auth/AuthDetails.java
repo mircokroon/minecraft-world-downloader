@@ -1,11 +1,9 @@
 package proxy.auth;
 
 import com.google.gson.Gson;
+import java.io.IOException;
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
-
-import javax.security.sasl.AuthenticationException;
-import java.io.IOException;
 
 /**
  * Deserialization class for the launcher config file.
@@ -15,23 +13,63 @@ public class AuthDetails {
     private static final String ACCESSTOKEN_URL = "https://api.minecraftservices.com/minecraft/profile";
     public final static AuthDetails INVALID = new AuthDetails();
 
-    final String uuid;
-    final String accessToken;
-    final String name;
-    final boolean isValid;
+    private String accessToken;
+    private String uuid;
+    private String name;
+    private transient boolean isOutdated;
 
     public AuthDetails(String name, String uuid, String accessToken) {
         this.name = name;
         this.uuid = uuid;
         this.accessToken = accessToken;
-        this.isValid = true;
+        this.isOutdated = false;
     }
 
     private AuthDetails() {
         name = "";
         uuid = "";
         accessToken = "";
-        isValid = false;
+        isOutdated = false;
+    }
+
+    public AuthDetails(String accessToken) {
+        this.accessToken = accessToken;
+        this.isOutdated = true;
+    }
+
+    public void setAccessToken(String token) {
+        this.accessToken = token;
+        this.isOutdated = true;
+    }
+
+    public void update() {
+        HttpResponse<String> str = Unirest.get(ACCESSTOKEN_URL)
+            .header("Authorization", "Bearer " + accessToken).asString();
+
+        if (!str.isSuccess() || str.getStatus() != 200) {
+            System.err.println("Could not get details from access token'. Status: " + str.getStatus());
+            throw new MinecraftAuthenticationException("Cannot get profile.");
+        }
+        UuidNameResponse res = new Gson().fromJson(str.getBody(), UuidNameResponse.class);
+        this.uuid = res.id;
+        this.name = res.name;
+        this.isOutdated = false;
+    }
+
+    public boolean isValid() {
+        if (this.accessToken == null || this.accessToken.equals("")) {
+            return false;
+        }
+
+
+        try {
+            this.update();
+        } catch (MinecraftAuthenticationException ex) {
+            ex.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 
     public static AuthDetails fromAccessToken(String accessToken) {
@@ -39,21 +77,9 @@ public class AuthDetails {
             return INVALID;
         }
 
-        try {
-            HttpResponse<String> str = Unirest.get(ACCESSTOKEN_URL)
-                .header("Authorization", "Bearer " + accessToken).asString();
-
-            if (!str.isSuccess() || str.getStatus() != 200) {
-                System.err.println("Could not get details from access token'. Status: " + str.getStatus());
-                throw new IOException("Cannot find username");
-            }
-
-            UuidNameResponse res = new Gson().fromJson(str.getBody(), UuidNameResponse.class);
-            return new AuthDetails(res.name, res.id, accessToken);
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-            return INVALID;
-        }
+        AuthDetails details = new AuthDetails(accessToken);
+        details.update();
+        return details;
     }
 
     /**
@@ -87,6 +113,10 @@ public class AuthDetails {
     }
 
     public String getUuid() {
+        if (isOutdated) {
+            this.update();
+        }
+
         return uuid;
     }
 
@@ -99,12 +129,15 @@ public class AuthDetails {
         return "AuthDetails{" +
                 "uuid='" + uuid + '\'' +
                 ", name='" + name + '\'' +
-                ", isValid=" + isValid + '\'' +
                 ", accessToken='" + accessToken +
                 '}';
     }
 
     public String getUsername() {
+        if (isOutdated) {
+            this.update();
+        }
+
         return name;
     }
 

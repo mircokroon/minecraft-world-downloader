@@ -24,7 +24,8 @@ import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
 import proxy.auth.AuthDetails;
-import proxy.auth.MicrosoftAuthDetails;
+import proxy.auth.AuthenticationMethod;
+import proxy.auth.MicrosoftAuthHandler;
 import util.LocalDateTimeAdapter;
 import util.PathUtils;
 
@@ -49,7 +50,9 @@ public class Config {
     private transient boolean debugTrackEvents = false;
     private transient VersionReporter versionReporter;
 
-    private MicrosoftAuthDetails microsoftAuth;
+    private MicrosoftAuthHandler microsoftAuth;
+    private AuthDetails manualAuth;
+    private AuthenticationMethod authMethod = AuthenticationMethod.AUTOMATIC;
 
     public Config() {
         this.versionReporter = new VersionReporter(0);
@@ -155,6 +158,7 @@ public class Config {
         return guiOnlyMode;
     }
 
+
     public void settingsComplete() {
         GuiManager.setConfig(this);
 
@@ -163,6 +167,13 @@ public class Config {
 
             GuiManager.loadSceneSettings();
             return;
+        }
+
+        // auth
+        boolean hasAccessToken = this.accessToken != null && !this.accessToken.equals("");
+        if (hasAccessToken) {
+            this.manualAuth = AuthDetails.fromAccessToken(accessToken);
+            this.authMethod = AuthenticationMethod.MANUAL;
         }
 
         // round to regions
@@ -192,6 +203,16 @@ public class Config {
 
     private void writeSettings() {
         try {
+            // clear other auth settings
+            switch (authMethod) {
+                case AUTOMATIC -> {
+                    manualAuth = null;
+                    microsoftAuth = null;
+                }
+                case MICROSOFT -> manualAuth = null;
+                case MANUAL -> microsoftAuth = null;
+            }
+
             String contents = new GsonBuilder()
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .setPrettyPrinting().create().toJson(this);
@@ -200,6 +221,10 @@ public class Config {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    public static void save() {
+        instance.writeSettings();
     }
 
     public static void clearSettings() {
@@ -311,11 +336,11 @@ public class Config {
 
     @Option(name = "--token", aliases = "-t",
             usage = "Minecraft access token. Found in launcher_accounts.json by default.")
-    public String accessToken;
+    public transient String accessToken;
 
     @Option(name = "--username", aliases = "-u",
             usage = "Your Minecraft username.")
-    public String username;
+    public transient String username;
 
     @Option(name = "--port", aliases = "-p",
             usage = "The port on which the remote server runs.")
@@ -440,11 +465,12 @@ public class Config {
         return instance.versionReporter;
     }
 
-
-
     public static AuthDetails getManualAuthDetails() {
-        // TODO: from MsAuth
-        return AuthDetails.fromUsername(instance.username, instance.accessToken);
+        return instance.manualAuth;
+    }
+
+    public static void setManualAuthDetails(AuthDetails details) {
+        instance.manualAuth = details;
     }
 
     // inverted boolean getters
@@ -467,12 +493,20 @@ public class Config {
         instance.zoomLevel = val;
     }
 
-    public MicrosoftAuthDetails getMicrosoftAuth() {
-        return microsoftAuth;
+    public static MicrosoftAuthHandler getMicrosoftAuth() {
+        return instance.microsoftAuth;
     }
 
-    public void setMicrosoftAuth(MicrosoftAuthDetails microsoftAuth) {
-        this.microsoftAuth = microsoftAuth;
+    public static void setMicrosoftAuth(MicrosoftAuthHandler microsoftAuth) {
+        instance.microsoftAuth = microsoftAuth;
+    }
+
+    public static AuthenticationMethod getAuthMethod() {
+        return instance.authMethod;
+    }
+
+    public static void setAuthMethod(AuthenticationMethod authMethod) {
+        instance.authMethod = authMethod;
     }
 }
 

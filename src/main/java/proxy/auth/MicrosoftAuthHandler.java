@@ -8,10 +8,10 @@ import kong.unirest.MultipartBody;
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONObject;
 
-public class MicrosoftAuthDetails {
+public class MicrosoftAuthHandler {
     // this should probably be obfuscated but not worth the effort
     private final static String CLIENT_ID = "99ef6720-81b8-4bf7-a653-d6f429f1cea3";
-    
+
     public static final String LOGIN_URL = "https://login.live.com/oauth20_authorize.srf" +
         "?client_id=" + CLIENT_ID +
         "&response_type=code" +
@@ -39,7 +39,7 @@ public class MicrosoftAuthDetails {
 
     private transient AuthDetails authDetails;
 
-    public MicrosoftAuthDetails(String authCode) {
+    public MicrosoftAuthHandler(String authCode) {
         this.authCode = authCode;
     }
 
@@ -47,31 +47,25 @@ public class MicrosoftAuthDetails {
         LocalDateTime now = LocalDateTime.now();
         if (microsoftAccessToken == null || microsoftExpiration.isAfter(now)) {
             acquireMicrosoftToken();
-            System.out.println("mst " + microsoftAccessToken);
         }
 
         if (xboxLiveToken == null || xboxLiveExpiration.isAfter(now)) {
             acquireXboxLiveToken();
-            System.out.println("xblt " + microsoftAccessToken);
         }
 
         if (xboxSecurityToken == null || xboxSecurityExpiration.isAfter(now)) {
             acquireXboxSecurityToken();
-            System.out.println("xtsx " + microsoftAccessToken);
         }
 
         if (minecraftAccessToken == null || minecraftAccessExpiration.isAfter(now)) {
             acquireMinecraftAccessToken();
-            System.out.println("mct " + microsoftAccessToken);
         }
-
-        authDetails = AuthDetails.fromAccessToken(this.minecraftAccessToken);
-
-        System.out.println(authDetails);
     }
 
-    public static MicrosoftAuthDetails fromCode(String authCode) {
-        MicrosoftAuthDetails msAuth = new MicrosoftAuthDetails(authCode);
+
+
+    public static MicrosoftAuthHandler fromCode(String authCode) {
+        MicrosoftAuthHandler msAuth = new MicrosoftAuthHandler(authCode);
         msAuth.refresh();
         return msAuth;
     }
@@ -81,7 +75,6 @@ public class MicrosoftAuthDetails {
             .contentType("application/x-www-form-urlencoded")
             .field("client_id", CLIENT_ID)
             .field("redirect_uri", REDIRECT_URL);
-//            .field("scope", "service::user.auth.xboxlive.com::MBI_SSL");
 
         if (this.microsoftRefreshToken == null) {
             body = body.field("code", this.authCode)
@@ -90,13 +83,10 @@ public class MicrosoftAuthDetails {
             body = body.field("refresh_token", this.microsoftRefreshToken)
                 .field("grant_type", "refresh_token");
         }
-        System.out.println(body.getBody().get().multiParts());
-        System.out.println(body.getHeaders().all().toString());
 
         HttpResponse<JsonNode> res = body.asJson();
         if (!res.isSuccess()) {
-            // TODO: handle failure
-            System.out.println(res.getStatus() + " :: " + res.getStatusText());
+            throw new MinecraftAuthenticationException("Cannot get Microsoft token. Status: " + res.getStatus());
         }
 
         this.microsoftAccessToken = res.getBody().getObject().getString("access_token");
@@ -114,12 +104,11 @@ public class MicrosoftAuthDetails {
             .asJson();
 
         if (!res.isSuccess()) {
-            // TODO: handle failure
-            System.out.println(res.getStatus() + " :: " + res.getStatusText());
+            throw new MinecraftAuthenticationException("Cannot get Xbox Live token. Status: " + res.getStatus());
         }
 
         JSONObject jso = res.getBody().getObject();
-        System.out.println(jso);
+
         this.xboxLiveToken = jso.getString("Token");
         this.userHash = jso.getJSONObject("DisplayClaims")
             .getJSONArray("xui")
@@ -136,11 +125,8 @@ public class MicrosoftAuthDetails {
             .accept("application/json")
             .asJson();
 
-
-
         if (!res.isSuccess()) {
-            // TODO: handle failure
-            System.out.println(res.getStatus() + " :: " + res.getStatusText());
+            throw new MinecraftAuthenticationException("Cannot get XS token. Status: " + res.getStatus());
         }
 
         JSONObject jso = res.getBody().getObject();
@@ -156,13 +142,25 @@ public class MicrosoftAuthDetails {
             .asJson();
 
         if (!res.isSuccess()) {
-            // TODO: handle failure
-            System.out.println(res.getStatus() + " :: " + res.getStatusText());
+            throw new MinecraftAuthenticationException("Cannot get Minecraft token. Status: " + res.getStatus());
         }
 
         JSONObject jso = res.getBody().getObject();
         this.minecraftAccessToken = jso.getString("access_token");
         this.minecraftAccessExpiration = LocalDateTime.now().plusSeconds(jso.getInt("expires_in"));
+    }
+
+    public AuthDetails getAuthDetails() {
+        if (authDetails == null) {
+            this.refresh();
+            authDetails = AuthDetails.fromAccessToken(this.minecraftAccessToken);
+        }
+        return authDetails;
+    }
+
+    public boolean hasLoggedIn() {
+        return (this.authCode != null && !this.authCode.isEmpty())
+            || (this.microsoftRefreshToken != null && !this.microsoftRefreshToken.isEmpty());
     }
 
 

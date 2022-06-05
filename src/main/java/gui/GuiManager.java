@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
@@ -45,7 +44,7 @@ public class GuiManager extends Application {
     private Stage stage;
 
     private Stage settingsStage;
-    private Stage webviewStage;
+    private Stage microsoftLoginStage;
 
     public static void setConfig(Config config) {
         GuiManager.config = config;
@@ -130,10 +129,10 @@ public class GuiManager extends Application {
         }
     }
 
-    public static void closeWebView() {
-        if (instance.webviewStage != null) {
-            instance.webviewStage.close();
-            instance.webviewStage = null;
+    public static void closeMicrosoftLogin() {
+        if (instance.microsoftLoginStage != null) {
+            instance.microsoftLoginStage.close();
+            instance.microsoftLoginStage = null;
         }
     }
 
@@ -151,21 +150,27 @@ public class GuiManager extends Application {
         attempt(() -> loadScene("Settings", settingsStage));
         addIcon(settingsStage);
     }
-    public static void loadWebView() {
-        instance.loadWebview();
+    public static MsAuthController loadMicrosoftLogin() {
+        return instance.loadMicrosoftLoginStage();
     }
-    private void loadWebview() {
-        if (webviewStage != null) {
-            webviewStage.requestFocus();
-            return;
+    private MsAuthController loadMicrosoftLoginStage() {
+        if (microsoftLoginStage != null) {
+            microsoftLoginStage.requestFocus();
+            return null;
         }
 
-        webviewStage = new Stage();
-        webviewStage.setOnCloseRequest(e -> {
-            webviewStage = null;
+        microsoftLoginStage = new Stage();
+        microsoftLoginStage.setOnCloseRequest(e -> {
+            microsoftLoginStage = null;
         });
-        attempt(() -> loadScene("MicrosoftAuth", webviewStage));
-        addIcon(webviewStage);
+        addIcon(microsoftLoginStage);
+
+        try {
+            return loadScene("MicrosoftAuth", microsoftLoginStage, MsAuthController.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static void addIcon(Stage s) {
@@ -189,10 +194,15 @@ public class GuiManager extends Application {
 
     }
 
-    private void loadScene(String name, Stage stage) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("/ui/" + name + ".fxml"));
+    private <T> T loadScene(String name, Stage stage) throws IOException {
+        return loadScene(name, stage, null);
+    }
 
-        Scene scene = new Scene(root);
+    private <T> T loadScene(String name, Stage stage, Class<T> controllerType) throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/ui/" + name + ".fxml"));
+
+
+        Scene scene = new Scene(loader.load());
 
         if (name.equals("Settings")) {
             stage.setTitle(TITLE + " - Settings");
@@ -203,6 +213,12 @@ public class GuiManager extends Application {
         }
         stage.setScene(scene);
         stage.show();
+
+        if (controllerType != null) {
+            return controllerType.cast(loader.getController());
+        }
+
+        return null;
     }
 
     public static void openWebLink(String text) {

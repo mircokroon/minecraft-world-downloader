@@ -1,5 +1,6 @@
 package proxy.auth;
 
+import javax.security.sasl.AuthenticationException;
 import kong.unirest.Unirest;
 
 import java.io.IOException;
@@ -37,7 +38,7 @@ public class RealmsApiHandler extends ClientAuthenticator {
         }
 
         Unirest.get(REALMS_URL + url)
-                .cookie("sid", "token:" + details.accessToken + ":" + details.getUuid())
+                .cookie("sid", "token:" + details.getAccessToken() + ":" + details.getUuid())
                 .cookie("user", details.getUsername())
                 .cookie("version", "1.12.2")  // version doesn't seem to actually matter
                 .asStringAsync(res -> {

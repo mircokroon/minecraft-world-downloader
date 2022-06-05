@@ -33,6 +33,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.layout.AnchorPane;
 import util.PathUtils;
 
 public class GuiSettings {
@@ -55,9 +56,6 @@ public class GuiSettings {
     public Label authDetailsVerifyLabel;
     public Tooltip authTooltip;
     public CheckBox disableWorldGen;
-    public TextField minecraftUsername;
-    public TextField accessToken;
-    public Hyperlink authHelpLink;
     public Label portVerifyLabel;
     public Slider extendedDistance;
     public IntField extendedDistanceText;
@@ -65,7 +63,9 @@ public class GuiSettings {
     public CheckBox renderOtherPlayers;
     public CheckBox enableInfoMessages;
     public Tab realmsTab;
+    public Tab authTab;
     public RealmsTabController realmsController;
+    public AuthTabController authController;
     Config config;
     private boolean portInUse;
 
@@ -100,21 +100,17 @@ public class GuiSettings {
         renderOtherPlayers.setSelected(config.renderOtherPlayers);
         enableInfoMessages.setSelected(!config.disableInfoMessages);
 
-        // auth tab
-        minecraftUsername.setText(config.username);
-        accessToken.setText(config.accessToken);
-
         // realms tab
         if (config.isStarted()) {
             tabPane.getTabs().remove(realmsTab);
         } else {
             tabPane.getSelectionModel().selectedItemProperty().addListener((e, oldVal, newVal) -> {
+                save();
                 if (newVal == realmsTab) {
-                    save();
                     realmsController.opened(this);
                 }
-                if (oldVal == realmsTab) {
-                    minecraftUsername.setText(config.username);
+                if (newVal == authTab) {
+                    authController.opened(this);
                 }
             });
         }
@@ -124,7 +120,6 @@ public class GuiSettings {
         GuiManager.bindTooltip(authDetailsVerifyLabel, authTooltip);
         GuiManager.bindTooltip(portVerifyLabel, new Tooltip("Is the downloader already running?"));
 
-        authHelpLink.setOnAction(actionEvent -> GuiManager.openWebLink("https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication"));
         openWorldDir.setOnAction(e -> attemptQuiet(() -> {
             Path p = PathUtils.toPath(worldOutputDir.getText());
             File f = p.toFile();
@@ -135,12 +130,12 @@ public class GuiSettings {
             }
         }));
 
-        accessToken.textProperty().addListener((ov, oldV, newV) -> {
-            // trim invalid characters, remove accessToken at front in case they copied the entire line
-            accessToken.setText(newV.trim()
-                    .replaceAll("[^A-Za-z0-9\\-_.]*", "")
-                    .replaceFirst("accessToken", ""));
-        });
+//        accessToken.textProperty().addListener((ov, oldV, newV) -> {
+//            // trim invalid characters, remove accessToken at front in case they copied the entire line
+//            accessToken.setText(newV.trim()
+//                    .replaceAll("[^A-Za-z0-9\\-_.]*", "")
+//                    .replaceFirst("accessToken", ""));
+//        });
 
         handleDataValidation();
         handleErrorTab();
@@ -298,9 +293,7 @@ public class GuiSettings {
         config.renderOtherPlayers = renderOtherPlayers.isSelected();
         config.disableInfoMessages = !enableInfoMessages.isSelected();
 
-        // auth tab
-        config.username = minecraftUsername.getText();
-        config.accessToken = accessToken.getText();
+        Config.save();
     }
 
     public boolean portInUse(int port) {
@@ -332,9 +325,5 @@ public class GuiSettings {
 
         tabPane.getSelectionModel().selectFirst();
         this.saveButton.requestFocus();
-    }
-
-    public void runMsAuth(ActionEvent actionEvent) {
-        GuiManager.loadWebView();
     }
 }

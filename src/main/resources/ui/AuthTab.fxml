@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane prefHeight="340.0" prefWidth="578.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.AuthTabController">
+    <GridPane layoutX="11.0" layoutY="8.0" prefHeight="305.0" prefWidth="565.0">
+        <columnConstraints>
+            <ColumnConstraints maxWidth="101.0" minWidth="98.0" prefWidth="98.0" />
+            <ColumnConstraints maxWidth="167.0" minWidth="164.0" prefWidth="167.0" />
+            <ColumnConstraints maxWidth="256.0" minWidth="65.0" prefWidth="65.0" />
+            <ColumnConstraints maxWidth="302.0" minWidth="31.0" prefWidth="302.0" />
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints maxHeight="65.0" minHeight="43.0" prefHeight="49.0" />
+            <RowConstraints maxHeight="127.0" minHeight="40.0" prefHeight="46.0" />
+         <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" prefHeight="208.0" />
+        </rowConstraints>
+        <Button fx:id="checkButton" mnemonicParsing="false" onAction="#checkButtonPressed" prefHeight="27.0" prefWidth="220.0" text="Check authentication status" GridPane.columnIndex="3" />
+      <VBox fx:id="radioContainer" prefHeight="89.0" prefWidth="167.0" GridPane.columnIndex="1" GridPane.rowSpan="2">
+         <GridPane.margin>
+            <Insets top="5.0" />
+         </GridPane.margin>
+         <children>
+            <Label text="Authentication method" />
+         </children></VBox>
+        <Pane fx:id="manualAuthPane" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.columnSpan="2" GridPane.rowIndex="2">
+         <children>
+            <GridPane prefHeight="70.0" prefWidth="226.0">
+              <columnConstraints>
+                <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="161.0" />
+                  <ColumnConstraints hgrow="SOMETIMES" maxWidth="200.0" minWidth="10.0" prefWidth="161.0" />
+              </columnConstraints>
+              <rowConstraints>
+                <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+              </rowConstraints>
+               <children>
+                  <Hyperlink fx:id="infoLink" prefHeight="23.0" prefWidth="156.0" text="More information" textAlignment="RIGHT" GridPane.columnIndex="1" />
+                  <TextField fx:id="accessToken" promptText="Access Token" GridPane.columnSpan="2" GridPane.rowIndex="1" />
+                  <Label text="Access Token" GridPane.rowIndex="0" />
+               </children>
+            </GridPane>
+         </children>
+        </Pane>
+      <Pane fx:id="msAuthPane" prefHeight="183.0" prefWidth="287.0" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.rowIndex="2">
+         <children>
+              <Button fx:id="microsoftAuthButton" layoutY="15.0" mnemonicParsing="false" onAction="#msAuthPressed" prefHeight="27.0" prefWidth="220.0" text="Microsoft login" />
+         </children>
+      </Pane>
+      <Label fx:id="statusText" alignment="TOP_LEFT" prefHeight="249.0" prefWidth="245.0" text="" wrapText="true" GridPane.columnIndex="3" GridPane.hgrow="ALWAYS" GridPane.rowIndex="1" GridPane.rowSpan="2" GridPane.vgrow="ALWAYS">
+         <GridPane.margin>
+            <Insets top="5.0" />
+         </GridPane.margin></Label>
+    </GridPane>
+
+
+</AnchorPane>
