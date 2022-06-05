@@ -107,8 +107,10 @@ public class RegistryLoader {
      * helpful messages as well to put the user at ease about the delay.
      */
     private void getReportsFromServerJar() throws IOException, InterruptedException {
-        GuiManager.setStatusMessage("Running version " + version + " for the first time. Generating reports... (this may take a few minutes)");
-        System.out.println("Looks like we have not run in version " + version + " before.");
+        GuiManager.setStatusMessage("Running version " + version + " for the first time." +
+                                        " Generating reports... (this may take a few minutes)");
+
+        System.out.println("Generating reports for version " + version + ".");
 
         String serverUrl = VersionManifestHandler.findServerUrl(version);
 
