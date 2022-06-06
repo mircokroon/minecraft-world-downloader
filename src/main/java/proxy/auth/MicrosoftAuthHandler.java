@@ -8,21 +8,25 @@ import kong.unirest.MultipartBody;
 import kong.unirest.Unirest;
 import kong.unirest.json.JSONObject;
 
+/**
+ * Handles logging in using Microsoft authentication.
+ */
 public class MicrosoftAuthHandler {
     // this should probably be obfuscated but not worth the effort
     private final static String CLIENT_ID = "99ef6720-81b8-4bf7-a653-d6f429f1cea3";
 
+    private static final String REDIRECT_URL = "http://localhost:%d/world-downloader-auth-complete";
     public static final String LOGIN_URL = "https://login.live.com/oauth20_authorize.srf" +
         "?client_id=" + CLIENT_ID +
         "&response_type=code" +
-        "&scope=XboxLive.signin%20offline_access" +
-        "&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf";
+        "&scope=XboxLive.signin%%20offline_access" +
+        "&redirect_uri=" + REDIRECT_URL;
 
-    private static final String REDIRECT_URL = "https://login.live.com/oauth20_desktop.srf";
     public static final String REDIRECT_SUFFIX = REDIRECT_URL + "?code=";
 
     private transient String authCode;
-    
+
+    private final int usedPort;
     private String userHash;
     private String microsoftAccessToken;
     private String microsoftRefreshToken;
@@ -39,8 +43,17 @@ public class MicrosoftAuthHandler {
 
     private transient AuthDetails authDetails;
 
-    public MicrosoftAuthHandler(String authCode) {
+    public MicrosoftAuthHandler(String authCode, int usedPort) {
         this.authCode = authCode;
+        this.usedPort = usedPort;
+    }
+
+    public static String getLoginUrl(int port) {
+        return String.format(LOGIN_URL, port);
+    }
+
+    private String getRedirectUrl() {
+        return String.format(REDIRECT_URL, usedPort);
     }
 
     private void refresh() {
@@ -64,8 +77,8 @@ public class MicrosoftAuthHandler {
 
 
 
-    public static MicrosoftAuthHandler fromCode(String authCode) {
-        MicrosoftAuthHandler msAuth = new MicrosoftAuthHandler(authCode);
+    public static MicrosoftAuthHandler fromCode(String authCode, int usedPort) {
+        MicrosoftAuthHandler msAuth = new MicrosoftAuthHandler(authCode, usedPort);
         msAuth.refresh();
         return msAuth;
     }
@@ -74,7 +87,7 @@ public class MicrosoftAuthHandler {
         MultipartBody body = Unirest.post("https://login.live.com/oauth20_token.srf")
             .contentType("application/x-www-form-urlencoded")
             .field("client_id", CLIENT_ID)
-            .field("redirect_uri", REDIRECT_URL);
+            .field("redirect_uri", getRedirectUrl());
 
         if (this.microsoftRefreshToken == null) {
             body = body.field("code", this.authCode)
@@ -86,6 +99,7 @@ public class MicrosoftAuthHandler {
 
         HttpResponse<JsonNode> res = body.asJson();
         if (!res.isSuccess()) {
+            System.out.println(res.getBody().toString());
             throw new MinecraftAuthenticationException("Cannot get Microsoft token. Status: " + res.getStatus());
         }
 

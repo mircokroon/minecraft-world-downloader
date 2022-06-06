@@ -4,6 +4,8 @@ import static util.ExceptionHandling.attempt;
 
 import config.Config;
 import java.io.IOException;
+import java.util.function.IntConsumer;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -18,6 +20,7 @@ import proxy.auth.AuthDetails;
 import proxy.auth.AuthDetailsManager;
 import proxy.auth.AuthenticationMethod;
 import proxy.auth.MicrosoftAuthHandler;
+import proxy.auth.MicrosoftAuthServer;
 
 public class AuthTabController {
     public Button checkButton;
@@ -31,6 +34,8 @@ public class AuthTabController {
     public Hyperlink infoLink;
 
     private AuthDetails manualDetails;
+
+    private MicrosoftAuthServer authServer;
 
     @FXML
     public void initialize() {
@@ -85,10 +90,22 @@ public class AuthTabController {
     }
 
     public void msAuthPressed(ActionEvent actionEvent) {
-        MsAuthController controller = GuiManager.loadMicrosoftLogin();
-        controller.setHandlers(
-            this::showAuthPane,
-            ex -> statusText.setText("An error occured during Microsoft authentication.\n\n" + ex.getMessage()));
+        IntConsumer onStart = port -> GuiManager.openWebLink(MicrosoftAuthHandler.getLoginUrl(port));
+
+        // server already running
+        if (authServer != null) {
+            onStart.accept(authServer.getListeningPort());
+            return;
+        }
+
+        attempt(() -> {
+            authServer = new MicrosoftAuthServer(onStart, (authCode, usedPort) -> Platform.runLater(() -> {
+                Config.setMicrosoftAuth(MicrosoftAuthHandler.fromCode(authCode, usedPort));
+
+                authServer = null;
+                this.showAuthPane();
+            }));
+        });
     }
 
     public void opened(GuiSettings guiSettings) {
@@ -101,27 +118,32 @@ public class AuthTabController {
         manualAuthPane.setVisible(false);
         statusText.setText("");
 
-        switch (method) {
-            case MANUAL -> {
-                manualAuthPane.setVisible(true);
+        if (method == AuthenticationMethod.MICROSOFT) {
+            msAuthPane.setVisible(true);
 
-                if (manualDetails == null) {
-                    manualDetails = new AuthDetails("");
-                    Config.setManualAuthDetails(manualDetails);
-                }
-                accessToken.setText(manualDetails.getAccessToken());
+            MicrosoftAuthHandler handler = Config.getMicrosoftAuth();
+
+            if (handler != null && handler.hasLoggedIn()) {
+                statusText.setText("Microsoft login session present.");
+            } else {
+                statusText.setText(method.getErrorMessage());
             }
-            case MICROSOFT -> {
-                msAuthPane.setVisible(true);
+            return;
+        }
+        // stop server
+        if (authServer != null) {
+            authServer.stop();
+            authServer = null;
+        }
 
-                MicrosoftAuthHandler handler = Config.getMicrosoftAuth();
+        if (method == AuthenticationMethod.MANUAL) {
+            manualAuthPane.setVisible(true);
 
-                if (handler != null && handler.hasLoggedIn()) {
-                    statusText.setText("Microsoft login session present.");
-                } else {
-                    statusText.setText(method.getErrorMessage());
-                }
+            if (manualDetails == null) {
+                manualDetails = new AuthDetails("");
+                Config.setManualAuthDetails(manualDetails);
             }
+            accessToken.setText(manualDetails.getAccessToken());
         }
     }
 }

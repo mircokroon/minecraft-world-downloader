@@ -44,7 +44,6 @@ public class GuiManager extends Application {
     private Stage stage;
 
     private Stage settingsStage;
-    private Stage microsoftLoginStage;
 
     public static void setConfig(Config config) {
         GuiManager.config = config;
@@ -135,13 +134,6 @@ public class GuiManager extends Application {
         }
     }
 
-    public static void closeMicrosoftLogin() {
-        if (instance.microsoftLoginStage != null) {
-            instance.microsoftLoginStage.close();
-            instance.microsoftLoginStage = null;
-        }
-    }
-
     private void loadSettingsInWindow() {
         if (settingsStage != null) {
             settingsStage.requestFocus();
@@ -155,28 +147,6 @@ public class GuiManager extends Application {
         });
         attempt(() -> loadScene("Settings", settingsStage));
         addIcon(settingsStage);
-    }
-    public static MsAuthController loadMicrosoftLogin() {
-        return instance.loadMicrosoftLoginStage();
-    }
-    private MsAuthController loadMicrosoftLoginStage() {
-        if (microsoftLoginStage != null) {
-            microsoftLoginStage.requestFocus();
-            return null;
-        }
-
-        microsoftLoginStage = new Stage();
-        microsoftLoginStage.setOnCloseRequest(e -> {
-            microsoftLoginStage = null;
-        });
-        addIcon(microsoftLoginStage);
-
-        try {
-            return loadScene("MicrosoftAuth", microsoftLoginStage, MsAuthController.class);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
     }
 
     public static void addIcon(Stage s) {
