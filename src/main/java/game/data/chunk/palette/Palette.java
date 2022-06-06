@@ -1,5 +1,7 @@
 package game.data.chunk.palette;
 
+import game.data.chunk.version.ChunkSection_1_18;
+import game.data.chunk.version.encoder.BlockLocationEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +20,7 @@ public class Palette {
     protected int bitsPerBlock;
     private int[] palette;
     StateProvider stateProvider;
-    private PaletteType type = PaletteType.BLOCKS;
+    PaletteType type = PaletteType.BLOCKS;
 
     protected Palette() {
         // palette needs initializing
@@ -35,7 +37,7 @@ public class Palette {
 
     Palette(int[] arr) {
         this.palette = arr;
-        this.bitsPerBlock = computeBitsPerBlock(arr.length - 1);
+        this.bitsPerBlock = computeBitsPerBlock(Math.min(0, arr.length - 1));
         this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
     }
 
@@ -84,6 +86,10 @@ public class Palette {
     }
 
     private int computeBitsPerBlock(int maxIndex) {
+        if (maxIndex < 0) {
+            maxIndex = 0;
+        }
+
         int bitsNeeded = Integer.SIZE - Integer.numberOfLeadingZeros(maxIndex);
         return Math.max(type.getMinBitsPerBlock(), bitsNeeded);
     }
@@ -193,7 +199,6 @@ public class Palette {
                 '}';
     }
 
-
     public int getIndexFor(ChunkSection section, int blockStateId) {
         for (int i = 0; i < palette.length; i++) {
             if (palette[i] == blockStateId) {
@@ -206,13 +211,24 @@ public class Palette {
         newPalette[palette.length] = blockStateId;
         this.palette = newPalette;
 
+        if (section != null) {
+            resize(section, bitsPerBlock);
+        }
+
+
+        return palette.length - 1;
+    }
+
+    public int[] getPalette() {
+        return palette;
+    }
+
+    private void resize(ChunkSection section, int oldBpp) {
         int newBitsPerBlock = computeBitsPerBlock(palette.length - 1);
-        if (bitsPerBlock != newBitsPerBlock) {
+        if (oldBpp != newBitsPerBlock) {
             section.resizeBlocksIfRequired(newBitsPerBlock);
             this.bitsPerBlock = newBitsPerBlock;
         }
-
-        return palette.length - 1;
     }
 
 
