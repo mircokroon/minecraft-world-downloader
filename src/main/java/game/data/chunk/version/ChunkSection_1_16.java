@@ -50,9 +50,21 @@ public class ChunkSection_1_16 extends ChunkSection_1_15 {
         copyBlocks(new long[newSize], newBitsPerBlock);
     }
 
-    private static int longsRequired(int bitsPerBlock) {
+    public static int longsRequired(int bitsPerBlock) {
+        return longsRequired(bitsPerBlock, 4096);
+    }
+
+    public static int longsRequiredBiomes(int bitsPerBlock) {
+        return longsRequired(bitsPerBlock, 64);
+    }
+
+    private static int longsRequired(int bitsPerBlock, double totalItems) {
+        if (bitsPerBlock == 0) {
+            return 0;
+        }
+
         int blocksPerLong = 64 / bitsPerBlock;
-        return (int) Math.ceil(4096.0 / blocksPerLong);
+        return (int) Math.ceil(totalItems / blocksPerLong);
     }
 }
 

@@ -159,12 +159,19 @@ public class DataTypeProvider {
         return buffer.getLong();
     }
 
-    public long[] readLongArray(int size) {
-        long[] res = new long[size];
-        for (int i = 0; i < size; i++) {
+    public long[] readLongArray(int size, int expected) {
+        long[] res = new long[expected];
+        for (int i = 0; i < expected; i++) {
             res[i] = readLong();
         }
+        for (int i = 0; i < size - expected; i++) {
+            readLong();
+        }
         return res;
+    }
+
+    public long[] readLongArray(int size) {
+        return readLongArray(size, size);
     }
 
     public int[] readIntArray(int size) {
