@@ -6,7 +6,7 @@ import se.llbit.nbt.SpecificTag;
 import java.util.List;
 
 public class DirectPalette extends Palette {
-    int bitsPerBlock;
+    private final int bitsPerBlock;
 
     public DirectPalette() {
         this(GlobalPaletteProvider.getGlobalPalette().getRequiredBits());

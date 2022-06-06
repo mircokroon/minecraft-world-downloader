@@ -31,20 +31,23 @@ public class PaletteTransformer {
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
-                    locationEncoder.setTo(x, y, z, oldPalette.bitsPerBlock);
+                    locationEncoder.setTo(x, y, z, oldPalette.getBitsPerBlock());
                     newPalette.getIndexFor(null, locationEncoder.fetch(data));
                 }
             }
         }
+
+        newPalette.recomputeBitsPerBlock();
+
         // copy all blocks to the new palette
-        long[] newData = new long[ChunkSection_1_16.longsRequired(newPalette.bitsPerBlock)];
+        long[] newData = new long[ChunkSection_1_16.longsRequired(newPalette.getBitsPerBlock())];
         for (int z = 0; z < 16; z++) {
             for (int x = 0; x < 16; x++) {
                 for (int y = 0; y < 16; y++) {
-                    locationEncoder.setTo(x, y, z, oldPalette.bitsPerBlock);
+                    locationEncoder.setTo(x, y, z, oldPalette.getBitsPerBlock());
                     int index = newPalette.getIndexFor(null, locationEncoder.fetch(data));
 
-                    locationEncoder.setTo(x, y, z, newPalette.bitsPerBlock);
+                    locationEncoder.setTo(x, y, z, newPalette.getBitsPerBlock());
                     locationEncoder.write(newData, index);
                 }
             }

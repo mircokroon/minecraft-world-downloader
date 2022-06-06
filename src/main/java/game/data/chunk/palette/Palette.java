@@ -17,7 +17,7 @@ import se.llbit.nbt.SpecificTag;
  * Class to hold a palette of a chunk.
  */
 public class Palette {
-    protected int bitsPerBlock;
+    private int bitsPerBlock;
     private int[] palette;
     StateProvider stateProvider;
     PaletteType type = PaletteType.BLOCKS;
@@ -83,6 +83,10 @@ public class Palette {
                 this.palette[i] = bs.getNumericId();
             }
         }
+    }
+
+    protected void recomputeBitsPerBlock() {
+        this.bitsPerBlock = computeBitsPerBlock(this.palette.length - 1);
     }
 
     private int computeBitsPerBlock(int maxIndex) {
