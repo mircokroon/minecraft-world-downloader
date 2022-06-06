@@ -202,6 +202,7 @@ public abstract class ChunkEntities extends ChunkEvents {
     protected CompoundTag generateBlockEntity(String id, Coordinate3D containerLocation) {
         String entId = id;
 
+        // TODO: make a list of these
         // all shulker colours have the same block entity
         if (id.endsWith("shulker_box")) {
             entId = "minecraft:shulker_box";
@@ -213,6 +214,10 @@ public abstract class ChunkEntities extends ChunkEvents {
         // Covers command blocks, chain and repeating command blocks
         if (id.endsWith("command_block")) {
             entId = "minecraft:command_block";
+        }
+        // Covers banners
+        if (id.endsWith("banner")) {
+            entId = "minecraft:banner";
         }
 
         CompoundTag entity = new CompoundTag();

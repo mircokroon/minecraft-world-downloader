@@ -46,6 +46,9 @@ public class BlockEntityRegistry {
 
     // should probably name this something else
     public boolean isSpecialBlockEntity(String id) {
-        return id.endsWith("shulker_box") || id.endsWith("_bed") || id.endsWith("command_block");
+        return id.endsWith("shulker_box")
+            || id.endsWith("_bed")
+            || id.endsWith("command_block")
+            || id.endsWith("banner");
     }
 }
