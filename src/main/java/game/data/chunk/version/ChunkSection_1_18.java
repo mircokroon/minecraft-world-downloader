@@ -2,9 +2,11 @@ package game.data.chunk.version;
 
 import config.Version;
 import game.data.chunk.Chunk;
+import game.data.chunk.palette.DirectPalette;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.palette.PaletteTransformer;
+import game.data.chunk.palette.PaletteType;
 import game.data.chunk.palette.SingleValuePalette;
-import game.data.chunk.version.encoder.BlockLocationEncoder_1_16;
 import game.data.coordinates.Coordinate3D;
 import se.llbit.nbt.*;
 
@@ -41,8 +43,8 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
     public CompoundTag toNbt() {
         CompoundTag tag = new CompoundTag();
 
-        tag.add("biomes", getPalettedCompound(biomePalette, Tag.TAG_STRING, biomes));
-        tag.add("block_states", getPalettedCompound(palette, Tag.TAG_COMPOUND, blocks));
+        tag.add("biomes", getPalettedCompound(biomePalette, Tag.TAG_STRING, biomes, PaletteType.BIOMES));
+        tag.add("block_states", getPalettedCompound(palette, Tag.TAG_COMPOUND, blocks, PaletteType.BLOCKS));
 
         tag.add("Y", new ByteTag(y));
         if (blockLight != null && blockLight.length > 0) {
@@ -55,16 +57,35 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
         return tag;
     }
 
-    private CompoundTag getPalettedCompound(Palette palette, int tagType, long[] data) {
+    private CompoundTag getPalettedCompound(Palette palette, int tagType, long[] data, PaletteType type) {
         CompoundTag tag = new CompoundTag();
 
-        // should this even happen?
-        if (palette == null) {
-            return tag;
+        // If the palette is empty (usually meaning no blocks in a section), set it to a palette
+        // with just air in it.
+        if (palette == null || data.length == 0) {
+            palette = new SingleValuePalette(0);
+            if (type == PaletteType.BIOMES) {
+                palette.biomePalette();
+            }
+        }
+
+        // If we have a direct palette, we need to convert it to a proper palette since the world
+        // format doesn't allow direct palettes (I think).
+        if (palette instanceof DirectPalette directPalette) {
+            PaletteTransformer transformer = new PaletteTransformer(getLocationEncoder(), directPalette);
+            long[] newData = transformer.transform(data);
+
+            if (newData != data) {
+                data = newData;
+                palette = transformer.getNewPalette();
+            }
         }
 
         List<SpecificTag> paletteItems = palette.toNbt();
-        if (!paletteItems.isEmpty()) {
+        if (paletteItems.isEmpty()) {
+            // this shouldn't ever happen
+            System.err.println("Empty palette @ " + getY() + " :: " + palette);
+        } else {
             tag.add("palette", new ListTag(tagType, paletteItems));
         }
         if (data != null && data.length > 0) {

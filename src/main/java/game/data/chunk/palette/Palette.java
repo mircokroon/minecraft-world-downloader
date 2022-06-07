@@ -1,5 +1,7 @@
 package game.data.chunk.palette;
 
+import game.data.chunk.version.ChunkSection_1_18;
+import game.data.chunk.version.encoder.BlockLocationEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,9 +17,10 @@ import se.llbit.nbt.SpecificTag;
  * Class to hold a palette of a chunk.
  */
 public class Palette {
-    protected int bitsPerBlock;
+    private int bitsPerBlock;
     private int[] palette;
     StateProvider stateProvider;
+    PaletteType type = PaletteType.BLOCKS;
 
     protected Palette() {
         // palette needs initializing
@@ -34,7 +37,7 @@ public class Palette {
 
     Palette(int[] arr) {
         this.palette = arr;
-        this.bitsPerBlock = computeBitsPerBlock(arr.length - 1);
+        this.bitsPerBlock = computeBitsPerBlock(Math.min(0, arr.length - 1));
         this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
     }
 
@@ -82,18 +85,28 @@ public class Palette {
         }
     }
 
+    protected void recomputeBitsPerBlock() {
+        this.bitsPerBlock = computeBitsPerBlock(this.palette.length - 1);
+    }
+
     private int computeBitsPerBlock(int maxIndex) {
+        if (maxIndex < 0) {
+            maxIndex = 0;
+        }
+
         int bitsNeeded = Integer.SIZE - Integer.numberOfLeadingZeros(maxIndex);
-        return Math.max(4, bitsNeeded);
+        return Math.max(type.getMinBitsPerBlock(), bitsNeeded);
     }
 
     /**
      * Read the palette from the network stream.
      * @param dataTypeProvider network stream reader
      */
-    public static Palette readPalette(DataTypeProvider dataTypeProvider) {
+    public static Palette readPalette(DataTypeProvider dataTypeProvider, PaletteType type) {
         byte bitsPerBlock = dataTypeProvider.readNext();
-        return readPalette(bitsPerBlock, dataTypeProvider);
+        Palette palette = readPalette(bitsPerBlock, dataTypeProvider, type);
+        palette.type = type;
+        return palette;
     }
 
     /**
@@ -101,10 +114,10 @@ public class Palette {
      * @param bitsPerBlock the number of bits per block that is used, indicates the palette type
      * @param dataTypeProvider network stream reader
      */
-    public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider) {
+    public static Palette readPalette(int bitsPerBlock, DataTypeProvider dataTypeProvider, PaletteType type) {
         if (bitsPerBlock == 0) {
             return new SingleValuePalette(dataTypeProvider.readVarInt());
-        } else if (bitsPerBlock > 8) {
+        } else if (bitsPerBlock > type.getMaxBitsPerBlock()) {
             return new DirectPalette(bitsPerBlock);
         }
         int size = dataTypeProvider.readVarInt();
@@ -190,7 +203,6 @@ public class Palette {
                 '}';
     }
 
-
     public int getIndexFor(ChunkSection section, int blockStateId) {
         for (int i = 0; i < palette.length; i++) {
             if (palette[i] == blockStateId) {
@@ -203,13 +215,24 @@ public class Palette {
         newPalette[palette.length] = blockStateId;
         this.palette = newPalette;
 
+        if (section != null) {
+            resize(section, bitsPerBlock);
+        }
+
+
+        return palette.length - 1;
+    }
+
+    public int[] getPalette() {
+        return palette;
+    }
+
+    private void resize(ChunkSection section, int oldBpp) {
         int newBitsPerBlock = computeBitsPerBlock(palette.length - 1);
-        if (bitsPerBlock != newBitsPerBlock) {
+        if (oldBpp != newBitsPerBlock) {
             section.resizeBlocksIfRequired(newBitsPerBlock);
             this.bitsPerBlock = newBitsPerBlock;
         }
-
-        return palette.length - 1;
     }
 
 

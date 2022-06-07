@@ -5,6 +5,7 @@ import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.palette.PaletteType;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
@@ -129,7 +130,7 @@ public abstract class Chunk extends ChunkEntities {
             readBlockCount(dataProvider);
 
             byte bitsPerBlock = dataProvider.readNext();
-            Palette palette = Palette.readPalette(bitsPerBlock, dataProvider);
+            Palette palette = Palette.readPalette(bitsPerBlock, dataProvider, PaletteType.BLOCKS);
 
             // A bitmask that contains bitsPerBlock set bits
             int dataArrayLength = dataProvider.readVarInt();
