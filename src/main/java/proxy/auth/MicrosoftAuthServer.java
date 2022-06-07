@@ -6,21 +6,24 @@ import fi.iki.elonen.NanoHTTPD;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.function.BiConsumer;
-import java.util.function.IntConsumer;
+import java.util.function.Consumer;
 
 /**
  * Runs a webserver that handles the OAuth callback.
  */
 public class MicrosoftAuthServer extends NanoHTTPD {
     public static final String PATH = "/world-downloader-auth-complete";
+    private static final String SHORT_PATH = "/login";
+    private String shortUrl = "http://localhost:%d" + SHORT_PATH;
 
     private BiConsumer<String, Integer> authCodeHandler;
-    public MicrosoftAuthServer(IntConsumer onStart, BiConsumer<String, Integer> authCodeHandler) throws IOException {
+    public MicrosoftAuthServer(Consumer<String> onStart, BiConsumer<String, Integer> authCodeHandler) throws IOException {
         super(getSocket());
         this.authCodeHandler = authCodeHandler;
 
         start();
-        onStart.accept(this.getListeningPort());
+        this.shortUrl = String.format(shortUrl, this.getListeningPort());
+        onStart.accept(shortUrl);
     }
 
     /**
@@ -43,6 +46,11 @@ public class MicrosoftAuthServer extends NanoHTTPD {
      */
     @Override
     public Response serve(IHTTPSession session) {
+        if (session.getUri().equals(SHORT_PATH)) {
+            Response r = newFixedLengthResponse(Response.Status.REDIRECT, MIME_HTML, "");
+            r.addHeader("Location", MicrosoftAuthHandler.getLoginUrl(this.getListeningPort()));
+            return r;
+        }
         if (!session.getUri().equals(PATH)) {
             return null;
         }
@@ -61,11 +69,13 @@ public class MicrosoftAuthServer extends NanoHTTPD {
               <body>
                   <div>Login complete. You can close this page.</div>
                   <style>
+                      * { background-color: #333333; }
                       div {
                           text-align: center;
                           line-height: 90vh;
                           font-family: sans-serif;
                           font-size: 1.4em;
+                          color: white;
                       }
                   </style>
               </body>
@@ -83,5 +93,9 @@ public class MicrosoftAuthServer extends NanoHTTPD {
             this.stop();
         });
         stopThread.start();
+    }
+
+    public String getShortUrl() {
+        return shortUrl;
     }
 }
