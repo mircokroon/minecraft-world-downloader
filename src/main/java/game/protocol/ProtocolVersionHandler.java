@@ -90,14 +90,16 @@ public class ProtocolVersionHandler {
      *  - The closest version that's above the requested version
      *  - The highest version number
      */
-    private int bestMatch(Set<Integer> values, int target) {
+    int bestMatch(Set<Integer> values, int target) {
         if (values.contains(target)) { return target; }
 
-        List<Integer> sorted = values.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+        List<Integer> sorted = values.stream()
+            .sorted()
+            .collect(Collectors.toList());
 
         int chosenVersion = sorted.get(0);
         for (Integer currentVersion : sorted) {
-            if (currentVersion > target) {
+            if (currentVersion < target) {
                 chosenVersion = currentVersion;
             }
         }
