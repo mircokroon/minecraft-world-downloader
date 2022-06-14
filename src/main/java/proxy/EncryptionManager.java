@@ -423,6 +423,7 @@ public class EncryptionManager {
     public void reset() {
         encryptionEnabled = false;
         this.insertedPackets.clear();
+        clientAuthenticator.reset();
     }
 
     /**

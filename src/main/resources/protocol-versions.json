@@ -264,6 +264,7 @@
 				"0x3d": "SectionBlocksUpdate",
 				"0x4d": "SetEntityData",
 				"0x50": "SetEquipment",
+				"0x5F": "SystemChat",
 				"0x63": "TeleportEntity"
 			},
 			"serverBound": {

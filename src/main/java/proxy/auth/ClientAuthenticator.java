@@ -1,8 +1,7 @@
 package proxy.auth;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import java.security.KeyPair;
+import gui.GuiManager;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
@@ -52,14 +51,17 @@ public class ClientAuthenticator extends AuthDetailsManager {
         body.put("selectedProfile", details.getUuid());
         body.put("serverId", hash);
 
+        GuiManager.setStatusMessage("Authenticating with Mojang servers...");
 
         HttpResponse<String> str = Unirest.post(AUTH_URL)
                 .header("Content-Type", "application/json")
                 .body(new Gson().toJson(body))
                 .asString();
 
+        GuiManager.setStatusMessage("");
+
         if (!str.isSuccess()) {
-            throw new RuntimeException("Client not authenticated! " + str.getBody());
+            throw new RuntimeException("Client not authenticated! " + str.getStatus() + ": " + str.getStatusText());
         } else {
             devPrint("Successfully authenticated user with Mojang session server.");
         }
@@ -74,12 +76,15 @@ public class ClientAuthenticator extends AuthDetailsManager {
             throw new AuthenticationException("Cannot get valid authentication details.", e);
         }
 
+        GuiManager.setStatusMessage("Requesting encryption keys...");
+
         HttpResponse<JsonNode> res = Unirest.post(KEY_URL)
             .header("Authorization", "Bearer " + details.getAccessToken())
             .asJson();
 
         if (!res.isSuccess()) {
-            throw new RuntimeException("Cannot get client public key: " + res.getBody());
+            GuiManager.setStatusMessage("");
+            throw new RuntimeException("Cannot get client public key: " + res.getStatus() + ": " + res.getStatusText());
         }
 
         JsonNode json = res.getBody();
@@ -95,5 +100,7 @@ public class ClientAuthenticator extends AuthDetailsManager {
         publicKey = publicKey.replace("RSA ", "");
 
         em.setClientProfileKeyPair(privateKey, publicKey);
+
+        GuiManager.setStatusMessage("");
     }
 }

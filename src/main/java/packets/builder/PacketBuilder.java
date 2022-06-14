@@ -48,11 +48,14 @@ public class PacketBuilder {
      */
     public static PacketBuilder constructClientMessage(Chat message, MessageTarget target) {
         Protocol protocol = Config.versionReporter().getProtocol();
-        PacketBuilder builder = new PacketBuilder(protocol.clientBound("Chat"));
+        String packetName = Config.versionReporter().isAtLeast1_19() ? "SystemChat" : "Chat";
+        PacketBuilder builder = new PacketBuilder(protocol.clientBound(packetName));
 
         builder.writeString(message.toJson());
         builder.writeByte(target.getIdentifier());
-        if (Config.versionReporter().isAtLeast1_16()) {
+
+        // uuid is only included from 1.16, from 1.19 player chat is a different packet
+        if (Config.versionReporter().isAtLeast1_16() && !Config.versionReporter().isAtLeast1_19()) {
             builder.writeUUID(new UUID(0L, 0L));
         }
         return builder;

@@ -2,7 +2,7 @@ package proxy.auth;
 
 import config.Config;
 
-import javax.security.sasl.AuthenticationException;
+import gui.GuiManager;
 import java.io.IOException;
 
 /**
@@ -34,12 +34,25 @@ public abstract class AuthDetailsManager {
      * Get the auth details from the profiles file. If launcher_accounts.json exists, we use that accessToken instead
      * because the other one won't be valid in this case.
      */
-    public static AuthDetails getAuthDetails() throws IOException {
+    public static AuthDetails loadAuthDetails() throws IOException {
+        GuiManager.setStatusMessage("Getting Minecraft authentication details...");
+
         return switch (Config.getAuthMethod()) {
             case AUTOMATIC -> retrieveDetailsFromProcess();
             case MICROSOFT -> retrieveDetailsFromMicrosoft();
             case MANUAL -> Config.getManualAuthDetails();
         };
+    }
+
+    public AuthDetails getAuthDetails() throws IOException {
+        if (this.details == null) {
+            this.details = loadAuthDetails();
+        }
+        return this.details;
+    }
+
+    public void reset() {
+        this.details = null;
     }
 
     protected void printAuthErrorMessage() {
@@ -56,9 +69,5 @@ public abstract class AuthDetailsManager {
 
         System.err.println("See https://github.com/mircokroon/minecraft-world-downloader/wiki/Authentication for more details.");
         System.err.println();
-    }
-
-    public AuthDetails getDetails() {
-        return details;
     }
 }

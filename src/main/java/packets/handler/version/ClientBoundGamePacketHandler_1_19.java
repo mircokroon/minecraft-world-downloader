@@ -70,14 +70,15 @@ public class ClientBoundGamePacketHandler_1_19 extends ClientBoundGamePacketHand
             return false;
         });
 
-//        operators.put("Respawn", provider -> {
-//            SpecificTag dimensionNbt = provider.readNbtTag();
-//            Dimension dimension = Dimension.fromString(provider.readString());
-//            dimension.registerType(dimensionNbt);
-//            WorldManager.getInstance().setDimension(dimension);
-//            WorldManager.getInstance().getEntityRegistry().reset();
-//
-//            return true;
-//        });
+        operators.put("Respawn", provider -> {
+            String dimensionType = provider.readString();
+            Dimension dimension = Dimension.fromString(provider.readString());
+            dimension.setType(dimensionType);
+
+            WorldManager.getInstance().setDimension(dimension);
+            WorldManager.getInstance().getEntityRegistry().reset();
+
+            return true;
+        });
     }
 }

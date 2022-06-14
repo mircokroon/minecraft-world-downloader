@@ -76,7 +76,7 @@ public class AuthTabController {
     private String validateAndGetLabel() {
         try {
             AuthenticationMethod method = Config.getAuthMethod();
-            AuthDetails details = AuthDetailsManager.getAuthDetails();
+            AuthDetails details = AuthDetailsManager.loadAuthDetails();
 
             boolean isValid = details.isValid();
             if (!isValid) {

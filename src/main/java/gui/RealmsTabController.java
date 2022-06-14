@@ -98,7 +98,7 @@ public class RealmsTabController {
                 serverList.getItems().clear();
 
                 if (servers == null || servers.servers.length <= 0) {
-                    serverList.getItems().add(new RealmEntry("No realms found for user " + auth.getDetails().getUsername()));
+                    serverList.getItems().add(new RealmEntry("No realms found for user " + auth.getAuthDetails().getUsername()));
                     this.requested = false;
                 } else {
                     // each realm needs a reference to the auth object to request the server IP
