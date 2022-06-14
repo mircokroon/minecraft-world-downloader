@@ -1,5 +1,6 @@
 package game.data.entity;
 
+import config.Config;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 
@@ -20,7 +21,13 @@ public class ObjectEntity extends Entity {
         ent.readPosition(provider);
         ent.pitch = provider.readNext();
         ent.yaw = provider.readNext();
-        int data = provider.readInt();
+        int data;
+        if (Config.versionReporter().isAtLeast1_19()) {
+            provider.readNext(); // head rotation
+            data = provider.readVarInt();
+        } else {
+            data = provider.readInt();
+        }
         parseVelocity(provider);
 
         // only if it's an ObjectEntity do we actually set the data bit

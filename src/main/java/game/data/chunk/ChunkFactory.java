@@ -141,6 +141,7 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
         return Config.versionReporter().select(Chunk.class,
+                Option.of(Version.V1_19, () -> new Chunk_1_19(chunkPos)),
                 Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos)),
                 Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),
                 Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
@@ -158,6 +159,7 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
         return VersionReporter.select(dataVersion, Chunk.class,
+                Option.of(Version.V1_19, () -> new Chunk_1_19(chunkPos)),
                 Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos)),
                 Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),
                 Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
@@ -166,7 +168,6 @@ public class ChunkFactory {
                 Option.of(Version.V1_13, () -> new Chunk_1_13(chunkPos)),
                 Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos))
         );
-
     }
 
     public Chunk fromNbt(NamedTag tag, CoordinateDim2D location) {

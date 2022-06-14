@@ -18,6 +18,7 @@ import packets.handler.version.ClientBoundGamePacketHandler_1_15;
 import packets.handler.version.ClientBoundGamePacketHandler_1_16;
 import packets.handler.version.ClientBoundGamePacketHandler_1_17;
 import packets.handler.version.ClientBoundGamePacketHandler_1_18;
+import packets.handler.version.ClientBoundGamePacketHandler_1_19;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 
@@ -174,6 +175,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
     public static PacketHandler of(ConnectionManager connectionManager) {
         return Config.versionReporter().select(PacketHandler.class,
+                Option.of(Version.V1_19, () -> new ClientBoundGamePacketHandler_1_19(connectionManager)),
                 Option.of(Version.V1_18, () -> new ClientBoundGamePacketHandler_1_18(connectionManager)),
                 Option.of(Version.V1_17, () -> new ClientBoundGamePacketHandler_1_17(connectionManager)),
                 Option.of(Version.V1_16, () -> new ClientBoundGamePacketHandler_1_16(connectionManager)),
