@@ -18,7 +18,7 @@ Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.co
 
 ### Requirements
 - Java 17 or higher
-- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+
+- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+ // 1.19+
 
 ### Basic usage
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe) the latest release and run it. Enter the server address in the address field and press start. Instead of connecting to the server itself, connect to `localhost` in Minecraft to start downloading the world.

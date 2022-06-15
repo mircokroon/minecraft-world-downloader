@@ -7,7 +7,6 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -52,11 +51,13 @@ public class DimensionCodec {
 
 
     private final Map<String, Dimension> dimensions;
-    private final Map<Integer, DimensionType> dimensionTypes;
+    private final Map<Integer, DimensionType> dimensionTypesByHash;
+    private final Map<String, DimensionType> dimensionTypesByName;
     private final Map<String, Biome> biomes;
     private DimensionCodec() {
         this.dimensions = new HashMap<>();
-        this.dimensionTypes = new HashMap<>();
+        this.dimensionTypesByHash = new HashMap<>();
+        this.dimensionTypesByName = new HashMap<>();
         this.biomes = new HashMap<>();
     }
 
@@ -96,14 +97,10 @@ public class DimensionCodec {
             String[] parts = identifier.split(":");
             String namespace = parts[0];
             String name = parts[1];
-
-            // skip Minecraft ones as the client can make these itself
-            if (namespace.equals("minecraft")) {
-                continue;
-            }
-
+            
             DimensionType type = new DimensionType(namespace, name, d);
-            this.dimensionTypes.put(type.getSignature(), type);
+            this.dimensionTypesByHash.put(type.getSignature(), type);
+            this.dimensionTypesByName.put(type.getName(), type);
         }
     }
 
@@ -135,14 +132,18 @@ public class DimensionCodec {
      * Get a dimension by it's signature. The signature is just the hash of the properties.
      */
     public DimensionType getDimensionType(int signature) {
-        return dimensionTypes.get(signature);
+        return dimensionTypesByHash.get(signature);
+    }
+
+    public DimensionType getDimensionType(String name) {
+        return dimensionTypesByName.get(name);
     }
 
     /**
      * Write all the custom dimension data, if there is any.
      */
     public boolean write(Path destination) throws IOException {
-        if (biomes.isEmpty() && dimensionTypes.isEmpty()) {
+        if (biomes.isEmpty() && dimensionTypesByHash.isEmpty()) {
             // nothing to write
             return false;
         }
@@ -151,7 +152,7 @@ public class DimensionCodec {
             d.write(destination);
         }
 
-        for (DimensionType d : dimensionTypes.values()) {
+        for (DimensionType d : dimensionTypesByHash.values()) {
             d.write(destination);
         }
 

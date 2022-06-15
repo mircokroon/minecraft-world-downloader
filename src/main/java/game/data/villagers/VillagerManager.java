@@ -1,5 +1,7 @@
 package game.data.villagers;
 
+import game.data.entity.EntityRegistry;
+import game.data.entity.IMovableEntity;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,19 +9,17 @@ import game.data.WorldManager;
 import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim3D;
-import game.data.entity.Entity;
 import game.data.entity.specific.Villager;
 import packets.DataTypeProvider;
 
 public class VillagerManager {
     private Villager lastInteractedWith;
     private CoordinateDim3D lastInteractedLocation;
-    private List<VillagerTrade> trades;
-    private int villagerLevel = 0;
-    private int villagerExp = 0;
 
     public void lastInteractedWith(DataTypeProvider provider) {
-        Entity entity = WorldManager.getInstance().getEntityRegistry().getEntity(provider.readVarInt());
+        EntityRegistry registry = WorldManager.getInstance().getEntityRegistry();
+        IMovableEntity entity = registry.getMovableEntity(provider.readVarInt());
+
         if (!(entity instanceof Villager)) {
             return;
         }
@@ -39,7 +39,7 @@ public class VillagerManager {
             return; // This should be impossible
         }
 
-        trades = new ArrayList<>();
+        List<VillagerTrade> trades = new ArrayList<>();
 
         provider.readVarInt(); // Window ID
         byte numberOfTrades = provider.readNext();
@@ -65,8 +65,8 @@ public class VillagerManager {
                     firstItem, secondItem, receivedItem, demand, maxUses, priceMultiplier, specialPrice, uses, xp
             ));
         }
-        villagerLevel = provider.readVarInt();
-        villagerExp = provider.readVarInt();
+        int villagerLevel = provider.readVarInt();
+        int villagerExp = provider.readVarInt();
         provider.readBoolean(); // Is regular villager
         provider.readBoolean(); // Can restock
 

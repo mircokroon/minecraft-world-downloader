@@ -20,7 +20,6 @@ public class DimensionType {
     private final String name;
     private final int index;
     private final int signature;
-
     private CompoundTag properties;
 
     DimensionType(String namespace, String name, CompoundTag tag) {
@@ -29,7 +28,10 @@ public class DimensionType {
         this.namespace = namespace;
         this.name = name;
         this.signature = this.properties.hashCode();
+    }
 
+    public CompoundTag getProperties() {
+        return properties;
     }
 
     /**

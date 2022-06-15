@@ -58,6 +58,7 @@ public class VersionReporter {
         return protocolVersion >= Version.V1_17.protocolVersion;
     }
     public boolean isAtLeast1_18() { return protocolVersion >= Version.V1_18.protocolVersion; }
+    public boolean isAtLeast1_19() { return protocolVersion >= Version.V1_19.protocolVersion; }
 
     public static boolean isAtLeast1_12(int dataVersion) {
         return dataVersion >= Version.V1_12.dataVersion;
@@ -80,26 +81,7 @@ public class VersionReporter {
     public static boolean isAtLeast1_18(int dataVersion) {
         return dataVersion >= Version.V1_18.dataVersion;
     }
-
-    public boolean is1_12() {
-        return protocolVersion >= Version.V1_12.protocolVersion && protocolVersion < Version.V1_13.protocolVersion;
-    }
-    public boolean is1_13() {
-        return protocolVersion >= Version.V1_13.protocolVersion && protocolVersion < Version.V1_14.protocolVersion;
-    }
-    public boolean is1_14() {
-        return protocolVersion >= Version.V1_14.protocolVersion && protocolVersion < Version.V1_15.protocolVersion;
-    }
-    public boolean is1_15() {
-        return protocolVersion >= Version.V1_15.protocolVersion && protocolVersion < Version.V1_16.protocolVersion;
-    }
-    public boolean is1_16() {
-        return protocolVersion >= Version.V1_16.protocolVersion && protocolVersion < Version.V1_17.protocolVersion;
-    }
-    public boolean is1_17() {
-        return protocolVersion >= Version.V1_17.protocolVersion && protocolVersion < Version.V1_18.protocolVersion;
-    }
-    public boolean is1_18() {
-        return protocolVersion >= Version.V1_18.protocolVersion;
+    public static boolean isAtLeast1_19(int dataVersion) {
+        return dataVersion >= Version.V1_19.dataVersion;
     }
 }

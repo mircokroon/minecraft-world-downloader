@@ -21,12 +21,10 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
         });
         operations.put("encryption_request", provider -> {
             String serverId = provider.readString();
-            int pubKeyLen = provider.readVarInt();
-            byte[] pubKey = provider.readByteArray(pubKeyLen);
-            int verifyTokenLen = provider.readVarInt();
-            byte[] verifyToken = provider.readByteArray(verifyTokenLen);
+            byte[] pubKey = provider.readByteArray(provider.readVarInt());
+            byte[] nonce = provider.readByteArray(provider.readVarInt());
 
-            getConnectionManager().getEncryptionManager().setServerEncryptionRequest(pubKey, verifyToken, serverId);
+            getConnectionManager().getEncryptionManager().setServerEncryptionRequest(pubKey, nonce, serverId);
             return false;
         });
         operations.put("login_success", provider -> {

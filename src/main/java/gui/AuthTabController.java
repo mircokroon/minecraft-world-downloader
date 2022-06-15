@@ -4,7 +4,7 @@ import static util.ExceptionHandling.attempt;
 
 import config.Config;
 import java.io.IOException;
-import java.util.function.IntConsumer;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,8 +14,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import org.apache.commons.lang3.SystemUtils;
 import proxy.auth.AuthDetails;
 import proxy.auth.AuthDetailsManager;
 import proxy.auth.AuthenticationMethod;
@@ -32,6 +35,8 @@ public class AuthTabController {
     public TextField username;
     public Label statusText;
     public Hyperlink infoLink;
+    public Pane msAuthBackupPane;
+    public TextField linkCopyField;
 
     private AuthDetails manualDetails;
 
@@ -76,7 +81,7 @@ public class AuthTabController {
     private String validateAndGetLabel() {
         try {
             AuthenticationMethod method = Config.getAuthMethod();
-            AuthDetails details = AuthDetailsManager.getAuthDetails();
+            AuthDetails details = AuthDetailsManager.loadAuthDetails();
 
             boolean isValid = details.isValid();
             if (!isValid) {
@@ -90,11 +95,37 @@ public class AuthTabController {
     }
 
     public void msAuthPressed(ActionEvent actionEvent) {
-        IntConsumer onStart = port -> GuiManager.openWebLink(MicrosoftAuthHandler.getLoginUrl(port));
+        Consumer<String> onStart = shortUrl -> {
+            if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_MAC) {
+                if (GuiManager.openWebLink(shortUrl)) {
+                    return;
+                }
+            }
+
+            // if we're (probably) can't open the link, just show copy field instead.
+            this.linkCopyField.setText(shortUrl);
+            this.linkCopyField.focusedProperty().addListener((obs, was, isFocused) -> {
+                if (isFocused) {
+                    Platform.runLater(() -> {
+                        this.linkCopyField.selectAll();
+                    });
+                    // try to automatically copy the link
+                    attempt(() -> {
+                        Clipboard clipboard = Clipboard.getSystemClipboard();
+                        ClipboardContent content = new ClipboardContent();
+                        content.putString(shortUrl);
+                        clipboard.setContent(content);
+                    });
+                }
+            });
+            this.msAuthPane.setVisible(false);
+            this.msAuthBackupPane.setVisible(true);
+
+        };
 
         // server already running
         if (authServer != null) {
-            onStart.accept(authServer.getListeningPort());
+            onStart.accept(authServer.getShortUrl());
             return;
         }
 
@@ -115,6 +146,7 @@ public class AuthTabController {
     private void showAuthPane() {
         AuthenticationMethod method = Config.getAuthMethod();
         msAuthPane.setVisible(false);
+        msAuthBackupPane.setVisible(false);
         manualAuthPane.setVisible(false);
         statusText.setText("");
 

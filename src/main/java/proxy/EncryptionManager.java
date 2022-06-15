@@ -1,9 +1,20 @@
 package proxy;
 
 import config.Config;
+import java.io.StringReader;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
+import java.util.Base64;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import packets.builder.PacketBuilder;
 import packets.lib.ByteQueue;
-import proxy.auth.AuthDetailsManager;
 import proxy.auth.ClientAuthenticator;
 import proxy.auth.ServerAuthenticator;
 
@@ -35,18 +46,25 @@ public class EncryptionManager {
     private boolean encryptionEnabled = false;
     private String serverId;
     private RSAPublicKey serverRealPublicKey;
-    private byte[] serverVerifyToken;
+    private byte[] nonce;
     private byte[] clientSharedSecret;
     private Cipher clientBoundDecryptor, clientBoundEncryptor, serverBoundEncryptor, serverBoundDecryptor;
     private OutputStream streamToClient;
     private OutputStream streamToServer;
     private KeyPair serverKeyPair;
+    private KeyPair clientProfileKeyPair;
     private String username;
     private final ConcurrentLinkedQueue<ByteQueue> insertedPackets;
     private final CompressionManager compressionManager;
     private final ClientAuthenticator clientAuthenticator;
+    private final JcaPEMKeyConverter keyConverter;
+
+    private RSAPublicKey clientProfilePublicKey;
 
     {
+        Security.addProvider(new BouncyCastleProvider());
+        keyConverter = new JcaPEMKeyConverter().setProvider(new BouncyCastleProvider());
+
         // generate the keypair for the local server
         attempt(() -> {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -77,12 +95,12 @@ public class EncryptionManager {
      * When the server sends the client an encryption request, this method will be called to get the server's given
      * public key and call the replacement request sender.
      * @param encoded  the encoded public key in X509
-     * @param token    the server's verification token
+     * @param nonce    the server's verification token
      * @param serverId the server's id (not actually used)
      */
-    public void setServerEncryptionRequest(byte[] encoded, byte[] token, String serverId) {
+    public void setServerEncryptionRequest(byte[] encoded, byte[] nonce, String serverId) {
         attempt(() -> {
-            serverVerifyToken = token;
+            this.nonce = nonce;
             this.serverId = serverId;
 
             KeyFactory kf = KeyFactory.getInstance("RSA");
@@ -132,8 +150,8 @@ public class EncryptionManager {
         builder.writeString(serverId);    // server ID
         builder.writeVarInt(encoded.length); // pub key len
         builder.writeByteArray(encoded); // pub key
-        builder.writeVarInt(serverVerifyToken.length); // verify token len
-        builder.writeByteArray(serverVerifyToken);  // verify token
+        builder.writeVarInt(nonce.length); // verify token len
+        builder.writeByteArray(nonce);  // verify token
 
         attempt(() -> streamToClient(builder.build()));
     }
@@ -204,7 +222,7 @@ public class EncryptionManager {
             cipher.init(Cipher.DECRYPT_MODE, serverKeyPair.getPrivate());
             byte[] decryptedToken = cipher.doFinal(token);
 
-            if (!Arrays.equals(decryptedToken, serverVerifyToken)) {
+            if (!Arrays.equals(decryptedToken, nonce)) {
                 throw new RuntimeException("Token could not be verified!");
             }
 
@@ -213,6 +231,78 @@ public class EncryptionManager {
             sendReplacementEncryptionConfirmation();
         });
     }
+
+    /**
+     * For 1.19, encryption confirmation now includes verifying the client public key.
+     */
+    public void setClientEncryptionConfirmation(byte[] encryptedSharedSecret, byte[] salt, byte[] signature) {
+        attempt(() -> {
+            // verify the player's signature
+            Signature sig = Signature.getInstance("SHA256withRSA");
+            sig.initVerify(clientProfilePublicKey);
+            sig.update(nonce);
+            sig.update(salt);
+            sig.verify(signature);
+
+            // same as before
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.DECRYPT_MODE, serverKeyPair.getPrivate());
+            clientSharedSecret = cipher.doFinal(encryptedSharedSecret);
+
+            sendReplacementEncryptionConfirmationWithProfileKey();
+        });
+    }
+
+    private void sendReplacementEncryptionConfirmationWithProfileKey() {
+        // authenticate the client so that the remote server will accept us
+        boolean client = disconnectOnError(() -> clientAuthenticator.makeRequest(generateServerHash()));
+        if (!client) { return; }
+
+        // get keys
+        attempt(() -> clientAuthenticator.getClientProfileKeyPair(this));
+
+        // verify the connecting client connection is who they claim to be
+        boolean server = disconnectOnError(() -> new ServerAuthenticator(username).makeRequest(generateServerHash()));
+        if (!server) { return; }
+
+        // encryption confirmation
+        attempt(() -> {
+            PacketBuilder builder = new PacketBuilder(0x01);
+
+            Cipher cipher = Cipher.getInstance("RSA");
+            cipher.init(Cipher.ENCRYPT_MODE, serverRealPublicKey);
+            byte[] sharedSecret = cipher.doFinal(clientSharedSecret);
+
+            builder.writeVarInt(sharedSecret.length);
+            builder.writeByteArray(sharedSecret);
+            builder.writeBoolean(false); // is using nonce
+
+            byte[] salt = generateSalt();
+
+            Signature sig = Signature.getInstance("SHA256withRSA");
+            sig.initSign(clientProfileKeyPair.getPrivate());
+            sig.update(nonce);
+            sig.update(salt);
+            byte[] signedSignature = sig.sign();
+
+            // no length for this since its technically encoded as a long
+            builder.writeByteArray(salt);
+            builder.writeVarInt(signedSignature.length);
+            builder.writeByteArray(signedSignature);
+
+            streamToServer(builder.build());
+
+            enableEncryption();
+        });
+    }
+
+    public static byte[] generateSalt() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[8];
+        random.nextBytes(bytes);
+        return bytes;
+    }
+
 
     /**
      * This method first authenticates with the Mojang servers, then sends the server a replacement encryption
@@ -225,7 +315,7 @@ public class EncryptionManager {
         boolean client = disconnectOnError(() -> clientAuthenticator.makeRequest(generateServerHash()));
         if (!client) { return; }
 
-        // verify the connecting client connection is who he claims to be
+        // verify the connecting client connection is who they claim to be
         boolean server = disconnectOnError(() -> new ServerAuthenticator(username).makeRequest(generateServerHash()));
         if (!server) { return; }
 
@@ -236,10 +326,14 @@ public class EncryptionManager {
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.ENCRYPT_MODE, serverRealPublicKey);
             byte[] sharedSecret = cipher.doFinal(clientSharedSecret);
-            byte[] verifyToken = cipher.doFinal(serverVerifyToken);
+            byte[] verifyToken = cipher.doFinal(nonce);
 
             builder.writeVarInt(sharedSecret.length);
             builder.writeByteArray(sharedSecret);
+
+            if (Config.versionReporter().isAtLeast1_19()) {
+                builder.writeBoolean(true);
+            }
             builder.writeVarInt(verifyToken.length);
             builder.writeByteArray(verifyToken);
 
@@ -329,6 +423,7 @@ public class EncryptionManager {
     public void reset() {
         encryptionEnabled = false;
         this.insertedPackets.clear();
+        clientAuthenticator.reset();
     }
 
     /**
@@ -365,5 +460,39 @@ public class EncryptionManager {
 
     public void sendImmediately(PacketBuilder builder) {
         attempt(() -> streamToClient(builder.build(compressionManager)));
+    }
+
+    public void setClientProfilePublicKey(byte[] arr) {
+        String prefix = "-----BEGIN PUBLIC KEY-----\n";
+        String suffix = "\n-----END PUBLIC KEY-----\n\n";
+        attempt(() -> {
+            // using KeyFactory seems to give a different result
+            String encoded = prefix + new String(Base64.getEncoder().encode(arr)) + suffix;
+            PEMParser p = new PEMParser(new StringReader(encoded));
+
+            clientProfilePublicKey = (RSAPublicKey) keyConverter.getPublicKey(
+                (SubjectPublicKeyInfo) p.readObject()
+            );
+        });
+    }
+
+    public void setClientProfileSignature(byte[] readByteArray) {
+
+    }
+
+    public void setClientProfileKeyPair(String privateKey, String publicKey) {
+        attempt(() -> {
+            PEMParser privParser = new PEMParser(new StringReader(privateKey));
+            PrivateKey keyPrivate = keyConverter.getPrivateKey((PrivateKeyInfo) privParser.readObject());
+
+            PEMParser pubParser = new PEMParser(new StringReader(publicKey));
+            PublicKey keyPublic = keyConverter.getPublicKey((SubjectPublicKeyInfo) pubParser.readObject());
+
+            this.clientProfileKeyPair = new KeyPair(keyPublic, keyPrivate);
+
+            if (!clientProfilePublicKey.equals(keyPublic)) {
+                System.err.println("Provided client key does not match. This may cause issues. Restarting Minecraft might fix this.");
+            }
+        });
     }
 }

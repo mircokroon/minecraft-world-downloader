@@ -1,6 +1,5 @@
 package proxy.auth;
 
-import javax.security.sasl.AuthenticationException;
 import kong.unirest.Unirest;
 
 import java.io.IOException;

@@ -1,5 +1,7 @@
 package game.data.dimension;
 
+import static util.ExceptionHandling.attempt;
+
 import com.google.gson.Gson;
 import config.Config;
 import game.data.WorldManager;
@@ -129,11 +131,7 @@ public class Dimension {
             this.type = type.getName();
 
             // re-write since we write the dimension information on join otherwise
-            try {
-                write(PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data"));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            attempt(() -> write(PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data")));
         }
     }
 
@@ -162,6 +160,27 @@ public class Dimension {
 
     public String getName() {
         return this.toString();
+    }
+
+    /**
+     * 1.19+ gets the dimension type as a string (this actually makes sense unlike the previous
+     * implementation).
+     */
+    public void setType(String dimensionType) {
+        DimensionType type =
+            WorldManager.getInstance().getDimensionCodec().getDimensionType(dimensionType);
+
+        if (type == null) {
+            return;
+        }
+        this.type = type.getName();
+
+        int minY = type.getProperties().get("min_y").intValue();
+        int height = type.getProperties().get("height").intValue();
+        Chunk_1_17.setWorldHeight(minY, height);
+
+        // re-write since we write the dimension information on join otherwise
+        attempt(() -> write(PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data")));
     }
 }
 
