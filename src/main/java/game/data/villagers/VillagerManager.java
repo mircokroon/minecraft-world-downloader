@@ -15,9 +15,6 @@ import packets.DataTypeProvider;
 public class VillagerManager {
     private Villager lastInteractedWith;
     private CoordinateDim3D lastInteractedLocation;
-    private List<VillagerTrade> trades;
-    private int villagerLevel = 0;
-    private int villagerExp = 0;
 
     public void lastInteractedWith(DataTypeProvider provider) {
         EntityRegistry registry = WorldManager.getInstance().getEntityRegistry();
@@ -42,7 +39,7 @@ public class VillagerManager {
             return; // This should be impossible
         }
 
-        trades = new ArrayList<>();
+        List<VillagerTrade> trades = new ArrayList<>();
 
         provider.readVarInt(); // Window ID
         byte numberOfTrades = provider.readNext();
@@ -68,8 +65,8 @@ public class VillagerManager {
                     firstItem, secondItem, receivedItem, demand, maxUses, priceMultiplier, specialPrice, uses, xp
             ));
         }
-        villagerLevel = provider.readVarInt();
-        villagerExp = provider.readVarInt();
+        int villagerLevel = provider.readVarInt();
+        int villagerExp = provider.readVarInt();
         provider.readBoolean(); // Is regular villager
         provider.readBoolean(); // Can restock
 
