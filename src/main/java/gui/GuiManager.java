@@ -5,6 +5,7 @@ import config.Config;
 import game.data.chunk.Chunk;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
+import java.net.URISyntaxException;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -22,6 +23,7 @@ import java.io.*;
 import java.net.URI;
 import java.util.List;
 import java.util.function.Consumer;
+import org.apache.commons.lang3.SystemUtils;
 
 import static util.ExceptionHandling.attempt;
 import static util.ExceptionHandling.attemptQuiet;
@@ -197,32 +199,52 @@ public class GuiManager extends Application {
         return null;
     }
 
-    public static void openWebLink(String text) {
+    public static boolean openWebLink(String text) {
         try {
             instance.openAny(text);
         } catch (Exception ex) {
-            instance.openIfSupported(Desktop.Action.BROWSE, desktop -> {
-                attemptQuiet(() -> desktop.browse(new URI(text)));
-            });
+            try {
+                instance.openIfSupported(Desktop.Action.BROWSE, desktop -> {
+                    desktop.browse(new URI(text));
+                });
+            } catch (Exception e) {
+                return false;
+            }
         }
+        return true;
     }
-    public static void openFileLink(String text) {
+    public static boolean openFileLink(String text) {
         try {
             instance.openAny(text);
         } catch (Exception ex) {
-            instance.openIfSupported(Desktop.Action.OPEN, desktop -> {
-                attemptQuiet(() -> desktop.open(new File(text)));
-            });
+            try {
+                instance.openIfSupported(Desktop.Action.OPEN, desktop -> {
+                    desktop.open(new File(text));
+                });
+            } catch (Exception e) {
+                return false;
+            }
         }
+        return true;
     }
 
-    private void openIfSupported(Desktop.Action action, Consumer<Desktop> r) {
+    interface DesktopConsumer {
+        void accept(Desktop desktop) throws IOException, URISyntaxException;
+    }
+
+    private void openIfSupported(Desktop.Action action, DesktopConsumer r) {
         if (Desktop.isDesktopSupported()) {
             Desktop desktop = Desktop.getDesktop();
             if (desktop.isSupported(action)){
-                r.accept(desktop);
+                try {
+                    r.accept(desktop);
+                } catch (IOException|URISyntaxException e) {
+                    throw new UnsupportedOperationException(e);
+                }
+                return;
             }
         }
+        throw new UnsupportedOperationException("Cannot perform this action: " + action);
     }
 
     private void openAny(String text) throws ClassNotFoundException {
