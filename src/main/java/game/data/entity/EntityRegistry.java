@@ -137,17 +137,13 @@ public class EntityRegistry {
         }));
     }
 
-    private IMovableEntity getMovableEntity(int entId) {
+    public IMovableEntity getMovableEntity(int entId) {
         IMovableEntity ent = players.get(entId);
         if (ent != null) {
             return ent;
         }
 
         return entities.get(entId);
-    }
-
-    public Entity getEntity(int entityId) {
-        return (Entity) getMovableEntity(entityId);
     }
 
     public List<SpecificTag> getEntitiesNbt(CoordinateDim2D location) {

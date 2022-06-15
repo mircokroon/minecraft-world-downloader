@@ -1,5 +1,7 @@
 package game.data.villagers;
 
+import game.data.entity.EntityRegistry;
+import game.data.entity.IMovableEntity;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +9,6 @@ import game.data.WorldManager;
 import game.data.container.Slot;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim3D;
-import game.data.entity.Entity;
 import game.data.entity.specific.Villager;
 import packets.DataTypeProvider;
 
@@ -19,7 +20,9 @@ public class VillagerManager {
     private int villagerExp = 0;
 
     public void lastInteractedWith(DataTypeProvider provider) {
-        Entity entity = WorldManager.getInstance().getEntityRegistry().getEntity(provider.readVarInt());
+        EntityRegistry registry = WorldManager.getInstance().getEntityRegistry();
+        IMovableEntity entity = registry.getMovableEntity(provider.readVarInt());
+
         if (!(entity instanceof Villager)) {
             return;
         }
