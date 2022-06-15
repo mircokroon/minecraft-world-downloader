@@ -90,7 +90,7 @@ public class ProtocolVersionHandler {
      *  - The closest version that's above the requested version
      *  - The highest version number
      */
-    int bestMatch(Set<Integer> values, int target) {
+    private int bestMatch(Set<Integer> values, int target) {
         if (values.contains(target)) { return target; }
 
         List<Integer> sorted = values.stream()
