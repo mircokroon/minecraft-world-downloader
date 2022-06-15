@@ -95,7 +95,7 @@ public class ContainerManager {
         } else if (window.getSlotList().size() == 54 && !block.hasProperty("type") && block.isChest()) {
             handleChest1_12(block, window);
         } else {
-            c.addInventory(window);
+            c.addInventory(window, true);
             storedWindows.put(window.containerLocation.addDimension3D(WorldManager.getInstance().getDimension()), window);
         }
     }
@@ -176,7 +176,7 @@ public class ContainerManager {
 
     public void loadPreviousInventoriesAt(ChunkEntities c, CoordinateDim3D location) {
         if (storedWindows.containsKey(location)) {
-            c.addInventory(storedWindows.get(location));
+            c.addInventory(storedWindows.get(location), false);
         }
 
     }

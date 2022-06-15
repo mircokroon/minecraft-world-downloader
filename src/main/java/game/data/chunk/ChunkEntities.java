@@ -41,14 +41,16 @@ public abstract class ChunkEntities extends ChunkEvents {
     /**
      * Add inventory items to a block entity (e.g. a chest)
      */
-    public void addInventory(InventoryWindow window) {
+    public void addInventory(InventoryWindow window, boolean sendMessages) {
         CompoundTag blockEntity = (CompoundTag) blockEntities.get(window.getContainerLocation());
 
         // if a block entity is missing, try to generate it first. If there's no block there we don't save anything.
         if (blockEntity == null) {
             BlockState bs = getBlockStateAt(window.getContainerLocation().withinChunk());
             if (bs == null) {
-                sendInventoryFailureMessage(window);
+                if (sendMessages) {
+                    sendInventoryFailureMessage(window);
+                }
                 return;
             }
             blockEntity = generateBlockEntity(bs.getName(),  window.getContainerLocation());
@@ -68,7 +70,10 @@ public abstract class ChunkEntities extends ChunkEvents {
         }
 
         WorldManager.getInstance().touchChunk(this);
-        sendInventoryMessage(window);
+        
+        if (sendMessages) {
+            sendInventoryMessage(window);
+        }
     }
 
     private void sendInventoryFailureMessage(InventoryWindow window) {
