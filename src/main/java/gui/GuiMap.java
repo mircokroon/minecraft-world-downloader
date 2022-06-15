@@ -192,6 +192,7 @@ public class GuiMap {
                 return;
             }
 
+            boolean wasLockedToPlayer = lockedToPlayer;
             lockedToPlayer = false;
             playerLockButton.setVisible(true);
 
@@ -202,7 +203,7 @@ public class GuiMap {
             this.center = this.bounds.center(gridSize, width.get(), height.get()).add(difference);
             this.redrawAll(true);
 
-            if (difference.getX() == 0 && difference.getZ() == 0) {
+            if (wasLockedToPlayer && difference.getX() == 0 && difference.getZ() == 0) {
                 followPlayer();
                 chunkCanvas.getGraphicsContext2D().drawImage(chunkCanvasCopy, 0, 0);
             }

@@ -35,7 +35,7 @@ public class UUID {
 
     @Override
     public String toString() {
-        return String.format("%016X", lower) + String.format("%016X", upper);
+        return String.format("%016X", lower).toLowerCase() + String.format("%016X", upper).toLowerCase();
     }
 
     public long getUpper() {
