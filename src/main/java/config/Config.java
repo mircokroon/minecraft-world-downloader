@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.application.Platform;
 import org.apache.commons.lang3.SystemUtils;
@@ -70,10 +71,12 @@ public class Config {
         try {
             File file = configPath.toFile();
             if (file.exists() && file.isFile()) {
-                return new GsonBuilder()
+                Config config = new GsonBuilder()
                     .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                     .create()
                     .fromJson(new JsonReader(new FileReader(file)), Config.class);
+
+                return Objects.requireNonNullElseGet(config, () -> new Config());
             }
         } catch (Exception ex) {
             System.out.println("Cannot read " + configPath.toString());
