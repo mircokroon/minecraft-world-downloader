@@ -1,26 +1,8 @@
 package proxy;
 
-import config.Config;
-import java.io.StringReader;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.Security;
-import java.security.Signature;
-import java.util.Base64;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.openssl.PEMParser;
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
-import packets.builder.PacketBuilder;
-import packets.lib.ByteQueue;
-import proxy.auth.ClientAuthenticator;
-import proxy.auth.ServerAuthenticator;
+import static util.PrintUtils.devPrintFormat;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
+import config.Config;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -29,14 +11,25 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.Signature;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
-
-import static util.PrintUtils.devPrintFormat;
+import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
+import packets.builder.PacketBuilder;
+import packets.lib.ByteQueue;
+import proxy.auth.ClientAuthenticator;
+import proxy.auth.ServerAuthenticator;
 
 /**
  * Class to handle encryption, decryption and related masking of the proxy server.
@@ -57,14 +50,10 @@ public class EncryptionManager {
     private final ConcurrentLinkedQueue<ByteQueue> insertedPackets;
     private final CompressionManager compressionManager;
     private final ClientAuthenticator clientAuthenticator;
-    private final JcaPEMKeyConverter keyConverter;
 
     private RSAPublicKey clientProfilePublicKey;
 
     {
-        Security.addProvider(new BouncyCastleProvider());
-        keyConverter = new JcaPEMKeyConverter().setProvider(new BouncyCastleProvider());
-
         // generate the keypair for the local server
         attempt(() -> {
             KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
@@ -463,16 +452,10 @@ public class EncryptionManager {
     }
 
     public void setClientProfilePublicKey(byte[] arr) {
-        String prefix = "-----BEGIN PUBLIC KEY-----\n";
-        String suffix = "\n-----END PUBLIC KEY-----\n\n";
         attempt(() -> {
-            // using KeyFactory seems to give a different result
-            String encoded = prefix + new String(Base64.getEncoder().encode(arr)) + suffix;
-            PEMParser p = new PEMParser(new StringReader(encoded));
-
-            clientProfilePublicKey = (RSAPublicKey) keyConverter.getPublicKey(
-                (SubjectPublicKeyInfo) p.readObject()
-            );
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(arr);
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            clientProfilePublicKey = (RSAPublicKey) kf.generatePublic(spec);
         });
     }
 
@@ -482,11 +465,11 @@ public class EncryptionManager {
 
     public void setClientProfileKeyPair(String privateKey, String publicKey) {
         attempt(() -> {
-            PEMParser privParser = new PEMParser(new StringReader(privateKey));
-            PrivateKey keyPrivate = keyConverter.getPrivateKey((PrivateKeyInfo) privParser.readObject());
-
-            PEMParser pubParser = new PEMParser(new StringReader(publicKey));
-            PublicKey keyPublic = keyConverter.getPublicKey((SubjectPublicKeyInfo) pubParser.readObject());
+            PKCS8EncodedKeySpec specPrivate = new PKCS8EncodedKeySpec(toBytes(privateKey));
+            X509EncodedKeySpec specPublic = new X509EncodedKeySpec(toBytes(publicKey));
+            KeyFactory kf = KeyFactory.getInstance("RSA");
+            PrivateKey keyPrivate = kf.generatePrivate(specPrivate);
+            PublicKey keyPublic = kf.generatePublic(specPublic);
 
             this.clientProfileKeyPair = new KeyPair(keyPublic, keyPrivate);
 
@@ -494,5 +477,21 @@ public class EncryptionManager {
                 System.err.println("Provided client key does not match. This may cause issues. Restarting Minecraft might fix this.");
             }
         });
+    }
+
+    private static byte[] toBytes(String key) {
+        String prefixPub = "-----BEGIN PUBLIC KEY-----\n";
+        String prefixPriv = "-----BEGIN PRIVATE KEY-----\n";
+        String suffixPub = "\n-----END PUBLIC KEY-----";
+        String suffixPriv = "\n-----END PRIVATE KEY-----";
+        String trimmed = key
+            .replace(prefixPub, "")
+            .replace(prefixPriv, "")
+            .replace(suffixPriv, "")
+            .replace(suffixPub, "")
+            .replace("\n", "")
+            .strip();
+
+        return Base64.getDecoder().decode(trimmed);
     }
 }
