@@ -1,6 +1,7 @@
 package game.data;
 
 import config.Config;
+import config.Option;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
@@ -88,10 +89,18 @@ public class LevelData {
      */
     private void loadGeneratorSettings() throws IOException {
         this.worldGenSettings = NbtUtil
-                .read(LevelData.class.getClassLoader().getResourceAsStream("world-gen-settings.dat"))
+                .read(LevelData.class.getClassLoader().getResourceAsStream(getGeneratorSettingsName()))
                 .unpack()
                 .get("WorldGenSettings")
                 .asCompound();
+    }
+
+    private static String getGeneratorSettingsName() {
+        if (Config.versionReporter().isAtLeast1_19()) {
+            return "world-gen-settings-1.19.dat";
+        } else {
+            return "world-gen-settings-1.16.dat";
+        }
     }
 
     /**

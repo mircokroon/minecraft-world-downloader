@@ -121,6 +121,12 @@ public class Config {
     public static void setProtocolVersion(int protocolVersion) {
         instance.protocolVersion = protocolVersion;
         instance.versionReporter = new VersionReporter(protocolVersion);
+
+        try {
+            WorldManager.getInstance().loadLevelData();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 
     public static boolean inGuiMode() {

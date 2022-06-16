@@ -1,6 +1,7 @@
 package game.data.dimension;
 
 import com.google.gson.*;
+import game.data.chunk.palette.StateProvider;
 import se.llbit.nbt.*;
 
 import java.io.*;
@@ -49,6 +50,7 @@ public class DimensionCodec {
     }
 
 
+    private BiomeProvider biomeProvider;
 
     private final Map<String, Dimension> dimensions;
     private final Map<Integer, DimensionType> dimensionTypesByHash;
@@ -112,16 +114,14 @@ public class DimensionCodec {
             CompoundTag b = biome.asCompound();
 
             String identifier = ((StringTag) b.get("name")).value;
+            int id = ((IntTag) b.get("id")).value;
             String[] parts = identifier.split(":");
             String namespace = parts[0];
             String name = parts[1];
 
-            if (namespace.equals("minecraft")) {
-                continue;
-            }
-
-            this.biomes.put(identifier, new Biome(namespace, name, b.get("element").asCompound()));
+            this.biomes.put(identifier, new Biome(namespace, name, id, b.get("element").asCompound()));
         }
+        this.biomeProvider = new BiomeProvider(this.biomes);
     }
 
     public Dimension getDimension(String name) {
@@ -162,5 +162,9 @@ public class DimensionCodec {
 
 
         return true;
+    }
+
+    public StateProvider getBiomeProvider() {
+        return biomeProvider;
     }
 }

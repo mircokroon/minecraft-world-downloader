@@ -2,6 +2,7 @@ package game.data;
 
 import static util.ExceptionHandling.attempt;
 
+import game.data.registries.RegistryManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -97,12 +98,6 @@ public class WorldManager {
         this.mapRegistry = new MapRegistry();
 
         this.levelData = new LevelData(this);
-
-        try {
-            this.levelData.load();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
 
         this.playerPosition = this.levelData.getPlayerPosition();
         this.dimension = this.levelData.getPlayerDimension();
@@ -724,6 +719,14 @@ public class WorldManager {
 
     public void initialiseRegistries() {
         blockColors = BlockColors.create();
+    }
+
+    public void loadLevelData() {
+        try {
+            this.levelData.load();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
 

@@ -1,8 +1,6 @@
 package game.data.registries;
 
-import config.Config;
 import game.data.chunk.BlockEntityRegistry;
-import game.data.chunk.palette.BiomeRegistry;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
 import game.data.villagers.VillagerProfessionRegistry;
@@ -14,16 +12,11 @@ public class RegistryManager {
     private static RegistryManager instance;
     private MenuRegistry menuRegistry;
     private ItemRegistry itemRegistry;
-    private BiomeRegistry biomeRegistry;
     private BlockEntityRegistry blockEntityRegistry;
     private VillagerProfessionRegistry villagerProfessionRegistry;
     private VillagerTypeRegistry villagerTypeRegistry;
 
-    private RegistryManager() {
-        if (Config.versionReporter().isAtLeast1_18()) {
-            this.biomeRegistry = BiomeRegistry.create();
-        }
-    }
+    private RegistryManager() { }
 
     public static RegistryManager getInstance() {
         if (instance == null) {
@@ -39,10 +32,6 @@ public class RegistryManager {
 
     public ItemRegistry getItemRegistry() {
         return itemRegistry;
-    }
-
-    public BiomeRegistry getBiomeRegistry() {
-        return biomeRegistry;
     }
 
     public BlockEntityRegistry getBlockEntityRegistry() {
