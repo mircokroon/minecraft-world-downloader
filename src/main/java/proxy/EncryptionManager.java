@@ -479,6 +479,9 @@ public class EncryptionManager {
         });
     }
 
+    /**
+     * Gets the Base64 encoded part of an encoded public/private key as a byte[].
+     */
     private static byte[] toBytes(String key) {
         String prefixPub = "-----BEGIN PUBLIC KEY-----\n";
         String prefixPriv = "-----BEGIN PRIVATE KEY-----\n";
