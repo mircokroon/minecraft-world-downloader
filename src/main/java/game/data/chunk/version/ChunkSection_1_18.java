@@ -62,7 +62,7 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
 
         // If the palette is empty (usually meaning no blocks in a section), set it to a palette
         // with just air in it.
-        if (palette == null || data.length == 0) {
+        if (palette == null || (data.length == 0 && !(palette instanceof SingleValuePalette))) {
             palette = new SingleValuePalette(0);
             if (type == PaletteType.BIOMES) {
                 palette.biomePalette();

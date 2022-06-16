@@ -19,10 +19,12 @@ public class Biome {
     String namespace;
     String path;
     String name;
+    int id;
     BiomeProperties properties;
 
-    public Biome(String namespace, String fullName, CompoundTag properties) {
+    public Biome(String namespace, String fullName, int id, CompoundTag properties) {
         this.namespace = namespace;
+        this.id = id;
 
         // if a name is of the structure "dimension/biome" then we need to use the dimension as path
         int lastSlash = fullName.lastIndexOf('/');

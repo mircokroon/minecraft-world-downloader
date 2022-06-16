@@ -1,12 +1,10 @@
 package game.data.chunk.palette;
 
-import game.data.chunk.version.ChunkSection_1_18;
-import game.data.chunk.version.encoder.BlockLocationEncoder;
+import game.data.WorldManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import game.data.registries.RegistryManager;
 import game.data.chunk.ChunkSection;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
@@ -42,7 +40,8 @@ public class Palette {
     }
 
     public void biomePalette() {
-        this.stateProvider = RegistryManager.getInstance().getBiomeRegistry();
+        this.stateProvider = WorldManager.getInstance().getDimensionCodec().getBiomeProvider();
+        this.type = PaletteType.BIOMES;
     }
 
     public static Palette empty() {
@@ -105,8 +104,12 @@ public class Palette {
     public static Palette readPalette(DataTypeProvider dataTypeProvider, PaletteType type) {
         byte bitsPerBlock = dataTypeProvider.readNext();
         Palette palette = readPalette(bitsPerBlock, dataTypeProvider, type);
-        palette.type = type;
+        palette.setType(type);
         return palette;
+    }
+
+    private void setType(PaletteType type) {
+        this.type = type;
     }
 
     /**
