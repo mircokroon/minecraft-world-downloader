@@ -48,6 +48,7 @@ public class RegistryLoader {
     public static RegistryLoader forVersion(String version) {
         return knownLoaders.computeIfAbsent(version, (v) -> {
             try {
+
                 return new RegistryLoader(v);
             } catch (IOException|InterruptedException e) {
                 e.printStackTrace();
@@ -99,6 +100,9 @@ public class RegistryLoader {
                 version = version.substring(0, dot);
             }
         }
+
+        if (version.endsWith("-ea"))
+            version= version.split("-")[0];
         return Integer.parseInt(version);
     }
 
