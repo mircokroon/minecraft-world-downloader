@@ -50,7 +50,7 @@ java -jar world-downloader.jar -s address.to.server.com -r 16
 |  --server | *required* | Server address |
 |  --port | 25565 | Server port |
 |  --local-port | 25565 | Port on which the downloader will run. |
-|  --output | world | World output director |
+|  --output | world | World output directory |
 |  --no-gui | | Disable the GUI, useful for running in environments that don't support GUIs. |
 | --render-distance | 0 | When larger than the server's render distance, send known chunks back to the client |
 |  --mark-unsaved-chunks | true | When enabled, marks unsaved chunks red in the GUI. |
