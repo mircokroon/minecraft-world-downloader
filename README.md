@@ -5,7 +5,7 @@ A Minecraft world downloader that works by intercepting & decrypting network tra
 ### Downloads  <a href="https://github.com/mircokroon/minecraft-world-downloader/releases/latest"><img align="right" src="https://img.shields.io/github/downloads/mircokroon/minecraft-world-downloader/total.svg"></a>
 Latest Windows release (GUI): [world-downloader.exe](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe)
 
-Cross-platform jar (GUI & commandline): [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
+Cross-platform jar (GUI & command-line): [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
 
 ### [Features](https://github.com/mircokroon/minecraft-world-downloader/wiki/Features)
 - Requires no client modifications and as such works with every game client, vanilla or not
@@ -30,8 +30,8 @@ Additional settings can be changed in the other tabs of the settings window.
 If you run into any problems, check the [FAQ](https://github.com/mircokroon/minecraft-world-downloader/wiki/FAQ) page for some common issues. 
 
 
-### Commandline
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the cross-platform `world-downloader.jar` and run it using the commandline:
+### Command-line
+[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the cross-platform `world-downloader.jar` and run it using the command-line:
 
 ```
 java -jar world-downloader.jar -s address.to.server.com
