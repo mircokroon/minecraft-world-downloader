@@ -281,7 +281,7 @@
 		},
 		"760": {
 			"version": "1.19.1",
-			"dataVersion": 3105,
+			"dataVersion": 3117,
 			"clientBound": {
 				"0x00": "AddEntity",
 				"0x02": "AddPlayer",
