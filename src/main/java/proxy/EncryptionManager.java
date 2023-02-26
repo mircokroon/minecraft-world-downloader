@@ -223,6 +223,7 @@ public class EncryptionManager {
 
     /**
      * For 1.19, encryption confirmation now includes verifying the client public key.
+     * However, this is not necessary for 1.19.3
      */
     public void setClientEncryptionConfirmation(byte[] encryptedSharedSecret, byte[] salt, byte[] signature) {
         attempt(() -> {
@@ -320,7 +321,7 @@ public class EncryptionManager {
             builder.writeVarInt(sharedSecret.length);
             builder.writeByteArray(sharedSecret);
 
-            if (Config.versionReporter().isAtLeast1_19()) {
+            if (Config.versionReporter().isAtLeast1_19() && !Config.versionReporter().isAtLeast1_19_3()) {
                 builder.writeBoolean(true);
             }
             builder.writeVarInt(verifyToken.length);

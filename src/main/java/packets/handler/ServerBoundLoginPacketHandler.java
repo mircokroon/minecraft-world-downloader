@@ -21,7 +21,8 @@ public class ServerBoundLoginPacketHandler extends PacketHandler {
             String username = provider.readString();
 
             // for 1.19, client sends public key and signature
-            if (Config.versionReporter().isAtLeast1_19()) {
+            // However this is not done in version 1.19.3, so fall back to previous functionality
+            if (Config.versionReporter().isAtLeast1_19() && !Config.versionReporter().isAtLeast1_19_3()) {
                 boolean hasSigData = provider.readBoolean();
                 if (hasSigData) {
                     provider.readLong(); // timestamp
@@ -41,7 +42,7 @@ public class ServerBoundLoginPacketHandler extends PacketHandler {
             byte[] sharedSecret = provider.readByteArray(sharedSecretLength);
 
             boolean isNonce = true;
-            if (Config.versionReporter().isAtLeast1_19()) {
+            if (Config.versionReporter().isAtLeast1_19() && !Config.versionReporter().isAtLeast1_19_3()) {
                 isNonce = provider.readBoolean();
             }
 
@@ -49,7 +50,7 @@ public class ServerBoundLoginPacketHandler extends PacketHandler {
                 byte[] nonce = provider.readByteArray(provider.readVarInt());
                 getConnectionManager().getEncryptionManager().setClientEncryptionConfirmation(sharedSecret, nonce);
             } else {
-                // for 1.19+ we need to handle client's public key verification step
+                // for 1.19+, but not 1.19.3, we need to handle client's public key verification step
                 byte[] salt = provider.readByteArray(8);
                 byte[] signature = provider.readByteArray(provider.readVarInt());
 

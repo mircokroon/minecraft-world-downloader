@@ -141,6 +141,7 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
         return Config.versionReporter().select(Chunk.class,
+                Option.of(Version.V1_19_3, () -> new Chunk_1_19_3(chunkPos)),
                 Option.of(Version.V1_19, () -> new Chunk_1_19(chunkPos)),
                 Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos)),
                 Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),
@@ -159,6 +160,7 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
         return VersionReporter.select(dataVersion, Chunk.class,
+                Option.of(Version.V1_19_3, () -> new Chunk_1_19_3(chunkPos)),
                 Option.of(Version.V1_19, () -> new Chunk_1_19(chunkPos)),
                 Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos)),
                 Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),

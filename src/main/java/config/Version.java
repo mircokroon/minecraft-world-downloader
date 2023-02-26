@@ -10,6 +10,7 @@ public enum Version {
     V1_17(755, 2724),
     V1_18(757, 2860),
     V1_19(759, 3105),
+    V1_19_3(761, 3218),
     ANY(0, 0);
 
     public final int dataVersion;
@@ -30,6 +31,7 @@ public enum Version {
             case V1_17 -> versionReporter.isAtLeast1_17();
             case V1_18 -> versionReporter.isAtLeast1_18();
             case V1_19 -> versionReporter.isAtLeast1_19();
+            case V1_19_3 -> versionReporter.isAtLeast1_19_3();
             case ANY -> true;
             default -> false;
         };
@@ -45,6 +47,7 @@ public enum Version {
             case V1_17: return VersionReporter.isAtLeast1_17(dataVersion);
             case V1_18: return VersionReporter.isAtLeast1_18(dataVersion);
             case V1_19: return VersionReporter.isAtLeast1_19(dataVersion);
+            case V1_19_3: return VersionReporter.isAtLeast1_19_3(dataVersion);
             case ANY: return true;
             default: return false;
         }
