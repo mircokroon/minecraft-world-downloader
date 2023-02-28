@@ -59,6 +59,7 @@ public class VersionReporter {
     }
     public boolean isAtLeast1_18() { return protocolVersion >= Version.V1_18.protocolVersion; }
     public boolean isAtLeast1_19() { return protocolVersion >= Version.V1_19.protocolVersion; }
+    public boolean isAtLeast1_19_3() { return protocolVersion >= Version.V1_19_3.protocolVersion; }
 
     public static boolean isAtLeast1_12(int dataVersion) {
         return dataVersion >= Version.V1_12.dataVersion;
@@ -83,5 +84,8 @@ public class VersionReporter {
     }
     public static boolean isAtLeast1_19(int dataVersion) {
         return dataVersion >= Version.V1_19.dataVersion;
+    }
+    public static boolean isAtLeast1_19_3(int dataVersion) {
+        return dataVersion >= Version.V1_19_3.dataVersion;
     }
 }

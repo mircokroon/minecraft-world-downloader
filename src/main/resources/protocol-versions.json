@@ -316,6 +316,44 @@
 				"0x31": "UseItemOn",
 				"0x32": "UseItem"
 			}
-		}	
+		},
+		"761": {
+			"version": "1.19.3",
+			"dataVersion": 3218,
+			"clientBound": {
+				"0x00": "AddEntity",
+				"0x02": "AddPlayer",
+				"0x07": "BlockEntityData",
+				"0x09": "BlockUpdate",
+				"0x0f": "ContainerClose",
+				"0x10": "ContainerSetContent",
+				"0x1b": "ForgetLevelChunk",
+				"0x20": "LevelChunkWithLight",
+				"0x23": "LightUpdate",
+				"0x24": "Login",
+				"0x25": "MapItemData",
+				"0x27": "MoveEntityPos",
+				"0x28": "MoveEntityPosRot",
+				"0x2c": "OpenScreen",
+				"0x3a": "RemoveEntities",
+				"0x3d": "Respawn",
+				"0x3f": "SectionBlocksUpdate",
+				"0x4e": "SetEntityData",
+				"0x51": "SetEquipment",
+				"0x60": "SystemChat",
+				"0x64": "TeleportEntity"
+			},
+			"serverBound": {
+				"0x0b": "ContainerClose",
+				"0x0f": "Interact",
+				"0x13": "MovePlayerPos",
+				"0x14": "MovePlayerPosRot",
+				"0x15": "MovePlayerRot",
+				"0x17": "MoveVehicle",
+				"0x29": "SetCommandBlock",
+				"0x31": "UseItemOn",
+				"0x32": "UseItem"
+			}
+		}
 	}
 }
