@@ -320,10 +320,6 @@ public class EncryptionManager {
 
             builder.writeVarInt(sharedSecret.length);
             builder.writeByteArray(sharedSecret);
-
-            if (Config.versionReporter().isAtLeast1_19() && !Config.versionReporter().isAtLeast1_19_3()) {
-                builder.writeBoolean(true);
-            }
             builder.writeVarInt(verifyToken.length);
             builder.writeByteArray(verifyToken);
 
