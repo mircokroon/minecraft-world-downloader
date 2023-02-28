@@ -62,7 +62,7 @@ public class ChunkBinary implements Serializable {
         try {
             nbt.write(new DataOutputStream(output));
         } catch (Exception ex) {
-            System.out.println("Unable to write chunk " + chunk.location.getX() + ", " + chunk.location.getZ());
+            System.err.println("Unable to write chunk " + chunk.location.getX() + ", " + chunk.location.getZ());
             ex.printStackTrace();
             return null;
         }

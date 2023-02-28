@@ -29,7 +29,7 @@
 				"0x0D": "MovePlayerPos",
 				"0x0E": "MovePlayerPosRot",
 				"0x0F": "MovePlayerRot",
-				"0x10": "vehicle_move",
+				"0x10": "MoveVehicle",
 				"0x1F": "UseItem",
 				"0x08": "ContainerClose"
 			}
