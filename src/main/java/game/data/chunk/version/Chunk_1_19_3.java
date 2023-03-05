@@ -6,11 +6,13 @@ import game.data.chunk.palette.Palette;
 import game.data.coordinates.CoordinateDim2D;
 import se.llbit.nbt.SpecificTag;
 
-public class Chunk_1_19_3 extends Chunk_1_19{
+public class Chunk_1_19_3 extends Chunk_1_19 {
     public static final Version VERSION = Version.V1_19_3;
+
     public Chunk_1_19_3(CoordinateDim2D location) {
         super(location);
     }
+
     @Override
     public int getDataVersion() {
         return VERSION.dataVersion;

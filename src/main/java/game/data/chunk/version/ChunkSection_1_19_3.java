@@ -7,6 +7,7 @@ import se.llbit.nbt.Tag;
 
 public class ChunkSection_1_19_3 extends ChunkSection_1_19 {
     public static final Version VERSION = Version.V1_19_3;
+
     @Override
     public int getDataVersion() {
         return VERSION.dataVersion;
