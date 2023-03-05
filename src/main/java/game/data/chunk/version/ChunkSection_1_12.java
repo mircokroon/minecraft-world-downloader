@@ -37,7 +37,7 @@ public class ChunkSection_1_12 extends ChunkSection {
     }
 
     public ChunkSection_1_12(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+        super(sectionY);
         this.blockStates = new int[16][16][16];
         this.palette = new DirectPalette();
 

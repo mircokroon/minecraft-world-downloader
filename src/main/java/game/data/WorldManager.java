@@ -345,6 +345,9 @@ public class WorldManager {
     }
 
     public BlockColors getBlockColors() {
+        if (blockColors == null) {
+            blockColors = BlockColors.create();
+        }
         return blockColors;
     }
 
@@ -715,10 +718,6 @@ public class WorldManager {
 
     public int countActiveBinaryChunks() {
         return this.regions.values().stream().mapToInt(el -> el.getFile().countChunks()).sum();
-    }
-
-    public void initialiseRegistries() {
-        blockColors = BlockColors.create();
     }
 
     public void loadLevelData() {

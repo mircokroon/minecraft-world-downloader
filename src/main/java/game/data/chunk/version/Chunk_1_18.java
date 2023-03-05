@@ -196,5 +196,28 @@ public class Chunk_1_18 extends Chunk_1_17 {
         addBlockEntities(map);
     }
 
+    @Override
+    public void parse(Tag tag) {
+        raiseEvent("parse from nbt");
+
+        tag.asCompound().get("sections").asList().forEach(section -> {
+            int sectionY = section.get("Y").byteValue();
+            setChunkSection(sectionY, parseSection(sectionY, section));
+        });
+        parseHeightMaps(tag);
+        parseBiomes(tag);
+    }
+
+    @Override
+    protected void parseHeightMaps(Tag tag) {
+        heightMap = tag.asCompound().get("Heightmaps").asCompound();
+    }
+
+    @Override
+    protected void parseBiomes(Tag tag) {
+        Tag biomeTag = tag.asCompound().get("Biomes");
+        setBiomes(biomeTag.intArray());
+    }
+
 
 }

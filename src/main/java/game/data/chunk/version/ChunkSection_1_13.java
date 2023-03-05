@@ -32,7 +32,11 @@ public class ChunkSection_1_13 extends ChunkSection {
         super(y, palette, chunk);
     }
     public ChunkSection_1_13(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+        super(sectionY);
+        parse(nbt);
+    }
+
+    protected void parse(Tag nbt) {
         this.setBlocks(nbt.get("BlockStates").longArray());
         this.setBlockLight(nbt.get("BlockLight").byteArray());
         this.setSkyLight(nbt.get("SkyLight").byteArray());

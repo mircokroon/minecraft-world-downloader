@@ -30,6 +30,16 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
         super(sectionY, nbt);
     }
 
+    @Override
+    protected void parse(Tag nbt) {
+        this.setBlockLight(nbt.get("BlockLight").byteArray());
+        this.setSkyLight(nbt.get("SkyLight").byteArray());
+
+        CompoundTag blockStates = nbt.get("block_states").asCompound();
+        this.setBlocks(blockStates.get("data").longArray());
+        this.palette = new Palette(getDataVersion(), blockStates.get("palette").asList());
+    }
+
     public void setBiomes(long[] biomes) {
         this.biomes = biomes;
     }

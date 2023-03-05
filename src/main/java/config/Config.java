@@ -309,7 +309,6 @@ public class Config {
             if (loader == null) { return; }
 
             WorldManager.getInstance().setEntityMap(loader.generateEntityNames());
-            WorldManager.getInstance().initialiseRegistries();
 
             RegistryManager.getInstance().setRegistries(loader);
 
