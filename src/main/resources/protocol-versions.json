@@ -29,7 +29,7 @@
 				"0x0D": "MovePlayerPos",
 				"0x0E": "MovePlayerPosRot",
 				"0x0F": "MovePlayerRot",
-				"0x10": "vehicle_move",
+				"0x10": "MoveVehicle",
 				"0x1F": "UseItem",
 				"0x08": "ContainerClose"
 			}
@@ -279,43 +279,43 @@
 				"0x31": "UseItem"
 			}
 		},
-		"760": {
-			"version": "1.19.1",
-			"dataVersion": 3117,
+		"761": {
+			"version": "1.19.3",
+			"dataVersion": 3218,
 			"clientBound": {
 				"0x00": "AddEntity",
 				"0x02": "AddPlayer",
 				"0x07": "BlockEntityData",
 				"0x09": "BlockUpdate",
-				"0x10": "ContainerClose",
-				"0x11": "ContainerSetContent",
-				"0x1c": "ForgetLevelChunk",
-				"0x21": "LevelChunkWithLight",
-				"0x24": "LightUpdate",
-				"0x25": "Login",
-				"0x26": "MapItemData",
-				"0x28": "MoveEntityPos",
-				"0x29": "MoveEntityPosRot",
-				"0x2d": "OpenScreen",
-				"0x3b": "RemoveEntities",
-				"0x3e": "Respawn",
-				"0x40": "SectionBlocksUpdate",
-				"0x50": "SetEntityData",
-				"0x53": "SetEquipment",
-				"0x62": "SystemChat",
-				"0x66": "TeleportEntity"
+				"0x0f": "ContainerClose",
+				"0x10": "ContainerSetContent",
+				"0x1b": "ForgetLevelChunk",
+				"0x20": "LevelChunkWithLight",
+				"0x23": "LightUpdate",
+				"0x24": "Login",
+				"0x25": "MapItemData",
+				"0x27": "MoveEntityPos",
+				"0x28": "MoveEntityPosRot",
+				"0x2c": "OpenScreen",
+				"0x3a": "RemoveEntities",
+				"0x3d": "Respawn",
+				"0x3f": "SectionBlocksUpdate",
+				"0x4e": "SetEntityData",
+				"0x51": "SetEquipment",
+				"0x60": "SystemChat",
+				"0x64": "TeleportEntity"
 			},
 			"serverBound": {
-				"0x0c": "ContainerClose",
-				"0x10": "Interact",
-				"0x14": "MovePlayerPos",
-				"0x15": "MovePlayerPosRot",
-				"0x16": "MovePlayerRot",
-				"0x18": "MoveVehicle",
+				"0x0b": "ContainerClose",
+				"0x0f": "Interact",
+				"0x13": "MovePlayerPos",
+				"0x14": "MovePlayerPosRot",
+				"0x15": "MovePlayerRot",
+				"0x17": "MoveVehicle",
 				"0x29": "SetCommandBlock",
 				"0x31": "UseItemOn",
 				"0x32": "UseItem"
 			}
-		}	
+		}
 	}
 }

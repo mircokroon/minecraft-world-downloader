@@ -1,5 +1,7 @@
 package game.data.entity;
 
+import config.Config;
+import config.VersionReporter;
 import java.util.function.Supplier;
 
 import game.data.WorldManager;
@@ -36,6 +38,10 @@ public class PrimitiveEntity {
 
     public Entity getEntity(Supplier<Entity> generate) {
         if (typeName == null) {
+            return null;
+        }
+
+        if (!Config.versionReporter().isAtLeast1_13()) {
             return null;
         }
 
