@@ -378,7 +378,6 @@ public class WorldManager {
         saveService.scheduleWithFixedDelay(() -> attempt(this::save), INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
-
     /**
      * Save the world. Will tell all regions to save their chunks.
      */
@@ -412,18 +411,8 @@ public class WorldManager {
         }
 
         // save level.dat
-        try {
-            levelData.save();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        // save map data
-        try {
-            mapRegistry.save();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        attempt(levelData::save);
+        attempt(mapRegistry::save);
 
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
@@ -443,11 +432,7 @@ public class WorldManager {
             return;
         }
 
-        try {
-            file.write();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        attempt(file::write);
     }
 
     public ContainerManager getContainerManager() {
