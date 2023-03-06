@@ -49,8 +49,8 @@ public class VillagerManager {
             Slot receivedItem = provider.readSlot();
 
             Slot secondItem = null;
-            if (Config.versionReporter().isAtLeast1_19_3() || provider.readBoolean()) //is at least 1.19.3 or hasSecondItem = true
-            {
+            
+            if (Config.versionReporter().isAtLeast1_19_3() || provider.readBoolean()) {
                 secondItem = provider.readSlot();
             }
 

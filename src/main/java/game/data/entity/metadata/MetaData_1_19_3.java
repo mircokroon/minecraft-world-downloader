@@ -7,9 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class MetaData_1_19_3 extends MetaData_1_13{
+public class MetaData_1_19_3 extends MetaData_1_13 {
 
     private static Map<Integer, Consumer<DataTypeProvider>> typeHandlers;
+
     static {
         typeHandlers = new HashMap<>();
         typeHandlers.put(0, DataTypeProvider::readNext);
@@ -43,8 +44,7 @@ public class MetaData_1_19_3 extends MetaData_1_13{
     @Override
     public Consumer<DataTypeProvider> getTypeHandler(int i) {
 
-        if (Config.versionReporter().isAtLeast1_19_3())
-        {
+        if (Config.versionReporter().isAtLeast1_19_3()) {
             return typeHandlers.getOrDefault(i, null);
         }
 
