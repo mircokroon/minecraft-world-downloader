@@ -6,14 +6,13 @@ import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
 import game.data.coordinates.CoordinateDim2D;
 import game.protocol.Protocol;
+import java.util.BitSet;
+import java.util.InputMismatchException;
+import java.util.function.Function;
 import javafx.util.Pair;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
-
-import java.util.BitSet;
-import java.util.InputMismatchException;
-import java.util.function.Function;
 
 public class Chunk_1_17 extends Chunk_1_16 {
     public static final Version VERSION = Version.V1_17;
@@ -45,7 +44,7 @@ public class Chunk_1_17 extends Chunk_1_16 {
 
     @Override
     protected ChunkSection parseSection(int sectionY, SpecificTag section) {
-        return new ChunkSection_1_17(sectionY, section);
+        return new ChunkSection_1_17(sectionY, section, this);
     }
 
     /**

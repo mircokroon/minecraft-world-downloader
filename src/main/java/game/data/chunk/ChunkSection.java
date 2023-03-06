@@ -20,7 +20,7 @@ import se.llbit.nbt.CompoundTag;
  * Class to hold a 16 block tall chunk section.
  */
 public abstract class ChunkSection {
-    protected Chunk chunk;
+    protected final Chunk chunk;
 
     protected long[] blocks;
     protected byte[] blockLight;
@@ -44,8 +44,9 @@ public abstract class ChunkSection {
         return this.locationHelper;
     }
 
-    public ChunkSection(int sectionY) {
+    public ChunkSection(int sectionY, Chunk chunk) {
         this.y = (byte) sectionY;
+        this.chunk = chunk;
     }
 
     public void setSkyLight(byte[] skyLight) {
@@ -207,6 +208,15 @@ public abstract class ChunkSection {
     public void copyTo(ChunkSection other) {
         other.blocks = this.blocks;
         other.palette = this.palette;
+    }
+
+    @Override
+    public String toString() {
+        return "ChunkSection{" +
+            "blocks=[" + blocks.length +
+            "], y=" + y +
+            ", palette=" + palette +
+            '}';
     }
 }
 

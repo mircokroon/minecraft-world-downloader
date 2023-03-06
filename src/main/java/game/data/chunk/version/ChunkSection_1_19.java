@@ -17,7 +17,7 @@ public class ChunkSection_1_19 extends ChunkSection_1_18 {
         super(y, palette, chunk);
     }
 
-    public ChunkSection_1_19(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+    public ChunkSection_1_19(int sectionY, Tag nbt, Chunk chunk) {
+        super(sectionY, nbt, chunk);
     }
 }

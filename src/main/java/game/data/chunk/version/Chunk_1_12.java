@@ -57,7 +57,7 @@ public class Chunk_1_12 extends Chunk {
 
     @Override
     protected ChunkSection parseSection(int sectionY, SpecificTag section) {
-        return new ChunkSection_1_12(sectionY, section);
+        return new ChunkSection_1_12(sectionY, section, this);
     }
 
     protected SpecificTag getNbtBiomes() {

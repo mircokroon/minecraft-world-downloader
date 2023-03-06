@@ -23,6 +23,6 @@ public class Chunk_1_19 extends Chunk_1_18 {
 
     @Override
     protected ChunkSection parseSection(int sectionY, SpecificTag section) {
-        return new ChunkSection_1_19(sectionY, section);
+        return new ChunkSection_1_19(sectionY, section, this);
     }
 }

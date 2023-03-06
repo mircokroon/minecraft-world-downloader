@@ -26,8 +26,8 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
         super(y, palette, chunk);
     }
 
-    public ChunkSection_1_18(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+    public ChunkSection_1_18(int sectionY, Tag nbt, Chunk chunk) {
+        super(sectionY, nbt, chunk);
     }
 
     @Override
@@ -47,6 +47,10 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
     public void setBiomePalette(Palette biomePalette) {
         this.biomePalette = biomePalette;
         this.biomePalette.biomePalette();
+    }
+
+    public void setBlockPalette(Palette blockPalette) {
+        this.palette = blockPalette;
     }
 
     @Override

@@ -31,8 +31,8 @@ public class ChunkSection_1_13 extends ChunkSection {
     public ChunkSection_1_13(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);
     }
-    public ChunkSection_1_13(int sectionY, Tag nbt) {
-        super(sectionY);
+    public ChunkSection_1_13(int sectionY, Tag nbt, Chunk chunk) {
+        super(sectionY, chunk);
         parse(nbt);
     }
 
