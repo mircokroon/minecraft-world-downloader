@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import game.data.container.Slot;
 import game.data.entity.ObjectEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.ShortTag;
@@ -47,7 +47,7 @@ public class DroppedItem extends ObjectEntity {
         }
     }
 
-    private class ItemMetaData extends MetaData_1_13 {
+    private class ItemMetaData extends MetaData_1_19_3 {
         Slot item;
 
         @Override
