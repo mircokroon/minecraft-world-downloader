@@ -77,6 +77,8 @@ public class Chunk_1_18 extends Chunk_1_17 {
 
             if (section == null) {
                 section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
+            } else {
+                section.setBlockPalette(blockPalette);
             }
 
             section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
