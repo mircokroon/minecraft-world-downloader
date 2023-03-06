@@ -64,7 +64,7 @@ public class RightClickMenu extends ContextMenu {
         menu.add(construct("Draw nearby existing chunks", e -> {
             new Thread(() -> WorldManager.getInstance().drawExistingChunks(handler.getCenter())).start();
         }));
-        
+
         menu.add(construct("Copy coordinates", e -> {
             Coordinate2D coords = handler.getCursorCoordinates();
             String coordsString = String.format("%d ~ %d", coords.getX(), coords.getZ());
@@ -115,7 +115,7 @@ public class RightClickMenu extends ContextMenu {
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
             int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
             int maps = WorldManager.getInstance().getMapRegistry().countActiveMaps();
-            int images = handler.countImages();
+            int images = handler.imageCount();
 
             System.out.printf("Statistics:" +
                             "\n\tActive regions: %d" +
@@ -124,13 +124,13 @@ public class RightClickMenu extends ContextMenu {
                             "\n\tActive entities: %d" +
                             "\n\tActive players: %d" +
                             "\n\tActive maps: %d" +
-                            "\n\tActive chunk images:%d" +
+                            "\n\tActive region images: %d" +
                             "\n",
                     regions, binaryChunks, chunks, entities, players, maps, images);
         }));
 
-        menu.add(construct("Print 0, 0 events", e -> {
-            Chunk.printEventLog(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
+        menu.add(construct("Print chunk events", e -> {
+            Chunk.printEventLog(handler.getCursorCoordinates().globalToChunk().addDimension(Dimension.OVERWORLD));
         }));
     }
 

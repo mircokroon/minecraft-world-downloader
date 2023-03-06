@@ -32,10 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.IntBuffer;
 import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.*;
 import java.util.function.DoubleConsumer;
-import java.util.stream.Collectors;
 
 /**
  * Controller for the map scene. Contains a canvas for chunks which is redrawn only when required, and one for entities
@@ -65,9 +62,7 @@ public class GuiMap {
     private double blocksPerPixel;
     private int gridSize;
 
-    private final Map<Dimension, Map<Coordinate2D, ChunkImage>> chunkDimensions = new ConcurrentHashMap<>();
     private RegionImageHandler regionMap;
-    private Collection<Coordinate2D> drawableChunks = new ConcurrentLinkedQueue<>();
     private Collection<PlayerEntity> otherPlayers;
 
     ReadOnlyDoubleProperty width;
@@ -139,7 +134,13 @@ public class GuiMap {
             int worldX = (int) Math.round((bounds.getMinX() + (mouseX * blocksPerPixel)));
             int worldZ = (int) Math.round((bounds.getMinZ() + (mouseY * blocksPerPixel)));
 
-            coordsLabel.setText("(" + worldX + ", " + worldZ + ")");
+            Coordinate2D coords = new Coordinate2D(worldX, worldZ);
+
+            String label = coords.toString();
+            if (Config.isInDevMode()) {
+                label += String.format("\t\tchunk: %s", coords.globalToChunk());
+            }
+            coordsLabel.setText(label);
         });
         entityCanvas.setOnMouseExited(e -> {
             mouseOver = false;
@@ -297,7 +298,6 @@ public class GuiMap {
 
     public void clearChunks() {
         regionMap.clear();
-        drawableChunks.clear();
     }
 
     private void bindScroll() {
@@ -475,12 +475,8 @@ public class GuiMap {
         }
     }
 
-    public int countImages() {
-        int total = 0;
-        for (Map<Coordinate2D, ChunkImage> x : chunkDimensions.values()) {
-            total += x.values().size();
-        }
-        return total;
+    public int imageCount() {
+        return regionMap.size();
     }
 
     public Coordinate2D getCenter() {

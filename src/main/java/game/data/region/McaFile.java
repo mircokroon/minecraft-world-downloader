@@ -389,4 +389,11 @@ public class McaFile {
     public boolean isEmpty() {
         return chunkMap.isEmpty();
     }
+
+    @Override
+    public String toString() {
+        return "McaFile{" +
+            "pos=" + regionLocation +
+            '}';
+    }
 }

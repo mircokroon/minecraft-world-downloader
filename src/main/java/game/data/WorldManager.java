@@ -187,6 +187,8 @@ public class WorldManager {
 
         int chunksLoaded = 0;
         for (McaFile file : files) {
+            System.out.println("Loading file " + file);
+
             if (chunksLoaded > limit) {
                 break;
             }
@@ -213,7 +215,6 @@ public class WorldManager {
 
             // Step 4: delete the newly added chunks
             toDelete.forEach(this::unloadChunk);
-
         }
     }
 
