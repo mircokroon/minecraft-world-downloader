@@ -72,4 +72,14 @@ public class Bounds {
         result = 31 * result + maxZ;
         return result;
     }
+
+    public boolean overlaps(Coordinate2D region) {
+        int x1 = region.getX() << 9;
+        int x2 = x1 + 512;
+
+        int z1 = region.getZ() << 9;
+        int z2 = z1 + 512;
+
+        return maxX > x1 && minX < x2 && minZ < z2 && maxZ > z1;
+    }
 }

@@ -118,12 +118,14 @@ public class RegionImageHandler {
     }
 
     private static Path dimensionPath(Dimension dim) {
-        return Paths.get(Config.getWorldOutputDir(), "downloader-overview-cache", dim.getPath());
+        return Paths.get(Config.getWorldOutputDir(), "image-cache", dim.getPath());
     }
 
     public void drawAll(Bounds bounds, BiConsumer<Coordinate2D, Image> drawRegion) {
         regions.forEach((coordinate, image) -> {
-            drawRegion.accept(coordinate, image.getImage());
+            if (bounds.overlaps(coordinate)) {
+                drawRegion.accept(coordinate, image.getImage());
+            }
         });
     }
 
