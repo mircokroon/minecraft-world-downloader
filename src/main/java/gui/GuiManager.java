@@ -2,6 +2,7 @@ package gui;
 
 
 import config.Config;
+import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
@@ -272,7 +273,7 @@ public class GuiManager extends Application {
 
         // when in GUI mode, close the application when the main stage is closed.
         this.stage.setOnCloseRequest(e -> {
-            System.exit(0);
+            saveAndExit();
         });
 
         if (config.startWithSettings()) {
@@ -280,6 +281,24 @@ public class GuiManager extends Application {
         } else {
             loadSceneMap();
         }
+    }
+
+    public static void saveAndExit() {
+        getStage().hide();
+
+        Platform.runLater(() -> {
+            // first stop both saving executor threads
+            chunkGraphicsHandler.getRegionHandler().shutdown();
+            WorldManager.getInstance().shutdown();
+
+            // then save world, if they are already in the process of saving they will wait for the
+            // executor to finish before returning
+            chunkGraphicsHandler.getRegionHandler().save();
+            WorldManager.getInstance().save();
+
+            Platform.exit();
+            System.exit(0);
+        });
     }
 
     static void setGraphicsHandler(GuiMap map) {

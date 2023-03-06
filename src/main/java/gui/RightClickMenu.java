@@ -61,7 +61,7 @@ public class RightClickMenu extends ContextMenu {
 
         menu.add(new SeparatorMenuItem());
 
-        menu.add(construct("Draw nearby existing chunks", e -> {
+        menu.add(construct("Redraw nearby chunks", e -> {
             new Thread(() -> WorldManager.getInstance().drawExistingChunks(handler.getCenter())).start();
         }));
 
@@ -73,15 +73,12 @@ public class RightClickMenu extends ContextMenu {
             clipboard.setContents(selection, selection);
         }));
 
-        menu.add(construct("Save overview to file", e -> handler.export()));
-
         menu.add(new SeparatorMenuItem());
 
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
 
         menu.add(construct("Save & Exit", e -> {
-            WorldManager.getInstance().save();
-            System.exit(0);
+            GuiManager.saveAndExit();
         }));
 
         if (Config.isInDevMode()) {

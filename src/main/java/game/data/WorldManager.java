@@ -2,7 +2,6 @@ package game.data;
 
 import static util.ExceptionHandling.attempt;
 
-import game.data.registries.RegistryManager;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +10,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -66,7 +64,6 @@ public class WorldManager {
     private final MapRegistry mapRegistry;
     private final Map<CoordinateDim2D, Queue<Runnable>> chunkLoadCallbacks = new ConcurrentHashMap<>();
     private Map<CoordinateDim2D, Region> regions = new ConcurrentHashMap<>();
-    private final Set<Dimension> existingLoaded = new HashSet<>();
 
     private EntityNames entityMap;
     private BlockColors blockColors;
@@ -89,6 +86,8 @@ public class WorldManager {
     private Dimension dimension;
     private final EntityRegistry entityRegistry;
     private final ChunkFactory chunkFactory;
+
+    private ScheduledExecutorService saveService;
 
     public WorldManager() {
         this.isStarted = false;
@@ -375,8 +374,8 @@ public class WorldManager {
      */
     public void start() {
         ThreadFactory namedThreadFactory = r -> new Thread(r, "World Save Service");
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, namedThreadFactory);
-        executor.scheduleWithFixedDelay(() -> attempt(this::save), INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
+        saveService = Executors.newScheduledThreadPool(1, namedThreadFactory);
+        saveService.scheduleWithFixedDelay(() -> attempt(this::save), INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
 
@@ -388,12 +387,15 @@ public class WorldManager {
             return;
         }
 
-        // make sure we can't have two saving calls at once (due to save & exit)
+        // make sure we can't have two saving calls at once (due to save & exit). If one is already
+        // running, wait for it to complete.
         if (isSaving) {
+            if (saveService != null) {
+                attempt(() -> saveService.awaitTermination(30, TimeUnit.SECONDS));
+            }
             return;
         }
         isSaving = true;
-
 
         if (!regions.isEmpty()) {
             // convert the values to an array first to prevent blocking any threads
@@ -701,6 +703,12 @@ public class WorldManager {
             this.levelData.load();
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void shutdown() {
+        if (saveService != null) {
+            saveService.shutdown();
         }
     }
 }

@@ -7,14 +7,11 @@ import config.Config;
 import game.data.coordinates.Coordinate2D;
 import game.data.dimension.Dimension;
 import java.io.IOException;
-import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -24,19 +21,21 @@ import javafx.scene.image.Image;
 public class RegionImageHandler {
     private Map<Coordinate2D, RegionImage> regions;
     private Dimension activeDimension;
-    private Set<Coordinate2D> activeRegions;
+    private boolean isSaving = false;
+
+    ScheduledExecutorService saveService;
 
     public RegionImageHandler() {
-        this.regions = new HashMap<>();
-        this.activeRegions = new HashSet<>();
+        this.regions = new ConcurrentHashMap<>();
 
-        ScheduledExecutorService
-            executor = Executors.newSingleThreadScheduledExecutor((r) -> new Thread(r, "Region Image Handler"));
-        executor.scheduleWithFixedDelay(this::optimise, 20, 20, TimeUnit.SECONDS);
+        saveService = Executors.newSingleThreadScheduledExecutor(
+            (r) -> new Thread(r, "Region Image Handler")
+        );
+        saveService.scheduleWithFixedDelay(this::optimise, 20, 20, TimeUnit.SECONDS);
     }
 
     private void optimise() {
-        export();
+        save();
         // TODO
     }
 
@@ -54,52 +53,68 @@ public class RegionImageHandler {
     }
 
     private RegionImage loadRegion(Coordinate2D coordinate) {
-        activeRegions.add(coordinate);
-
         return RegionImage.of(dimensionPath(this.activeDimension), coordinate);
     }
 
-    public void export(Map<Coordinate2D, RegionImage> regions, Dimension dim) {
+    private void save(Map<Coordinate2D, RegionImage> regions, Dimension dim) {
+        // if shutdown is called, wait for saving to complete
+        if (isSaving) {
+            if (saveService != null) {
+                attempt(() -> saveService.awaitTermination(10, TimeUnit.SECONDS));
+            }
+            return;
+        }
+        isSaving = true;
+
         attempt(() -> Files.createDirectories(dimensionPath(dim)));
         regions.forEach((coordinate, image) -> {
             attempt(() -> image.export(dimensionPath(dim), coordinate));
         });
+
+        isSaving = false;
     }
 
-    public void export() {
-        export(this.regions, this.activeDimension);
+    public void save() {
+        save(this.regions, this.activeDimension);
     }
 
     private void unload() {
-        export(this.regions, this.activeDimension);
-        this.regions = new HashMap<>();
+        save();
+        this.regions = new ConcurrentHashMap<>();
     }
 
-    private void load() throws IOException {
-        Files.walk(dimensionPath(this.activeDimension), 1).forEach(image -> attempt(() ->{
-            if (!image.toString().toLowerCase().endsWith("png")) {
-                return;
-            }
+    private void load() {
+        Map<Coordinate2D, RegionImage> regionMap = regions;
 
-            String[] parts = image.getFileName().toString().split("\\.");
+        new Thread(() -> attemptQuiet(() -> {
+            Files.walk(dimensionPath(this.activeDimension), 1).limit(3200)
+                .forEach(image -> attempt(() -> {
+                if (!image.toString().toLowerCase().endsWith("png")) {
+                    return;
+                }
 
-            int x = Integer.parseInt(parts[1]);
-            int z = Integer.parseInt(parts[2]);
-            Coordinate2D regionCoordinate = new Coordinate2D(x, z);
+                String[] parts = image.getFileName().toString().split("\\.");
 
-            regions.put(regionCoordinate, RegionImage.of(image.toFile()));
-        }));
+                int x = Integer.parseInt(parts[1]);
+                int z = Integer.parseInt(parts[2]);
+                Coordinate2D regionCoordinate = new Coordinate2D(x, z);
+
+                regionMap.put(regionCoordinate, RegionImage.of(image.toFile()));
+            }));
+        })).start();
     }
 
     public void setDimension(Dimension dimension) {
-        System.out.println("Set dimension to " + dimension);
+        if (this.activeDimension == dimension) {
+            return;
+        }
 
         if (this.activeDimension != null) {
             unload();
         }
 
         this.activeDimension = dimension;
-        attemptQuiet(this::load);
+        load();
     }
 
     private static Path dimensionPath(Dimension dim) {
@@ -114,5 +129,11 @@ public class RegionImageHandler {
 
     public int size() {
         return regions.size();
+    }
+
+    public void shutdown() {
+        if (saveService != null) {
+            saveService.shutdown();
+        }
     }
 }

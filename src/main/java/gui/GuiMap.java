@@ -62,7 +62,7 @@ public class GuiMap {
     private double blocksPerPixel;
     private int gridSize;
 
-    private RegionImageHandler regionMap;
+    private RegionImageHandler regionHandler;
     private Collection<PlayerEntity> otherPlayers;
 
     ReadOnlyDoubleProperty width;
@@ -87,7 +87,7 @@ public class GuiMap {
     void initialize() {
         this.blocksPerPixel = 1;
         this.computeGridSize();
-        this.regionMap = new RegionImageHandler();
+        this.regionHandler = new RegionImageHandler();
 
         WorldManager manager = WorldManager.getInstance();
         this.otherPlayers = manager.getEntityRegistry().getPlayerSet();
@@ -297,7 +297,7 @@ public class GuiMap {
     }
 
     public void clearChunks() {
-        regionMap.clear();
+        regionHandler.clear();
     }
 
     private void bindScroll() {
@@ -338,7 +338,7 @@ public class GuiMap {
         }
 
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
-        imageFactory.onComplete(image -> regionMap.drawChunk(coord.stripDimension(), image));
+        imageFactory.onComplete(image -> regionHandler.drawChunk(coord.stripDimension(), image));
         imageFactory.createImage();
     }
 
@@ -366,7 +366,7 @@ public class GuiMap {
         graphics.setFill(BACKGROUND_COLOR);
         graphics.fillRect(0, 0, width.get(), height.get());
 
-        regionMap.drawAll(bounds, this::drawRegion);
+        regionHandler.drawAll(bounds, this::drawRegion);
     }
 
 
@@ -452,7 +452,7 @@ public class GuiMap {
     }
 
     public void setDimension(Dimension dimension) {
-        regionMap.setDimension(dimension);
+        regionHandler.setDimension(dimension);
     }
 
     public void showErrorMessage() {
@@ -476,7 +476,7 @@ public class GuiMap {
     }
 
     public int imageCount() {
-        return regionMap.size();
+        return regionHandler.size();
     }
 
     public Coordinate2D getCenter() {
@@ -500,6 +500,7 @@ public class GuiMap {
         return new Coordinate2D(worldX, worldZ);
     }
 
-    public void export() {
+    public RegionImageHandler getRegionHandler() {
+        return regionHandler;
     }
 }
