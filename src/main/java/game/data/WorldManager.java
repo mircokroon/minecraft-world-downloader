@@ -138,7 +138,6 @@ public class WorldManager {
         unloadChunksNotIn(dimension);
 
         GuiManager.setDimension(this.dimension);
-        outlineExistingChunks();
     }
 
     /**
@@ -174,28 +173,6 @@ public class WorldManager {
         } else {
             this.renderDistanceExtender.setExtendedDistance(val);
         }
-    }
-
-    public void outlineExistingChunks() {
-        int limit = 64000;
-        if (existingLoaded.contains(this.dimension)) {
-            return;
-        }
-        existingLoaded.add(this.dimension);
-
-        Collection<McaFile> files = McaFile.getFiles(this.playerPosition.discretize().globalToChunk(), dimension, 32).collect(Collectors.toList());
-
-        int total = 0;
-        for (McaFile f : files) {
-            if (total > limit) {
-                break;
-            }
-
-            List<CoordinateDim2D> list = f.getChunkPositions(this.dimension);
-            total += list.size();
-            GuiManager.outlineExistingChunks(list);
-        }
-
     }
 
     /**
@@ -705,8 +682,6 @@ public class WorldManager {
             } else {
                 c.updateLight(provider);
                 touchChunk(c);
-
-                GuiManager.setChunkState(coords, c.getState());
             }
         });
 

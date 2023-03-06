@@ -129,6 +129,7 @@ public class ChunkImageFactory {
 
                     SimpleColor color;
                     if (blockState == null) {
+                        output[x + Chunk.SECTION_WIDTH * z] = new SimpleColor(0).toARGB();
                         continue;
                     } else {
                         color = shadeTransparent(blockState, x, y, z);

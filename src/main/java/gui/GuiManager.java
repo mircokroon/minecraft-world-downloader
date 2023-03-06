@@ -306,19 +306,6 @@ public class GuiManager extends Application {
         }
     }
 
-
-    public static void setChunkState(CoordinateDim2D coord, ChunkState state) {
-        if (chunkGraphicsHandler != null) {
-            chunkGraphicsHandler.setChunkState(coord, state);
-        }
-    }
-
-    public static void outlineExistingChunks(List<CoordinateDim2D> existing) {
-        if (chunkGraphicsHandler != null) {
-            existing.forEach(c -> chunkGraphicsHandler.setChunkState(c, ChunkState.exists()));
-        }
-    }
-
     public static void clearChunks() {
         if (chunkGraphicsHandler != null) {
             chunkGraphicsHandler.clearChunks();

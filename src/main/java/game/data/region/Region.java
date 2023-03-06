@@ -21,6 +21,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
  */
 public class Region {
+    public static final int REGION_DIMENSION = 32;
+
     public static final Region EMPTY = new Region(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
     private final int UNLOAD_RANGE = 24;
     private final Map<Coordinate2D, Chunk> chunks;
@@ -135,7 +137,6 @@ public class Region {
                 }
 
                 chunk.setSaved(true);
-                GuiManager.setChunkState(coordinate.addDimension(regionCoordinates.getDimension()), chunk.getState());
 
                 // get the chunk in binary format and get its coordinates as an Mca compatible integer. Then add
                 // these to the map of chunk binaries.

@@ -4,10 +4,13 @@ import config.Config;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
-import game.data.chunk.ChunkImageFactory;
+import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.region.McaFile;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
@@ -58,10 +61,18 @@ public class RightClickMenu extends ContextMenu {
 
         menu.add(new SeparatorMenuItem());
 
-        menu.add(construct("Prune overview images", e -> handler.unloadImages()));
         menu.add(construct("Draw nearby existing chunks", e -> {
             new Thread(() -> WorldManager.getInstance().drawExistingChunks(handler.getCenter())).start();
         }));
+        
+        menu.add(construct("Copy coordinates", e -> {
+            Coordinate2D coords = handler.getCursorCoordinates();
+            String coordsString = String.format("%d ~ %d", coords.getX(), coords.getZ());
+            StringSelection selection = new StringSelection(coordsString);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(selection, selection);
+        }));
+
         menu.add(construct("Save overview to file", e -> handler.export()));
 
         menu.add(new SeparatorMenuItem());

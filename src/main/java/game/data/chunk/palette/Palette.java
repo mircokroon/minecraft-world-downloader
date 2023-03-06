@@ -74,6 +74,8 @@ public class Palette {
         this.palette = new int[nbt.size()];
 
         GlobalPalette global = GlobalPaletteProvider.getGlobalPalette(dataVersion);
+        this.stateProvider = global;
+
         for (int i = 0; i < nbt.size(); i++) {
             BlockState bs = global.getState(nbt.get(i).asCompound());
 
