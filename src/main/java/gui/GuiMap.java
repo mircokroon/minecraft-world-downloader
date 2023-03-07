@@ -167,9 +167,7 @@ public class GuiMap {
         snapshotParameters.setFill(Color.TRANSPARENT);
 
         entityCanvas.setOnMousePressed((e) -> {
-            if (e.getButton() != MouseButton.PRIMARY) {
-                return;
-            }
+            if (e.getButton() != MouseButton.PRIMARY) { return; }
 
             if (lockedToPlayer) {
                 this.initialCenter = playerPos;
@@ -182,9 +180,7 @@ public class GuiMap {
         });
 
         entityCanvas.setOnMouseReleased((e) -> {
-            if (e.getButton() != MouseButton.PRIMARY) {
-                return;
-            }
+            if (e.getButton() != MouseButton.PRIMARY) { return; }
 
             if (!lockedToPlayer) {
                 this.playerLockButton.setVisible(true);
@@ -192,6 +188,8 @@ public class GuiMap {
         });
 
         entityCanvas.setOnMouseDragged((e) -> {
+            if (e.getButton() != MouseButton.PRIMARY) { return; }
+
             this.mouseX = e.getSceneX();
             this.mouseY = e.getSceneY();
 

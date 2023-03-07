@@ -19,9 +19,10 @@ import javax.imageio.ImageIO;
 public class RegionImage {
     private static final Color SAVED = Color.TRANSPARENT;
     private static final Color UNSAVED = Color.color(1, 0, 0, .35);
+    private static final Color OUTDATED = Color.color(.2, .2, .2, .4);
     private static final int SIZE = Chunk.SECTION_WIDTH * Region.REGION_SIZE;;
     WritableImage image;
-    WritableImage unsavedOverlay;
+    WritableImage chunkOverlay;
     byte[] buffer;
 
     boolean saved;
@@ -35,13 +36,31 @@ public class RegionImage {
         this.buffer = new byte[16 * 16 * 4];
         this.saved = false;
 
-        if (Config.markUnsavedChunks()) {
-            unsavedOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
+        if (Config.markUnsavedChunks() || Config.markOldChunks()) {
+            chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
+
+            // if mark old chunks is enabled, the overlay is initialised to the same as the GUI
+            // background color (with some opacity). Newly loaded chunks will make this transparent
+            // when loaded in.
+            if (Config.markOldChunks()) {
+                fillOverlay(OUTDATED);
+            }
+        }
+    }
+
+    /**
+     * Fills overlay with the given colour.
+     */
+    private void fillOverlay(Color c) {
+        for (int i = 0; i < Region.REGION_SIZE; i++) {
+            for (int j = 0; j < Region.REGION_SIZE; j++) {
+                chunkOverlay.getPixelWriter().setColor(i, j, c);
+            }
         }
     }
 
     public static RegionImage of(Path directoryPath, Coordinate2D coordinate) {
-        File file = Paths.get(directoryPath.toString(), fileName(coordinate)).toFile();
+        File file = Paths.get(directoryPath.toString(), filename(coordinate)).toFile();
 
         if (!file.exists()) {
             return new RegionImage();
@@ -77,8 +96,9 @@ public class RegionImage {
     }
 
     private void setChunkSavedStatus(Coordinate2D local, boolean isSaved) {
-        if (unsavedOverlay != null) {
-            unsavedOverlay.getPixelWriter().setColor(local.getX(), local.getZ(), isSaved ? SAVED : UNSAVED);
+        if (chunkOverlay != null) {
+            Color c = Config.markUnsavedChunks() && !isSaved ? UNSAVED : SAVED;
+            chunkOverlay.getPixelWriter().setColor(local.getX(), local.getZ(), c);
         }
     }
 
@@ -86,25 +106,25 @@ public class RegionImage {
         setChunkSavedStatus(local, true);
     }
 
-    public void export(Path p, Coordinate2D coords) throws IOException {
+    public void save(Path p, Coordinate2D coords) throws IOException {
         if (saved) {
             return;
         }
         saved = true;
 
-        File f = Path.of(p.toString(), fileName(coords)).toFile();
+        File f = Path.of(p.toString(), filename(coords)).toFile();
         ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", f);
     }
 
-    private static String fileName(Coordinate2D coords) {
+    private static String filename(Coordinate2D coords) {
         return "r." + coords.getX() + "." + coords.getZ() + ".png";
     }
 
-    public Image getUnsavedOverlay() {
-        if (!Config.markUnsavedChunks()) {
+    public Image getChunkOverlay() {
+        if (!Config.markUnsavedChunks() && !Config.markOldChunks()) {
             return null;
         }
 
-        return unsavedOverlay;
+        return chunkOverlay;
     }
 }

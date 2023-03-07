@@ -18,12 +18,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
 
+/**
+ * Class to manage overlay images.
+ */
 public class RegionImageHandler {
     private Map<Coordinate2D, RegionImage> regions;
     private Dimension activeDimension;
     private boolean isSaving = false;
 
-    ScheduledExecutorService saveService;
+    private final ScheduledExecutorService saveService;
 
     public RegionImageHandler() {
         this.regions = new ConcurrentHashMap<>();
@@ -31,12 +34,7 @@ public class RegionImageHandler {
         saveService = Executors.newSingleThreadScheduledExecutor(
             (r) -> new Thread(r, "Region Image Handler")
         );
-        saveService.scheduleWithFixedDelay(this::optimise, 20, 20, TimeUnit.SECONDS);
-    }
-
-    private void optimise() {
-        save();
-        // TODO
+        saveService.scheduleWithFixedDelay(this::save, 20, 20, TimeUnit.SECONDS);
     }
 
     public void clear() {
@@ -87,7 +85,7 @@ public class RegionImageHandler {
 
         attempt(() -> Files.createDirectories(dimensionPath(dim)));
         regions.forEach((coordinate, image) -> {
-            attempt(() -> image.export(dimensionPath(dim), coordinate));
+            attempt(() -> image.save(dimensionPath(dim), coordinate));
         });
 
         isSaving = false;
@@ -144,7 +142,7 @@ public class RegionImageHandler {
         regions.forEach((coordinate, image) -> {
             if (bounds.overlaps(coordinate)) {
                 drawRegion.accept(coordinate, image.getImage());
-                drawRegion.accept(coordinate, image.getUnsavedOverlay());
+                drawRegion.accept(coordinate, image.getChunkOverlay());
             }
         });
     }

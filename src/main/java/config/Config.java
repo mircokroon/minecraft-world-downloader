@@ -417,6 +417,10 @@ public class Config {
             usage = "Disable marking unsaved chunks in red on the map")
     public boolean disableMarkUnsavedChunks = false;
 
+    @Option(name = "--mark-old-chunks",
+        usage = "Grey out old chunks on the map")
+    public boolean markOldChunks = true;
+
     @Option(name = "--ignore-block-changes",
             usage = "Ignore changes to chunks after they have been loaded.")
     public boolean ignoreBlockChanges = false;
@@ -504,6 +508,10 @@ public class Config {
 
     public static boolean smoothZooming() {
         return instance.smoothZooming;
+    }
+
+    public static boolean markOldChunks() {
+        return instance.markOldChunks;
     }
 
     // setters
