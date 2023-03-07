@@ -20,7 +20,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.image.*;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -32,7 +31,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.IntBuffer;
 import java.util.Collection;
-import java.util.function.DoubleConsumer;
 
 /**
  * Controller for the map scene. Contains a canvas for chunks which is redrawn only when required, and one for entities
@@ -59,6 +57,7 @@ public class GuiMap {
     private double playerRotation;
 
     private Bounds bounds;
+
     private double blocksPerPixel;
     private int gridSize;
 
@@ -68,8 +67,6 @@ public class GuiMap {
     ReadOnlyDoubleProperty width;
     ReadOnlyDoubleProperty height;
 
-    private final double maxBlocksPerPixel = 32;
-    private final double minBlocksPerPixel = 1.0 / 16.0;
     private boolean mouseOver = false;
     private boolean enableModernImageHandling = true;
     private boolean playerHasConnected = false;
@@ -83,10 +80,11 @@ public class GuiMap {
     private Coordinate2D initialCenter = new Coordinate2D(0, 0);
     private Coordinate2D center = new Coordinate2D(0, 0);
 
+    private ZoomBehaviour zoomBehaviour;
+
     @FXML
     void initialize() {
-        this.blocksPerPixel = 1;
-        this.computeGridSize();
+        this.zoomBehaviour = Config.smoothZooming() ? new SmoothZooming() : new SnapZooming();
         this.regionHandler = new RegionImageHandler();
 
         WorldManager manager = WorldManager.getInstance();
@@ -104,6 +102,7 @@ public class GuiMap {
         AnimationTimer animationTimer = new AnimationTimer() {
             @Override
             public void handle(long time) {
+                zoomBehaviour.handle(time);
                 computeBounds();
                 redrawCanvas();
                 redrawEntities();
@@ -112,7 +111,12 @@ public class GuiMap {
         animationTimer.start();
 
         setupContextMenu();
-        bindScroll();
+
+        zoomBehaviour.bind(entityCanvas);
+        zoomBehaviour.onChange(newBlocksPerPixel -> {
+            this.blocksPerPixel = newBlocksPerPixel;
+            this.gridSize = (int) Math.round((32 * 16) / newBlocksPerPixel);
+        });
 
         setupHelpLabel();
     }
@@ -206,7 +210,6 @@ public class GuiMap {
     private void followPlayer() {
         lockedToPlayer = true;
         playerLockButton.setVisible(false);
-        computeBounds();
     }
 
     private void setupCanvasProperties() {
@@ -298,34 +301,6 @@ public class GuiMap {
 
     public void clearChunks() {
         regionHandler.clear();
-    }
-
-    private void bindScroll() {
-        DoubleConsumer handleZoom = (multiplier) -> {
-            blocksPerPixel *= multiplier;
-
-            if (blocksPerPixel > maxBlocksPerPixel) { blocksPerPixel = maxBlocksPerPixel; }
-            else if (blocksPerPixel < minBlocksPerPixel) { blocksPerPixel = minBlocksPerPixel; }
-
-            computeGridSize();
-            computeBounds();
-        };
-
-        entityCanvas.setFocusTraversable(true);
-        entityCanvas.getParent().setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.PLUS || e.getCode() == KeyCode.ADD || e.getCode() == KeyCode.EQUALS) {
-                handleZoom.accept(0.5);
-            } else if (e.getCode() == KeyCode.MINUS || e.getCode() == KeyCode.SUBTRACT) {
-                handleZoom.accept(2.0);
-            }
-        });
-        entityCanvas.getParent().setOnScroll(scrollEvent -> {
-            handleZoom.accept(scrollEvent.getDeltaY() > 0 ? 0.5 : 2.0);
-        });
-    }
-
-    private void computeGridSize() {
-        this.gridSize = (int) ((32 * 16) / blocksPerPixel);
     }
 
     void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
@@ -449,8 +424,8 @@ public class GuiMap {
         GraphicsContext graphics = chunkCanvas.getGraphicsContext2D();
 
         Coordinate2D globalPos = pos.regionToGlobal();
-        int drawX = (int) ((globalPos.getX() - bounds.getMinX()) / blocksPerPixel);
-        int drawY = (int) ((globalPos.getZ() - bounds.getMinZ()) / blocksPerPixel);
+        int drawX = (int) Math.round((globalPos.getX() - bounds.getMinX()) / blocksPerPixel);
+        int drawY = (int) Math.round((globalPos.getZ() - bounds.getMinZ()) / blocksPerPixel);
 
         drawImage(graphics, drawX, drawY, image);
     }

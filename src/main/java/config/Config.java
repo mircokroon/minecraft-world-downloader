@@ -437,6 +437,9 @@ public class Config {
             usage = "Disable various info messages (e.g. chest saving).")
     public boolean disableInfoMessages = false;
 
+    // not really important enough to have an option in the GUI
+    public boolean smoothZooming = true;
+
     // getters
     public static int getExtendedRenderDistance() {
         return instance.extendedRenderDistance;
@@ -498,6 +501,10 @@ public class Config {
     }
 
     public static boolean sendInfoMessages() { return !instance.disableInfoMessages; }
+
+    public static boolean smoothZooming() {
+        return instance.smoothZooming;
+    }
 
     // setters
     public static void setZoomLevel(int val) {
