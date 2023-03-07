@@ -466,6 +466,9 @@ public class GuiMap {
     }
 
     public void setStatusMessage(String str) {
+        if (str.equals("") && WorldManager.getInstance().isPaused()) {
+            str = "Paused - right-click to resume";
+        }
         this.statusMessage = str;
 
         Platform.runLater(this::updateStatusPrompt);

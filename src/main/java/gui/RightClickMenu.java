@@ -41,6 +41,7 @@ public class RightClickMenu extends ContextMenu {
                 WorldManager.getInstance().pauseSaving();
                 item.setText(PROMPT_RESUME);
             }
+            handler.setStatusMessage("");
         }));
 
         menu.add(construct("Delete all downloaded chunks", e -> {

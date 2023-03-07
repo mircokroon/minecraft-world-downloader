@@ -22,12 +22,8 @@ import javafx.stage.Stage;
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
-import java.util.List;
-import java.util.function.Consumer;
-import org.apache.commons.lang3.SystemUtils;
 
 import static util.ExceptionHandling.attempt;
-import static util.ExceptionHandling.attemptQuiet;
 
 /**
  * Class to the handle the GUI.

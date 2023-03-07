@@ -6,7 +6,7 @@ import javafx.scene.input.KeyCode;
 
 public interface ZoomBehaviour {
     double initialBlocksPerPixel = 1.0;
-    double maxBlocksPerPixel = 32;
+    double maxBlocksPerPixel = 64;
     double minBlocksPerPixel = 1.0 / 16.0;
 
     double zoomInMultiplier = 2;

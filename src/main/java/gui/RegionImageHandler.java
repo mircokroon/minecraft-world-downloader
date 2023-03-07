@@ -17,11 +17,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
+import org.apache.commons.io.FileUtils;
 
 /**
  * Class to manage overlay images.
  */
 public class RegionImageHandler {
+    private static final String CACHE_PATH = "image-cache";
     private Map<Coordinate2D, RegionImage> regions;
     private Dimension activeDimension;
     private boolean isSaving = false;
@@ -31,6 +33,7 @@ public class RegionImageHandler {
     public RegionImageHandler() {
         this.regions = new ConcurrentHashMap<>();
 
+        // TODO: remove or compress overview images far away to reduce memory usage
         saveService = Executors.newSingleThreadScheduledExecutor(
             (r) -> new Thread(r, "Region Image Handler")
         );
@@ -38,7 +41,8 @@ public class RegionImageHandler {
     }
 
     public void clear() {
-        // TODO
+        unload();
+        attemptQuiet(() -> FileUtils.deleteDirectory(Paths.get(Config.getWorldOutputDir(), CACHE_PATH).toFile()));
     }
 
     public void drawChunk(CoordinateDim2D coordinate, Image chunkImage, Boolean isSaved) {
@@ -96,10 +100,12 @@ public class RegionImageHandler {
     }
 
     private void unload() {
-        save();
         this.regions = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Searches for all region files in a directory to load them in.
+     */
     private void load() {
         Map<Coordinate2D, RegionImage> regionMap = regions;
 
@@ -127,6 +133,7 @@ public class RegionImageHandler {
         }
 
         if (this.activeDimension != null) {
+            save();
             unload();
         }
 
@@ -135,7 +142,7 @@ public class RegionImageHandler {
     }
 
     private static Path dimensionPath(Dimension dim) {
-        return Paths.get(Config.getWorldOutputDir(), "image-cache", dim.getPath());
+        return Paths.get(Config.getWorldOutputDir(), CACHE_PATH, dim.getPath());
     }
 
     public void drawAll(Bounds bounds, BiConsumer<Coordinate2D, Image> drawRegion) {
