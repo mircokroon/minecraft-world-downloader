@@ -4,6 +4,7 @@ import config.Config;
 import game.data.chunk.ChunkImageFactory;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
+import game.data.coordinates.CoordinateDouble2D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
@@ -56,8 +57,6 @@ public class GuiMap {
     private CoordinateDouble3D playerPos;
     private double playerRotation;
 
-    private Bounds bounds;
-
     private double blocksPerPixel;
     private int gridSize;
 
@@ -77,8 +76,9 @@ public class GuiMap {
 
     // drag parameters
     private double mouseX, mouseY, initialMouseX, initialMouseY;
-    private Coordinate2D initialCenter = new Coordinate2D(0, 0);
-    private Coordinate2D center = new Coordinate2D(0, 0);
+    private CoordinateDouble2D initialCenter = new CoordinateDouble2D(0, 0);
+    private CoordinateDouble2D center = new CoordinateDouble2D(0, 0);
+    private Bounds bounds;
 
     private ZoomBehaviour zoomBehaviour;
 
@@ -86,6 +86,7 @@ public class GuiMap {
     void initialize() {
         this.zoomBehaviour = Config.smoothZooming() ? new SmoothZooming() : new SnapZooming();
         this.regionHandler = new RegionImageHandler();
+        this.bounds = new Bounds();
 
         WorldManager manager = WorldManager.getInstance();
         this.otherPlayers = manager.getEntityRegistry().getPlayerSet();
@@ -171,7 +172,7 @@ public class GuiMap {
             }
 
             if (lockedToPlayer) {
-                this.initialCenter = playerPos.discretize();
+                this.initialCenter = playerPos;
             } else {
                 this.initialCenter = center;
             }
@@ -199,7 +200,7 @@ public class GuiMap {
             double diffX = initialMouseX - mouseX;
             double diffY = initialMouseY - mouseY;
 
-            Coordinate2D difference = new Coordinate2D(Math.round(diffX * blocksPerPixel), Math.round(diffY * blocksPerPixel));
+            CoordinateDouble2D difference = new CoordinateDouble2D(diffX * blocksPerPixel, diffY * blocksPerPixel);
             this.center = this.initialCenter.add(difference);
         });
 
@@ -323,16 +324,16 @@ public class GuiMap {
      * set render distance. The computed bounds will be used to determine the scale and positions to draw the chunks to.
      */
     void computeBounds() {
-        Coordinate2D center;
+        CoordinateDouble2D center;
         if (lockedToPlayer && this.playerPos != null) {
-            center = this.playerPos.discretize();
+            center = this.playerPos;
         } else {
             center = this.center;
         }
 
-        int blockWidth = (int) (width.intValue() * blocksPerPixel);
-        int blockHeight = (int) (height.intValue() * blocksPerPixel);
-        bounds = new Bounds(center, blockWidth, blockHeight);
+        double blockWidth = width.intValue() * blocksPerPixel;
+        double blockHeight = height.intValue() * blocksPerPixel;
+        bounds.set(center, blockWidth, blockHeight);
     }
 
     private void redrawCanvas() {
@@ -462,7 +463,7 @@ public class GuiMap {
         if (lockedToPlayer) {
             return playerPos.discretize().globalToChunk();
         } else {
-            return center;
+            return center.discretize();
         }
     }
 

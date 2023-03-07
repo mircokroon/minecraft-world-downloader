@@ -48,6 +48,7 @@ public class SmoothZooming implements ZoomBehaviour {
         newBlocksPerPixel = blocksPerPixel;
 
         DoubleConsumer handleZoom = (multiplier) -> {
+            // setting scrolltime marks starting time of the zoom animation
             scrollTime = lastFrame;
             oldBlocksPerPixel = blocksPerPixel;
 

@@ -495,14 +495,14 @@ public class WorldManager {
         return playerPosition.discretize();
     }
 
-    public void setPlayerPosition(CoordinateDouble3D newPos) {
-        this.playerPosition = newPos;
+    public void setPlayerPosition(double x, double y, double z) {
+        this.playerPosition.setTo(x, y, z);
 
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.updatePlayerPos(getPlayerPosition());
         }
         if (this.playerPosListener != null) {
-            this.playerPosListener.accept(newPos, this.playerRotation);
+            this.playerPosListener.accept(this.playerPosition, this.playerRotation);
         }
     }
 

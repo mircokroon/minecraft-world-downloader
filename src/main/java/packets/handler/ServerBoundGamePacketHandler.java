@@ -19,8 +19,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             double y = provider.readDouble();
             double z = provider.readDouble();
 
-            CoordinateDouble3D playerPos = new CoordinateDouble3D(x, y, z);
-            WorldManager.getInstance().setPlayerPosition(playerPos);
+            WorldManager.getInstance().setPlayerPosition(x, y, z);
 
             return true;
         };
