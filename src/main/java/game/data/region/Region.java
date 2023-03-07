@@ -5,14 +5,9 @@ import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
-import game.data.chunk.ChunkFactory;
 import game.data.dimension.Dimension;
-import gui.ChunkState;
-import gui.GuiManager;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
  */
 public class Region {
-    public static final int REGION_DIMENSION = 32;
+    public static final int REGION_SIZE = 32;
 
     public static final Region EMPTY = new Region(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
     private final int UNLOAD_RANGE = 24;

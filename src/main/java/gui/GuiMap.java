@@ -338,7 +338,8 @@ public class GuiMap {
         }
 
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
-        imageFactory.onComplete(image -> regionHandler.drawChunk(coord.stripDimension(), image));
+        imageFactory.onComplete((image, isSaved) -> regionHandler.drawChunk(coord, image, isSaved));
+        imageFactory.onSaved(() -> regionHandler.markChunkSaved(coord));
         imageFactory.createImage();
     }
 
@@ -442,6 +443,9 @@ public class GuiMap {
     }
 
     private void drawRegion(Coordinate2D pos, Image image) {
+        if (image == null) {
+            return;
+        }
         GraphicsContext graphics = chunkCanvas.getGraphicsContext2D();
 
         Coordinate2D globalPos = pos.regionToGlobal();

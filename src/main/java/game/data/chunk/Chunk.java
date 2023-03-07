@@ -82,6 +82,9 @@ public abstract class Chunk extends ChunkEntities {
     }
 
     public void setSaved(boolean saved) {
+        if (saved && !this.saved) {
+            getChunkImageFactory().markSaved();
+        }
         this.saved = saved;
     }
 

@@ -8,6 +8,7 @@ import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
+import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.WritablePixelFormat;
@@ -25,7 +26,8 @@ import java.util.function.Consumer;
 public class ChunkImageFactory {
     private final Chunk c;
     private final List<CoordinateDim2D> registeredCallbacks = new ArrayList<>(2);
-    private Consumer<Image> onImageDone;
+    private BiConsumer<Image, Boolean> onImageDone;
+    private Runnable onSaved;
 
     private Chunk south;
     private Chunk north;
@@ -44,8 +46,18 @@ public class ChunkImageFactory {
     /**
      * Set handler for when the image has been created.
      */
-    public void onComplete(Consumer<Image> onComplete) {
+    public void onComplete(BiConsumer<Image, Boolean> onComplete) {
         this.onImageDone = onComplete;
+    }
+
+    public void onSaved(Runnable onSaved) {
+        this.onSaved = onSaved;
+    }
+
+    public void markSaved() {
+        if (this.onSaved != null) {
+            this.onSaved.run();
+        }
     }
 
 
@@ -156,7 +168,7 @@ public class ChunkImageFactory {
         }
 
         if (this.onImageDone != null) {
-            this.onImageDone.accept(i);
+            this.onImageDone.accept(i, c.isSaved());
         }
     }
 

@@ -5,8 +5,8 @@ import static util.ExceptionHandling.attemptQuiet;
 
 import config.Config;
 import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -43,13 +43,32 @@ public class RegionImageHandler {
         // TODO
     }
 
-    public void drawChunk(Coordinate2D coordinate, Image chunkImage) {
+    public void drawChunk(CoordinateDim2D coordinate, Image chunkImage, Boolean isSaved) {
+        if (!coordinate.getDimension().equals(activeDimension)) {
+            return;
+        }
+
         Coordinate2D region = coordinate.chunkToRegion();
 
         RegionImage image = regions.computeIfAbsent(region, (coordinate2D -> loadRegion(coordinate)));
 
         Coordinate2D local = coordinate.toRegionLocal();
-        image.drawChunk(local, chunkImage);
+        image.drawChunk(local, chunkImage, isSaved);
+    }
+
+    public void markChunkSaved(CoordinateDim2D coordinate) {
+        if (!coordinate.getDimension().equals(activeDimension)) {
+            return;
+        }
+
+        Coordinate2D region = coordinate.chunkToRegion();
+
+        RegionImage image = regions.get(region);
+        if (image == null) {
+            return;
+        }
+
+        image.markChunkSaved(coordinate.toRegionLocal());
     }
 
     private RegionImage loadRegion(Coordinate2D coordinate) {
@@ -125,6 +144,7 @@ public class RegionImageHandler {
         regions.forEach((coordinate, image) -> {
             if (bounds.overlaps(coordinate)) {
                 drawRegion.accept(coordinate, image.getImage());
+                drawRegion.accept(coordinate, image.getUnsavedOverlay());
             }
         });
     }
