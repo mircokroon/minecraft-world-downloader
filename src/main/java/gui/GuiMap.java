@@ -38,14 +38,8 @@ import java.util.Collection;
  * which can be redrawn any moment.
  */
 public class GuiMap {
-    public static final Image NONE = new WritableImage(1, 1);
-    private static final ChunkImage NO_IMG = new ChunkImage(NONE, ChunkState.exists());
     private static final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
-    private static final WritableImage BLACK = new WritableImage(1, 1);
-    static {
-        BLACK.getPixelWriter().setColor(0, 0, Color.BLACK);
-    }
 
     public Canvas chunkCanvas;
     public Canvas entityCanvas;
@@ -93,25 +87,20 @@ public class GuiMap {
 
         setDimension(manager.getDimension());
         this.playerPos = manager.getPlayerPosition().toDouble();
-        playerLockButton.setVisible(false);
 
-        setupCanvasProperties();
-
-        GuiManager.setGraphicsHandler(this);
         manager.setPlayerPosListener(this::updatePlayerPos);
+        GuiManager.setGraphicsHandler(this);
 
         AnimationTimer animationTimer = new AnimationTimer() {
             @Override
             public void handle(long time) {
                 zoomBehaviour.handle(time);
                 computeBounds();
-                redrawCanvas();
-                redrawEntities();
+                drawWorld();
+                drawEntities();
             }
         };
         animationTimer.start();
-
-        setupContextMenu();
 
         zoomBehaviour.bind(entityCanvas);
         zoomBehaviour.onChange(newBlocksPerPixel -> {
@@ -119,7 +108,12 @@ public class GuiMap {
             this.gridSize = (int) Math.round((32 * 16) / newBlocksPerPixel);
         });
 
+        playerLockButton.setVisible(false);
+
+        setupCanvasProperties();
+        setupContextMenu();
         setupHelpLabel();
+        setupDragging();
     }
 
     private void setupHelpLabel() {
@@ -154,15 +148,13 @@ public class GuiMap {
                 helpLabel.setText("");
             }
         });
-
-        handleDrag();
     }
 
     /**
      * Handle dragging on the canvas. When dragging, a copy of the current canvas is made to provide a lightweight
      * visualisation of the dragging state. When dragging ends, the chunks are fully re-drawn.
      */
-    private void handleDrag() {
+    private void setupDragging() {
         SnapshotParameters snapshotParameters = new SnapshotParameters();
         snapshotParameters.setFill(Color.TRANSPARENT);
 
@@ -334,12 +326,9 @@ public class GuiMap {
         bounds.set(center, blockWidth, blockHeight);
     }
 
-    private void redrawCanvas() {
+    private void drawWorld() {
         GraphicsContext graphics = this.chunkCanvas.getGraphicsContext2D();
-
-        graphics.setStroke(Color.TRANSPARENT);
-        graphics.setFill(BACKGROUND_COLOR);
-        graphics.fillRect(0, 0, width.get(), height.get());
+        graphics.clearRect(0, 0, width.get(), height.get());
 
         regionHandler.drawAll(bounds, this::drawRegion);
     }
@@ -351,7 +340,7 @@ public class GuiMap {
     }
 
 
-    private void redrawEntities() {
+    private void drawEntities() {
         GraphicsContext graphics = entityCanvas.getGraphicsContext2D();
         graphics.clearRect(0, 0, width.get(), height.get());
 
@@ -360,7 +349,7 @@ public class GuiMap {
                 drawOtherPlayer(graphics, player);
             }
         }
-        redrawPlayer(graphics);
+        drawPlayer(graphics);
     }
 
     /**
@@ -390,7 +379,7 @@ public class GuiMap {
         return Math.abs(x - mouseX) < 10 && Math.abs(y - mouseY) < 10;
     }
 
-    private void redrawPlayer(GraphicsContext graphics) {
+    private void drawPlayer(GraphicsContext graphics) {
         if (playerPos == null) { return; }
         if (bounds == null) { return; }
 
