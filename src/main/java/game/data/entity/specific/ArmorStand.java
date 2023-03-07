@@ -1,7 +1,7 @@
 package game.data.entity.specific;
 
 import game.data.entity.MobEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import packets.DataTypeProvider;
 import se.llbit.nbt.*;
 
@@ -42,7 +42,7 @@ public class ArmorStand extends MobEntity {
     }
 }
 
-class ArmorStandMetaData extends MetaData_1_13 {
+class ArmorStandMetaData extends MetaData_1_19_3 {
     private boolean isSmall;
     private boolean hasArms = true;
     private boolean hasNoBasePlate;

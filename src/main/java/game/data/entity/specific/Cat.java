@@ -3,7 +3,7 @@ package game.data.entity.specific;
 import java.util.function.Consumer;
 
 import game.data.entity.MobEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import packets.DataTypeProvider;
 import packets.UUID;
 import se.llbit.nbt.ByteTag;
@@ -41,7 +41,7 @@ public class Cat extends MobEntity {
         }
     }
 
-    private class CatMetaData extends MetaData_1_13 {
+    private class CatMetaData extends MetaData_1_19_3 {
 
         int type = 1;
         int collarColor = 14;

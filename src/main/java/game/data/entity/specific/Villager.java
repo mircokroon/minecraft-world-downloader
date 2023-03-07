@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 
 import game.data.coordinates.CoordinateDim3D;
 import game.data.entity.MobEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import game.data.registries.RegistryManager;
 import game.data.villagers.VillagerTrade;
 import packets.DataTypeProvider;
@@ -99,7 +99,7 @@ public class Villager extends MobEntity {
         root.add("Xp", new IntTag(villagerExp));
     }
 
-    private class VillagerMetaData extends MetaData_1_13 {
+    private class VillagerMetaData extends MetaData_1_19_3 {
 
         boolean noAI;
         int headShakeTimer;

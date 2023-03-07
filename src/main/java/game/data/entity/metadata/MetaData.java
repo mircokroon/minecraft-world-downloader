@@ -40,6 +40,7 @@ public abstract class MetaData {
      */
     public static MetaData getVersionedMetaData() {
         return Config.versionReporter().select(MetaData.class,
+                Option.of(Version.V1_19_3, MetaData_1_19_3::new),
                 Option.of(Version.V1_13, MetaData_1_13::new),
                 Option.of(Version.ANY, MetaData_1_12::new)
         );

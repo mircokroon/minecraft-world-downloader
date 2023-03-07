@@ -3,7 +3,7 @@ package game.data.entity.specific;
 import java.util.function.Consumer;
 
 import game.data.entity.MobEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -38,7 +38,7 @@ public class Sheep extends MobEntity {
         }
     }
 
-    private class SheepMetaData extends MetaData_1_13 {
+    private class SheepMetaData extends MetaData_1_19_3 {
 
         byte colorID = 0;
         boolean isSheared = false;

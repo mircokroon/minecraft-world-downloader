@@ -3,7 +3,7 @@ package game.data.entity.specific;
 import java.util.function.Consumer;
 
 import game.data.entity.MobEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -39,7 +39,7 @@ public class Axolotl extends MobEntity {
         }
     }
 
-    private class AxolotlMetaData extends MetaData_1_13 {
+    private class AxolotlMetaData extends MetaData_1_19_3 {
 
         int variant = 0;
         boolean wasSpawnedFromBucket = false;

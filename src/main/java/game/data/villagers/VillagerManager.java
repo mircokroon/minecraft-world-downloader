@@ -1,5 +1,6 @@
 package game.data.villagers;
 
+import config.Config;
 import game.data.entity.EntityRegistry;
 import game.data.entity.IMovableEntity;
 import java.util.ArrayList;
@@ -46,10 +47,10 @@ public class VillagerManager {
         for (byte i = 0; i < numberOfTrades; i++) {
             Slot firstItem = provider.readSlot();
             Slot receivedItem = provider.readSlot();
-            boolean hasSecondItem = provider.readBoolean();
 
             Slot secondItem = null;
-            if (hasSecondItem) {
+            
+            if (Config.versionReporter().isAtLeast1_19_3() || provider.readBoolean()) {
                 secondItem = provider.readSlot();
             }
 

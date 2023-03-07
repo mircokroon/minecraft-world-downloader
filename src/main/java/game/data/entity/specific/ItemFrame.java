@@ -5,7 +5,7 @@ import config.Option;
 import config.Version;
 import game.data.container.Slot;
 import game.data.entity.ObjectEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import packets.DataTypeProvider;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -66,7 +66,7 @@ public class ItemFrame extends ObjectEntity {
         }
     }
 
-    private class ItemFrameMetaData extends MetaData_1_13 {
+    private class ItemFrameMetaData extends MetaData_1_19_3 {
         Slot item;
         int rotation;
 

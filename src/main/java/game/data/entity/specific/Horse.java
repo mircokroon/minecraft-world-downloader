@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import game.data.container.Slot;
 import game.data.entity.MobEntity;
-import game.data.entity.metadata.MetaData_1_13;
+import game.data.entity.metadata.MetaData_1_19_3;
 import packets.DataTypeProvider;
 import packets.UUID;
 import se.llbit.nbt.ByteTag;
@@ -43,7 +43,7 @@ public class Horse extends MobEntity {
         }
     }
 
-    private class HorseMetaData extends MetaData_1_13 {
+    private class HorseMetaData extends MetaData_1_19_3 {
 
         int variant = 0;
         UUID owner = null;
