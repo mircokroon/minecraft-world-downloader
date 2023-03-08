@@ -14,11 +14,11 @@ Cross-platform jar (GUI & command-line): [world-downloader.jar](https://github.c
 - Extend the client's render distance by sending chunks downloaded previously back to the client
 - Overview map of chunks that have been saved:
 
-<img src="https://i.imgur.com/nSM6mLw.png" width="50%" title="Example of the GUI showing previously downloaded chunks as white squares, chunks sent from the downloader to the client to extend the render distance in normal colours, and chunks sent by server directly to the client in red.">
+<img src="https://i.imgur.com/7FIJ6fZ.png" width="80%" title="Example of the GUI showing previously downloaded chunks as white squares, chunks sent from the downloader to the client to extend the render distance in normal colours, and chunks sent by server directly to the client in red.">
 
 ### Requirements
 - Java 17 or higher
-- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+ // 1.19+
+- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+ // 1.19.3+
 
 ### Basic usage
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe) the latest release and run it. Enter the server address in the address field and press start. Instead of connecting to the server itself, connect to `localhost` in Minecraft to start downloading the world.
