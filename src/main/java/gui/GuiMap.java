@@ -38,7 +38,7 @@ import java.util.Collection;
  * which can be redrawn any moment.
  */
 public class GuiMap {
-    private static final Color BACKGROUND_COLOR = new Color(.2, .2, .2, 1);
+    private static final Color BACKGROUND_COLOR = new Color(.16, .16, .16, 1);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
 
     public Canvas chunkCanvas;
@@ -220,6 +220,8 @@ public class GuiMap {
 
         entityCanvas.widthProperty().bind(width);
         entityCanvas.heightProperty().bind(height);
+
+        chunkCanvas.setStyle("-fx-background-color: rgb(51, 151, 51)");
     }
 
     /**
@@ -303,7 +305,7 @@ public class GuiMap {
                 Platform.runLater(() -> helpLabel.setText(""));
             }
         }
-        
+
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
         imageFactory.onComplete((image, isSaved) -> regionHandler.drawChunk(coord, image, isSaved));
         imageFactory.onSaved(() -> regionHandler.markChunkSaved(coord));
@@ -329,7 +331,9 @@ public class GuiMap {
 
     private void drawWorld() {
         GraphicsContext graphics = this.chunkCanvas.getGraphicsContext2D();
-        graphics.clearRect(0, 0, width.get(), height.get());
+
+        graphics.setFill(BACKGROUND_COLOR);
+        graphics.fillRect(0, 0, width.get(), height.get());
 
         regionHandler.drawAll(bounds, this::drawRegion);
     }

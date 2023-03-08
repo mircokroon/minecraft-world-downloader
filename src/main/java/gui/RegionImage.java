@@ -19,7 +19,7 @@ import javax.imageio.ImageIO;
 public class RegionImage {
     private static final Color SAVED = Color.TRANSPARENT;
     private static final Color UNSAVED = Color.color(1, 0, 0, .35);
-    private static final Color OUTDATED = Color.color(.2, .2, .2, .4);
+    private static final Color OUTDATED = Color.color(.16, .16, .16, .45);
     private static final int SIZE = Chunk.SECTION_WIDTH * Region.REGION_SIZE;;
     WritableImage image;
     WritableImage chunkOverlay;
