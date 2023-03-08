@@ -163,4 +163,9 @@ public class RegionImageHandler {
             saveService.shutdown();
         }
     }
+
+    public void resetRegion(Coordinate2D region) {
+        attemptQuiet(() -> FileUtils.delete(RegionImage.getFile(dimensionPath(this.activeDimension), region)));
+        regions.remove(region);
+    }
 }

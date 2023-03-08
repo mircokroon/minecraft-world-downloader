@@ -29,6 +29,9 @@ public class McaFile {
     private final Coordinate2D regionLocation;
     private final boolean isEntityFile;
 
+    public Coordinate2D getRegionLocation() {
+        return regionLocation;
+    }
 
     /**
      * Parse MCA from a given file location.
@@ -104,14 +107,13 @@ public class McaFile {
     /**
      * Gets MCA files starting from the center, then increasing in radius.
      */
-    public static Stream<McaFile> getFiles(Coordinate2D chunkCenter, Dimension dimension, int radius) {
+    public static Stream<McaFile> getFiles(Coordinate2D center, Dimension dimension, int radius) {
         Path exportDir = PathUtils.toPath(Config.getWorldOutputDir(), dimension.getPath(), "region");
 
         if (!exportDir.toFile().exists()) {
             return Stream.empty();
         }
         List<File> files = new ArrayList<>();
-        Coordinate2D center = chunkCenter.chunkToRegion().offsetChunk();
 
         // loop from radius 0 up to the given radius
         for (int r = 0; r < radius; r++) {
@@ -253,7 +255,7 @@ public class McaFile {
 
     public void addChunks(Map<Integer, ChunkBinary> chunkMap) {
         // merge new chunks into existing ones
-        chunkMap.forEach((key, value) -> this.chunkMap.put(key, value));
+        this.chunkMap.putAll(chunkMap);
     }
 
     /**

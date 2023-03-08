@@ -4,33 +4,33 @@ import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.SimpleColor;
 import game.data.chunk.palette.blending.IBlendEquation;
-import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
+import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.WritablePixelFormat;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 
-import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-
 /**
  * Handles creating images from a Chunk.
  */
 public class ChunkImageFactory {
-    private final Chunk c;
     private final List<CoordinateDim2D> registeredCallbacks = new ArrayList<>(2);
+    private final Runnable requestImage = this::requestImage;;
     private BiConsumer<Image, Boolean> onImageDone;
     private Runnable onSaved;
 
+    private final Chunk c;
     private Chunk south;
     private Chunk north;
+
+    private int[] heightMap;
 
     private boolean drawnBefore = false;
 
@@ -38,9 +38,16 @@ public class ChunkImageFactory {
         this.c = c;
 
         c.setOnUnload(this::unload);
+    }
 
+    /**
+     * Since image factories will call upon image factories of neighbouring chunks, we need to make
+     * sure it can be assigned first so that we don't end up making duplicates and causing memory
+     * leaks. Initialise should be called immediately after assignment.
+     */
+    public void initialise() {
         computeHeightMap();
-        WorldManager.getInstance().chunkLoadedCallback(c.location);
+        WorldManager.getInstance().chunkLoadedCallback(c);
     }
 
     /**
@@ -60,26 +67,19 @@ public class ChunkImageFactory {
         }
     }
 
-
     private void registerChunkLoadCallback(CoordinateDim2D coordinates) {
         registeredCallbacks.add(coordinates);
-        WorldManager.getInstance().registerChunkLoadCallback(coordinates, this::createImage);
+        WorldManager.getInstance().registerChunkLoadCallback(coordinates, requestImage);
     }
 
     public void unload() {
-        for (CoordinateDim2D coordinates : registeredCallbacks) {
-            WorldManager.getInstance().deregisterChunkLoadCallback(coordinates, this::createImage);
+        for (CoordinateDim2D coords : registeredCallbacks) {
+            WorldManager.getInstance().deregisterChunkLoadCallback(coords, requestImage);
         }
     }
 
-    private int[] heightMap;
-
     public int heightAt(int x, int z) {
         return heightMap[z << 4 | x];
-    }
-
-    public void setHeightMap(int[] heightMap) {
-        this.heightMap = heightMap;
     }
 
     /**
@@ -119,18 +119,26 @@ public class ChunkImageFactory {
     }
 
 
+    public void requestImage() {
+        // this method is only called either the first time by the UI, or subsequently by callbacks
+        // when adjacent chunks load in. This means that if we only had a single callback registered
+        // we don't need to worry about de-registering it anymore.
+        if (drawnBefore && registeredCallbacks.size() == 1) {
+            registeredCallbacks.clear();
+        }
+
+        createImage();
+    }
     /**
      * Generate and return the overview image for this chunk.
      */
-    public void createImage() {
+    private void createImage() {
         WritableImage i = new WritableImage(Chunk.SECTION_WIDTH, Chunk.SECTION_WIDTH);
         int[] output = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
         WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
 
         // setup north/south chunks
-        if (!drawnBefore) {
-            setupAdjacentChunks();
-        }
+        setupAdjacentChunks();
         drawnBefore = true;
 
         try {
@@ -165,26 +173,39 @@ public class ChunkImageFactory {
         } catch (Exception ex) {
             System.out.println("Unable to draw picture for chunk at " + c.location);
             ex.printStackTrace();
+            clearAdjacentChunks();
         }
 
         if (this.onImageDone != null) {
             this.onImageDone.accept(i, c.isSaved());
         }
+        clearAdjacentChunks();
+    }
+
+    /**
+     * Clear references to north/south chunks after drawing. If we don't do this we may keep the
+     * chunks from getting GCd causing memory leaks (especially when moving long distances in north/
+     * south direction)
+     */
+    private void clearAdjacentChunks() {
+        this.north = null;
+        this.south = null;
     }
 
     private void setupAdjacentChunks() {
-        // south
         CoordinateDim2D coordinateSouth = c.location.addWithDimension(0, 1);
         this.south = WorldManager.getInstance().getChunk(coordinateSouth);
-        if (this.south == null) {
-            registerChunkLoadCallback(coordinateSouth);
-        }
 
-        // north
         CoordinateDim2D coordinateNorth = c.location.addWithDimension(0, -1);
         this.north = WorldManager.getInstance().getChunk(coordinateNorth);
-        if (this.north == null) {
-            registerChunkLoadCallback(coordinateNorth);
+
+        if (!drawnBefore) {
+            if (this.south == null) {
+                registerChunkLoadCallback(coordinateSouth);
+            }
+            if (this.north == null) {
+                registerChunkLoadCallback(coordinateNorth);
+            }
         }
     }
 
@@ -213,11 +234,12 @@ public class ChunkImageFactory {
         return color;
     }
 
-    protected void computeHeightMap() {
-        if (this.heightMap == null) {
-            this.heightMap = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
+    private void computeHeightMap() {
+        if (this.heightMap != null) {
+            return;
         }
 
+        this.heightMap = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
         for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
             for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
                 heightMap[z << 4 | x] = computeHeight(x, z);
@@ -290,5 +312,12 @@ public class ChunkImageFactory {
         heightMap[z << 4 | x] = after;
 
         return before != after;
+    }
+
+    @Override
+    public String toString() {
+        return "ChunkImageFactory{" +
+            "c=" + c.location +
+            '}';
     }
 }

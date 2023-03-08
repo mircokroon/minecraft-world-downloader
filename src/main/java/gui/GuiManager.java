@@ -4,6 +4,7 @@ package gui;
 import config.Config;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
+import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import java.net.URISyntaxException;
@@ -131,6 +132,10 @@ public class GuiManager extends Application {
             instance.settingsStage.close();
             instance.settingsStage = null;
         }
+    }
+
+    public static void resetRegion(Coordinate2D regionLocation) {
+        chunkGraphicsHandler.getRegionHandler().resetRegion(regionLocation);
     }
 
     private void loadSettingsInWindow() {

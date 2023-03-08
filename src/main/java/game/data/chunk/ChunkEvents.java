@@ -56,8 +56,10 @@ class ChunkEvent {
     int hash;
     String time;
     String msg;
+    String thread;
 
     public ChunkEvent(ChunkEvents obj, String msg) {
+        this.thread = Thread.currentThread().getName();
         this.hash = System.identityHashCode(obj);
         this.time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"));
         this.msg = msg;
@@ -65,6 +67,6 @@ class ChunkEvent {
 
     @Override
     public String toString() {
-        return hash + "@" + time + ": " + msg;
+        return String.format("[%s] obj(%s) @ %s: %s", thread, hash, time, msg);
     }
 }

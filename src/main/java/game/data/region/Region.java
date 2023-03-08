@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * Class relating to a region (32x32 chunk area), corresponds to one MCA file.
@@ -196,5 +197,9 @@ public class Region {
 
     public boolean canRemove() {
         return chunks.isEmpty();
+    }
+
+    public void forEach(Consumer<Chunk> f) {
+        chunks.values().forEach(f);
     }
 }

@@ -138,6 +138,7 @@ public class GuiMap {
             String label = coords.toString();
             if (Config.isInDevMode()) {
                 label += String.format("\t\tchunk: %s", coords.globalToChunk());
+                label += String.format("\t\tregion: %s", coords.globalToRegion());
             }
             coordsLabel.setText(label);
         });
@@ -302,11 +303,11 @@ public class GuiMap {
                 Platform.runLater(() -> helpLabel.setText(""));
             }
         }
-
+        
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
         imageFactory.onComplete((image, isSaved) -> regionHandler.drawChunk(coord, image, isSaved));
         imageFactory.onSaved(() -> regionHandler.markChunkSaved(coord));
-        imageFactory.createImage();
+        imageFactory.requestImage();
     }
 
     /**

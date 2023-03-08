@@ -463,7 +463,9 @@ public abstract class Chunk extends ChunkEntities {
 
     public ChunkImageFactory getChunkImageFactory() {
         if (imageFactory == null) {
+            // assignment should happen before running initialisation code
             imageFactory = new ChunkImageFactory(this);
+            imageFactory.initialise();
         }
         return imageFactory;
     }

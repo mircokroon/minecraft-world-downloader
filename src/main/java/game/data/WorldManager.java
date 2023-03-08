@@ -72,7 +72,7 @@ public class WorldManager {
     private boolean writeChunks;
     private boolean isStarted;
     private boolean isPaused;
-    private boolean isSaving;
+    private Set<Dimension> savingDimension;
 
     private ContainerManager containerManager;
     private CommandBlockManager commandBlockManager;
@@ -100,6 +100,7 @@ public class WorldManager {
 
         this.playerPosition = this.levelData.getPlayerPosition();
         this.dimension = this.levelData.getPlayerDimension();
+        this.savingDimension = new HashSet<>();
     }
 
     public static WorldManager getInstance() {
@@ -120,7 +121,11 @@ public class WorldManager {
 
     public void deregisterChunkLoadCallback(CoordinateDim2D coordinate, Runnable r) {
         if (chunkLoadCallbacks.containsKey(coordinate)) {
-            chunkLoadCallbacks.get(coordinate).remove(r);
+            Queue<Runnable> queue = chunkLoadCallbacks.get(coordinate);
+            queue.remove(r);
+            if (queue.isEmpty()) {
+                chunkLoadCallbacks.remove(coordinate);
+            }
         }
     }
 
@@ -129,25 +134,38 @@ public class WorldManager {
     }
 
     public void setDimension(Dimension dimension) {
+        if (this.dimension.equals(dimension)) {
+            return;
+        }
+
+        saveAndUnloadChunks();
         this.dimension = dimension;
 
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.invalidateChunks();
         }
-        unloadChunksNotIn(dimension);
 
         GuiManager.setDimension(this.dimension);
     }
 
-    /**
-     * Unload all chunks except those in the given dimension. Used when changing dimension or disconnecting.
-     */
-    private void unloadChunksNotIn(Dimension dimension) {
-        for (Map.Entry<CoordinateDim2D, Region> r : this.regions.entrySet()) {
-            if (!r.getKey().getDimension().equals(dimension)) {
-                r.getValue().unloadAll();
-            }
+    private void saveAndUnloadChunks() {
+        if (saveService == null) {
+            return;
         }
+
+        // keep references of dimensions and regions, since the saving thread executes later and
+        // will have been overwritten by then
+        Dimension dimension = this.dimension;
+        Map<CoordinateDim2D, Region> regions = this.regions;
+        saveService.execute(() -> {
+            save(dimension, regions);
+            unloadChunks(regions);
+        });
+        this.regions = new ConcurrentHashMap<>();
+    }
+
+    private void unloadChunks(Map<CoordinateDim2D, Region> regions) {
+        regions.values().forEach(Region::unloadAll);
     }
 
     public double getPlayerRotation() {
@@ -175,46 +193,52 @@ public class WorldManager {
     }
 
     /**
-     * Draw all previously-downloaded chunks in the GUI. We can't just load them all and immediately draw them to the
-     * GUI, as the shading requires that we look at neighbouring chunks. We first add them all to the world manager,
-     * then draw them, and then delete them. This is more work but ensures proper shading on all chunks.
-     * @param center
+     * Draw all previously-downloaded chunks in the GUI. Some limits in place
+     * @param center center region around which to find neighbouring regions
      */
     public void drawExistingChunks(Coordinate2D center) {
-        int limit = 48000;
-        Collection<McaFile> files = McaFile.getFiles(center, this.dimension, 24).collect(Collectors.toList());
+        Collection<McaFile> files = McaFile.getFiles(center, this.dimension, 16).toList();
 
-        int chunksLoaded = 0;
         for (McaFile file : files) {
-            System.out.println("Loading file " + file);
-
-            if (chunksLoaded > limit) {
-                break;
-            }
-            Map<CoordinateDim2D, Chunk> chunks = file.getParsedChunks(this.dimension);
-
-            // Step 2: add all chunks to the WorldManager if it doesn't have them yet
-            Set<CoordinateDim2D> toDelete = new HashSet<>();
-            for (Map.Entry<CoordinateDim2D, Chunk> entry : chunks.entrySet()) {
-                if (chunksLoaded > limit) {
-                    break;
-                }
-
-                CoordinateDim2D coord = entry.getKey();
-                Chunk chunk = entry.getValue();
-                if (getChunk(coord) == null) {
-                    toDelete.add(coord);
-                    loadChunk(chunk, false, false);
-                    chunksLoaded++;
-                }
-            }
-
-            // Step 3: draw to GUI
-            chunks.forEach(GuiManager::setChunkLoaded);
-
-            // Step 4: delete the newly added chunks
-            toDelete.forEach(this::unloadChunk);
+            drawRegion(file);
         }
+    }
+
+    public void drawExistingRegion(Coordinate2D coords) {
+        CoordinateDim2D regionCoordinates = coords.addDimension(this.dimension);
+        drawRegion(new McaFile(regionCoordinates));
+    }
+
+    /**
+     * Draw a region from a given MCA file. We can't just load them all and immediately draw them to
+     * the GUI, as the shading requires that we look at neighbouring chunks. We first add them all
+     * to the world manager, then draw them, and then delete them. This is more work but ensures
+     * proper shading on all chunks.
+     * @return the number of chunks drawn
+     */
+    private void drawRegion(McaFile file) {
+        GuiManager.resetRegion(file.getRegionLocation());
+        Map<CoordinateDim2D, Chunk> chunks = file.getParsedChunks(this.dimension);
+
+        // add all chunks to the WorldManager if it doesn't have them yet
+        Set<CoordinateDim2D> toDelete = new HashSet<>();
+        for (Map.Entry<CoordinateDim2D, Chunk> entry : chunks.entrySet()) {
+            CoordinateDim2D coord = entry.getKey();
+            Chunk chunk = entry.getValue();
+            Chunk existing = getChunk(coord);
+            if (existing == null) {
+                toDelete.add(coord);
+                loadChunk(chunk, false, false);
+            } else {
+                existing.getChunkImageFactory().requestImage();
+            }
+        }
+
+        // draw to GUI
+        chunks.forEach(GuiManager::setChunkLoaded);
+
+        // delete the newly added chunks
+        toDelete.forEach(this::unloadChunk);
     }
 
     /**
@@ -261,9 +285,9 @@ public class WorldManager {
         }
     }
 
-    public void chunkLoadedCallback(CoordinateDim2D coordinateDim2D) {
+    public void chunkLoadedCallback(Chunk c) {
         // run callbacks
-        Queue<Runnable> callbacks = chunkLoadCallbacks.remove(coordinateDim2D);
+        Queue<Runnable> callbacks = chunkLoadCallbacks.remove(c.location);
         if (callbacks != null) {
             while (!callbacks.isEmpty()) {
                 callbacks.remove().run();
@@ -378,23 +402,23 @@ public class WorldManager {
         saveService.scheduleWithFixedDelay(() -> attempt(this::save), INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Save the world. Will tell all regions to save their chunks.
-     */
-    public void save() {
+    private void save(Dimension dimension, Map<CoordinateDim2D, Region> regions) {
         if (!writeChunks) {
             return;
         }
 
-        // make sure we can't have two saving calls at once (due to save & exit). If one is already
-        // running, wait for it to complete.
-        if (isSaving) {
+        if (savingDimension.contains(dimension)) {
+            System.out.println("Dimension " + dimension + " already being saved");
             if (saveService != null) {
                 attempt(() -> saveService.awaitTermination(30, TimeUnit.SECONDS));
             }
             return;
         }
-        isSaving = true;
+        savingDimension.add(dimension);
+
+        // save level.dat
+        attempt(levelData::save);
+        attempt(mapRegistry::save);
 
         if (!regions.isEmpty()) {
             // convert the values to an array first to prevent blocking any threads
@@ -410,14 +434,10 @@ public class WorldManager {
             }
         }
 
-        // save level.dat
-        attempt(levelData::save);
-        attempt(mapRegistry::save);
-
         // remove empty regions
         regions.entrySet().removeIf(el -> el.getValue().isEmpty());
 
-        isSaving = false;
+        savingDimension.remove(dimension);
 
         if (this.renderDistanceExtender != null) {
             this.renderDistanceExtender.checkDistance();
@@ -425,6 +445,13 @@ public class WorldManager {
 
         // suggest GC to clear up some memory that may have been freed by saving
         System.gc();
+    }
+
+    /**
+     * Save the world. Will tell all regions to save their chunks.
+     */
+    public void save() {
+        save(this.dimension, this.regions);
     }
 
     private void write(McaFile file) {
@@ -598,7 +625,7 @@ public class WorldManager {
         }
         this.entityRegistry.reset();
         this.chunkFactory.reset();
-        this.unloadChunksNotIn(null);
+        this.saveAndUnloadChunks();
     }
 
     public EntityRegistry getEntityRegistry() {
@@ -617,6 +644,10 @@ public class WorldManager {
     }
 
     public int countActiveChunks() {
+        return countActiveChunks(regions);
+    }
+
+    private int countActiveChunks(Map<CoordinateDim2D, Region> regions) {
         int total = 0;
         for (Region r : regions.values()) {
             total += r.countChunks();
@@ -678,6 +709,11 @@ public class WorldManager {
     public int countActiveRegions() {
         return this.regions.size();
     }
+
+    public int countQueuedChunks() {
+        return this.chunkFactory.countQueuedChunks();
+    }
+
 
     public int countActiveBinaryChunks() {
         return this.regions.values().stream().mapToInt(el -> el.getFile().countChunks()).sum();

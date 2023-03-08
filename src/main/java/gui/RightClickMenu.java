@@ -63,7 +63,14 @@ public class RightClickMenu extends ContextMenu {
         menu.add(new SeparatorMenuItem());
 
         menu.add(construct("Redraw nearby chunks", e -> {
-            new Thread(() -> WorldManager.getInstance().drawExistingChunks(handler.getCenter())).start();
+            Coordinate2D region = handler.getCursorCoordinates().globalToRegion();
+            new Thread(() -> WorldManager.getInstance().drawExistingChunks(region)).start();
+        }));
+
+        menu.add(construct("Redraw region", e -> {
+            Coordinate2D region = handler.getCursorCoordinates().globalToRegion();
+            handler.getRegionHandler().resetRegion(region);
+            new Thread(() -> WorldManager.getInstance().drawExistingRegion(region)).start();
         }));
 
         menu.add(construct("Copy coordinates", e -> {
@@ -109,6 +116,7 @@ public class RightClickMenu extends ContextMenu {
         menu.add(construct("Print stats", e -> {
             int regions = WorldManager.getInstance().countActiveRegions();
             int binaryChunks = WorldManager.getInstance().countActiveBinaryChunks();
+            int unpasedChunks = WorldManager.getInstance().countQueuedChunks();
             int chunks = WorldManager.getInstance().countActiveChunks();
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
             int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
@@ -118,13 +126,14 @@ public class RightClickMenu extends ContextMenu {
             System.out.printf("Statistics:" +
                             "\n\tActive regions: %d" +
                             "\n\tActive binary chunks: %d" +
+                            "\n\tActive unparsed chunks: %d" +
                             "\n\tActive chunks: %d" +
                             "\n\tActive entities: %d" +
                             "\n\tActive players: %d" +
                             "\n\tActive maps: %d" +
                             "\n\tActive region images: %d" +
                             "\n",
-                    regions, binaryChunks, chunks, entities, players, maps, images);
+                    regions, binaryChunks, unpasedChunks, chunks, entities, players, maps, images);
         }));
 
         menu.add(construct("Print chunk events", e -> {

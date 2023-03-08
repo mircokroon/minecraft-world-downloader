@@ -21,7 +21,7 @@ import java.util.concurrent.*;
 public class ChunkFactory {
     private Map<CoordinateDim2D, UnparsedChunk> unparsedChunks;
 
-    private ExecutorService executor;
+    private ThreadPoolExecutor executor;
 
     public ChunkFactory() {
         clear();
@@ -30,7 +30,12 @@ public class ChunkFactory {
     public void clear() {
         this.unparsedChunks = new ConcurrentHashMap<>();
 
-        this.executor = Executors.newSingleThreadExecutor(r -> new Thread(r, "Chunk Parser Service"));;
+        // same as newSingleThreadExecutor except we can observe the queue size
+        this.executor = new ThreadPoolExecutor(
+            1, 1, 0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(),
+            (r) -> new Thread(r, "Chunk Parser Service")
+        );
     }
 
     /**
@@ -216,6 +221,10 @@ public class ChunkFactory {
         }
 
         return current;
+    }
+
+    public int countQueuedChunks() {
+        return executor.getQueue().size();
     }
 }
 

@@ -34,7 +34,7 @@ public class RegionImage {
     private RegionImage(WritableImage image) {
         this.image = image;
         this.buffer = new byte[16 * 16 * 4];
-        this.saved = false;
+        this.saved = true;
 
         if (Config.markUnsavedChunks() || Config.markOldChunks()) {
             chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
@@ -112,8 +112,12 @@ public class RegionImage {
         }
         saved = true;
 
-        File f = Path.of(p.toString(), filename(coords)).toFile();
+        File f = getFile(p, coords);
         ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", f);
+    }
+
+    public static File getFile(Path p, Coordinate2D coords) {
+        return Path.of(p.toString(), filename(coords)).toFile();
     }
 
     private static String filename(Coordinate2D coords) {
