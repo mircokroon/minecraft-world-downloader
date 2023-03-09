@@ -5,12 +5,18 @@ import game.protocol.ProtocolVersionHandler;
 
 public class VersionReporter {
     private final int protocolVersion;
+    private Protocol protocol;
     public VersionReporter(int version) {
         this.protocolVersion = version;
+        this.protocol = ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(protocolVersion);
+    }
+
+    public int dataVersion() {
+        return protocol.getDataVersion();
     }
 
     public Protocol getProtocol() {
-        return ProtocolVersionHandler.getInstance().getProtocolByProtocolVersion(protocolVersion);
+        return protocol;
     }
 
     public static <T> T select(int dataVersion, Class<T> type, Option... opts) {

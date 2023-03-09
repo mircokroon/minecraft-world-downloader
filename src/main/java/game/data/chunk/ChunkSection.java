@@ -30,7 +30,9 @@ public abstract class ChunkSection {
 
     BlockLocationEncoder locationHelper = new BlockLocationEncoder();
 
-    public abstract int getDataVersion();
+    public int getDataVersion() {
+        return chunk.getDataVersion();
+    }
 
     public ChunkSection(byte y, Palette palette, Chunk chunk) {
         this.chunk = chunk;

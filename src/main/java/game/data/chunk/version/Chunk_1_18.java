@@ -1,6 +1,5 @@
 package game.data.chunk.version;
 
-import config.Version;
 import game.data.chunk.BlockEntityRegistry;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.BlockState;
@@ -22,14 +21,9 @@ import se.llbit.nbt.StringTag;
 import se.llbit.nbt.Tag;
 
 public class Chunk_1_18 extends Chunk_1_17 {
-    public static final Version VERSION = Version.V1_18;
-
-    public Chunk_1_18(CoordinateDim2D location) {
-        super(location);
+    public Chunk_1_18(CoordinateDim2D location, int version) {
+        super(location, version);
     }
-
-    @Override
-    public int getDataVersion() { return VERSION.dataVersion; }
 
     @Override
     public ChunkSection createNewChunkSection(byte y, Palette palette) {

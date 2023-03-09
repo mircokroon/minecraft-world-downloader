@@ -1,6 +1,5 @@
 package game.data.chunk.version;
 
-import config.Version;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.DirectPalette;
 import game.data.chunk.palette.Palette;
@@ -8,19 +7,18 @@ import game.data.chunk.palette.PaletteTransformer;
 import game.data.chunk.palette.PaletteType;
 import game.data.chunk.palette.SingleValuePalette;
 import game.data.coordinates.Coordinate3D;
-import se.llbit.nbt.*;
-
 import java.util.List;
+import se.llbit.nbt.ByteArrayTag;
+import se.llbit.nbt.ByteTag;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.ListTag;
+import se.llbit.nbt.LongArrayTag;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.Tag;
 
-public class ChunkSection_1_18 extends ChunkSection_1_17 {
+public class ChunkSection_1_18 extends ChunkSection_1_16 {
     long[] biomes;
     Palette biomePalette;
-
-    public static final Version VERSION = Version.V1_18;
-    @Override
-    public int getDataVersion() {
-        return VERSION.dataVersion;
-    }
 
     public ChunkSection_1_18(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);

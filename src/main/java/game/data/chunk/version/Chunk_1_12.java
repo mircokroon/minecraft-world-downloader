@@ -16,15 +16,10 @@ import java.util.Arrays;
  * Chunks in the 1.12(.2) format. Biomes were a byte array in this version.
  */
 public class Chunk_1_12 extends Chunk {
-    public static final Version VERSION = Version.V1_12;
-
-    @Override
-    public int getDataVersion() { return VERSION.dataVersion; }
-
     private byte[] biomes;
 
-    public Chunk_1_12(CoordinateDim2D location) {
-        super(location);
+    public Chunk_1_12(CoordinateDim2D location, int version) {
+        super(location, version);
 
         this.biomes = new byte[256];
     }

@@ -7,12 +7,6 @@ import packets.builder.PacketBuilder;
 import se.llbit.nbt.Tag;
 
 public class ChunkSection_1_14 extends ChunkSection_1_13 {
-    public static final Version VERSION = Version.V1_14;
-    @Override
-    public int getDataVersion() {
-        return VERSION.dataVersion;
-    }
-
     public ChunkSection_1_14(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);
     }

@@ -22,12 +22,6 @@ import java.util.Arrays;
  * convert the palette from the packet to an NBT palette.
  */
 public class ChunkSection_1_13 extends ChunkSection {
-    public static final Version VERSION = Version.V1_13;
-    @Override
-    public int getDataVersion() {
-        return VERSION.dataVersion;
-    }
-
     public ChunkSection_1_13(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);
     }

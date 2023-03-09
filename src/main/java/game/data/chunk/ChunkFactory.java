@@ -145,17 +145,7 @@ public class ChunkFactory {
      * @return the chunk matching the given version
      */
     private static Chunk getVersionedChunk(CoordinateDim2D chunkPos) {
-        return Config.versionReporter().select(Chunk.class,
-                Option.of(Version.V1_19_3, () -> new Chunk_1_19_3(chunkPos)),
-                Option.of(Version.V1_19, () -> new Chunk_1_19(chunkPos)),
-                Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos)),
-                Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),
-                Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
-                Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos)),
-                Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos)),
-                Option.of(Version.V1_13, () -> new Chunk_1_13(chunkPos)),
-                Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos))
-        );
+        return getVersionedChunk(Config.versionReporter().dataVersion(), chunkPos);
     }
 
     /**
@@ -165,15 +155,13 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
         return VersionReporter.select(dataVersion, Chunk.class,
-                Option.of(Version.V1_19_3, () -> new Chunk_1_19_3(chunkPos)),
-                Option.of(Version.V1_19, () -> new Chunk_1_19(chunkPos)),
-                Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos)),
-                Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos)),
-                Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos)),
-                Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos)),
-                Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos)),
-                Option.of(Version.V1_13, () -> new Chunk_1_13(chunkPos)),
-                Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos))
+                Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos, dataVersion)),
+                Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos, dataVersion)),
+                Option.of(Version.V1_16, () -> new Chunk_1_16(chunkPos, dataVersion)),
+                Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos, dataVersion)),
+                Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos, dataVersion)),
+                Option.of(Version.V1_13, () -> new Chunk_1_13(chunkPos, dataVersion)),
+                Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos, dataVersion))
         );
     }
 

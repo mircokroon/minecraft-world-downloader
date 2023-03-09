@@ -16,15 +16,10 @@ import java.util.Arrays;
  * Chunk format for 1.13+. Now includes a status tag and the biomes are integers.
  */
 public class Chunk_1_13 extends Chunk {
-    public static final Version VERSION = Version.V1_13;
-
-    @Override
-    public int getDataVersion() { return VERSION.dataVersion; }
-
     private int[] biomes;
 
-    public Chunk_1_13(CoordinateDim2D location) {
-        super(location);
+    public Chunk_1_13(CoordinateDim2D location, int version) {
+        super(location, version);
     }
 
 
