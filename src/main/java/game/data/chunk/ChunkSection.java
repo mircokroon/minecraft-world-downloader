@@ -1,5 +1,6 @@
 package game.data.chunk;
 
+import game.data.chunk.palette.GlobalPalette;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -14,13 +15,12 @@ import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.Tag;
 
 /**
  * Class to hold a 16 block tall chunk section.
  */
 public abstract class ChunkSection {
-    protected Chunk chunk;
+    protected final Chunk chunk;
 
     protected long[] blocks;
     protected byte[] blockLight;
@@ -30,7 +30,9 @@ public abstract class ChunkSection {
 
     BlockLocationEncoder locationHelper = new BlockLocationEncoder();
 
-    public abstract int getDataVersion();
+    public int getDataVersion() {
+        return chunk.getDataVersion();
+    }
 
     public ChunkSection(byte y, Palette palette, Chunk chunk) {
         this.chunk = chunk;
@@ -44,8 +46,9 @@ public abstract class ChunkSection {
         return this.locationHelper;
     }
 
-    public ChunkSection(int sectionY, Tag nbt) {
+    public ChunkSection(int sectionY, Chunk chunk) {
         this.y = (byte) sectionY;
+        this.chunk = chunk;
     }
 
     public void setSkyLight(byte[] skyLight) {
@@ -91,10 +94,12 @@ public abstract class ChunkSection {
     }
 
     public int computeHeight(int x, int z, MutableBoolean foundAir) {
+        GlobalPalette globalPalette = GlobalPaletteProvider.getGlobalPalette(getDataVersion());
+
         for (int y = 15; y >= 0 ; y--) {
             int blockStateId = getNumericBlockStateAt(x, y, z);
 
-            BlockState state = GlobalPaletteProvider.getGlobalPalette(getDataVersion()).getState(blockStateId);
+            BlockState state = globalPalette.getState(blockStateId);
 
             if (state == null || !state.isSolid()) {
                 foundAir.setTrue();
@@ -205,6 +210,15 @@ public abstract class ChunkSection {
     public void copyTo(ChunkSection other) {
         other.blocks = this.blocks;
         other.palette = this.palette;
+    }
+
+    @Override
+    public String toString() {
+        return "ChunkSection{" +
+            "blocks=[" + blocks.length +
+            "], y=" + y +
+            ", palette=" + palette +
+            '}';
     }
 }
 

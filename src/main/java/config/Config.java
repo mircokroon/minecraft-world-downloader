@@ -309,7 +309,6 @@ public class Config {
             if (loader == null) { return; }
 
             WorldManager.getInstance().setEntityMap(loader.generateEntityNames());
-            WorldManager.getInstance().initialiseRegistries();
 
             RegistryManager.getInstance().setRegistries(loader);
 
@@ -418,6 +417,10 @@ public class Config {
             usage = "Disable marking unsaved chunks in red on the map")
     public boolean disableMarkUnsavedChunks = false;
 
+    @Option(name = "--mark-old-chunks",
+        usage = "Grey out old chunks on the map")
+    public boolean markOldChunks = true;
+
     @Option(name = "--ignore-block-changes",
             usage = "Ignore changes to chunks after they have been loaded.")
     public boolean ignoreBlockChanges = false;
@@ -437,6 +440,9 @@ public class Config {
     @Option(name = "--disable-messages",
             usage = "Disable various info messages (e.g. chest saving).")
     public boolean disableInfoMessages = false;
+
+    // not really important enough to have an option in the GUI
+    public boolean smoothZooming = true;
 
     // getters
     public static int getExtendedRenderDistance() {
@@ -499,6 +505,14 @@ public class Config {
     }
 
     public static boolean sendInfoMessages() { return !instance.disableInfoMessages; }
+
+    public static boolean smoothZooming() {
+        return instance.smoothZooming;
+    }
+
+    public static boolean markOldChunks() {
+        return instance.markOldChunks;
+    }
 
     // setters
     public static void setZoomLevel(int val) {

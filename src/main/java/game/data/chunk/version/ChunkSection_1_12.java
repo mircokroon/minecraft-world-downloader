@@ -22,22 +22,15 @@ import java.util.function.IntUnaryOperator;
  * as the new versions do. As such this class is more lengthy than the new versions.
  */
 public class ChunkSection_1_12 extends ChunkSection {
-    public static final Version VERSION = Version.V1_12;
-    @Override
-    public int getDataVersion() {
-        return VERSION.dataVersion;
-    }
-
     protected int[][][] blockStates;
-
 
     public ChunkSection_1_12(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);
         this.blockStates = new int[16][16][16];
     }
 
-    public ChunkSection_1_12(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+    public ChunkSection_1_12(int sectionY, Tag nbt, Chunk chunk) {
+        super(sectionY, chunk);
         this.blockStates = new int[16][16][16];
         this.palette = new DirectPalette();
 

@@ -1,6 +1,7 @@
 package packets.builder;
 
 import config.Config;
+import config.Version;
 import game.protocol.Protocol;
 import packets.DataTypeProvider;
 import packets.UUID;
@@ -48,14 +49,14 @@ public class PacketBuilder {
      */
     public static PacketBuilder constructClientMessage(Chat message, MessageTarget target) {
         Protocol protocol = Config.versionReporter().getProtocol();
-        String packetName = Config.versionReporter().isAtLeast1_19() ? "SystemChat" : "Chat";
+        String packetName = Config.versionReporter().isAtLeast(Version.V1_19) ? "SystemChat" : "Chat";
         PacketBuilder builder = new PacketBuilder(protocol.clientBound(packetName));
 
         builder.writeString(message.toJson());
         builder.writeByte(target.getIdentifier());
 
         // uuid is only included from 1.16, from 1.19 player chat is a different packet
-        if (Config.versionReporter().isAtLeast1_16() && !Config.versionReporter().isAtLeast1_19()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_16) && !Config.versionReporter().isAtLeast(Version.V1_19)) {
             builder.writeUUID(new UUID(0L, 0L));
         }
         return builder;

@@ -1,30 +1,29 @@
 package game.data.chunk.version;
 
-import config.Version;
 import game.data.chunk.BlockEntityRegistry;
-import game.data.chunk.palette.GlobalPalette;
-import game.data.chunk.palette.PaletteType;
-import game.data.chunk.version.encoder.BlockLocationEncoder_1_16;
-import game.data.registries.RegistryManager;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.BlockState;
+import game.data.chunk.palette.GlobalPalette;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
+import game.data.chunk.palette.PaletteType;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
+import game.data.registries.RegistryManager;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
-import se.llbit.nbt.*;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.IntTag;
+import se.llbit.nbt.ListTag;
+import se.llbit.nbt.NamedTag;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
+import se.llbit.nbt.Tag;
 
 public class Chunk_1_18 extends Chunk_1_17 {
-    public static final Version VERSION = Version.V1_18;
-
-    public Chunk_1_18(CoordinateDim2D location) {
-        super(location);
+    public Chunk_1_18(CoordinateDim2D location, int version) {
+        super(location, version);
     }
-
-    @Override
-    public int getDataVersion() { return VERSION.dataVersion; }
 
     @Override
     public ChunkSection createNewChunkSection(byte y, Palette palette) {
@@ -33,7 +32,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
 
     @Override
     protected ChunkSection parseSection(int sectionY, SpecificTag section) {
-        return new ChunkSection_1_18(sectionY, section);
+        return new ChunkSection_1_18(sectionY, section, this);
     }
 
     /**
@@ -77,6 +76,8 @@ public class Chunk_1_18 extends Chunk_1_17 {
 
             if (section == null) {
                 section = (ChunkSection_1_18) createNewChunkSection((byte) (sectionY & 0xFF), blockPalette);
+            } else {
+                section.setBlockPalette(blockPalette);
             }
 
             section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
@@ -194,6 +195,29 @@ public class Chunk_1_18 extends Chunk_1_17 {
         map.add("sections", new ListTag(Tag.TAG_COMPOUND, getSectionList()));
 
         addBlockEntities(map);
+    }
+
+    @Override
+    public void parse(Tag tag) {
+        raiseEvent("parse from nbt");
+
+        tag.asCompound().get("sections").asList().forEach(section -> {
+            int sectionY = section.get("Y").byteValue();
+            setChunkSection(sectionY, parseSection(sectionY, section));
+        });
+        parseHeightMaps(tag);
+        parseBiomes(tag);
+    }
+
+    @Override
+    protected void parseHeightMaps(Tag tag) {
+        heightMap = tag.asCompound().get("Heightmaps").asCompound();
+    }
+
+    @Override
+    protected void parseBiomes(Tag tag) {
+        Tag biomeTag = tag.asCompound().get("Biomes");
+        setBiomes(biomeTag.intArray());
     }
 
 

@@ -2,7 +2,9 @@ package gui;
 
 
 import config.Config;
+import game.data.WorldManager;
 import game.data.chunk.Chunk;
+import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import java.net.URISyntaxException;
@@ -21,12 +23,8 @@ import javafx.stage.Stage;
 import java.awt.*;
 import java.io.*;
 import java.net.URI;
-import java.util.List;
-import java.util.function.Consumer;
-import org.apache.commons.lang3.SystemUtils;
 
 import static util.ExceptionHandling.attempt;
-import static util.ExceptionHandling.attemptQuiet;
 
 /**
  * Class to the handle the GUI.
@@ -134,6 +132,10 @@ public class GuiManager extends Application {
             instance.settingsStage.close();
             instance.settingsStage = null;
         }
+    }
+
+    public static void resetRegion(Coordinate2D regionLocation) {
+        chunkGraphicsHandler.getRegionHandler().resetRegion(regionLocation);
     }
 
     private void loadSettingsInWindow() {
@@ -272,7 +274,7 @@ public class GuiManager extends Application {
 
         // when in GUI mode, close the application when the main stage is closed.
         this.stage.setOnCloseRequest(e -> {
-            System.exit(0);
+            saveAndExit();
         });
 
         if (config.startWithSettings()) {
@@ -280,6 +282,24 @@ public class GuiManager extends Application {
         } else {
             loadSceneMap();
         }
+    }
+
+    public static void saveAndExit() {
+        getStage().hide();
+
+        Platform.runLater(() -> {
+            // first stop both saving executor threads
+            chunkGraphicsHandler.getRegionHandler().shutdown();
+            WorldManager.getInstance().shutdown();
+
+            // then save world, if they are already in the process of saving they will wait for the
+            // executor to finish before returning
+            chunkGraphicsHandler.getRegionHandler().save();
+            WorldManager.getInstance().save();
+
+            Platform.exit();
+            System.exit(0);
+        });
     }
 
     static void setGraphicsHandler(GuiMap map) {
@@ -303,19 +323,6 @@ public class GuiManager extends Application {
     public static void setChunkLoaded(CoordinateDim2D coord, Chunk chunk) {
         if (chunkGraphicsHandler != null) {
             chunkGraphicsHandler.setChunkLoaded(coord, chunk);
-        }
-    }
-
-
-    public static void setChunkState(CoordinateDim2D coord, ChunkState state) {
-        if (chunkGraphicsHandler != null) {
-            chunkGraphicsHandler.setChunkState(coord, state);
-        }
-    }
-
-    public static void outlineExistingChunks(List<CoordinateDim2D> existing) {
-        if (chunkGraphicsHandler != null) {
-            existing.forEach(c -> chunkGraphicsHandler.setChunkState(c, ChunkState.exists()));
         }
     }
 

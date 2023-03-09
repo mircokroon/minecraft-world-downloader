@@ -33,12 +33,13 @@ public abstract class Chunk extends ChunkEntities {
     private boolean isNewChunk;
     private boolean saved;
     private ChunkImageFactory imageFactory;
-    private boolean isLit;
 
-    public Chunk(CoordinateDim2D location) {
+    private final int dataVersion;
+
+    public Chunk(CoordinateDim2D location, int dataVersion) {
         super();
 
-        this.isLit = false;
+        this.dataVersion = dataVersion;
         this.saved = false;
         this.location = location;
         this.isNewChunk = false;
@@ -75,13 +76,18 @@ public abstract class Chunk extends ChunkEntities {
         return () -> Arrays.stream(chunkSections).filter(Objects::nonNull).iterator();
     }
 
-    public abstract int getDataVersion();
+    public int getDataVersion() {
+        return dataVersion;
+    }
 
     public boolean isSaved() {
         return saved;
     }
 
     public void setSaved(boolean saved) {
+        if (saved && !this.saved) {
+            getChunkImageFactory().markSaved();
+        }
         this.saved = saved;
     }
 
@@ -445,9 +451,10 @@ public abstract class Chunk extends ChunkEntities {
     @Override
     public String toString() {
         return "Chunk{" +
-                "location=" + location +
-                ", chunkSections=" + Arrays.toString(chunkSections) +
-                '}';
+            "dataVersion=" + dataVersion +
+            ", location=" + location +
+            ", chunkSections=" + Arrays.toString(chunkSections) +
+            '}';
     }
 
     public void unload() {
@@ -460,7 +467,9 @@ public abstract class Chunk extends ChunkEntities {
 
     public ChunkImageFactory getChunkImageFactory() {
         if (imageFactory == null) {
+            // assignment should happen before running initialisation code
             imageFactory = new ChunkImageFactory(this);
+            imageFactory.initialise();
         }
         return imageFactory;
     }
@@ -527,8 +536,6 @@ public abstract class Chunk extends ChunkEntities {
 
     public void updateLight(DataTypeProvider provider) {
         raiseEvent("update lighting");
-
-        this.isLit = true;
     }
 
     public ChunkState getState() {

@@ -1,6 +1,5 @@
 package game.data.chunk.version;
 
-import config.Version;
 import game.data.chunk.Chunk;
 import game.data.chunk.palette.DirectPalette;
 import game.data.chunk.palette.Palette;
@@ -8,26 +7,35 @@ import game.data.chunk.palette.PaletteTransformer;
 import game.data.chunk.palette.PaletteType;
 import game.data.chunk.palette.SingleValuePalette;
 import game.data.coordinates.Coordinate3D;
-import se.llbit.nbt.*;
-
 import java.util.List;
+import se.llbit.nbt.ByteArrayTag;
+import se.llbit.nbt.ByteTag;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.ListTag;
+import se.llbit.nbt.LongArrayTag;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.Tag;
 
-public class ChunkSection_1_18 extends ChunkSection_1_17 {
+public class ChunkSection_1_18 extends ChunkSection_1_16 {
     long[] biomes;
     Palette biomePalette;
-
-    public static final Version VERSION = Version.V1_18;
-    @Override
-    public int getDataVersion() {
-        return VERSION.dataVersion;
-    }
 
     public ChunkSection_1_18(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);
     }
 
-    public ChunkSection_1_18(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+    public ChunkSection_1_18(int sectionY, Tag nbt, Chunk chunk) {
+        super(sectionY, nbt, chunk);
+    }
+
+    @Override
+    protected void parse(Tag nbt) {
+        this.setBlockLight(nbt.get("BlockLight").byteArray());
+        this.setSkyLight(nbt.get("SkyLight").byteArray());
+
+        CompoundTag blockStates = nbt.get("block_states").asCompound();
+        this.setBlocks(blockStates.get("data").longArray());
+        this.palette = new Palette(getDataVersion(), blockStates.get("palette").asList());
     }
 
     public void setBiomes(long[] biomes) {
@@ -37,6 +45,10 @@ public class ChunkSection_1_18 extends ChunkSection_1_17 {
     public void setBiomePalette(Palette biomePalette) {
         this.biomePalette = biomePalette;
         this.biomePalette.biomePalette();
+    }
+
+    public void setBlockPalette(Palette blockPalette) {
+        this.palette = blockPalette;
     }
 
     @Override

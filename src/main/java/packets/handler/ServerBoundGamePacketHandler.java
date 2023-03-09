@@ -1,5 +1,6 @@
 package packets.handler;
 
+import config.Version;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,8 +20,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             double y = provider.readDouble();
             double z = provider.readDouble();
 
-            CoordinateDouble3D playerPos = new CoordinateDouble3D(x, y, z);
-            WorldManager.getInstance().setPlayerPosition(playerPos);
+            WorldManager.getInstance().setPlayerPosition(x, y, z);
 
             return true;
         };
@@ -43,7 +43,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
         operations.put("UseItem", provider -> {
             // newer versions first include a VarInt with the hand
-            if (Config.versionReporter().isAtLeast1_14()) {
+            if (Config.versionReporter().isAtLeast(Version.V1_14)) {
                 provider.readVarInt();
             }
 

@@ -1,28 +1,21 @@
 package game.data.chunk.version;
 
-import config.Version;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
+import java.util.ArrayList;
+import java.util.Collection;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 /**
  * Support for chunks of version 1.16.2+. 1.16.0 and 1.16.1 are not supported.
  */
 public class Chunk_1_16 extends Chunk_1_15 {
-    public static final Version VERSION = Version.V1_16;
-
-    @Override
-    public int getDataVersion() { return VERSION.dataVersion; }
-
-    public Chunk_1_16(CoordinateDim2D location) {
-        super(location);
+    public Chunk_1_16(CoordinateDim2D location, int version) {
+        super(location, version);
     }
 
 
@@ -40,7 +33,7 @@ public class Chunk_1_16 extends Chunk_1_15 {
 
     @Override
     protected ChunkSection parseSection(int sectionY, SpecificTag section) {
-        return new ChunkSection_1_16(sectionY, section);
+        return new ChunkSection_1_16(sectionY, section, this);
     }
 
     @Override

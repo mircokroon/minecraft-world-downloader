@@ -2,6 +2,7 @@ package game.data;
 
 import config.Config;
 import config.Option;
+import config.Version;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
@@ -96,7 +97,7 @@ public class LevelData {
     }
 
     private static String getGeneratorSettingsName() {
-        if (Config.versionReporter().isAtLeast1_19()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_19)) {
             return "world-gen-settings-1.19.dat";
         } else {
             return "world-gen-settings-1.16.dat";
@@ -166,7 +167,7 @@ public class LevelData {
     }
 
     private void enableWorldGeneration(CompoundTag data) {
-        if (Config.versionReporter().isAtLeast1_16()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_16)) {
             LongTag seed = new LongTag(Config.getLevelSeed());
 
             CompoundTag dimensions = this.worldGenSettings.get("dimensions").asCompound();
@@ -192,7 +193,7 @@ public class LevelData {
      * Set world type to a superflat void world.
      */
     private void disableWorldGeneration(CompoundTag data) {
-        if (Config.versionReporter().isAtLeast1_16()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_16)) {
             CompoundTag generator = new CompoundTag();
             generator.add("type", new StringTag("minecraft:flat"));
             generator.add("settings", new CompoundTag(Arrays.asList(

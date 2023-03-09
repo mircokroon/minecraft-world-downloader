@@ -22,17 +22,15 @@ import java.util.Arrays;
  * convert the palette from the packet to an NBT palette.
  */
 public class ChunkSection_1_13 extends ChunkSection {
-    public static final Version VERSION = Version.V1_13;
-    @Override
-    public int getDataVersion() {
-        return VERSION.dataVersion;
-    }
-
     public ChunkSection_1_13(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);
     }
-    public ChunkSection_1_13(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+    public ChunkSection_1_13(int sectionY, Tag nbt, Chunk chunk) {
+        super(sectionY, chunk);
+        parse(nbt);
+    }
+
+    protected void parse(Tag nbt) {
         this.setBlocks(nbt.get("BlockStates").longArray());
         this.setBlockLight(nbt.get("BlockLight").byteArray());
         this.setSkyLight(nbt.get("SkyLight").byteArray());

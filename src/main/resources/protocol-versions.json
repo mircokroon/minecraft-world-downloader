@@ -1,8 +1,8 @@
 {
 	"protocols": {
-		"340": {
+		"317": {
 			"version": "1.12.2",
-			"dataVersion": 1343,
+			"dataVersion": 1132,
 			"clientBound": {
 				"0x20": "LevelChunk",
 				"0x0B": "BlockUpdate",
@@ -34,9 +34,9 @@
 				"0x08": "ContainerClose"
 			}
 		},
-		"404": {
+		"341": {
 			"version": "1.13.2",
-			"dataVersion": 1631,
+			"dataVersion": 1444,
 			"clientBound": {
 				"0x22": "LevelChunk",
 				"0x0B": "BlockUpdate",
@@ -58,9 +58,9 @@
 				"0x29": "UseItem"
 			}
 		},
-		"498": {
+		"440": {
 			"version": "1.14.4",
-			"dataVersion": 1976,
+			"dataVersion": 1901,
 			"clientBound": {
 				"0x21": "LevelChunk",
 				"0x0B": "BlockUpdate",
@@ -94,9 +94,9 @@
 				"0x0A": "ContainerClose"
 			}
 		},
-		"578": {
+		"550": {
 			"version": "1.15.2",
-			"dataVersion": 2225,
+			"dataVersion": 2200,
 			"clientBound": {
 				"0x22": "LevelChunk",
 				"0x0C": "BlockUpdate",
@@ -130,7 +130,7 @@
 				"0x0A": "ContainerClose"
 			}
 		},
-		"754": {
+		"701": {
 			"version": "1.16.2",
 			"dataVersion": 2578,
 			"clientBound": {

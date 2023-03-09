@@ -4,10 +4,13 @@ import config.Config;
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.chunk.ChunkBinary;
-import game.data.chunk.ChunkImageFactory;
+import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.region.McaFile;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.event.EventType;
@@ -38,6 +41,7 @@ public class RightClickMenu extends ContextMenu {
                 WorldManager.getInstance().pauseSaving();
                 item.setText(PROMPT_RESUME);
             }
+            handler.setStatusMessage("");
         }));
 
         menu.add(construct("Delete all downloaded chunks", e -> {
@@ -58,19 +62,31 @@ public class RightClickMenu extends ContextMenu {
 
         menu.add(new SeparatorMenuItem());
 
-        menu.add(construct("Prune overview images", e -> handler.unloadImages()));
-        menu.add(construct("Draw nearby existing chunks", e -> {
-            new Thread(() -> WorldManager.getInstance().drawExistingChunks(handler.getCenter())).start();
+        menu.add(construct("Redraw nearby chunks", e -> {
+            Coordinate2D region = handler.getCursorCoordinates().globalToRegion();
+            new Thread(() -> WorldManager.getInstance().drawExistingChunks(region)).start();
         }));
-        menu.add(construct("Save overview to file", e -> handler.export()));
+
+        menu.add(construct("Redraw region", e -> {
+            Coordinate2D region = handler.getCursorCoordinates().globalToRegion();
+            handler.getRegionHandler().resetRegion(region);
+            new Thread(() -> WorldManager.getInstance().drawExistingRegion(region)).start();
+        }));
+
+        menu.add(construct("Copy coordinates", e -> {
+            Coordinate2D coords = handler.getCursorCoordinates();
+            String coordsString = String.format("%d ~ %d", coords.getX(), coords.getZ());
+            StringSelection selection = new StringSelection(coordsString);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(selection, selection);
+        }));
 
         menu.add(new SeparatorMenuItem());
 
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
 
         menu.add(construct("Save & Exit", e -> {
-            WorldManager.getInstance().save();
-            System.exit(0);
+            GuiManager.saveAndExit();
         }));
 
         if (Config.isInDevMode()) {
@@ -100,26 +116,28 @@ public class RightClickMenu extends ContextMenu {
         menu.add(construct("Print stats", e -> {
             int regions = WorldManager.getInstance().countActiveRegions();
             int binaryChunks = WorldManager.getInstance().countActiveBinaryChunks();
+            int unpasedChunks = WorldManager.getInstance().countQueuedChunks();
             int chunks = WorldManager.getInstance().countActiveChunks();
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
             int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
             int maps = WorldManager.getInstance().getMapRegistry().countActiveMaps();
-            int images = handler.countImages();
+            int images = handler.imageCount();
 
             System.out.printf("Statistics:" +
                             "\n\tActive regions: %d" +
                             "\n\tActive binary chunks: %d" +
+                            "\n\tActive unparsed chunks: %d" +
                             "\n\tActive chunks: %d" +
                             "\n\tActive entities: %d" +
                             "\n\tActive players: %d" +
                             "\n\tActive maps: %d" +
-                            "\n\tActive chunk images:%d" +
+                            "\n\tActive region images: %d" +
                             "\n",
-                    regions, binaryChunks, chunks, entities, players, maps, images);
+                    regions, binaryChunks, unpasedChunks, chunks, entities, players, maps, images);
         }));
 
-        menu.add(construct("Print 0, 0 events", e -> {
-            Chunk.printEventLog(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
+        menu.add(construct("Print chunk events", e -> {
+            Chunk.printEventLog(handler.getCursorCoordinates().globalToChunk().addDimension(Dimension.OVERWORLD));
         }));
     }
 

@@ -52,6 +52,7 @@
                         <RowConstraints prefHeight="32.0" />
                         <RowConstraints prefHeight="32.0" />
                         <RowConstraints prefHeight="32.0" />
+                        <RowConstraints prefHeight="32.0" />
                     </rowConstraints>
                     <Label text="Extended render distance" GridPane.rowIndex="0" />
                     <Slider fx:id="extendedDistance" blockIncrement="1" layoutX="10.0" layoutY="98.0" majorTickUnit="1.0" max="32" minorTickCount="0" prefHeight="25.0" prefWidth="93.0" showTickLabels="true" snapToTicks="true" GridPane.columnIndex="1" />
@@ -62,10 +63,12 @@
                     <Label text="Measure render distance" GridPane.rowIndex="1" />
                     <CheckBox fx:id="markUnsaved" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                     <Label text="Mark unsaved chunks" GridPane.rowIndex="2" />
-                    <CheckBox fx:id="renderOtherPlayers" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                    <Label text="Show players on map" GridPane.rowIndex="3" />
-                    <CheckBox fx:id="enableInfoMessages" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                    <Label text="Send info messages" GridPane.rowIndex="4" />
+                    <CheckBox fx:id="markOld" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                    <Label text="Grey out old chunks" GridPane.rowIndex="3" />
+                    <CheckBox fx:id="renderOtherPlayers" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                    <Label text="Show players on map" GridPane.rowIndex="4" />
+                    <CheckBox fx:id="enableInfoMessages" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                    <Label text="Send info messages" GridPane.rowIndex="5" />
                 </GridPane>
             </AnchorPane>
         </Tab>

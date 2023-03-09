@@ -67,6 +67,14 @@ public class Coordinate2D {
     public Coordinate2D chunkToRegion() {
         return new Coordinate2D(x >> REGION_SHIFT, z >> REGION_SHIFT);
     }
+    public Coordinate2D regionToGlobal() {
+        return new Coordinate2D(x << REGION_TOTAL_SHIFT, z << REGION_TOTAL_SHIFT);
+    }
+
+    public Coordinate2D globalToRegion() {
+        return new Coordinate2D(x >> REGION_TOTAL_SHIFT, z >> REGION_TOTAL_SHIFT);
+    }
+
 
     public int getX() {
         return x;

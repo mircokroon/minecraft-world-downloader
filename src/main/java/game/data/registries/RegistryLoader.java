@@ -1,5 +1,6 @@
 package game.data.registries;
 
+import config.Version;
 import gui.GuiManager;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -41,9 +42,9 @@ public class RegistryLoader {
     private final Path serverPath, registriesGeneratedPath, blocksGeneratedPath;
     private final Path destinationPath, registryPath, blocksPath;
 
-    private String version;
+    private final String version;
 
-    private static Map<String, RegistryLoader> knownLoaders = new ConcurrentHashMap<>();
+    private static final Map<String, RegistryLoader> knownLoaders = new ConcurrentHashMap<>();
 
     public static RegistryLoader forVersion(String version) {
         return knownLoaders.computeIfAbsent(version, (v) -> {
@@ -86,23 +87,6 @@ public class RegistryLoader {
     }
 
     /**
-     * Get the current major java version.
-     * Source: https://stackoverflow.com/a/2591122
-     */
-    private static int getJavaVersion() {
-        String version = System.getProperty("java.version");
-        if (version.startsWith("1.")) {
-            version = version.substring(2, 3);
-        } else {
-            int dot = version.indexOf(".");
-            if (dot != -1) {
-                version = version.substring(0, dot);
-            }
-        }
-        return Integer.parseInt(version);
-    }
-
-    /**
      * If we don't have the report, we'll have to download the relevant server.jar and generate them. We'll print some
      * helpful messages as well to put the user at ease about the delay.
      */
@@ -113,22 +97,6 @@ public class RegistryLoader {
         System.out.println("Generating reports for version " + version + ".");
 
         String serverUrl = VersionManifestHandler.findServerUrl(version);
-
-        /*
-         * Since newer Minecraft versions use Java 17 (1.18+) or Java 16 (1.17.x), we can't generate reports if the user is using
-         * an incompatible version of Java. To maintain support for older Java versions, this check is only done at this stage.
-         */
-        if (Config.versionReporter().isAtLeast1_18() && getJavaVersion() < 17) {
-            System.err.println("Cannot run Minecraft version 1.18+ with a Java version below 17. You are currently using Java version " + getJavaVersion() + ".");
-            System.err.println("Please consider upgrading your Java version to at least version 17.\n");
-            System.err.println("If you have already installed a compatible version of Java and are still seeing this message, please ensure that your JAVA_HOME environment variable is set correctly.\n");
-            throw new UnsupportedMinecraftVersionException("Minecraft version 1.18+ is not supported for Java version " + getJavaVersion());
-        } else if (Config.versionReporter().isAtLeast1_17() && getJavaVersion() < 16) {
-            System.err.println("Cannot run Minecraft version 1.17.x with a Java version below 16. You are currently using Java version " + getJavaVersion() + ".");
-            System.err.println("Please consider upgrading your Java version to at least version 16.\n");
-            System.err.println("If you have already installed a compatible version of Java and are still seeing this message, please ensure that your JAVA_HOME environment variable is set correctly.\n");
-            throw new UnsupportedMinecraftVersionException("Minecraft version 1.17.x is not supported for Java version " + getJavaVersion());
-        }
 
         downloadServerJar(serverUrl);
         generateReports();
@@ -166,7 +134,7 @@ public class RegistryLoader {
         System.out.println("Starting output of Minecraft server.jar:");
 
         ProcessBuilder pb;
-        if (Config.versionReporter().isAtLeast1_18()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_18)) {
             pb = new ProcessBuilder(
                     "java", "-DbundlerMainClass=net.minecraft.data.Main", "-jar", "server.jar", "--reports"
             );

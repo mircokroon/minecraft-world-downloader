@@ -8,12 +8,6 @@ import game.data.chunk.version.encoder.BlockLocationEncoder_1_16;
 import se.llbit.nbt.Tag;
 
 public class ChunkSection_1_16 extends ChunkSection_1_15 {
-    public static final Version VERSION = Version.V1_16;
-    @Override
-    public int getDataVersion() {
-        return VERSION.dataVersion;
-    }
-
     private final BlockLocationEncoder blockLocationEncoder = new BlockLocationEncoder_1_16();
 
     @Override
@@ -25,8 +19,8 @@ public class ChunkSection_1_16 extends ChunkSection_1_15 {
         super(y, palette, chunk);
     }
 
-    public ChunkSection_1_16(int sectionY, Tag nbt) {
-        super(sectionY, nbt);
+    public ChunkSection_1_16(int sectionY, Tag nbt, Chunk chunk) {
+        super(sectionY, nbt, chunk);
     }
 
     /**

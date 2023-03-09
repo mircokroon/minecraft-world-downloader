@@ -24,15 +24,10 @@ import java.util.function.Function;
  * this was moved to a different packet. Also, a block count?
  */
 public class Chunk_1_14 extends Chunk_1_13 {
-    public static final Version VERSION = Version.V1_14;
-
-    @Override
-    public int getDataVersion() { return VERSION.dataVersion; }
-
     SpecificTag heightMap;
 
-    public Chunk_1_14(CoordinateDim2D location) {
-        super(location);
+    public Chunk_1_14(CoordinateDim2D location, int version) {
+        super(location, version);
     }
 
     @Override
@@ -103,7 +98,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
 
     @Override
     protected ChunkSection parseSection(int sectionY, SpecificTag section) {
-        return new ChunkSection_1_14(sectionY, section);
+        return new ChunkSection_1_14(sectionY, section, this);
     }
 
 

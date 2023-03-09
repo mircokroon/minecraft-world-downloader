@@ -1,21 +1,10 @@
 package gui;
 
 import game.data.coordinates.Coordinate2D;
+import game.data.coordinates.CoordinateDouble2D;
 
 public class Bounds {
-    private int minX, maxX, minZ, maxZ;
-
-    public Bounds() {
-        reset();
-    }
-
-    public Bounds(Coordinate2D center, int renderDistanceX, int renderDistanceZ) {
-        this.minX = center.getX() - renderDistanceX;
-        this.maxX = center.getX() + renderDistanceX;
-
-        this.minZ = center.getZ() - renderDistanceZ;
-        this.maxZ = center.getZ() + renderDistanceZ;
-    }
+    private double minX, maxX, minZ, maxZ;
 
     public void reset() {
         this.minX = Integer.MAX_VALUE;
@@ -24,43 +13,19 @@ public class Bounds {
         this.maxZ = Integer.MIN_VALUE;
     }
 
-    public void update(Coordinate2D coord) {
-        updateX(coord.getX());
-        updateZ(coord.getZ());
-    }
-
-    private void updateX(int x) {
-        if (x < minX) { minX = x; }
-        if (x > maxX) { maxX = x; }
-    }
-
-    private void updateZ(int z) {
-        if (z < minZ) { minZ = z; }
-        if (z > maxZ) { maxZ = z; }
-    }
-
-    public int getWidth() {
-        return Math.abs(getMaxX() - getMinX()) + 1;
-    }
-
-    public int getHeight() {
-        return Math.abs(getMaxZ() - getMinZ()) + 1;
-    }
-
-    public int getMinX() {
+    public double getMinX() {
         return minX;
     }
 
-
-    public int getMaxX() {
+    public double getMaxX() {
         return maxX;
     }
 
-    public int getMinZ() {
+    public double getMinZ() {
         return minZ;
     }
 
-    public int getMaxZ() {
+    public double getMaxZ() {
         return maxZ;
     }
 
@@ -74,31 +39,24 @@ public class Bounds {
             '}';
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+    public boolean overlaps(Coordinate2D region) {
+        int x1 = region.getX() << 9;
+        int x2 = x1 + 512;
 
-        Bounds bounds = (Bounds) o;
+        int z1 = region.getZ() << 9;
+        int z2 = z1 + 512;
 
-        if (minX != bounds.minX) return false;
-        if (maxX != bounds.maxX) return false;
-        if (minZ != bounds.minZ) return false;
-        return maxZ == bounds.maxZ;
+        return maxX > x1 && minX < x2 && minZ < z2 && maxZ > z1;
     }
 
-    @Override
-    public int hashCode() {
-        int result = minX;
-        result = 31 * result + maxX;
-        result = 31 * result + minZ;
-        result = 31 * result + maxZ;
-        return result;
-    }
+    public void set(CoordinateDouble2D center, double renderDistanceX, double renderDistanceZ) {
+        double radiusX = (renderDistanceX / 2);
+        double radiusZ = (renderDistanceZ / 2);
 
-    public Coordinate2D center(int gridSize, double width, double height) {
-        int trueMaxX = (int) (minX + (width / gridSize));
-        int trueMaxZ = (int) (minZ + (height / gridSize));
-        return new Coordinate2D((trueMaxX + minX) / 2, (trueMaxZ + minZ) / 2);
+        this.minX = center.getX() - radiusX;
+        this.maxX = center.getX() + radiusX;
+
+        this.minZ = center.getZ() - radiusZ;
+        this.maxZ = center.getZ() + radiusZ;
     }
 }

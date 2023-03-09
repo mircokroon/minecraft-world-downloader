@@ -1,11 +1,11 @@
 package game.data.entity;
 
+import config.Version;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 import config.Config;
-import config.VersionReporter;
 import game.data.WorldManager;
 import game.data.container.Slot;
 import game.data.coordinates.CoordinateDim2D;
@@ -56,7 +56,7 @@ public abstract class Entity extends PrimitiveEntity implements IMovableEntity {
         // https://minecraft.fandom.com/wiki/Universally_unique_identifier#Representation
         // The "Most/Least representation is deprecated in 1.16. Should use the
         // new version instead for 1.16 and beyond
-        if (VersionReporter.isAtLeast1_16(Config.getDataVersion())) {
+        if (Config.versionReporter().isAtLeast(Version.V1_16)) {
             root.add("UUID", new IntArrayTag(uuid.asIntArray()));
         } else {
             root.add("UUIDLeast", new LongTag(uuid.getLower()));

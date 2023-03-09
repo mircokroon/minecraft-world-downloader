@@ -1,6 +1,7 @@
 package game.data.entity;
 
 import config.Config;
+import config.Version;
 import config.VersionReporter;
 import java.util.function.Supplier;
 
@@ -41,7 +42,7 @@ public class PrimitiveEntity {
             return null;
         }
 
-        if (!Config.versionReporter().isAtLeast1_13()) {
+        if (!Config.versionReporter().isAtLeast(Version.V1_13)) {
             return null;
         }
 

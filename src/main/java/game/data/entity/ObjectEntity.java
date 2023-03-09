@@ -1,6 +1,7 @@
 package game.data.entity;
 
 import config.Config;
+import config.Version;
 import packets.DataTypeProvider;
 import se.llbit.nbt.CompoundTag;
 
@@ -22,7 +23,7 @@ public class ObjectEntity extends Entity {
         ent.pitch = provider.readNext();
         ent.yaw = provider.readNext();
         int data;
-        if (Config.versionReporter().isAtLeast1_19()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_19)) {
             provider.readNext(); // head rotation
             data = provider.readVarInt();
         } else {
