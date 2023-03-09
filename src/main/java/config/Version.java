@@ -20,36 +20,4 @@ public enum Version {
         this.protocolVersion = protocolVersion;
         this.dataVersion = dataVersion;
     }
-
-    boolean isVersion(VersionReporter versionReporter) {
-        return switch (this) {
-            case V1_12 -> versionReporter.isAtLeast1_12();
-            case V1_13 -> versionReporter.isAtLeast1_13();
-            case V1_14 -> versionReporter.isAtLeast1_14();
-            case V1_15 -> versionReporter.isAtLeast1_15();
-            case V1_16 -> versionReporter.isAtLeast1_16();
-            case V1_17 -> versionReporter.isAtLeast1_17();
-            case V1_18 -> versionReporter.isAtLeast1_18();
-            case V1_19 -> versionReporter.isAtLeast1_19();
-            case V1_19_3 -> versionReporter.isAtLeast1_19_3();
-            case ANY -> true;
-            default -> false;
-        };
-    }
-
-    public boolean isDataVersion(int dataVersion) {
-        switch (this) {
-            case V1_12: return VersionReporter.isAtLeast1_12(dataVersion);
-            case V1_13: return VersionReporter.isAtLeast1_13(dataVersion);
-            case V1_14: return VersionReporter.isAtLeast1_14(dataVersion);
-            case V1_15: return VersionReporter.isAtLeast1_15(dataVersion);
-            case V1_16: return VersionReporter.isAtLeast1_16(dataVersion);
-            case V1_17: return VersionReporter.isAtLeast1_17(dataVersion);
-            case V1_18: return VersionReporter.isAtLeast1_18(dataVersion);
-            case V1_19: return VersionReporter.isAtLeast1_19(dataVersion);
-            case V1_19_3: return VersionReporter.isAtLeast1_19_3(dataVersion);
-            case ANY: return true;
-            default: return false;
-        }
-    }
 }

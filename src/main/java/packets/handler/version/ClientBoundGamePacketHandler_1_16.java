@@ -1,6 +1,7 @@
 package packets.handler.version;
 
 import config.Config;
+import config.Version;
 import game.data.WorldManager;
 import game.data.coordinates.Coordinate3D;
 import game.data.dimension.Dimension;
@@ -56,7 +57,7 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
             WorldManager.getInstance().setServerRenderDistance(viewDist);
             replacement.writeVarInt(Math.max(viewDist, Config.getExtendedRenderDistance()));
 
-            if (Config.versionReporter().isAtLeast1_18()) {
+            if (Config.versionReporter().isAtLeast(Version.V1_18)) {
                 replacement.copy(provider, VARINT, BOOL, BOOL, BOOL, BOOL);
             } else {
                 replacement.copy(provider, BOOL, BOOL, BOOL, BOOL);

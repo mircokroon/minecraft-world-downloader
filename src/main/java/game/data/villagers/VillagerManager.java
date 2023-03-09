@@ -1,6 +1,7 @@
 package game.data.villagers;
 
 import config.Config;
+import config.Version;
 import game.data.entity.EntityRegistry;
 import game.data.entity.IMovableEntity;
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class VillagerManager {
 
             Slot secondItem = null;
             
-            if (Config.versionReporter().isAtLeast1_19_3() || provider.readBoolean()) {
+            if (Config.versionReporter().isAtLeast(Version.V1_19_3) || provider.readBoolean()) {
                 secondItem = provider.readSlot();
             }
 

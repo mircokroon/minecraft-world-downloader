@@ -1,6 +1,7 @@
 package game.data.entity.metadata;
 
 import config.Config;
+import config.Version;
 import packets.DataTypeProvider;
 
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class MetaData_1_19_3 extends MetaData_1_13 {
     @Override
     public Consumer<DataTypeProvider> getTypeHandler(int i) {
 
-        if (Config.versionReporter().isAtLeast1_19_3()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_19_3)) {
             return typeHandlers.getOrDefault(i, null);
         }
 

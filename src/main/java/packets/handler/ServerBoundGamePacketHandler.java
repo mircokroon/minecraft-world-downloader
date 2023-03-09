@@ -1,5 +1,6 @@
 package packets.handler;
 
+import config.Version;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,7 +43,7 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
         operations.put("UseItem", provider -> {
             // newer versions first include a VarInt with the hand
-            if (Config.versionReporter().isAtLeast1_14()) {
+            if (Config.versionReporter().isAtLeast(Version.V1_14)) {
                 provider.readVarInt();
             }
 

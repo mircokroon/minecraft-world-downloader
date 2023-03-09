@@ -1,5 +1,6 @@
 package game.data.registries;
 
+import config.Version;
 import gui.GuiManager;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -133,7 +134,7 @@ public class RegistryLoader {
         System.out.println("Starting output of Minecraft server.jar:");
 
         ProcessBuilder pb;
-        if (Config.versionReporter().isAtLeast1_18()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_18)) {
             pb = new ProcessBuilder(
                     "java", "-DbundlerMainClass=net.minecraft.data.Main", "-jar", "server.jar", "--reports"
             );

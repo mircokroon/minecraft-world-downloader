@@ -4,6 +4,7 @@ import static util.ExceptionHandling.attempt;
 
 import com.google.gson.Gson;
 import config.Config;
+import config.Version;
 import game.data.WorldManager;
 import game.data.chunk.version.Chunk_1_17;
 import se.llbit.nbt.SpecificTag;
@@ -117,7 +118,7 @@ public class Dimension {
      * type in the codec. For 1.17+ we need to give the world height/depth information to the chunk.
      */
     public void registerType(SpecificTag dimensionNbt) {
-        if (Config.versionReporter().isAtLeast1_17()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_17)) {
             Chunk_1_17.setWorldHeight(dimensionNbt.get("min_y").intValue(), dimensionNbt.get("height").intValue());
         }
 

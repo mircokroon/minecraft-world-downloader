@@ -1,6 +1,7 @@
 package game.data;
 
 import config.Config;
+import config.Version;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.region.McaFile;
@@ -83,7 +84,7 @@ public class RenderDistanceExtender extends Thread {
         this.active = this.serverDistance < this.extendedDistance;
 
         // temporarily disabled for 1.18
-        if (Config.versionReporter().isAtLeast1_18()) {
+        if (Config.versionReporter().isAtLeast(Version.V1_18)) {
             this.active = false;
             System.out.println("Extending render distance is not yet supported for 1.18.");
         }

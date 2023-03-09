@@ -451,9 +451,10 @@ public abstract class Chunk extends ChunkEntities {
     @Override
     public String toString() {
         return "Chunk{" +
-                "location=" + location +
-                ", chunkSections=" + Arrays.toString(chunkSections) +
-                '}';
+            "dataVersion=" + dataVersion +
+            ", location=" + location +
+            ", chunkSections=" + Arrays.toString(chunkSections) +
+            '}';
     }
 
     public void unload() {
