@@ -32,6 +32,7 @@ import static util.ExceptionHandling.attempt;
 public class GuiManager extends Application {
     private static final String TITLE = "World Downloader";
     private static boolean hasErrors;
+    private static boolean authenticationFailed;
     private static ObservableList<String> messages;
 
     private static GuiMap chunkGraphicsHandler;
@@ -115,6 +116,10 @@ public class GuiManager extends Application {
         return hasErrors;
     }
 
+    public static boolean clearAuthentiationStatus() {
+        return authenticationFailed;
+    }
+
     static ObservableList<String> getMessages() {
         return messages;
     }
@@ -136,6 +141,14 @@ public class GuiManager extends Application {
 
     public static void resetRegion(Coordinate2D regionLocation) {
         chunkGraphicsHandler.getRegionHandler().resetRegion(regionLocation);
+    }
+
+    public static void setAuthenticationFailed() {
+        authenticationFailed = true;
+    }
+
+    public static void clearAuthenticationFailed() {
+        authenticationFailed = false;
     }
 
     private void loadSettingsInWindow() {

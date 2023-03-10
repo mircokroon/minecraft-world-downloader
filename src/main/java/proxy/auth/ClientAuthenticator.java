@@ -61,6 +61,7 @@ public class ClientAuthenticator extends AuthDetailsManager {
         GuiManager.setStatusMessage("");
 
         if (!str.isSuccess()) {
+            GuiManager.setAuthenticationFailed();
             throw new RuntimeException("Client not authenticated! " + str.getStatus() + ": " + str.getStatusText());
         } else {
             devPrint("Successfully authenticated user with Mojang session server.");
