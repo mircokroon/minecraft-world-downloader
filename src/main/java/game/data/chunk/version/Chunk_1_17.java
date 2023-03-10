@@ -1,9 +1,7 @@
 package game.data.chunk.version;
 
 import config.Config;
-import config.Version;
 import game.data.chunk.ChunkSection;
-import game.data.chunk.palette.Palette;
 import game.data.coordinates.CoordinateDim2D;
 import game.protocol.Protocol;
 import java.util.BitSet;
@@ -12,7 +10,6 @@ import java.util.function.Function;
 import javafx.util.Pair;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
-import se.llbit.nbt.SpecificTag;
 
 public class Chunk_1_17 extends Chunk_1_16 {
     static int minSectionY = -1;
@@ -100,6 +97,12 @@ public class Chunk_1_17 extends Chunk_1_16 {
     public PacketBuilder toLightPacket() {
         PacketBuilder packet = buildLightPacket();
 
+        writeLightToPacket(packet);
+
+        return packet;
+    }
+
+    public void writeLightToPacket(PacketBuilder packet) {
         Pair<BitSet, PacketBuilder> skyLight = writeLightToPacket(ChunkSection::getSkyLight);
         Pair<BitSet, PacketBuilder> blockLight = writeLightToPacket(ChunkSection::getBlockLight);
 
@@ -115,8 +118,6 @@ public class Chunk_1_17 extends Chunk_1_16 {
 
         packet.writeVarInt(blockLight.getKey().cardinality());
         packet.writeByteArray(blockLight.getValue().toArray());
-
-        return packet;
     }
 
 

@@ -7,7 +7,10 @@ import game.data.chunk.palette.PaletteTransformer;
 import game.data.chunk.palette.PaletteType;
 import game.data.chunk.palette.SingleValuePalette;
 import game.data.coordinates.Coordinate3D;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
@@ -36,6 +39,23 @@ public class ChunkSection_1_18 extends ChunkSection_1_16 {
         CompoundTag blockStates = nbt.get("block_states").asCompound();
         this.setBlocks(blockStates.get("data").longArray());
         this.palette = new Palette(getDataVersion(), blockStates.get("palette").asList());
+
+        CompoundTag biomes = nbt.get("biomes").asCompound();
+        this.biomePalette = Palette.biomes(getDataVersion(), biomes.get("palette").asList());
+        this.biomes = biomes.get("data").longArray();
+    }
+
+    @Override
+    public void write(PacketBuilder packet) {
+        packet.writeShort(4096);
+        palette.write(packet);
+
+        packet.writeVarInt(blocks.length);
+        packet.writeLongArray(blocks);
+
+        biomePalette.write(packet);
+        packet.writeVarInt(biomes.length);
+        packet.writeLongArray(biomes);
     }
 
     public void setBiomes(long[] biomes) {

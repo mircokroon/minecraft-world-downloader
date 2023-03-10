@@ -3,6 +3,7 @@ package game.data.chunk.palette;
 import java.util.List;
 
 import game.data.chunk.ChunkSection;
+import packets.builder.PacketBuilder;
 import se.llbit.nbt.SpecificTag;
 
 public class SingleValuePalette extends Palette {
@@ -11,9 +12,22 @@ public class SingleValuePalette extends Palette {
         this.val = val;
     }
 
+    public SingleValuePalette(PaletteType type, SpecificTag state) {
+        if (type == PaletteType.BIOMES) {
+            this.biomePalette();
+        }
+        this.val = this.stateProvider.getStateId(state);
+    }
+
     @Override
     public boolean hasData() {
         return false;
+    }
+
+    @Override
+    public void write(PacketBuilder packet) {
+        packet.writeByte((byte) 0);
+        packet.writeVarInt(this.val);
     }
 
     @Override

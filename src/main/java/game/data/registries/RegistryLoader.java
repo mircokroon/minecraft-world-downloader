@@ -79,10 +79,6 @@ public class RegistryLoader {
      * server jar couldn't yet generate reports at this point.
      */
     private boolean hasExistingReports() {
-        if (version.equals("1.13.2")) {
-            System.out.println("No item registry for 1.13.2. We won't be able to save chests contents :(");
-        }
-
         return version.equals("1.12.2") || blocksPath.toFile().exists();
     }
 

@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class BlockEntityRegistry {
 
-    private Map<Integer, String> blockEntities;
+    private final Map<Integer, String> blockEntities;
     private Set<String> entityNames;
 
     public static BlockEntityRegistry fromRegistry(FileInputStream input) {
@@ -34,6 +34,7 @@ public class BlockEntityRegistry {
 
     public BlockEntityRegistry() {
         blockEntities = new HashMap<>();
+        entityNames = new HashSet<>();
     }
 
     public String getBlockEntityName(int protocolId) {

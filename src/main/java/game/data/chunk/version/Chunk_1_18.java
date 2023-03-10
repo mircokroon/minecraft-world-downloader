@@ -1,5 +1,6 @@
 package game.data.chunk.version;
 
+import config.Config;
 import game.data.chunk.BlockEntityRegistry;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.BlockState;
@@ -10,6 +11,7 @@ import game.data.chunk.palette.PaletteType;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.registries.RegistryManager;
+import game.protocol.Protocol;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.CompoundTag;
@@ -56,10 +58,35 @@ public class Chunk_1_18 extends Chunk_1_17 {
             updateLight(dataProvider);
         } catch (Exception ex) {
             // seems to happen when there's blocks above 192 under some conditions
-            System.out.println("Can't (fully?) parse chunk at " + location + ". Cause: " + ex.getMessage());
+            System.out.println("Issue parse chunk at " + location + ". Cause: " + ex.getMessage());
+            ex.printStackTrace();
         }
 
         afterParse();
+    }
+
+    /**
+     * Generate network packet for this chunk.
+     */
+    @Override
+    public PacketBuilder toPacket() {
+        Protocol p = Config.versionReporter().getProtocol();
+        PacketBuilder packet = new PacketBuilder();
+        packet.writeVarInt(p.clientBound("LevelChunkWithLight"));
+
+        packet.writeInt(location.getX());
+        packet.writeInt(location.getZ());
+
+        writeHeightMaps(packet);
+        writeChunkSections(packet);
+
+        // we don't include block entities - these chunks will be far away so they shouldn't be rendered anyway
+        packet.writeVarInt(0);
+
+        packet.writeBoolean(true);
+        writeLightToPacket(packet);
+
+        return packet;
     }
 
 
@@ -127,14 +154,6 @@ public class Chunk_1_18 extends Chunk_1_17 {
             }
         }
         return false;
-    }
-
-
-
-
-    @Override
-    public PacketBuilder toLightPacket() {
-        return null;
     }
 
     @Override
@@ -206,7 +225,6 @@ public class Chunk_1_18 extends Chunk_1_17 {
             setChunkSection(sectionY, parseSection(sectionY, section));
         });
         parseHeightMaps(tag);
-        parseBiomes(tag);
     }
 
     @Override

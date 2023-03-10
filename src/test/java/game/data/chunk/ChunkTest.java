@@ -2,10 +2,19 @@ package game.data.chunk;
 
 import config.Config;
 import config.Version;
+import game.data.chunk.palette.State;
+import game.data.chunk.palette.StateProvider;
+import game.data.chunk.version.Chunk_1_17;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockColors;
+import game.data.dimension.Biome;
+import game.data.dimension.BiomeProvider;
 import game.data.dimension.Dimension;
+import game.data.dimension.DimensionCodec;
+import game.data.registries.RegistryManager;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilderAndParserTest;
@@ -35,6 +44,18 @@ class ChunkTest extends PacketBuilderAndParserTest {
         when(mock.getBlockColors()).thenReturn(mock(BlockColors.class));
         when(mock.getChunkFactory()).thenReturn(new ChunkFactory());
 
+        Chunk_1_17.setWorldHeight(-63, 384);
+        DimensionCodec codecMock = mock(DimensionCodec.class);
+        Map<String, Biome> biomeMap = new HashMap<>();
+        biomeMap.put("minecraft:badlands", new Biome(0));
+        biomeMap.put("minecraft:forest", new Biome(1));
+        when(codecMock.getBiomeProvider()).thenReturn(new BiomeProvider(biomeMap));
+        when(mock.getDimensionCodec()).thenReturn(codecMock);
+
+        RegistryManager registryManager = mock(RegistryManager.class);
+        when(registryManager.getBlockEntityRegistry()).thenReturn(new BlockEntityRegistry());
+        RegistryManager.setInstance(registryManager);
+
         WorldManager.setInstance(mock);
 
         Config.setInstance(new Config());
@@ -53,6 +74,8 @@ class ChunkTest extends PacketBuilderAndParserTest {
         up.provider = parser;
 
         assertThat(ChunkFactory.parseChunk(up, mock)).isEqualTo(c);
+
+        Chunk_1_17.setWorldHeight(0, 256);
     }
 
     /**
@@ -156,5 +179,10 @@ class ChunkTest extends PacketBuilderAndParserTest {
     @Test
     void chunk_1_17() throws IOException, ClassNotFoundException {
         testForWithLight(Version.V1_17.protocolVersion, "chunkdata_1_17");
+    }
+
+    @Test
+    void chunk_1_19() throws IOException, ClassNotFoundException {
+        testFor(Version.V1_19.protocolVersion, "chunkdata_1_19");
     }
 }

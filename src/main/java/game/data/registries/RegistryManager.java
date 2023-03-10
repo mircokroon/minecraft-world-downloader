@@ -18,6 +18,10 @@ public class RegistryManager {
 
     private RegistryManager() { }
 
+    public static void setInstance(RegistryManager registryManager) {
+        instance = registryManager;
+    }
+
     public static RegistryManager getInstance() {
         if (instance == null) {
             instance = new RegistryManager();
