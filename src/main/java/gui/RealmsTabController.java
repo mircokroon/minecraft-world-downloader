@@ -58,6 +58,10 @@ public class RealmsTabController {
 
         minecraftUsername.focusedProperty().addListener((a, wasInFocus, isInFocus) -> {
             if (wasInFocus && !isInFocus) {
+                if (minecraftUsername.getText() == null) {
+                    return;
+                }
+
                 GuiManager.getConfig().username = minecraftUsername.getText().trim();
             }
         });
@@ -195,7 +199,7 @@ public class RealmsTabController {
 
         public void reset() {
             this.state = RealmState.IP_UNKNOWN;
-            requestsLeft = 20;
+            requestsLeft = 4;
         }
 
         public void requestIp() {

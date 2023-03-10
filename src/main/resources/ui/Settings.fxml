@@ -143,7 +143,7 @@
         <Tab fx:id="realmsTab" text="Realms">
             <fx:include fx:id="realms" source="RealmsTab.fxml"/>
         </Tab>
-        <Tab fx:id="errTab" text="Error output">
+        <Tab fx:id="errTab" text="Error log">
             <TextArea fx:id="errOutput" prefHeight="174.0" prefWidth="600.0" />
         </Tab>
     </TabPane>
