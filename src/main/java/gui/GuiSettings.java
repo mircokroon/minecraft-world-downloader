@@ -45,7 +45,6 @@ public class GuiSettings {
     public IntField centerZ;
     public LongField levelSeed;
 
-    public CheckBox measureRenderDistance;
     public CheckBox markUnsaved;
     public CheckBox markOld;
 
@@ -95,7 +94,6 @@ public class GuiSettings {
         // general tab
         extendedDistance.setValue(config.extendedRenderDistance);
         extendedDistanceText.setValue(config.extendedRenderDistance);
-        measureRenderDistance.setSelected(config.measureRenderDistance);
         markUnsaved.setSelected(!config.disableMarkUnsavedChunks);
         markOld.setSelected(config.markOldChunks);
         renderOtherPlayers.setSelected(config.renderOtherPlayers);
@@ -291,7 +289,6 @@ public class GuiSettings {
 
         // general tab
         config.extendedRenderDistance =  Math.abs((int) extendedDistance.getValue());
-        config.measureRenderDistance = measureRenderDistance.isSelected();
         config.disableMarkUnsavedChunks = !markUnsaved.isSelected();
         config.markOldChunks = markOld.isSelected();
         config.renderOtherPlayers = renderOtherPlayers.isSelected();

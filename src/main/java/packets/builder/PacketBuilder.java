@@ -26,6 +26,10 @@ public class PacketBuilder {
         writeVarInt(packetId);
     }
 
+    public PacketBuilder(String id) {
+        this(Config.versionReporter().getProtocol().clientBound(id));
+    }
+
     public PacketBuilder() {
         this.bytes = new ByteQueue();
     }

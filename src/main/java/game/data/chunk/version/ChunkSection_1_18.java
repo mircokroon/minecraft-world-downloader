@@ -14,6 +14,7 @@ import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.IntTag;
 import se.llbit.nbt.ListTag;
 import se.llbit.nbt.LongArrayTag;
 import se.llbit.nbt.SpecificTag;
@@ -22,6 +23,7 @@ import se.llbit.nbt.Tag;
 public class ChunkSection_1_18 extends ChunkSection_1_16 {
     long[] biomes;
     Palette biomePalette;
+    int blockCount = -1;
 
     public ChunkSection_1_18(byte y, Palette palette, Chunk chunk) {
         super(y, palette, chunk);
@@ -43,11 +45,18 @@ public class ChunkSection_1_18 extends ChunkSection_1_16 {
         CompoundTag biomes = nbt.get("biomes").asCompound();
         this.biomePalette = Palette.biomes(getDataVersion(), biomes.get("palette").asList());
         this.biomes = biomes.get("data").longArray();
+
+        Tag blockCount = nbt.get("block_count");
+        if (!blockCount.isError()) {
+            this.blockCount = blockCount.intValue();
+        }
     }
 
     @Override
     public void write(PacketBuilder packet) {
-        packet.writeShort(4096);
+        if (blockCount < 0) { blockCount = palette.isEmpty() ? 0 : 4096; }
+
+        packet.writeShort(blockCount);
         palette.write(packet);
 
         packet.writeVarInt(blocks.length);
@@ -84,6 +93,9 @@ public class ChunkSection_1_18 extends ChunkSection_1_16 {
         }
         if (skyLight != null && skyLight.length > 0) {
             tag.add("SkyLight", new ByteArrayTag(skyLight));
+        }
+        if (blockCount > 0) {
+            tag.add("block_count", new IntTag(blockCount));
         }
 
         return tag;
@@ -148,5 +160,25 @@ public class ChunkSection_1_18 extends ChunkSection_1_16 {
                 palette.getBitsPerBlock()
         );
         getLocationEncoder().write(blocks, index);
+    }
+
+    @Override
+    public String toString() {
+        return "ChunkSection{" +
+            "y=" + y +
+            ", biomePalette=" + biomePalette +
+            ", biomes=" + Arrays.toString(biomes) +
+            ", blocks[" + blocks.length + "]" +
+            ", palette=" + palette +
+            ", blockLight[" + blockLight.length + "]" +
+            ", skyLight[" + skyLight.length + "]" +
+            '}';
+    }
+
+    /**
+     * Vanilla client doesn't store the block count but we can speed things up a bit by saving it
+     */
+    public void setBlockCount(int blockCount) {
+        this.blockCount = blockCount;
     }
 }

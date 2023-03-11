@@ -125,7 +125,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("ForgetLevelChunk", provider -> {
             CoordinateDim2D co = new CoordinateDim2D(provider.readInt(), provider.readInt(), WorldManager.getInstance().getDimension());
             worldManager.unloadChunk(co);
-            return Config.getExtendedRenderDistance() == 0;
+            return worldManager.canForget(co);
         });
 
         operations.put("BlockEntityData", provider -> {

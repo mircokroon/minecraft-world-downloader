@@ -49,6 +49,7 @@ class ChunkTest extends PacketBuilderAndParserTest {
         Map<String, Biome> biomeMap = new HashMap<>();
         biomeMap.put("minecraft:badlands", new Biome(0));
         biomeMap.put("minecraft:forest", new Biome(1));
+        biomeMap.put("minecraft:river", new Biome(2));
         when(codecMock.getBiomeProvider()).thenReturn(new BiomeProvider(biomeMap));
         when(mock.getDimensionCodec()).thenReturn(codecMock);
 

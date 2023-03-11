@@ -78,7 +78,11 @@ public class GlobalPalette implements StateProvider {
 
     @Override
     public int getStateId(SpecificTag nbt) {
-        throw new NotImplementedException();
+        BlockState state = getState(nbt);
+        if (state == null) {
+            return 0;
+        }
+        return state.getNumericId();
     }
 }
 

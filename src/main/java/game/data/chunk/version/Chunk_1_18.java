@@ -89,6 +89,11 @@ public class Chunk_1_18 extends Chunk_1_17 {
         return packet;
     }
 
+    @Override
+    public PacketBuilder toLightPacket() {
+        return null;
+    }
+
 
     /**
      * Read a chunk column for 1.18
@@ -107,9 +112,9 @@ public class Chunk_1_18 extends Chunk_1_17 {
                 section.setBlockPalette(blockPalette);
             }
 
+            section.setBlockCount(blockCount);
             section.setBlocks(dataProvider.readLongArray(dataProvider.readVarInt()));
 
-            // biomes
             Palette biomePalette = Palette.readPalette(dataProvider, PaletteType.BIOMES);
             section.setBiomePalette(biomePalette);
 
@@ -196,6 +201,11 @@ public class Chunk_1_18 extends Chunk_1_17 {
         root.add("DataVersion", new IntTag(getDataVersion()));
 
         return new NamedTag("", root);
+    }
+
+    @Override
+    protected int getMinSection() {
+        return getMinBlockSection();
     }
 
     @Override

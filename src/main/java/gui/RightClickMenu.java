@@ -97,16 +97,19 @@ public class RightClickMenu extends ContextMenu {
     private void addDevOptions(List<MenuItem> menu, GuiMap handler) {
         menu.add(new SeparatorMenuItem());
 
-        menu.add(construct("Write chunk 0, 0", e -> {
-            Path p = PathUtils.toPath(Config.getWorldOutputDir(), "", "region", "r.0.0.mca");
-            ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
+        menu.add(construct("Write chunk", e -> {
+
+            CoordinateDim2D chunk = handler.getCursorCoordinates().globalToChunk().addDimension(Dimension.OVERWORLD);
+            CoordinateDim2D region = handler.getCursorCoordinates().globalToRegion().addDimension(Dimension.OVERWORLD);
+
+            ChunkBinary cb = new McaFile(region).getChunkBinary(chunk);
 
             String filename = "chunkdata.bin";
             FileOutputStream f = new FileOutputStream(filename);
             ObjectOutputStream o = new ObjectOutputStream(f);
             o.writeObject(cb);
 
-            System.out.println("Write chunk (0, 0) to " + filename);
+            System.out.println("Written chunk " + chunk + " to " + filename);
         }));
 
         menu.add(construct("Write all chunks as text", e -> {

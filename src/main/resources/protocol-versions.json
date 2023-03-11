@@ -301,8 +301,9 @@
 				"0x3a": "RemoveEntities",
 				"0x3d": "Respawn",
 				"0x3f": "SectionBlocksUpdate",
-				"0x4e": "SetEntityData",
 				"0x51": "SetEquipment",
+				"0x4b": "SetChunkCacheRadius",
+				"0x4e": "SetEntityData",
 				"0x60": "SystemChat",
 				"0x64": "TeleportEntity"
 			},

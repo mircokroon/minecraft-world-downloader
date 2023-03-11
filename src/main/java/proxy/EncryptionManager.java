@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -36,6 +37,7 @@ import proxy.auth.ServerAuthenticator;
  */
 public class EncryptionManager {
     private static final String ENCRYPTION_TYPE = "AES/CFB8/NoPadding";
+    private final PacketInjector packetInjector;
     private boolean encryptionEnabled = false;
     private String serverId;
     private RSAPublicKey serverRealPublicKey;
@@ -47,7 +49,7 @@ public class EncryptionManager {
     private KeyPair serverKeyPair;
     private KeyPair clientProfileKeyPair;
     private String username;
-    private final ConcurrentLinkedQueue<ByteQueue> insertedPackets;
+
     private final CompressionManager compressionManager;
     private final ClientAuthenticator clientAuthenticator;
 
@@ -64,20 +66,12 @@ public class EncryptionManager {
 
     public EncryptionManager(CompressionManager compressionManager) {
         this.compressionManager = compressionManager;
-        this.insertedPackets = new ConcurrentLinkedQueue<>();
+        this.packetInjector = new PacketInjector(compressionManager);
         this.clientAuthenticator = new ClientAuthenticator();
     }
 
     public boolean isEncryptionEnabled() {
         return encryptionEnabled;
-    }
-
-    /**
-     * Adds a packet to the queue. This queue is checked whenever a packet is sent, and they will be sent to the
-     * client after.
-     */
-    public void enqueuePacket(PacketBuilder packet) {
-        insertedPackets.add(packet.build(compressionManager));
     }
 
     /**
@@ -155,9 +149,9 @@ public class EncryptionManager {
 
         // if we need to insert packets, send at most 100 at a time
         int limit = 100;
-        while (!insertedPackets.isEmpty() && limit > 0) {
+        while (packetInjector.hasNext() && limit > 0) {
             limit--;
-            streamTo(streamToClient, insertedPackets.remove(), this::clientBoundEncrypt);
+            streamTo(streamToClient, packetInjector.getNext(), this::clientBoundEncrypt);
         }
 
     }
@@ -408,7 +402,7 @@ public class EncryptionManager {
 
     public void reset() {
         encryptionEnabled = false;
-        this.insertedPackets.clear();
+        this.packetInjector.clear();
         clientAuthenticator.reset();
     }
 
@@ -494,4 +488,9 @@ public class EncryptionManager {
 
         return Base64.getDecoder().decode(trimmed);
     }
+
+    public PacketInjector getPacketInjector() {
+        return packetInjector;
+    }
 }
+

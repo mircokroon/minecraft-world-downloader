@@ -25,6 +25,7 @@ import org.kohsuke.args4j.Option;
 import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
+import proxy.PacketInjector;
 import proxy.auth.AuthDetails;
 import proxy.auth.AuthenticationMethod;
 import proxy.auth.MicrosoftAuthHandler;
@@ -35,7 +36,7 @@ public class Config {
     private static final int DEFAULT_VERSION = 340;
     private static Path configPath;
 
-    private static Consumer<PacketBuilder> injector;
+    private static PacketInjector injector;
     private static Config instance;
 
     // fields marked transient so they are not written to JSON file
@@ -327,11 +328,11 @@ public class Config {
     /**
      * Packet injector allows new packets to be sent to the client.
      */
-    public static void registerPacketInjector(Consumer<PacketBuilder> injector) {
+    public static void registerPacketInjector(PacketInjector injector) {
         Config.injector = injector;
     }
 
-    public static Consumer<PacketBuilder> getPacketInjector() {
+    public static PacketInjector getPacketInjector() {
         return injector;
     }
 
@@ -364,10 +365,6 @@ public class Config {
     @Option(name = "--extended-render-distance", aliases = "-r",
             usage = "When set, send downloaded chunks to client to extend render distance to given amount.")
     public int extendedRenderDistance = 0;
-
-    @Option(name = "--measure-render-distance", depends = "--extended-render-distance",
-            usage = "When set, ignores the server's render distance value and measure it by looking at loaded chunks.")
-    public boolean measureRenderDistance = false;
 
     @Option(name = "--seed",
             usage = "Numeric level seed for output world.")
@@ -447,10 +444,6 @@ public class Config {
     // getters
     public static int getExtendedRenderDistance() {
         return instance.extendedRenderDistance;
-    }
-
-    public static boolean doMeasureRenderDistance() {
-        return instance.measureRenderDistance;
     }
 
     public static long getLevelSeed() {

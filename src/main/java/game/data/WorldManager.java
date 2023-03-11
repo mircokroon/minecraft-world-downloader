@@ -17,10 +17,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -51,6 +51,7 @@ import game.data.villagers.VillagerManager;
 import gui.GuiManager;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
+import proxy.PacketInjector;
 import util.PathUtils;
 
 /**
@@ -78,7 +79,7 @@ public class WorldManager {
     private CommandBlockManager commandBlockManager;
     private VillagerManager villagerManager;
     private DimensionCodec dimensionCodec;
-    private RenderDistanceExtender renderDistanceExtender;
+    private final RenderDistanceExtender renderDistanceExtender;
 
     private BiConsumer<CoordinateDouble3D, Double> playerPosListener;
     private CoordinateDouble3D playerPosition;
@@ -101,6 +102,7 @@ public class WorldManager {
         this.playerPosition = this.levelData.getPlayerPosition();
         this.dimension = this.levelData.getPlayerDimension();
         this.savingDimension = new HashSet<>();
+        this.renderDistanceExtender = new RenderDistanceExtender(this);
     }
 
     public static WorldManager getInstance() {
@@ -127,6 +129,10 @@ public class WorldManager {
                 chunkLoadCallbacks.remove(coordinate);
             }
         }
+    }
+
+    public void updateExtendedRenderDistance(int val) {
+        this.renderDistanceExtender.setExtendedDistance(val);
     }
 
     public Dimension getDimension() {
@@ -177,18 +183,6 @@ public class WorldManager {
 
         if (this.playerPosListener != null) {
             this.playerPosListener.accept(this.playerPosition, this.playerRotation);
-        }
-    }
-
-    public void updateExtendedRenderDistance(int val) {
-        if (val == 0 && this.renderDistanceExtender == null) {
-            return;
-        }
-
-        if (val > 0 && this.renderDistanceExtender == null) {
-            this.renderDistanceExtender = new RenderDistanceExtender(this, val);
-        } else {
-            this.renderDistanceExtender.setExtendedDistance(val);
         }
     }
 
@@ -280,9 +274,7 @@ public class WorldManager {
             chunk.whenParsed(() -> GuiManager.setChunkLoaded(chunk.location, chunk));
         }
 
-        if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.notifyLoaded(chunk.location);
-        }
+        this.renderDistanceExtender.notifyLoaded(chunk.location);
     }
 
     public void chunkLoadedCallback(Chunk c) {
@@ -321,9 +313,7 @@ public class WorldManager {
                 regions.remove(regionCoordinate);
             }
         }
-        if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.notifyUnloaded(coordinate);
-        }
+        this.renderDistanceExtender.notifyUnloaded(coordinate);
     }
 
     public BlockState blockStateAt(Coordinate3D coordinate3D) {
@@ -439,10 +429,6 @@ public class WorldManager {
 
         savingDimension.remove(dimension);
 
-        if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.checkDistance();
-        }
-
         // suggest GC to clear up some memory that may have been freed by saving
         System.gc();
     }
@@ -533,13 +519,6 @@ public class WorldManager {
         }
     }
 
-    public void setServerRenderDistance(int viewDist) {
-        if (renderDistanceExtender != null) {
-            renderDistanceExtender.setServerReportedRenderDistance(viewDist);
-        }
-
-    }
-
     /**
      * Send unload chunk packets to the client for each of the coordinates. Currently not used as chunk unloading is
      * not really important, the client can figure it out.
@@ -558,7 +537,8 @@ public class WorldManager {
      * @param desired the set of chunk coordinates which we want to send to the client.
      * @return the set of chunks that was actually sent to the client.
      */
-    public Set<Coordinate2D> loadChunks(Collection<Coordinate2D> desired) {
+    public Set<Coordinate2D> sendChunksToPlayer(Collection<Coordinate2D> desired) {
+        PacketInjector injector = Config.getPacketInjector();
         Set<Coordinate2D> loaded = new HashSet<>();
 
         int chunksSent = 0;
@@ -566,7 +546,7 @@ public class WorldManager {
         for (Coordinate2D coords : desired) {
             // since there is delay in this loop, it's possible some of the chunks were sent to the client by the time
             // we get to them.
-            if (this.renderDistanceExtender.isLoaded(coords)) {
+            if (!this.renderDistanceExtender.isStillNeeded(coords)) {
                 continue;
             }
 
@@ -591,9 +571,10 @@ public class WorldManager {
                 PacketBuilder chunkData = chunk.toPacket();
                 PacketBuilder light = chunk.toLightPacket();
                 if (light != null) {
-                    Config.getPacketInjector().accept(light);
+                    injector.enqueuePacket(light);
                 }
-                Config.getPacketInjector().accept(chunkData);
+                injector.enqueuePacket(chunkData);
+                chunksSent++;
 
             } catch (IncompleteChunkException ex) {
                 ex.printStackTrace();
@@ -603,18 +584,13 @@ public class WorldManager {
             loaded.add(coords);
 
             // draw in GUI
-            loadChunk(chunk, true, false);
+//            loadChunk(chunk, true, false);
 
             // periodically sleep so the client doesn't stutter from receiving too many chunks
             chunksSent = (chunksSent + 1) % 5;
             if (chunksSent == 0) {
-                try {
-                    Thread.sleep(48);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                attempt(() -> Thread.sleep(48));
             }
-
         }
         return loaded;
     }
@@ -731,6 +707,10 @@ public class WorldManager {
         if (saveService != null) {
             saveService.shutdown();
         }
+    }
+
+    public boolean canForget(CoordinateDim2D co) {
+        return !renderDistanceExtender.isStillNeeded(co);
     }
 }
 

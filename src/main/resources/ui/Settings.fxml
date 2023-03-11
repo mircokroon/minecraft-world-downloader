@@ -57,10 +57,8 @@
                     <Label text="Extended render distance" GridPane.rowIndex="0" />
                     <Slider fx:id="extendedDistance" blockIncrement="1" layoutX="10.0" layoutY="98.0" majorTickUnit="1.0" max="32" minorTickCount="0" prefHeight="25.0" prefWidth="93.0" showTickLabels="true" snapToTicks="true" GridPane.columnIndex="1" />
                     <AnchorPane GridPane.columnIndex="2">
-                        <IntField fx:id="extendedDistanceText" prefWidth="30" AnchorPane.leftAnchor="10" />
+                        <IntField fx:id="extendedDistanceText" prefWidth="40" AnchorPane.leftAnchor="10" />
                     </AnchorPane>
-                    <CheckBox fx:id="measureRenderDistance" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                    <Label text="Measure render distance" GridPane.rowIndex="1" />
                     <CheckBox fx:id="markUnsaved" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                     <Label text="Mark unsaved chunks" GridPane.rowIndex="2" />
                     <CheckBox fx:id="markOld" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />

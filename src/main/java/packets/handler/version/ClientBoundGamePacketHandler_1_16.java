@@ -54,7 +54,6 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
 
             // extend view distance communicated to the client to the given value
             int viewDist = provider.readVarInt();
-            WorldManager.getInstance().setServerRenderDistance(viewDist);
             replacement.writeVarInt(Math.max(viewDist, Config.getExtendedRenderDistance()));
 
             if (Config.versionReporter().isAtLeast(Version.V1_18)) {
