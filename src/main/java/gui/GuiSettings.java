@@ -65,6 +65,7 @@ public class GuiSettings {
     public Tab authTab;
     public RealmsTabController realmsController;
     public AuthTabController authController;
+    public CheckBox enableDrawExtendedChunks;
     Config config;
     private boolean portInUse;
 
@@ -98,6 +99,7 @@ public class GuiSettings {
         markOld.setSelected(config.markOldChunks);
         renderOtherPlayers.setSelected(config.renderOtherPlayers);
         enableInfoMessages.setSelected(!config.disableInfoMessages);
+        enableDrawExtendedChunks.setSelected(config.drawExtendedChunks);
 
         // realms tab
         if (config.isStarted()) {
@@ -293,6 +295,7 @@ public class GuiSettings {
         config.markOldChunks = markOld.isSelected();
         config.renderOtherPlayers = renderOtherPlayers.isSelected();
         config.disableInfoMessages = !enableInfoMessages.isSelected();
+        config.drawExtendedChunks = enableDrawExtendedChunks.isSelected();
 
         Config.save();
     }

@@ -17,7 +17,6 @@ import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 
 public class RegionImage {
-    private static final Color OUTDATED = Color.color(.16, .16, .16, .45);
     private static final int SIZE = Chunk.SECTION_WIDTH * Region.REGION_SIZE;;
     WritableImage image;
     WritableImage chunkOverlay;
@@ -41,7 +40,7 @@ public class RegionImage {
             // background color (with some opacity). Newly loaded chunks will make this transparent
             // when loaded in.
             if (Config.markOldChunks()) {
-                fillOverlay(OUTDATED);
+                fillOverlay(ChunkImageState.OUTDATED.getColor());
             }
         }
     }
@@ -124,3 +123,4 @@ public class RegionImage {
         return chunkOverlay;
     }
 }
+

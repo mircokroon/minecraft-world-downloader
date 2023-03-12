@@ -479,7 +479,7 @@ public class GuiMap {
         return regionHandler;
     }
 
-    public void colourChunk(Coordinate2D coords, Color color) {
-        regionHandler.colourChunk(coords, color);
+    public void setChunkState(Coordinate2D coords, ChunkImageState state) {
+        regionHandler.setChunkState(coords, state);
     }
 }

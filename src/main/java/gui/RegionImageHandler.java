@@ -24,9 +24,6 @@ import org.apache.commons.io.FileUtils;
  * Class to manage overlay images.
  */
 public class RegionImageHandler {
-    private static final Color SAVED = Color.TRANSPARENT;
-    private static final Color UNSAVED = Color.color(1, 0, 0, .35);
-
     private static final String CACHE_PATH = "image-cache";
     private Map<Coordinate2D, RegionImage> regions;
     private Dimension activeDimension;
@@ -61,18 +58,10 @@ public class RegionImageHandler {
         Coordinate2D local = coordinate.toRegionLocal();
         image.drawChunk(local, chunkImage);
 
-        setChunkSavedStatus(image, local, isSaved);
+        setChunkState(image, local, Config.markUnsavedChunks() ? ChunkImageState.isSaved(isSaved) : ChunkImageState.UNSAVED);
     }
 
-    private void setChunkSavedStatus(Coordinate2D coordinate, boolean isSaved) {
-        colourChunk(coordinate, Config.markUnsavedChunks() && !isSaved ? UNSAVED : SAVED);
-    }
-
-    private void setChunkSavedStatus(RegionImage region, Coordinate2D local, boolean isSaved) {
-        colourChunk(region, local, Config.markUnsavedChunks() && !isSaved ? UNSAVED : SAVED);
-    }
-
-    public void colourChunk(Coordinate2D coords, Color color) {
+    public void setChunkState(Coordinate2D coords, ChunkImageState state) {
         Coordinate2D region = coords.chunkToRegion();
 
         RegionImage image = regions.get(region);
@@ -80,16 +69,16 @@ public class RegionImageHandler {
             return;
         }
 
-        colourChunk(image, coords.toRegionLocal(), color);
+        setChunkState(image, coords.toRegionLocal(), state);
     }
 
-    private void colourChunk(RegionImage image, Coordinate2D local, Color color) {
-        image.colourChunk(local, color);
+    private void setChunkState(RegionImage image, Coordinate2D local, ChunkImageState state) {
+        image.colourChunk(local, state.getColor());
     }
 
 
     public void markChunkSaved(CoordinateDim2D coordinate) {
-        setChunkSavedStatus(coordinate, true);
+        setChunkState(coordinate, ChunkImageState.SAVED);
     }
 
     private RegionImage loadRegion(Coordinate2D coordinate) {

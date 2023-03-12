@@ -152,8 +152,8 @@ public class GuiManager extends Application {
         authenticationFailed = false;
     }
 
-    public static void colourChunk(Coordinate2D coords, Color color) {
-        chunkGraphicsHandler.colourChunk(coords, color);
+    public static void setChunkState(Coordinate2D coords, ChunkImageState state) {
+        chunkGraphicsHandler.setChunkState(coords, state);
     }
 
     private void loadSettingsInWindow() {

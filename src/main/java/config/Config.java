@@ -382,10 +382,6 @@ public class Config {
             usage = "Offsets output world. Given center Z coordinate will be put at world origin (0, 0). Rounded to multiples of 512 blocks.")
     public int centerZ = 0;
 
-    @Option(name = "--overview-zoom", aliases = "-z",
-            usage = "Render distance (in chunks) of the overview map. Can also be changed by scrolling on GUI.")
-    public int zoomLevel = 75;
-
     @Option(name = "--render-players",
             usage = "Show other players in the overview map.")
     public boolean renderOtherPlayers = false;
@@ -438,7 +434,11 @@ public class Config {
             usage = "Disable various info messages (e.g. chest saving).")
     public boolean disableInfoMessages = false;
 
-    // not really important enough to have an option in the GUI
+    @Option(name = "--draw-extended-chunks",
+            usage = "Draw extended chunks to map")
+    public boolean drawExtendedChunks = false;
+
+    // not really important enough to have an option for, can change it in config file
     public boolean smoothZooming = true;
 
     // getters
@@ -452,10 +452,6 @@ public class Config {
 
     public static String getWorldOutputDir() {
         return instance.worldOutputDir;
-    }
-
-    public static int getZoomLevel() {
-        return instance.zoomLevel;
     }
 
     public static boolean isInDevMode() {
@@ -499,17 +495,14 @@ public class Config {
 
     public static boolean sendInfoMessages() { return !instance.disableInfoMessages; }
 
+    public static boolean drawExtendedChunks() { return instance.drawExtendedChunks; }
+
     public static boolean smoothZooming() {
         return instance.smoothZooming;
     }
 
     public static boolean markOldChunks() {
         return instance.markOldChunks;
-    }
-
-    // setters
-    public static void setZoomLevel(int val) {
-        instance.zoomLevel = val;
     }
 
     public static MicrosoftAuthHandler getMicrosoftAuth() {

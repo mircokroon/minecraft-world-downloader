@@ -2,6 +2,7 @@ package game.data;
 
 import static util.ExceptionHandling.attempt;
 
+import gui.ChunkImageState;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -584,8 +585,8 @@ public class WorldManager {
             }
             loaded.add(coords);
 
-            if (Config.isInDevMode()) {
-                GuiManager.colourChunk(coords, Color.color(0, 1, 0, .3));
+            if (Config.drawExtendedChunks()) {
+                GuiManager.setChunkState(coords, ChunkImageState.EXTENDED);
             }
 
             // periodically sleep so the client doesn't stutter from receiving too many chunks
