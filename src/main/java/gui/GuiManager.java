@@ -17,6 +17,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -149,6 +150,10 @@ public class GuiManager extends Application {
 
     public static void clearAuthenticationFailed() {
         authenticationFailed = false;
+    }
+
+    public static void colourChunk(Coordinate2D coords, Color color) {
+        chunkGraphicsHandler.colourChunk(coords, color);
     }
 
     private void loadSettingsInWindow() {

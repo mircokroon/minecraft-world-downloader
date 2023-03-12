@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import javafx.scene.paint.Color;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -274,7 +275,7 @@ public class WorldManager {
             chunk.whenParsed(() -> GuiManager.setChunkLoaded(chunk.location, chunk));
         }
 
-        this.renderDistanceExtender.notifyLoaded(chunk.location);
+        this.renderDistanceExtender.notifyLoaded(chunk.location.stripDimension());
     }
 
     public void chunkLoadedCallback(Chunk c) {
@@ -583,8 +584,9 @@ public class WorldManager {
             }
             loaded.add(coords);
 
-            // draw in GUI
-//            loadChunk(chunk, true, false);
+            if (Config.isInDevMode()) {
+                GuiManager.colourChunk(coords, Color.color(0, 1, 0, .3));
+            }
 
             // periodically sleep so the client doesn't stutter from receiving too many chunks
             chunksSent = (chunksSent + 1) % 5;
@@ -710,7 +712,7 @@ public class WorldManager {
     }
 
     public boolean canForget(CoordinateDim2D co) {
-        return !renderDistanceExtender.isStillNeeded(co);
+        return renderDistanceExtender.canUnload(co);
     }
 }
 

@@ -17,12 +17,16 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import org.apache.commons.io.FileUtils;
 
 /**
  * Class to manage overlay images.
  */
 public class RegionImageHandler {
+    private static final Color SAVED = Color.TRANSPARENT;
+    private static final Color UNSAVED = Color.color(1, 0, 0, .35);
+
     private static final String CACHE_PATH = "image-cache";
     private Map<Coordinate2D, RegionImage> regions;
     private Dimension activeDimension;
@@ -55,22 +59,37 @@ public class RegionImageHandler {
         RegionImage image = regions.computeIfAbsent(region, (coordinate2D -> loadRegion(coordinate)));
 
         Coordinate2D local = coordinate.toRegionLocal();
-        image.drawChunk(local, chunkImage, isSaved);
+        image.drawChunk(local, chunkImage);
+
+        setChunkSavedStatus(image, local, isSaved);
     }
 
-    public void markChunkSaved(CoordinateDim2D coordinate) {
-        if (!coordinate.getDimension().equals(activeDimension)) {
-            return;
-        }
+    private void setChunkSavedStatus(Coordinate2D coordinate, boolean isSaved) {
+        colourChunk(coordinate, Config.markUnsavedChunks() && !isSaved ? UNSAVED : SAVED);
+    }
 
-        Coordinate2D region = coordinate.chunkToRegion();
+    private void setChunkSavedStatus(RegionImage region, Coordinate2D local, boolean isSaved) {
+        colourChunk(region, local, Config.markUnsavedChunks() && !isSaved ? UNSAVED : SAVED);
+    }
+
+    public void colourChunk(Coordinate2D coords, Color color) {
+        Coordinate2D region = coords.chunkToRegion();
 
         RegionImage image = regions.get(region);
         if (image == null) {
             return;
         }
 
-        image.markChunkSaved(coordinate.toRegionLocal());
+        colourChunk(image, coords.toRegionLocal(), color);
+    }
+
+    private void colourChunk(RegionImage image, Coordinate2D local, Color color) {
+        image.colourChunk(local, color);
+    }
+
+
+    public void markChunkSaved(CoordinateDim2D coordinate) {
+        setChunkSavedStatus(coordinate, true);
     }
 
     private RegionImage loadRegion(Coordinate2D coordinate) {

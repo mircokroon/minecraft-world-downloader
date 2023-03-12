@@ -478,4 +478,8 @@ public class GuiMap {
     public RegionImageHandler getRegionHandler() {
         return regionHandler;
     }
+
+    public void colourChunk(Coordinate2D coords, Color color) {
+        regionHandler.colourChunk(coords, color);
+    }
 }

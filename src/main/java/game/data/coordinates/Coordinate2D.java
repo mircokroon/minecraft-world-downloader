@@ -41,12 +41,18 @@ public class Coordinate2D {
         );
     }
 
-    public boolean isInRange(Coordinate2D other, int distanceX, int distanceZ) {
-        return Math.abs(this.x - other.x) <= distanceX && Math.abs(this.z - other.z) <= distanceZ;
+    public boolean isInRangeChebyshev(Coordinate2D other, int distance) {
+        return Math.abs(this.x - other.x) + Math.abs(this.z - other.z) <= distance;
     }
 
-    public boolean isInRange(Coordinate2D other, int distance) {
-        return isInRange(other, distance, distance);
+    public boolean isInRangeManhattan(Coordinate2D other, int distance) {
+        return Math.abs(this.x - other.x) <= distance && Math.abs(this.z - other.z) <= distance;
+    }
+
+    public boolean isInRangeEuclidean(Coordinate2D other, int distance) {
+        int diffX = this.x - other.x;
+        int diffZ = this.z - other.z;
+       return (diffX * diffX + diffZ * diffZ) <= (distance * distance);
     }
 
     public Coordinate2D subtract(Coordinate2D other) {

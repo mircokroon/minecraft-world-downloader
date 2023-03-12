@@ -16,7 +16,12 @@ import java.util.concurrent.Executors;
 import packets.builder.PacketBuilder;
 
 public class RenderDistanceExtender {
-    private static final Coordinate2D POS_INIT = new Coordinate2D(Integer.MAX_VALUE, Integer.MAX_VALUE);
+    private static final Coordinate2D POS_INIT = new Coordinate2D(0, 0) {
+        @Override
+        public boolean isInRangeChebyshev(Coordinate2D other, int distance) {
+            return false;
+        }
+    };
 
     private int extendedDistance;
 
@@ -71,7 +76,7 @@ public class RenderDistanceExtender {
             return;
         }
 
-        boolean isOneChunk = playerChunk.isInRange(newChunkPos, 1);
+        boolean isOneChunk = playerChunk.isInRangeChebyshev(newChunkPos, 1);
         this.playerChunk = newChunkPos;
 
         int dist = this.extendedDistance;
@@ -195,10 +200,11 @@ public class RenderDistanceExtender {
     }
 
     public void notifyLoaded(Coordinate2D coords) {
+        this.serverLoaded.add(coords);
+
         if (status == Status.WAITING) {
             start();
         }
-        this.serverLoaded.add(coords);
     }
 
     public boolean isLoaded(Coordinate2D coords) {
@@ -214,11 +220,15 @@ public class RenderDistanceExtender {
     }
 
     private boolean isInRange(Coordinate2D coords) {
-        return coords.isInRange(this.playerChunk, extendedDistance);
+        return coords.isInRangeEuclidean(this.playerChunk, extendedDistance + 1);
     }
 
     public boolean isStillNeeded(Coordinate2D coords) {
         return !isLoaded(coords) && isInRange(coords);
+    }
+
+    public boolean canUnload(Coordinate2D coords) {
+        return !isInRange(coords);
     }
 }
 
