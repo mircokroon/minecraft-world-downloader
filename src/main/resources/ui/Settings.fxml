@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="265.0" prefWidth="620.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
+<AnchorPane prefHeight="265.0" prefWidth="620.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
     <Button fx:id="saveButton" layoutX="491.0" layoutY="225.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
     <TabPane fx:id="tabPane" prefHeight="225.0" prefWidth="620.0" tabClosingPolicy="UNAVAILABLE">
         <Tab text="Connection">
@@ -78,7 +78,7 @@
                     </Label>
 
                <AnchorPane prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.rowSpan="4">
-                   <TitledPane animated="false" prefHeight="97.0" prefWidth="219.0" text="Advanced">
+                   <TitledPane animated="false" expanded="false" prefHeight="97.0" prefWidth="219.0" text="Advanced">
                        <AnchorPane layoutY="-20" prefHeight="64.0" prefWidth="217.0" style="-fx-padding: 6">
                            <GridPane layoutX="26.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="-3.0">
                                <columnConstraints>

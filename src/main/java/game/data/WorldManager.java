@@ -18,12 +18,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
-import javafx.scene.paint.Color;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -149,9 +147,7 @@ public class WorldManager {
         saveAndUnloadChunks();
         this.dimension = dimension;
 
-        if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.invalidateChunks();
-        }
+        this.renderDistanceExtender.reset();
 
         GuiManager.setDimension(this.dimension);
     }
@@ -315,7 +311,7 @@ public class WorldManager {
                 regions.remove(regionCoordinate);
             }
         }
-        this.renderDistanceExtender.notifyUnloaded(coordinate);
+        this.renderDistanceExtender.notifyUnloaded(coordinate.stripDimension());
     }
 
     public BlockState blockStateAt(Coordinate3D coordinate3D) {
@@ -599,11 +595,10 @@ public class WorldManager {
     }
 
     public void resetConnection() {
-        if (this.renderDistanceExtender != null) {
-            this.renderDistanceExtender.resetConnection();
-        }
+        this.renderDistanceExtender.reset();
         this.entityRegistry.reset();
         this.chunkFactory.reset();
+
         this.saveAndUnloadChunks();
     }
 
@@ -714,6 +709,10 @@ public class WorldManager {
 
     public boolean canForget(CoordinateDim2D co) {
         return renderDistanceExtender.canUnload(co);
+    }
+
+    public void drawExtended() {
+        this.renderDistanceExtender.drawAll();
     }
 }
 

@@ -10,10 +10,6 @@ import java.util.List;
 public class CircleGenerator {
     List<List<Coordinate2D>> circles = new ArrayList<>();
 
-    public static void main(String[] args) {
-        new CircleGenerator().computeUpToRadius(2);
-    }
-
     public void computeUpToRadius(int radius) {
         for (int i = 0; i < radius + 1; i++) {
             circles.add(new ArrayList<>());
@@ -27,7 +23,8 @@ public class CircleGenerator {
 
                 int dist = distance(centerX, centerZ);
 
-                if (dist > radius || radius < 1) {
+                // skip small radius
+                if (dist > radius || dist < 2) {
                     continue;
                 }
 
@@ -39,7 +36,7 @@ public class CircleGenerator {
     private int distance(int x, int z) {
         double dist = Math.sqrt(x * x + z * z);
 
-        return (int) Math.round(dist);
+        return (int) Math.ceil(dist);
     }
 
     public List<List<Coordinate2D>> getResult() {

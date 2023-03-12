@@ -1,16 +1,17 @@
 package game.data;
 
-import static util.ExceptionHandling.attempt;
+import static util.ExceptionHandling.attemptQuiet;
 
 import config.Config;
 import config.Version;
 import game.data.coordinates.Coordinate2D;
-import game.data.coordinates.CoordinateDim2D;
+import gui.ChunkImageState;
+import gui.GuiManager;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import packets.builder.PacketBuilder;
@@ -25,12 +26,12 @@ public class RenderDistanceExtender {
 
     private int extendedDistance;
 
-    private Coordinate2D playerChunk = POS_INIT;
+    private Coordinate2D playerChunk;
 
     private List<List<Coordinate2D>> circles;
 
-    private final Set<Coordinate2D> serverLoaded;
-    private final Set<Coordinate2D> extenderLoaded;
+    private Set<Coordinate2D> extenderLoaded;
+    private Set<Coordinate2D> gameLoaded;
 
     private final WorldManager worldManager;
 
@@ -39,17 +40,19 @@ public class RenderDistanceExtender {
     private Status status;
 
     public RenderDistanceExtender(WorldManager worldManager) {
-        this.status = Status.WAITING;
         this.worldManager = worldManager;
         this.extendedDistance = Config.getExtendedRenderDistance();
         generateCircles(this.extendedDistance);
 
-        this.serverLoaded = new HashSet<>();
-        this.extenderLoaded = new HashSet<>();
+        reset();
     }
 
-    private void reset() {
+    public void reset() {
         this.status = Status.WAITING;
+
+        this.playerChunk = POS_INIT;
+        this.gameLoaded = ConcurrentHashMap.newKeySet();
+        this.extenderLoaded = ConcurrentHashMap.newKeySet();
 
         if (executorService != null) {
             executorService.shutdown();
@@ -59,13 +62,17 @@ public class RenderDistanceExtender {
 
     private void start() {
         executorService = Executors.newSingleThreadExecutor((r) -> new Thread(r,"Render Distance Extender"));
-        executorService.execute(() -> {
-            attempt(() -> Thread.sleep(1000));
-        });
+        delay();
 
         this.status = Status.ACTIVE;
     }
 
+    /**
+     * When teleporting, wait a bit to avoid sending chunks also sent by the server.
+     */
+    private void delay() {
+        executorService.execute(() -> attemptQuiet(() -> Thread.sleep(1500)));
+    }
 
     public void updatePlayerPos(Coordinate2D newPos) {
         if (status != Status.ACTIVE || extendedDistance == 0) { return; }
@@ -76,32 +83,22 @@ public class RenderDistanceExtender {
             return;
         }
 
-        boolean isOneChunk = playerChunk.isInRangeChebyshev(newChunkPos, 1);
+        Coordinate2D oldPos = this.playerChunk;
         this.playerChunk = newChunkPos;
 
         int dist = this.extendedDistance;
-        if (isOneChunk) {
+        if (oldPos.isInRangeChebyshev(newChunkPos, 1)) {
             executorService.execute(() -> updateOuter(newChunkPos, dist));
         } else {
             executorService.execute(() -> {
                 // after teleport, wait a bit so server can send its own chunks
-                attempt(() -> Thread.sleep(400));
+                if (!oldPos.isInRangeManhattan(newChunkPos, 2)) {
+                    delay();
+                }
                 updateFull(newChunkPos, dist);
             });
         }
     }
-
-    private void recompute() {
-
-    }
-
-    /**
-     * If called, the server changed dimension and will need all chunks to be sent.
-     */
-    public void invalidateChunks() {
-
-    }
-
 
     /**
      * In case of teleports or spawns we will have to consider all the chunks.
@@ -139,7 +136,6 @@ public class RenderDistanceExtender {
             if (!isInRange(toCheck) && extenderLoaded.contains(toCheck)) {
                 toUnload.add(toCheck);
                 extenderLoaded.remove(toCheck);
-
             }
         }
         worldManager.unloadChunks(toUnload);
@@ -157,12 +153,7 @@ public class RenderDistanceExtender {
             }
             desired.add(toLoad);
         }
-        extenderLoaded.addAll(worldManager.sendChunksToPlayer(desired));
-    }
-
-    public void resetConnection() {
-        this.reset();
-        this.invalidateChunks();
+        extenderLoaded.addAll( worldManager.sendChunksToPlayer(desired));
     }
 
     public void setExtendedDistance(int newDistance) {
@@ -200,7 +191,8 @@ public class RenderDistanceExtender {
     }
 
     public void notifyLoaded(Coordinate2D coords) {
-        this.serverLoaded.add(coords);
+        this.extenderLoaded.remove(coords);
+        this.gameLoaded.add(coords);
 
         if (status == Status.WAITING) {
             start();
@@ -208,11 +200,11 @@ public class RenderDistanceExtender {
     }
 
     public boolean isLoaded(Coordinate2D coords) {
-        return serverLoaded.contains(coords) || extenderLoaded.contains(coords);
+        return gameLoaded.contains(coords) || extenderLoaded.contains(coords);
     }
 
-    public void notifyUnloaded(CoordinateDim2D coords) {
-        serverLoaded.remove(coords);
+    public void notifyUnloaded(Coordinate2D coords) {
+        gameLoaded.remove(coords);
 
         if (isInRange(coords)) {
             extenderLoaded.add(coords);
@@ -220,7 +212,7 @@ public class RenderDistanceExtender {
     }
 
     private boolean isInRange(Coordinate2D coords) {
-        return coords.isInRangeEuclidean(this.playerChunk, extendedDistance + 1);
+        return coords.isInRangeEuclidean(this.playerChunk, extendedDistance);
     }
 
     public boolean isStillNeeded(Coordinate2D coords) {
@@ -229,6 +221,12 @@ public class RenderDistanceExtender {
 
     public boolean canUnload(Coordinate2D coords) {
         return !isInRange(coords);
+    }
+
+    public void drawAll() {
+        extenderLoaded.forEach(el -> {
+            GuiManager.setChunkState(el, ChunkImageState.DEBUG);
+        });
     }
 }
 

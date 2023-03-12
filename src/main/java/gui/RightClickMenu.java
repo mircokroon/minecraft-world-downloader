@@ -139,6 +139,13 @@ public class RightClickMenu extends ContextMenu {
                     regions, binaryChunks, unpasedChunks, chunks, entities, players, maps, images);
         }));
 
+        menu.add(construct("Draw extender loaded", e -> {
+            new Thread(() -> {
+//                WorldManager.getInstance().drawExistingChunks(new Coordinate2D(0, 0));
+                WorldManager.getInstance().drawExtended();
+            }).start();
+        }));
+
         menu.add(construct("Print chunk events", e -> {
             Chunk.printEventLog(handler.getCursorCoordinates().globalToChunk().addDimension(Dimension.OVERWORLD));
         }));

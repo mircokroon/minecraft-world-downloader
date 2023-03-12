@@ -4,6 +4,7 @@ import javafx.scene.paint.Color;
 
 public enum ChunkImageState {
     SAVED(Color.TRANSPARENT),
+    DEBUG(Color.color(0, 0, 1, .3)),
     UNSAVED(Color.color(1, 0, 0, .35)),
     EXTENDED(Color.color(0, 1, 0, .3)),
     OUTDATED(Color.color(.16, .16, .16, .45));
