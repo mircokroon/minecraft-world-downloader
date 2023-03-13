@@ -12,7 +12,6 @@ import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 
 public class Chunk_1_17 extends Chunk_1_16 {
-    static int minSectionY = -1;
     static int minBlockSectionY = 0;
     static int maxBlockSectionY = 15;
     static int fullHeight;
@@ -24,7 +23,6 @@ public class Chunk_1_17 extends Chunk_1_16 {
     public static void setWorldHeight(int min_y, int height) {
         fullHeight = height;
         minBlockSectionY = min_y >> 4;
-        minSectionY = minBlockSectionY - 1;
         maxBlockSectionY = minBlockSectionY + (height >> 4) - 1;
     }
 
@@ -160,7 +158,7 @@ public class Chunk_1_17 extends Chunk_1_16 {
             packet.writeVarInt(light.length);
             packet.writeByteArray(light);
 
-            mask.set(section.getY() - getMinSection());
+            mask.set(section.getY() - getMinLightSection());
         }
 
 
@@ -168,8 +166,8 @@ public class Chunk_1_17 extends Chunk_1_16 {
     }
 
     @Override
-    protected int getMinSection() {
-        return minSectionY;
+    protected int getMinLightSection() {
+        return minBlockSectionY - 1;
     }
 
     @Override
@@ -178,8 +176,13 @@ public class Chunk_1_17 extends Chunk_1_16 {
     }
 
     @Override
-    protected int getMaxSection() {
+    protected int getMaxBlockSection() {
         return maxBlockSectionY;
+    }
+
+    @Override
+    protected int getMaxLightSection() {
+        return maxBlockSectionY + 1;
     }
 
     @Override

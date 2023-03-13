@@ -100,7 +100,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
      */
     public void readChunkColumn(DataTypeProvider dataProvider) {
         // Loop through section Y values, starting from the lowest section that has blocks inside it.
-        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && dataProvider.hasNext(); sectionY++) {
+        for (int sectionY = getMinBlockSection(); sectionY <= getMaxBlockSection() && dataProvider.hasNext(); sectionY++) {
             ChunkSection_1_18 section = (ChunkSection_1_18) getChunkSection(sectionY);
 
             int blockCount = dataProvider.readShort();
@@ -201,11 +201,6 @@ public class Chunk_1_18 extends Chunk_1_17 {
         root.add("DataVersion", new IntTag(getDataVersion()));
 
         return new NamedTag("", root);
-    }
-
-    @Override
-    protected int getMinSection() {
-        return getMinBlockSection();
     }
 
     @Override

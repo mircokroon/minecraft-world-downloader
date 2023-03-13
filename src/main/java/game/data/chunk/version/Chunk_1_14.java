@@ -1,7 +1,6 @@
 package game.data.chunk.version;
 
 import config.Config;
-import config.Version;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -49,7 +48,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
     }
 
     @Override
-    protected int getMinSection() {
+    protected int getMinLightSection() {
         return -1;
     }
 
@@ -117,7 +116,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
     }
 
     protected void parseLightArray(BitSet mask, BitSet emptyMask, DataTypeProvider provider, BiConsumer<ChunkSection, byte[]> c, Function<ChunkSection, byte[]> get) {
-        for (int sectionY = getMinSection(); sectionY <= (getMaxSection() + 1) && (!mask.isEmpty() || !emptyMask.isEmpty()); sectionY++) {
+        for (int sectionY = getMinLightSection(); sectionY <= getMaxLightSection() && (!mask.isEmpty() || !emptyMask.isEmpty()); sectionY++) {
             ChunkSection s = getChunkSection(sectionY);
             if (s == null) {
                 s = createNewChunkSection((byte) sectionY, Palette.empty());
@@ -127,14 +126,14 @@ public class Chunk_1_14 extends Chunk_1_13 {
             }
 
             // Mask tells us if a section is present or not
-            if (!mask.get(sectionY - getMinSection())) {
-                if (!emptyMask.get(sectionY - getMinSection())) {
+            if (!mask.get(sectionY - getMinLightSection())) {
+                if (!emptyMask.get(sectionY - getMinLightSection())) {
                     c.accept(s, new byte[2048]);
                 }
-                emptyMask.set(sectionY - getMinSection(), false);
+                emptyMask.set(sectionY - getMinLightSection(), false);
                 continue;
             }
-            mask.set(sectionY - getMinSection(), false);
+            mask.set(sectionY - getMinLightSection(), false);
 
             int skyLength = provider.readVarInt();
             byte[] data = provider.readByteArray(skyLength);
@@ -190,7 +189,7 @@ public class Chunk_1_14 extends Chunk_1_13 {
 
             packet.writeVarInt(light.length);
             packet.writeByteArray(light);
-            mask |= 1 << section.getY() - getMinSection();
+            mask |= 1 << section.getY() - getMinLightSection();
         }
 
 

@@ -307,12 +307,16 @@ public class GuiManager extends Application {
 
         Platform.runLater(() -> {
             // first stop both saving executor threads
-            chunkGraphicsHandler.getRegionHandler().shutdown();
+            if (chunkGraphicsHandler != null) {
+                chunkGraphicsHandler.getRegionHandler().shutdown();
+            }
             WorldManager.getInstance().shutdown();
 
             // then save world, if they are already in the process of saving they will wait for the
             // executor to finish before returning
-            chunkGraphicsHandler.getRegionHandler().save();
+            if (chunkGraphicsHandler != null) {
+                chunkGraphicsHandler.getRegionHandler().save();
+            }
             WorldManager.getInstance().save();
 
             Platform.exit();
