@@ -8,7 +8,7 @@ import java.util.List;
  * Generate lists of coordinates for chunks per radius distance.
  */
 public class CircleGenerator {
-    List<List<Coordinate2D>> circles = new ArrayList<>();
+    private final List<List<Coordinate2D>> circles = new ArrayList<>();
 
     public void computeUpToRadius(int radius) {
         for (int i = 0; i < radius + 1; i++) {
@@ -23,8 +23,12 @@ public class CircleGenerator {
 
                 int dist = distance(centerX, centerZ);
 
+                if (centerX == 0 || centerZ == 0) {
+                    dist += 1;
+                }
+
                 // skip small radius
-                if (dist > radius || dist < 2) {
+                if (dist > radius || dist < 3) {
                     continue;
                 }
 

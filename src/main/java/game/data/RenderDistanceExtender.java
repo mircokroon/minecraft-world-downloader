@@ -5,8 +5,6 @@ import static util.ExceptionHandling.attemptQuiet;
 import config.Config;
 import config.Version;
 import game.data.coordinates.Coordinate2D;
-import gui.ChunkImageState;
-import gui.GuiManager;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -61,7 +59,8 @@ public class RenderDistanceExtender {
     }
 
     private void start() {
-        executorService = Executors.newSingleThreadExecutor((r) -> new Thread(r,"Render Distance Extender"));
+        executorService =
+            Executors.newSingleThreadExecutor((r) -> new Thread(r, "Render Distance Extender"));
         delay();
 
         this.status = Status.ACTIVE;
@@ -85,6 +84,10 @@ public class RenderDistanceExtender {
 
         Coordinate2D oldPos = this.playerChunk;
         this.playerChunk = newChunkPos;
+
+        if (this.extendedDistance == 0) {
+            return;
+        }
 
         int dist = this.extendedDistance;
         if (oldPos.isInRangeChebyshev(newChunkPos, 1)) {
@@ -153,7 +156,7 @@ public class RenderDistanceExtender {
             }
             desired.add(toLoad);
         }
-        extenderLoaded.addAll( worldManager.sendChunksToPlayer(desired));
+        extenderLoaded.addAll(worldManager.sendChunksToPlayer(desired));
     }
 
     public void setExtendedDistance(int newDistance) {
@@ -223,13 +226,11 @@ public class RenderDistanceExtender {
         return !isInRange(coords);
     }
 
-    public void drawAll() {
-        extenderLoaded.forEach(el -> {
-            GuiManager.setChunkState(el, ChunkImageState.DEBUG);
-        });
+    public int countLoaded() {
+        return extenderLoaded.size();
     }
-}
 
-enum Status {
-    WAITING, ACTIVE;
+    enum Status {
+        WAITING, ACTIVE
+    }
 }

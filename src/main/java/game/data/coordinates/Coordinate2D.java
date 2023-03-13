@@ -52,6 +52,12 @@ public class Coordinate2D {
     public boolean isInRangeEuclidean(Coordinate2D other, int distance) {
         int diffX = this.x - other.x;
         int diffZ = this.z - other.z;
+
+        // for the center "cross" of chunks, we change the distance calculated to avoid having
+        // single chunks "sticking out"
+        if (diffX == 0 || diffZ == 0) {
+            distance -= 1;
+        }
        return (diffX * diffX + diffZ * diffZ) <= (distance * distance);
     }
 

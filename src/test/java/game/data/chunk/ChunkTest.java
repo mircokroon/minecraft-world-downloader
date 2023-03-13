@@ -2,8 +2,6 @@ package game.data.chunk;
 
 import config.Config;
 import config.Version;
-import game.data.chunk.palette.State;
-import game.data.chunk.palette.StateProvider;
 import game.data.chunk.version.Chunk_1_17;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.WorldManager;

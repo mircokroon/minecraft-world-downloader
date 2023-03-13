@@ -11,7 +11,6 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.protocol.Protocol;
-import gui.ChunkState;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
@@ -536,10 +535,6 @@ public abstract class Chunk extends ChunkEntities {
 
     public void updateLight(DataTypeProvider provider) {
         raiseEvent("update lighting");
-    }
-
-    public ChunkState getState() {
-        return new ChunkState(true, isSaved());
     }
 
     public boolean hasSeparateEntities() {

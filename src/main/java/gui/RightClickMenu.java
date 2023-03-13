@@ -121,6 +121,7 @@ public class RightClickMenu extends ContextMenu {
             int binaryChunks = WorldManager.getInstance().countActiveBinaryChunks();
             int unpasedChunks = WorldManager.getInstance().countQueuedChunks();
             int chunks = WorldManager.getInstance().countActiveChunks();
+            int extendedChunks = WorldManager.getInstance().countExtendedChunks();
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
             int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
             int maps = WorldManager.getInstance().getMapRegistry().countActiveMaps();
@@ -131,19 +132,13 @@ public class RightClickMenu extends ContextMenu {
                             "\n\tActive binary chunks: %d" +
                             "\n\tActive unparsed chunks: %d" +
                             "\n\tActive chunks: %d" +
+                            "\n\tActive extended chunks: %d" +
                             "\n\tActive entities: %d" +
                             "\n\tActive players: %d" +
                             "\n\tActive maps: %d" +
                             "\n\tActive region images: %d" +
                             "\n",
-                    regions, binaryChunks, unpasedChunks, chunks, entities, players, maps, images);
-        }));
-
-        menu.add(construct("Draw extender loaded", e -> {
-            new Thread(() -> {
-//                WorldManager.getInstance().drawExistingChunks(new Coordinate2D(0, 0));
-                WorldManager.getInstance().drawExtended();
-            }).start();
+                    regions, binaryChunks, unpasedChunks, chunks, extendedChunks, entities, players, maps, images);
         }));
 
         menu.add(construct("Print chunk events", e -> {

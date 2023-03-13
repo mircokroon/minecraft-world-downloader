@@ -711,8 +711,8 @@ public class WorldManager {
         return renderDistanceExtender.canUnload(co);
     }
 
-    public void drawExtended() {
-        this.renderDistanceExtender.drawAll();
+    public int countExtendedChunks() {
+        return renderDistanceExtender.countLoaded();
     }
 }
 

@@ -58,7 +58,7 @@ public class RegionImageHandler {
         Coordinate2D local = coordinate.toRegionLocal();
         image.drawChunk(local, chunkImage);
 
-        setChunkState(image, local, Config.markUnsavedChunks() ? ChunkImageState.isSaved(isSaved) : ChunkImageState.UNSAVED);
+        setChunkState(image, local, ChunkImageState.isSaved(isSaved));
     }
 
     public void setChunkState(Coordinate2D coords, ChunkImageState state) {

@@ -33,15 +33,13 @@ public class RegionImage {
         this.buffer = new byte[16 * 16 * 4];
         this.saved = true;
 
-        if (Config.markUnsavedChunks() || Config.markOldChunks()) {
-            chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
+        chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
 
-            // if mark old chunks is enabled, the overlay is initialised to the same as the GUI
-            // background color (with some opacity). Newly loaded chunks will make this transparent
-            // when loaded in.
-            if (Config.markOldChunks()) {
-                fillOverlay(ChunkImageState.OUTDATED.getColor());
-            }
+        // if mark old chunks is enabled, the overlay is initialised to the same as the GUI
+        // background color (with some opacity). Newly loaded chunks will make this transparent
+        // when loaded in.
+        if (Config.markOldChunks()) {
+            fillOverlay(ChunkImageState.OUTDATED.getColor());
         }
     }
 
@@ -116,10 +114,6 @@ public class RegionImage {
     }
 
     public Image getChunkOverlay() {
-        if (!Config.markUnsavedChunks() && !Config.markOldChunks()) {
-            return null;
-        }
-
         return chunkOverlay;
     }
 }
