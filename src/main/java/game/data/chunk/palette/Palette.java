@@ -35,7 +35,7 @@ public class Palette {
 
     Palette(int[] arr) {
         this.palette = arr;
-        this.bitsPerBlock = computeBitsPerBlock(Math.min(0, arr.length - 1));
+        this.bitsPerBlock = computeBitsPerBlock(Math.max(0, arr.length - 1));
         this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
     }
 
