@@ -318,6 +318,45 @@
 				"0x31": "UseItemOn",
 				"0x32": "UseItem"
 			}
+		},
+		"762": {
+			"version": "1.19.4",
+			"dataVersion": 3337,
+			"clientBound": {
+				"0x01": "AddEntity",
+				"0x03": "AddPlayer",
+				"0x08": "BlockEntityData",
+				"0x0a": "BlockUpdate",
+				"0x11": "ContainerClose",
+				"0x12": "ContainerSetContent",
+				"0x1e": "ForgetLevelChunk",
+				"0x24": "LevelChunkWithLight",
+				"0x27": "LightUpdate",
+				"0x28": "Login",
+				"0x29": "MapItemData",
+				"0x2b": "MoveEntityPos",
+				"0x2c": "MoveEntityPosRot",
+				"0x30": "OpenScreen",
+				"0x3e": "RemoveEntities",
+				"0x41": "Respawn",
+				"0x43": "SectionBlocksUpdate",
+				"0x4f": "SetChunkCacheRadius",
+				"0x52": "SetEntityData",
+				"0x55": "SetEquipment",
+				"0x64": "SystemChat",
+				"0x68": "TeleportEntity"
+			},
+			"serverBound": {
+				"0x0c": "ContainerClose",
+				"0x10": "Interact",
+				"0x14": "MovePlayerPos",
+				"0x15": "MovePlayerPosRot",
+				"0x16": "MovePlayerRot",
+				"0x18": "MoveVehicle",
+				"0x29": "SetCommandBlock",
+				"0x31": "UseItemOn",
+				"0x32": "UseItem"
+			}
 		}
 	}
 }
