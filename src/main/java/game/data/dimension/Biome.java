@@ -22,6 +22,10 @@ public class Biome {
     int id;
     BiomeProperties properties;
 
+    public Biome(int id) {
+        this.id = id;
+    }
+
     public Biome(String namespace, String fullName, int id, CompoundTag properties) {
         this.namespace = namespace;
         this.id = id;

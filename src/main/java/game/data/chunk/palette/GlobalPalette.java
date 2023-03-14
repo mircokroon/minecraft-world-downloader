@@ -2,6 +2,7 @@ package game.data.chunk.palette;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonPrimitive;
+import org.apache.commons.lang3.NotImplementedException;
 import se.llbit.nbt.*;
 
 import java.io.InputStream;
@@ -70,8 +71,18 @@ public class GlobalPalette implements StateProvider {
         return states.values().iterator().next();
     }
 
-    public BlockState getState(CompoundTag nbt) {
+    @Override
+    public BlockState getState(SpecificTag nbt) {
         return nameStates.get(new BlockStateIdentifier(nbt));
+    }
+
+    @Override
+    public int getStateId(SpecificTag nbt) {
+        BlockState state = getState(nbt);
+        if (state == null) {
+            return 0;
+        }
+        return state.getNumericId();
     }
 }
 
@@ -79,7 +90,7 @@ class BlockStateIdentifier {
     String name;
     CompoundTag properties;
 
-    public BlockStateIdentifier(CompoundTag t) {
+    public BlockStateIdentifier(SpecificTag t) {
         this(t.get("Name").stringValue(), t.get("Properties").asCompound());
     }
 

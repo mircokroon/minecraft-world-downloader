@@ -37,8 +37,6 @@ public abstract class ChunkSection {
     public ChunkSection(byte y, Palette palette, Chunk chunk) {
         this.chunk = chunk;
         this.y = y;
-        this.blockLight = new byte[2048];
-        this.skyLight = new byte[2048];
         this.palette = palette;
     }
 

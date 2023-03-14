@@ -17,6 +17,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import org.apache.commons.io.FileUtils;
 
 /**
@@ -55,22 +56,29 @@ public class RegionImageHandler {
         RegionImage image = regions.computeIfAbsent(region, (coordinate2D -> loadRegion(coordinate)));
 
         Coordinate2D local = coordinate.toRegionLocal();
-        image.drawChunk(local, chunkImage, isSaved);
+        image.drawChunk(local, chunkImage);
+
+        setChunkState(image, local, ChunkImageState.isSaved(isSaved));
     }
 
-    public void markChunkSaved(CoordinateDim2D coordinate) {
-        if (!coordinate.getDimension().equals(activeDimension)) {
-            return;
-        }
-
-        Coordinate2D region = coordinate.chunkToRegion();
+    public void setChunkState(Coordinate2D coords, ChunkImageState state) {
+        Coordinate2D region = coords.chunkToRegion();
 
         RegionImage image = regions.get(region);
         if (image == null) {
             return;
         }
 
-        image.markChunkSaved(coordinate.toRegionLocal());
+        setChunkState(image, coords.toRegionLocal(), state);
+    }
+
+    private void setChunkState(RegionImage image, Coordinate2D local, ChunkImageState state) {
+        image.colourChunk(local, state.getColor());
+    }
+
+
+    public void markChunkSaved(CoordinateDim2D coordinate) {
+        setChunkState(coordinate, ChunkImageState.SAVED);
     }
 
     private RegionImage loadRegion(Coordinate2D coordinate) {

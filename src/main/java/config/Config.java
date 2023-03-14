@@ -25,6 +25,7 @@ import org.kohsuke.args4j.Option;
 import packets.builder.PacketBuilder;
 import proxy.ConnectionDetails;
 import proxy.ConnectionManager;
+import proxy.PacketInjector;
 import proxy.auth.AuthDetails;
 import proxy.auth.AuthenticationMethod;
 import proxy.auth.MicrosoftAuthHandler;
@@ -35,7 +36,7 @@ public class Config {
     private static final int DEFAULT_VERSION = 340;
     private static Path configPath;
 
-    private static Consumer<PacketBuilder> injector;
+    private static PacketInjector injector;
     private static Config instance;
 
     // fields marked transient so they are not written to JSON file
@@ -327,11 +328,11 @@ public class Config {
     /**
      * Packet injector allows new packets to be sent to the client.
      */
-    public static void registerPacketInjector(Consumer<PacketBuilder> injector) {
+    public static void registerPacketInjector(PacketInjector injector) {
         Config.injector = injector;
     }
 
-    public static Consumer<PacketBuilder> getPacketInjector() {
+    public static PacketInjector getPacketInjector() {
         return injector;
     }
 
@@ -365,10 +366,6 @@ public class Config {
             usage = "When set, send downloaded chunks to client to extend render distance to given amount.")
     public int extendedRenderDistance = 0;
 
-    @Option(name = "--measure-render-distance", depends = "--extended-render-distance",
-            usage = "When set, ignores the server's render distance value and measure it by looking at loaded chunks.")
-    public boolean measureRenderDistance = false;
-
     @Option(name = "--seed",
             usage = "Numeric level seed for output world.")
     public long levelSeed = 0;
@@ -384,10 +381,6 @@ public class Config {
     @Option(name = "--center-z", depends = "--center-x",
             usage = "Offsets output world. Given center Z coordinate will be put at world origin (0, 0). Rounded to multiples of 512 blocks.")
     public int centerZ = 0;
-
-    @Option(name = "--overview-zoom", aliases = "-z",
-            usage = "Render distance (in chunks) of the overview map. Can also be changed by scrolling on GUI.")
-    public int zoomLevel = 75;
 
     @Option(name = "--render-players",
             usage = "Show other players in the overview map.")
@@ -441,16 +434,16 @@ public class Config {
             usage = "Disable various info messages (e.g. chest saving).")
     public boolean disableInfoMessages = false;
 
-    // not really important enough to have an option in the GUI
+    @Option(name = "--draw-extended-chunks",
+            usage = "Draw extended chunks to map")
+    public boolean drawExtendedChunks = false;
+
+    // not really important enough to have an option for, can change it in config file
     public boolean smoothZooming = true;
 
     // getters
     public static int getExtendedRenderDistance() {
         return instance.extendedRenderDistance;
-    }
-
-    public static boolean doMeasureRenderDistance() {
-        return instance.measureRenderDistance;
     }
 
     public static long getLevelSeed() {
@@ -459,10 +452,6 @@ public class Config {
 
     public static String getWorldOutputDir() {
         return instance.worldOutputDir;
-    }
-
-    public static int getZoomLevel() {
-        return instance.zoomLevel;
     }
 
     public static boolean isInDevMode() {
@@ -506,17 +495,14 @@ public class Config {
 
     public static boolean sendInfoMessages() { return !instance.disableInfoMessages; }
 
+    public static boolean drawExtendedChunks() { return instance.drawExtendedChunks; }
+
     public static boolean smoothZooming() {
         return instance.smoothZooming;
     }
 
     public static boolean markOldChunks() {
         return instance.markOldChunks;
-    }
-
-    // setters
-    public static void setZoomLevel(int val) {
-        instance.zoomLevel = val;
     }
 
     public static MicrosoftAuthHandler getMicrosoftAuth() {

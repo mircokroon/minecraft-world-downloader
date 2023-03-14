@@ -17,9 +17,6 @@ import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 
 public class RegionImage {
-    private static final Color SAVED = Color.TRANSPARENT;
-    private static final Color UNSAVED = Color.color(1, 0, 0, .35);
-    private static final Color OUTDATED = Color.color(.16, .16, .16, .45);
     private static final int SIZE = Chunk.SECTION_WIDTH * Region.REGION_SIZE;;
     WritableImage image;
     WritableImage chunkOverlay;
@@ -36,15 +33,13 @@ public class RegionImage {
         this.buffer = new byte[16 * 16 * 4];
         this.saved = true;
 
-        if (Config.markUnsavedChunks() || Config.markOldChunks()) {
-            chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
+        chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
 
-            // if mark old chunks is enabled, the overlay is initialised to the same as the GUI
-            // background color (with some opacity). Newly loaded chunks will make this transparent
-            // when loaded in.
-            if (Config.markOldChunks()) {
-                fillOverlay(OUTDATED);
-            }
+        // if mark old chunks is enabled, the overlay is initialised to the same as the GUI
+        // background color (with some opacity). Newly loaded chunks will make this transparent
+        // when loaded in.
+        if (Config.markOldChunks()) {
+            fillOverlay(ChunkImageState.OUTDATED.getColor());
         }
     }
 
@@ -84,26 +79,20 @@ public class RegionImage {
         return image;
     }
 
-    public void drawChunk(Coordinate2D local, Image chunkImage, Boolean chunkIsSaved) {
+    public void drawChunk(Coordinate2D local, Image chunkImage) {
         int size = Chunk.SECTION_WIDTH;
 
         WritablePixelFormat<ByteBuffer> format = WritablePixelFormat.getByteBgraInstance();
         chunkImage.getPixelReader().getPixels(0, 0, size, size, format, buffer, 0, size * 4);
         image.getPixelWriter().setPixels(local.getX() * size, local.getZ() * size, size, size, format, buffer, 0, size * 4);
 
-        setChunkSavedStatus(local, chunkIsSaved);
         saved = false;
     }
 
-    private void setChunkSavedStatus(Coordinate2D local, boolean isSaved) {
+    public void colourChunk(Coordinate2D local, Color color) {
         if (chunkOverlay != null) {
-            Color c = Config.markUnsavedChunks() && !isSaved ? UNSAVED : SAVED;
-            chunkOverlay.getPixelWriter().setColor(local.getX(), local.getZ(), c);
+            chunkOverlay.getPixelWriter().setColor(local.getX(), local.getZ(), color);
         }
-    }
-
-    public void markChunkSaved(Coordinate2D local) {
-        setChunkSavedStatus(local, true);
     }
 
     public void save(Path p, Coordinate2D coords) throws IOException {
@@ -125,10 +114,7 @@ public class RegionImage {
     }
 
     public Image getChunkOverlay() {
-        if (!Config.markUnsavedChunks() && !Config.markOldChunks()) {
-            return null;
-        }
-
         return chunkOverlay;
     }
 }
+

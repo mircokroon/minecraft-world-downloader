@@ -65,7 +65,7 @@ public class ConnectionManager {
         ProxyServer proxy = new ProxyServer(this, Config.getConnectionDetails());
         proxy.runServer(serverBoundDataReader, clientBoundDataReader);
 
-        Config.registerPacketInjector(this.getEncryptionManager()::enqueuePacket);
+        Config.registerPacketInjector(this.getEncryptionManager().getPacketInjector());
     }
 
     /**

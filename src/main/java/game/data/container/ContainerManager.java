@@ -105,7 +105,7 @@ public class ContainerManager {
             Chat message = new Chat("Unable to save inventory at " + window.getContainerLocation() + ". " + cause);
             message.setColor("red");
 
-            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+            Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
     }
 

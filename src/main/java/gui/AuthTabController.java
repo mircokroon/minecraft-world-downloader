@@ -37,10 +37,12 @@ public class AuthTabController {
     public Hyperlink infoLink;
     public Pane msAuthBackupPane;
     public TextField linkCopyField;
+    public Label authFailedLabel;
 
     private AuthDetails manualDetails;
 
     private MicrosoftAuthServer authServer;
+
 
     @FXML
     public void initialize() {
@@ -58,40 +60,62 @@ public class AuthTabController {
 
         ToggleGroup group = new ToggleGroup();
         for (AuthenticationMethod method : AuthenticationMethod.values()) {
+            boolean isInitiallyActiveMethod = Config.getAuthMethod() == method;
             RadioButton btn = new RadioButton(method.getLabel());
             btn.setToggleGroup(group);
-            btn.selectedProperty().addListener((v, o, n) -> {
-                if (n) {
+            btn.selectedProperty().addListener((v, oldVal, newVal) -> {
+                if (newVal) {
                     Config.setAuthMethod(method);
                     showAuthPane();
+
+                    if (!isInitiallyActiveMethod) {
+                        clearAuthenticationStatus();
+                    }
                 }
             });
-            if (Config.getAuthMethod() == method) {
+            if (isInitiallyActiveMethod) {
                 btn.setSelected(true);
             }
             btn.setPrefHeight(30);
             radioContainer.getChildren().add(btn);
         }
+
+        authFailedLabel.setVisible(GuiManager.clearAuthentiationStatus());
+    }
+
+    private void clearAuthenticationStatus() {
+        GuiManager.clearAuthenticationFailed();
+        authFailedLabel.setVisible(GuiManager.clearAuthentiationStatus());
     }
 
     public void checkButtonPressed(ActionEvent actionEvent) {
-        statusText.setText(validateAndGetLabel());
-    }
-
-    private String validateAndGetLabel() {
         try {
             AuthenticationMethod method = Config.getAuthMethod();
             AuthDetails details = AuthDetailsManager.loadAuthDetails();
 
             boolean isValid = details.isValid();
-            if (!isValid) {
-                return method.getErrorMessage();
+            if (isValid) {
+                setStatusText("Valid session found! \n\nUsername: " + details.getUsername());
+            } else {
+                setStatusError(method.getErrorMessage());
             }
-            return "Valid session found! \n\nUsername: " + details.getUsername();
-
         } catch (IOException e) {
-            return "Exception occurred: " + e.getMessage();
+            setStatusError("Exception occurred: " + e.getMessage());
         }
+        clearAuthenticationStatus();
+    }
+
+    private void setStatusText(String text) {
+        setStatusText(text, false);
+    }
+    private void setStatusError(String text) {
+        setStatusText(text, true);
+    }
+    private void setStatusText(String text, boolean isError) {
+        statusText.setText(text);
+
+        statusText.getStyleClass().clear();
+        statusText.getStyleClass().add(isError ? "label-err" : "label");
     }
 
     public void msAuthPressed(ActionEvent actionEvent) {
@@ -148,7 +172,7 @@ public class AuthTabController {
         msAuthPane.setVisible(false);
         msAuthBackupPane.setVisible(false);
         manualAuthPane.setVisible(false);
-        statusText.setText("");
+        setStatusText("");
 
         if (method == AuthenticationMethod.MICROSOFT) {
             msAuthPane.setVisible(true);
@@ -156,9 +180,9 @@ public class AuthTabController {
             MicrosoftAuthHandler handler = Config.getMicrosoftAuth();
 
             if (handler != null && handler.hasLoggedIn()) {
-                statusText.setText("Microsoft login session present.");
+               setStatusText("Microsoft login session present.");
             } else {
-                statusText.setText(method.getErrorMessage());
+                setStatusError(method.getErrorMessage());
             }
             return;
         }

@@ -97,16 +97,19 @@ public class RightClickMenu extends ContextMenu {
     private void addDevOptions(List<MenuItem> menu, GuiMap handler) {
         menu.add(new SeparatorMenuItem());
 
-        menu.add(construct("Write chunk 0, 0", e -> {
-            Path p = PathUtils.toPath(Config.getWorldOutputDir(), "", "region", "r.0.0.mca");
-            ChunkBinary cb = new McaFile(p.toFile()).getChunkBinary(new CoordinateDim2D(0, 0, Dimension.OVERWORLD));
+        menu.add(construct("Write chunk", e -> {
+
+            CoordinateDim2D chunk = handler.getCursorCoordinates().globalToChunk().addDimension(Dimension.OVERWORLD);
+            CoordinateDim2D region = handler.getCursorCoordinates().globalToRegion().addDimension(Dimension.OVERWORLD);
+
+            ChunkBinary cb = new McaFile(region).getChunkBinary(chunk);
 
             String filename = "chunkdata.bin";
             FileOutputStream f = new FileOutputStream(filename);
             ObjectOutputStream o = new ObjectOutputStream(f);
             o.writeObject(cb);
 
-            System.out.println("Write chunk (0, 0) to " + filename);
+            System.out.println("Written chunk " + chunk + " to " + filename);
         }));
 
         menu.add(construct("Write all chunks as text", e -> {
@@ -118,6 +121,7 @@ public class RightClickMenu extends ContextMenu {
             int binaryChunks = WorldManager.getInstance().countActiveBinaryChunks();
             int unpasedChunks = WorldManager.getInstance().countQueuedChunks();
             int chunks = WorldManager.getInstance().countActiveChunks();
+            int extendedChunks = WorldManager.getInstance().countExtendedChunks();
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
             int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
             int maps = WorldManager.getInstance().getMapRegistry().countActiveMaps();
@@ -128,12 +132,13 @@ public class RightClickMenu extends ContextMenu {
                             "\n\tActive binary chunks: %d" +
                             "\n\tActive unparsed chunks: %d" +
                             "\n\tActive chunks: %d" +
+                            "\n\tActive extended chunks: %d" +
                             "\n\tActive entities: %d" +
                             "\n\tActive players: %d" +
                             "\n\tActive maps: %d" +
                             "\n\tActive region images: %d" +
                             "\n",
-                    regions, binaryChunks, unpasedChunks, chunks, entities, players, maps, images);
+                    regions, binaryChunks, unpasedChunks, chunks, extendedChunks, entities, players, maps, images);
         }));
 
         menu.add(construct("Print chunk events", e -> {

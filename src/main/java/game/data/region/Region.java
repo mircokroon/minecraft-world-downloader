@@ -124,7 +124,7 @@ public class Region {
 
                 // mark the chunk for deletion -- this is really only a back-up, the unload-chunk packet sent by the
                 // server is what should be used to unload chunks correctly.
-                if (!playerPos.isInRange(coordinate, UNLOAD_RANGE)) {
+                if (!playerPos.isInRangeManhattan(coordinate, UNLOAD_RANGE)) {
                     toDelete.add(coordinate);
                 }
 

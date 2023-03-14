@@ -60,9 +60,10 @@
  .backdrop .text {
      -fx-effect: dropshadow(gaussian, rgba(0.2, 0.2, 0.2, 0.65), 2, 1, 0.0, 0.0);
 }
- .button {
+ .button, .titled-pane > .title {
      -fx-background-color: #008943;
      -fx-text-base-color: white;
+     -fx-text-fill: white;
      -fx-font-weight: bold;
      -fx-font-size: 1.2em;
      -fx-border-color: #27ce40 #0c6e3d #064d2a #0c6e3d;
@@ -104,3 +105,35 @@
  .field-nonempty:empty {
      -fx-background-color: #ffbaba;
 }
+
+.titled-pane > .title {
+    -fx-font-size: 1.0em;
+    -fx-border-width: 2,2,2,2;
+}
+
+.titled-pane {
+    -fx-text-base-color: white;
+    -fx-text-fill: white;
+}
+
+.titled-pane > .title > .arrow-button .arrow {
+    -fx-background-color: white;
+}
+
+.slider > .axis {
+    -fx-tick-label-font-size: 12px;
+}
+
+
+.slider > .thumb, .slider:focused > .thumb {
+    -fx-background-color:
+            derive(-fx-color,-36%),
+            derive(-fx-color,73%);
+    -fx-background-insets: 0, 1, 2;
+}
+
+.tooltip {
+    -fx-background-color: rgba(30,30,30);
+    -fx-font-size: 1.0em;
+}
+

@@ -33,7 +33,6 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
-import javafx.scene.layout.AnchorPane;
 import util.PathUtils;
 
 public class GuiSettings {
@@ -46,7 +45,6 @@ public class GuiSettings {
     public IntField centerZ;
     public LongField levelSeed;
 
-    public CheckBox measureRenderDistance;
     public CheckBox markUnsaved;
     public CheckBox markOld;
 
@@ -67,6 +65,7 @@ public class GuiSettings {
     public Tab authTab;
     public RealmsTabController realmsController;
     public AuthTabController authController;
+    public CheckBox enableDrawExtendedChunks;
     Config config;
     private boolean portInUse;
 
@@ -96,11 +95,11 @@ public class GuiSettings {
         // general tab
         extendedDistance.setValue(config.extendedRenderDistance);
         extendedDistanceText.setValue(config.extendedRenderDistance);
-        measureRenderDistance.setSelected(config.measureRenderDistance);
         markUnsaved.setSelected(!config.disableMarkUnsavedChunks);
         markOld.setSelected(config.markOldChunks);
         renderOtherPlayers.setSelected(config.renderOtherPlayers);
         enableInfoMessages.setSelected(!config.disableInfoMessages);
+        enableDrawExtendedChunks.setSelected(config.drawExtendedChunks);
 
         // realms tab
         if (config.isStarted()) {
@@ -219,6 +218,8 @@ public class GuiSettings {
         if (!GuiManager.hasErrors()) {
             tabPane.getTabs().remove(errTab);
             return;
+        } else if (GuiManager.clearAuthentiationStatus()) {
+            tabPane.getSelectionModel().select(authTab);
         } else {
             tabPane.getSelectionModel().select(errTab);
         }
@@ -290,11 +291,11 @@ public class GuiSettings {
 
         // general tab
         config.extendedRenderDistance =  Math.abs((int) extendedDistance.getValue());
-        config.measureRenderDistance = measureRenderDistance.isSelected();
         config.disableMarkUnsavedChunks = !markUnsaved.isSelected();
         config.markOldChunks = markOld.isSelected();
         config.renderOtherPlayers = renderOtherPlayers.isSelected();
         config.disableInfoMessages = !enableInfoMessages.isSelected();
+        config.drawExtendedChunks = enableDrawExtendedChunks.isSelected();
 
         Config.save();
     }

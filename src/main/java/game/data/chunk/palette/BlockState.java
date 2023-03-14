@@ -16,10 +16,16 @@ import java.util.Map;
 public class BlockState implements State {
     private static final Map<String, IBlendEquation> transparency;
     static {
+        IBlendEquation water = new SquareRootBlendEquation(1.1, 0.6);
         transparency = new HashMap<>();
-        transparency.put("minecraft:water", new SquareRootBlendEquation(1.1, 0.6));
+        transparency.put("minecraft:water", water);
         transparency.put("minecraft:ice", new SquareRootBlendEquation(1.4, 0.8));
         transparency.put("minecraft:lava", new DiscreteBlendEquation(.7, .8, .88, .94, .98));
+
+        transparency.put("minecraft:bubble_column", water);
+        transparency.put("minecraft:seagrass", water);
+        transparency.put("minecraft:tall_seagrass", water);
+        transparency.put("minecraft:kelp", water);
     }
 
     private final String name;

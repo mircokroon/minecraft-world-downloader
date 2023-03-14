@@ -11,7 +11,6 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.protocol.Protocol;
-import gui.ChunkState;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
@@ -44,24 +43,24 @@ public abstract class Chunk extends ChunkEntities {
         this.location = location;
         this.isNewChunk = false;
 
-        chunkSections = new ChunkSection[getMaxSection() - getMinSection() + 1];
+        chunkSections = new ChunkSection[getMaxLightSection() - getMinLightSection() + 1];
     }
 
     protected ChunkSection getChunkSection(int y) {
-        if (y < getMinSection()) { return null; }
-        if (y > getMaxSection()) { return null; }
+        if (y < getMinLightSection()) { return null; }
+        if (y > getMaxLightSection()) { return null; }
 
-        return chunkSections[y - getMinSection()];
+        return chunkSections[y - getMinLightSection()];
     }
 
     protected void setChunkSection(int y, ChunkSection section) {
-        if (y < getMinSection()) { return; }
-        if (y > getMaxSection()) { return; }
+        if (y < getMinLightSection()) { return; }
+        if (y > getMaxLightSection()) { return; }
 
-        chunkSections[y - getMinSection()] = section;
+        chunkSections[y - getMinLightSection()] = section;
     }
 
-    protected int getMinSection() {
+    protected int getMinLightSection() {
         return 0;
     }
 
@@ -69,9 +68,14 @@ public abstract class Chunk extends ChunkEntities {
         return 0;
     }
 
-    protected int getMaxSection() {
+    protected int getMaxLightSection() {
         return 15;
     }
+
+    protected int getMaxBlockSection() {
+        return 15;
+    }
+
     protected Iterable<ChunkSection> getAllSections() {
         return () -> Arrays.stream(chunkSections).filter(Objects::nonNull).iterator();
     }
@@ -119,7 +123,7 @@ public abstract class Chunk extends ChunkEntities {
         // Loop through section Y values, starting from the lowest section that has blocks inside it. Compute the index
         // in the mask by subtracting the minimum chunk packet section, e.g. the lowest Y value we will find in the
         // mask.
-        for (int sectionY = getMinBlockSection(); sectionY <= getMaxSection() && !mask.isEmpty(); sectionY++) {
+        for (int sectionY = getMinBlockSection(); sectionY <= getMaxLightSection() && !mask.isEmpty(); sectionY++) {
             ChunkSection section = getChunkSection(sectionY);
 
             // A 1 in the position of the mask indicates this chunk section is present in the data buffer
@@ -536,10 +540,6 @@ public abstract class Chunk extends ChunkEntities {
 
     public void updateLight(DataTypeProvider provider) {
         raiseEvent("update lighting");
-    }
-
-    public ChunkState getState() {
-        return new ChunkState(true, isSaved());
     }
 
     public boolean hasSeparateEntities() {

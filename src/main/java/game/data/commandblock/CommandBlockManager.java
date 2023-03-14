@@ -59,14 +59,14 @@ public class CommandBlockManager {
             Chat message = new Chat("Unable to save command block at " + commandblock.getLocation() + ". " + cause);
             message.setColor("red");
 
-            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+            Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
     }
     
     private void sendCommandBlockMessage(CommandBlock commandblock) {
         if (Config.sendInfoMessages()) {
             String message = "Recorded command block at " + commandblock.getLocation();
-            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+            Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
     }
 }

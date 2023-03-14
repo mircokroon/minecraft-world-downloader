@@ -81,14 +81,14 @@ public abstract class ChunkEntities extends ChunkEvents {
             Chat message = new Chat("Unable to save inventory at " + window.getContainerLocation() + ". Try reloading the chunk.");
             message.setColor("red");
 
-            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+            Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
     }
 
     private void sendInventoryMessage(InventoryWindow blockEntity) {
         if (Config.sendInfoMessages()) {
             String message = "Recorded inventory at " + blockEntity.getContainerLocation();
-            Config.getPacketInjector().accept(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+            Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
     }
 

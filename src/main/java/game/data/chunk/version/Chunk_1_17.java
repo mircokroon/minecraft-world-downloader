@@ -1,9 +1,7 @@
 package game.data.chunk.version;
 
 import config.Config;
-import config.Version;
 import game.data.chunk.ChunkSection;
-import game.data.chunk.palette.Palette;
 import game.data.coordinates.CoordinateDim2D;
 import game.protocol.Protocol;
 import java.util.BitSet;
@@ -12,10 +10,8 @@ import java.util.function.Function;
 import javafx.util.Pair;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
-import se.llbit.nbt.SpecificTag;
 
 public class Chunk_1_17 extends Chunk_1_16 {
-    static int minSectionY = -1;
     static int minBlockSectionY = 0;
     static int maxBlockSectionY = 15;
     static int fullHeight;
@@ -27,7 +23,6 @@ public class Chunk_1_17 extends Chunk_1_16 {
     public static void setWorldHeight(int min_y, int height) {
         fullHeight = height;
         minBlockSectionY = min_y >> 4;
-        minSectionY = minBlockSectionY - 1;
         maxBlockSectionY = minBlockSectionY + (height >> 4) - 1;
     }
 
@@ -100,6 +95,12 @@ public class Chunk_1_17 extends Chunk_1_16 {
     public PacketBuilder toLightPacket() {
         PacketBuilder packet = buildLightPacket();
 
+        writeLightToPacket(packet);
+
+        return packet;
+    }
+
+    public void writeLightToPacket(PacketBuilder packet) {
         Pair<BitSet, PacketBuilder> skyLight = writeLightToPacket(ChunkSection::getSkyLight);
         Pair<BitSet, PacketBuilder> blockLight = writeLightToPacket(ChunkSection::getBlockLight);
 
@@ -115,8 +116,6 @@ public class Chunk_1_17 extends Chunk_1_16 {
 
         packet.writeVarInt(blockLight.getKey().cardinality());
         packet.writeByteArray(blockLight.getValue().toArray());
-
-        return packet;
     }
 
 
@@ -159,7 +158,7 @@ public class Chunk_1_17 extends Chunk_1_16 {
             packet.writeVarInt(light.length);
             packet.writeByteArray(light);
 
-            mask.set(section.getY() - getMinSection());
+            mask.set(section.getY() - getMinLightSection());
         }
 
 
@@ -167,8 +166,8 @@ public class Chunk_1_17 extends Chunk_1_16 {
     }
 
     @Override
-    protected int getMinSection() {
-        return minSectionY;
+    protected int getMinLightSection() {
+        return minBlockSectionY - 1;
     }
 
     @Override
@@ -177,8 +176,13 @@ public class Chunk_1_17 extends Chunk_1_16 {
     }
 
     @Override
-    protected int getMaxSection() {
+    protected int getMaxBlockSection() {
         return maxBlockSectionY;
+    }
+
+    @Override
+    protected int getMaxLightSection() {
+        return maxBlockSectionY + 1;
     }
 
     @Override

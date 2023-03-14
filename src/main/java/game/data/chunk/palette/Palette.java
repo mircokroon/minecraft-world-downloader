@@ -35,8 +35,15 @@ public class Palette {
 
     Palette(int[] arr) {
         this.palette = arr;
-        this.bitsPerBlock = computeBitsPerBlock(Math.min(0, arr.length - 1));
+        this.bitsPerBlock = computeBitsPerBlock(Math.max(0, arr.length - 1));
         this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
+    }
+
+    public static Palette biomes(int dataVersion, ListTag palette) {
+        if (palette.size() == 1) {
+            return new SingleValuePalette(PaletteType.BIOMES, (SpecificTag) palette.get(0));
+        }
+        return new Palette(dataVersion, palette, true);
     }
 
     public void biomePalette() {
@@ -70,20 +77,25 @@ public class Palette {
     }
 
     public Palette(int dataVersion, ListTag nbt) {
-        this.bitsPerBlock = computeBitsPerBlock(nbt.size() - 1);
-        this.palette = new int[nbt.size()];
+        this(dataVersion, nbt, false);
+    }
 
-        GlobalPalette global = GlobalPaletteProvider.getGlobalPalette(dataVersion);
-        this.stateProvider = global;
+    public Palette(int dataVersion, ListTag nbt, boolean isBiomePalette) {
+        if (isBiomePalette) {
+            this.biomePalette();
+        } else {
+            this.stateProvider = GlobalPaletteProvider.getGlobalPalette(dataVersion);
+        }
+
+        this.palette = new int[nbt.size()];
+        this.bitsPerBlock = computeBitsPerBlock(nbt.size() - 1);
 
         for (int i = 0; i < nbt.size(); i++) {
-            BlockState bs = global.getState(nbt.get(i).asCompound());
+            int bs = this.stateProvider.getStateId((SpecificTag) nbt.get(i));
 
-            // if a block is unknown, just leave it at 0
-            if (bs != null) {
-                this.palette[i] = bs.getNumericId();
-            }
+            this.palette[i] = bs;
         }
+
     }
 
     protected void recomputeBitsPerBlock() {

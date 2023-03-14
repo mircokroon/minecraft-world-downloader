@@ -17,6 +17,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
@@ -32,6 +33,7 @@ import static util.ExceptionHandling.attempt;
 public class GuiManager extends Application {
     private static final String TITLE = "World Downloader";
     private static boolean hasErrors;
+    private static boolean authenticationFailed;
     private static ObservableList<String> messages;
 
     private static GuiMap chunkGraphicsHandler;
@@ -115,6 +117,10 @@ public class GuiManager extends Application {
         return hasErrors;
     }
 
+    public static boolean clearAuthentiationStatus() {
+        return authenticationFailed;
+    }
+
     static ObservableList<String> getMessages() {
         return messages;
     }
@@ -136,6 +142,18 @@ public class GuiManager extends Application {
 
     public static void resetRegion(Coordinate2D regionLocation) {
         chunkGraphicsHandler.getRegionHandler().resetRegion(regionLocation);
+    }
+
+    public static void setAuthenticationFailed() {
+        authenticationFailed = true;
+    }
+
+    public static void clearAuthenticationFailed() {
+        authenticationFailed = false;
+    }
+
+    public static void setChunkState(Coordinate2D coords, ChunkImageState state) {
+        chunkGraphicsHandler.setChunkState(coords, state);
     }
 
     private void loadSettingsInWindow() {
@@ -289,12 +307,16 @@ public class GuiManager extends Application {
 
         Platform.runLater(() -> {
             // first stop both saving executor threads
-            chunkGraphicsHandler.getRegionHandler().shutdown();
+            if (chunkGraphicsHandler != null) {
+                chunkGraphicsHandler.getRegionHandler().shutdown();
+            }
             WorldManager.getInstance().shutdown();
 
             // then save world, if they are already in the process of saving they will wait for the
             // executor to finish before returning
-            chunkGraphicsHandler.getRegionHandler().save();
+            if (chunkGraphicsHandler != null) {
+                chunkGraphicsHandler.getRegionHandler().save();
+            }
             WorldManager.getInstance().save();
 
             Platform.exit();

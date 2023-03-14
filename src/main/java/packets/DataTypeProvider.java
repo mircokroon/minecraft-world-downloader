@@ -300,7 +300,7 @@ public class DataTypeProvider {
     @Override
     public String toString() {
         return "DataTypeProvider{" +
-                "finalFullPacket=" + Arrays.toString(finalFullPacket) +
+                "finalFullPacket[" + finalFullPacket.length + "]=" + Arrays.toString(finalFullPacket) +
                 ", pos=" + pos +
                 '}';
     }
