@@ -42,7 +42,7 @@ Arguments can be specified to change the behaviour of the downloader. Running wi
 java -jar world-downloader.jar --help
 ```
 
-The GUI can be disabled by specifying the server address option:
+The GUI can be disabled by including the `--no-gui` option, and specifying the server address:
 ```
 java -jar world-downloader.jar --no-gui -s address.to.server.com
 ```
