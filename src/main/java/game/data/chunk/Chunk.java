@@ -11,6 +11,8 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.protocol.Protocol;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
@@ -22,6 +24,11 @@ import java.util.stream.Collectors;
  * Basic chunk class. May be extended by version-specific ones as they can have implementation differences.
  */
 public abstract class Chunk extends ChunkEntities {
+    private static final List<BiConsumer<Chunk, Tag>> chunkNbtModifiers = new ArrayList<>();
+    public static void registerNbtModifier(BiConsumer<Chunk, Tag> fn) {
+        chunkNbtModifiers.add(fn);
+    }
+
     public static final int SECTION_HEIGHT = 16;
     public static final int SECTION_WIDTH = 16;
     protected static final int LIGHT_SIZE = 2048;
@@ -206,6 +213,8 @@ public abstract class Chunk extends ChunkEntities {
         CompoundTag root = new CompoundTag();
         root.add("Level", createNbtLevel());
         root.add("DataVersion", new IntTag(getDataVersion()));
+
+        chunkNbtModifiers.forEach(fn -> fn.accept(this, root));
 
         return new NamedTag("", root);
     }

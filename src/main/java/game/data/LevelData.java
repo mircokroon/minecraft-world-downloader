@@ -6,6 +6,9 @@ import config.Version;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import se.llbit.nbt.*;
 import util.NbtUtil;
 import util.PathUtils;
@@ -27,10 +30,18 @@ public class LevelData {
     private CompoundTag data;
     private boolean savingBroken;
 
+
+    private List<Consumer<Tag>> levelDataModifiers;
+
     public LevelData(WorldManager worldManager) {
         this.worldManager = worldManager;
         this.outputDir = PathUtils.toPath(Config.getWorldOutputDir());
         this.file = Paths.get(outputDir.toString(), "level.dat").toFile();
+        this.levelDataModifiers = new ArrayList<>();
+    }
+
+    public void registerModifier(Consumer<Tag> fn) {
+        levelDataModifiers.add(fn);
     }
 
     public CoordinateDouble3D getPlayerPosition() {
@@ -161,6 +172,9 @@ public class LevelData {
         } else {
             enableWorldGeneration(data);
         }
+
+        // check for modifiers
+        levelDataModifiers.forEach(fn -> fn.accept(root));
 
         // write the file
         NbtUtil.write(root, file.toPath());

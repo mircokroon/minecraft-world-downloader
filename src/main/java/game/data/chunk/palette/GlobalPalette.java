@@ -45,9 +45,7 @@ public class GlobalPalette implements StateProvider {
 
             CompoundTag properties = state.getProperties();
 
-            BlockState s = new BlockState(name, state.id, properties);
-            states.put(state.id, s);
-            nameStates.put(new BlockStateIdentifier(name, properties), s);
+            addBlockState(new BlockState(name, state.id, properties));
         }));
     }
 
@@ -83,6 +81,16 @@ public class GlobalPalette implements StateProvider {
             return 0;
         }
         return state.getNumericId();
+    }
+
+    public void addBlockState(BlockState state) {
+        // skip existing states, these should be the same but might have different names
+        if (states.containsKey(state.getNumericId())) {
+            return;
+        }
+
+        states.put(state.getNumericId(), state);
+        nameStates.put(new BlockStateIdentifier(state.getName(), state.getProperties()), state);
     }
 }
 

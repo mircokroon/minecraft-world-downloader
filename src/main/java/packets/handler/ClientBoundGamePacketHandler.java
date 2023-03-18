@@ -19,6 +19,7 @@ import packets.handler.version.ClientBoundGamePacketHandler_1_16;
 import packets.handler.version.ClientBoundGamePacketHandler_1_17;
 import packets.handler.version.ClientBoundGamePacketHandler_1_18;
 import packets.handler.version.ClientBoundGamePacketHandler_1_19;
+import packets.handler.plugins.PluginChannelHandler;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
 
@@ -167,9 +168,9 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("update_view_distance", provider -> {
-            System.out.println("Server tried to change view distance to " + provider.readVarInt());
-           return false;
+        operations.put("CustomPayload", provider -> {
+            PluginChannelHandler.getInstance().handleCustomPayload(provider);
+            return true;
         });
     }
 
