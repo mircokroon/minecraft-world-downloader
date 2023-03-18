@@ -23,7 +23,8 @@
 				"0x3F": "SetEquipment",
 				"0x26": "MoveEntityPos",
 				"0x4C": "TeleportEntity",
-				"0x32": "RemoveEntities"
+				"0x32": "RemoveEntities",
+				"0x18": "CustomPayload"
 			},
 			"serverBound": {
 				"0x0D": "MovePlayerPos",

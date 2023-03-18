@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
+import java.util.function.Consumer;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -52,6 +53,8 @@ import gui.GuiManager;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import proxy.PacketInjector;
+import se.llbit.nbt.CompoundTag;
+import se.llbit.nbt.Tag;
 import util.PathUtils;
 
 /**
@@ -103,6 +106,10 @@ public class WorldManager {
         this.dimension = this.levelData.getPlayerDimension();
         this.savingDimension = new HashSet<>();
         this.renderDistanceExtender = new RenderDistanceExtender(this);
+    }
+
+    public void registerLevelDataModifier(Consumer<Tag> fn) {
+        this.levelData.registerModifier(fn);
     }
 
     public static WorldManager getInstance() {

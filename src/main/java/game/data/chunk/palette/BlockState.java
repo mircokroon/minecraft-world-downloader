@@ -48,6 +48,10 @@ public class BlockState implements State {
         return properties.get(name).stringValue();
     }
 
+    CompoundTag getProperties() {
+        return properties;
+    }
+
     public boolean isChest() {
         return name.equals("minecraft:chest") || name.equals("minecraft:trapped_chest");
     }
