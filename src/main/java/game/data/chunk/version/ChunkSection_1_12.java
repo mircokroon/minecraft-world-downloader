@@ -9,6 +9,8 @@ import game.data.chunk.palette.Palette;
 import game.data.chunk.palette.PaletteBuilder;
 import game.data.coordinates.Coordinate3D;
 import game.data.dimension.Dimension;
+import java.util.Optional;
+import javafx.util.Pair;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ByteArrayTag;
 import se.llbit.nbt.CompoundTag;
@@ -59,21 +61,41 @@ public class ChunkSection_1_12 extends ChunkSection {
 
     @Override
     protected void addNbtTags(CompoundTag map) {
-        map.add("Blocks", new ByteArrayTag(getBlockIds()));
+        Pair<byte[], Optional<byte[]>> blocks = getBlockIds();
+
+        map.add("Blocks", new ByteArrayTag(blocks.getKey()));
         map.add("Data", new ByteArrayTag(getBlockStates()));
+
+        if (blocks.getValue().isPresent()) {
+            map.add("Add", new ByteArrayTag(blocks.getValue().get()));
+        }
     }
 
-    private byte[] getBlockIds() {
+    private Pair<byte[], Optional<byte[]>> getBlockIds() {
         byte[] blockData = new byte[4096];
+        byte[] additional = new byte[2048];
+        boolean hasAdditionalData = false;
 
         for (int x = 0; x < 16; x++) {
             for (int y = 0; y < 16; y++) {
                 for (int z = 0; z < 16; z++) {
-                    blockData[getBlockIndex(x, y, z)] = (byte) (blockStates[x][y][z] >>> 4);
+                    int blockState = blockStates[x][y][z] >>> 4;
+                    int index = getBlockIndex(x, y, z);
+                    blockData[index] = (byte) (blockState);
+
+                    // excess data is packed into half a byte per block, for Forge
+                    int excess = blockState >>> 8;
+                    if (excess > 0) {
+                        hasAdditionalData = true;
+
+                        // if index is odd, shift by 4, otherwise leave unchanged
+                        additional[index / 2] |= (byte) (excess << ((index % 2) * 4));;
+                    }
                 }
             }
         }
-        return blockData;
+
+        return new Pair<>(blockData, hasAdditionalData ? Optional.of(additional) : Optional.empty());
     }
 
     private byte[] getBlockStates() {
