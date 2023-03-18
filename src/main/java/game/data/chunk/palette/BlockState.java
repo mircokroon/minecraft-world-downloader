@@ -118,7 +118,7 @@ public class BlockState implements State {
         return "BlockState{" +
             "name='" + name + '\'' +
             ", id=" + id +
-            ", properties=" + properties +
+//            ", properties=" + properties +
             '}';
     }
 }

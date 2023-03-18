@@ -2,6 +2,7 @@ package game.data.registries.modded;
 
 import game.data.WorldManager;
 import game.data.chunk.Chunk;
+import game.data.chunk.palette.GlobalPaletteProvider;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -80,6 +81,10 @@ public class ForgeRegistryHandler implements PacketOperator {
             registry.addId(provider.readString(), provider.readVarInt());
         }
 
+        if (name.equals("minecraft:blocks")) {
+            registry.registerBlocks();
+        }
+
         int numAliases = provider.readVarInt();
         for (int i = 0; i < numAliases; i++) {
             registry.addAlias(provider.readString());
@@ -138,5 +143,14 @@ class ForgeRegistry {
         }).toList()));
 
         return tag;
+    }
+
+    /**
+     * Add blocks to the global palette
+     */
+    public void registerBlocks() {
+        // since blockstates in 1.12.2 have half a byte of data at the end, we need to shift the
+        // blockstates we register to the global palette for the minimap to remain correct(ish)
+        ids.forEach(pair -> GlobalPaletteProvider.registerBlock(pair.getKey(), pair.getValue() << 4));
     }
 }

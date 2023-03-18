@@ -84,6 +84,11 @@ public class GlobalPalette implements StateProvider {
     }
 
     public void addBlockState(BlockState state) {
+        // skip existing states, these should be the same but might have different names
+        if (states.containsKey(state.getNumericId())) {
+            return;
+        }
+
         states.put(state.getNumericId(), state);
         nameStates.put(new BlockStateIdentifier(state.getName(), state.getProperties()), state);
     }
