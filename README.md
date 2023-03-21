@@ -99,8 +99,10 @@ java -Djdk.gtk.version=2 -jar world-downloader.jar
 <details>
   <summary>Contact information</summary>
 
-  For problems, bugs, feature requests and questions about how to use the application, please open an issue or discussion on GitHub. 
+  For problems, bugs, feature requests and questions about how to use the application, please [open an issue](https://github.com/mircokroon/minecraft-world-downloader/issues/new/choose) or discussion on GitHub. 
 
   For other inquiries, email: mircokroon.github@gmail.com
+  
+  If you want to support this project, you can [donate through GitHub](https://github.com/sponsors/mircokroon?frequency=one-time&amount=5)
 </details>
 
