@@ -65,6 +65,8 @@ public class ClientBoundGamePacketHandler_1_19 extends ClientBoundGamePacketHand
                 replacement.copy(provider, STRING, LONG);
             }
 
+            replacement.copyRemainder(provider);
+
             getConnectionManager().getEncryptionManager().sendImmediately(replacement);
             return false;
         });
