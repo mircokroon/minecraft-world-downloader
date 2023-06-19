@@ -83,7 +83,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
         // we don't include block entities - these chunks will be far away so they shouldn't be rendered anyway
         packet.writeVarInt(0);
 
-        packet.writeBoolean(true);
+        writeLightEdgesTrusted(packet);
         writeLightToPacket(packet);
 
         return packet;

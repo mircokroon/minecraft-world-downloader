@@ -45,7 +45,7 @@ public class Chunk_1_16 extends Chunk_1_15 {
 
     @Override
     public void updateBlocks(Coordinate3D pos, DataTypeProvider provider) {
-        provider.readBoolean();
+        parseLightEdgesTrusted(provider);
 
         int count = provider.readVarInt();
         Collection<Coordinate3D> toUpdate = new ArrayList<>();
@@ -68,15 +68,27 @@ public class Chunk_1_16 extends Chunk_1_15 {
 
     @Override
     public void updateLight(DataTypeProvider provider) {
-        boolean isTrusted = provider.readBoolean();
+        parseLightEdgesTrusted(provider);
 
         super.updateLight(provider);
+    }
+
+
+    /**
+     * Versions < 1.20 include a boolean for lighting data on edges, removed later
+     */
+    void parseLightEdgesTrusted(DataTypeProvider provider) {
+        provider.readBoolean();
+    }
+
+    void writeLightEdgesTrusted(PacketBuilder packet) {
+        packet.writeBoolean(true);
     }
 
     @Override
     protected PacketBuilder buildLightPacket() {
         PacketBuilder packet = super.buildLightPacket();
-        packet.writeBoolean(true);
+        writeLightEdgesTrusted(packet);
         return packet;
     }
 }
