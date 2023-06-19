@@ -121,7 +121,7 @@ public class Chunk_1_17 extends Chunk_1_16 {
 
     @Override
     public void updateLight(DataTypeProvider provider) {
-        boolean isTrusted = provider.readBoolean();
+        parseLightEdgesTrusted(provider);
 
         BitSet skyLightMask = provider.readBitSet();
         BitSet blockLightMask = provider.readBitSet();
