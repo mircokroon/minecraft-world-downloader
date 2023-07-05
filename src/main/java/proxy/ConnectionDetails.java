@@ -18,9 +18,17 @@ public class ConnectionDetails {
     private int portRemote;
     private int portLocal;
 
-    public ConnectionDetails(String host, int portRemote, int portLocal, boolean performSrvLookup) {
-        this.host = host;
-        this.portRemote = portRemote;
+    public ConnectionDetails(String host, int portLocal, boolean performSrvLookup) {
+        this.portRemote = DEFAULT_PORT;
+
+        if (host.contains(":")) {
+            String[] hostParts = host.split(":");
+            this.host = hostParts[0];
+
+            attempt(() -> this.portRemote = Integer.parseInt(hostParts[1]));
+        } else {
+            this.host = host;
+        }
         this.portLocal = portLocal;
 
         if (performSrvLookup) {

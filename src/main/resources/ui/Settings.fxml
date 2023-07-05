@@ -4,50 +4,39 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="265.0" prefWidth="620.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
-    <Button fx:id="saveButton" layoutX="491.0" layoutY="225.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
-    <TabPane fx:id="tabPane" prefHeight="225.0" prefWidth="620.0" tabClosingPolicy="UNAVAILABLE">
+<AnchorPane prefHeight="265.0" prefWidth="620.0" stylesheets="/ui/dark.css" xmlns="http://javafx.com/javafx/1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.GuiSettings">
+    <TabPane fx:id="tabPane" prefHeight="233.0" prefWidth="620.0" tabClosingPolicy="UNAVAILABLE">
         <Tab text="Connection">
-            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="254.0" prefWidth="600.0">
-                <GridPane layoutX="14.0" layoutY="6.0" prefHeight="187.0" prefWidth="579.0">
+            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="215.0" prefWidth="620.0">
+                <GridPane layoutX="19.0" layoutY="35.0" prefHeight="108.0" prefWidth="574.0">
                     <columnConstraints>
-                        <ColumnConstraints prefWidth="120.0" />
-                        <ColumnConstraints prefWidth="300.0" />
-                        <ColumnConstraints prefWidth="150.0" />
+                        <ColumnConstraints maxWidth="121.0" minWidth="19.0" prefWidth="121.0" />
+                        <ColumnConstraints maxWidth="345.0" minWidth="159.0" prefWidth="235.0" />
+                  <ColumnConstraints maxWidth="136.0" minWidth="10.0" prefWidth="101.0" />
+                        <ColumnConstraints maxWidth="170.0" minWidth="105.0" prefWidth="105.0" />
                     </columnConstraints>
                     <rowConstraints>
                         <RowConstraints prefHeight="32.0" />
-                        <RowConstraints prefHeight="32.0" />
-                        <RowConstraints prefHeight="32.0" />
-                        <RowConstraints prefHeight="32.0" />
-                        <RowConstraints prefHeight="32.0" />
-                        <RowConstraints prefHeight="32.0" />
+                  <RowConstraints minHeight="10.0" prefHeight="32.0" />
+                  <RowConstraints minHeight="10.0" prefHeight="32.0" />
                     </rowConstraints>
-                    <TextField fx:id="server" prefHeight="25.0" prefWidth="93.0" styleClass="field-nonempty" GridPane.columnIndex="1" />
-                    <DefaultIntField fx:id="portRemote" defaultVal="25565" layoutX="10.0" layoutY="98.0" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                    <Label text="Server address" />
-                    <Label text="Server port" GridPane.rowIndex="1" />
-                    <Label text="Local port" GridPane.rowIndex="2">
-                        <tooltip><QuickTooltip text="Port on which the downloader's proxy server will run" /></tooltip>
+                    <TextField fx:id="server" prefHeight="25.0" prefWidth="93.0" styleClass="field-nonempty" GridPane.columnIndex="1" GridPane.columnSpan="2" />
+                    <Label text="Server address" GridPane.columnSpan="2">
+                        <tooltip><QuickTooltip text="Server address. E.g. 'example.com' or '192.168.0.1:25565'" /></tooltip>
                     </Label>
-                    <DefaultIntField fx:id="portLocal" defaultVal="25565" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                    <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="4">
-                        <Label fx:id="authDetailsVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
-                    </AnchorPane>
-                    <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2">
-                        <Label fx:id="portVerifyLabel" layoutX="22.0" layoutY="6.0" prefHeight="17.0" prefWidth="90.0" styleClass="label-err" textAlignment="CENTER" AnchorPane.leftAnchor="20.0" />
-                    </AnchorPane>
+               <Hyperlink fx:id="verifyAuthLink" text="Verify authentication" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                 </GridPane>
             </AnchorPane>
         </Tab>
         <Tab text="General">
-            <AnchorPane>
-                <GridPane layoutX="14.0" layoutY="6.0" prefHeight="183.0" prefWidth="500.0">
+            <AnchorPane prefHeight="238.0" prefWidth="620.0">
+                <GridPane layoutX="14.0" layoutY="6.0" prefHeight="202.0" prefWidth="500.0">
                     <columnConstraints>
                         <ColumnConstraints prefWidth="160.0" />
-                        <ColumnConstraints maxWidth="262.0" minWidth="28.0" prefWidth="77.0" />
-                  <ColumnConstraints maxWidth="306.0" minWidth="10.0" prefWidth="235.0" />
-                        <ColumnConstraints prefWidth="40.0" />
+                        <ColumnConstraints maxWidth="262.0" minWidth="28.0" prefWidth="79.0" />
+                  <ColumnConstraints maxWidth="306.0" minWidth="10.0" prefWidth="23.0" />
+                  <ColumnConstraints maxWidth="306.0" minWidth="10.0" prefWidth="259.0" />
+                        <ColumnConstraints maxWidth="39.0" minWidth="33.0" prefWidth="39.0" />
                     </columnConstraints>
                     <rowConstraints>
                         <RowConstraints prefHeight="32.0" />
@@ -57,18 +46,18 @@
                         <RowConstraints prefHeight="32.0" />
                         <RowConstraints prefHeight="32.0" />
                     </rowConstraints>
-                    <Label text="Extended render distance" GridPane.rowIndex="0" >
+                    <Label text="Extended render distance" GridPane.rowIndex="0">
                         <tooltip><QuickTooltip text="Render distance in chunks. If greater than the server's render distance, send previously downloaded chunks back to the game." /></tooltip>
                     </Label>
-                    <Slider fx:id="extendedDistance" blockIncrement="1" layoutX="10.0" layoutY="98.0" majorTickUnit="1.0" max="32" minorTickCount="0" prefHeight="25.0" prefWidth="93.0" showTickLabels="true" snapToTicks="true" GridPane.columnIndex="1" GridPane.columnSpan="2" />
-                    <AnchorPane GridPane.columnIndex="3">
+                    <Slider fx:id="extendedDistance" blockIncrement="1" layoutX="10.0" layoutY="98.0" majorTickUnit="1.0" max="32" minorTickCount="0" prefHeight="25.0" prefWidth="93.0" showTickLabels="true" snapToTicks="true" GridPane.columnIndex="1" GridPane.columnSpan="3" />
+                    <AnchorPane GridPane.columnIndex="4">
                         <IntField fx:id="extendedDistanceText" prefWidth="40" AnchorPane.leftAnchor="10" />
                     </AnchorPane>
                     <CheckBox fx:id="markUnsaved" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                     <Label text="Mark unsaved chunks" GridPane.rowIndex="2">
                         <tooltip><QuickTooltip text="Colour chunks that haven't been saved to disk in red" /></tooltip>
                     </Label>
-                    <CheckBox fx:id="markOld" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                    <CheckBox fx:id="markOld" prefHeight="25.0" prefWidth="93.0" GridPane.columnIndex="1" GridPane.rowIndex="3" />
                     <Label text="Grey out old chunks" GridPane.rowIndex="3">
                         <tooltip><QuickTooltip text="Darken chunks downloaded in a previous session." /></tooltip>
                     </Label>
@@ -77,7 +66,7 @@
                         <tooltip><QuickTooltip text="Show other players on the overview map" /></tooltip>
                     </Label>
 
-               <AnchorPane prefWidth="200.0" GridPane.columnIndex="2" GridPane.rowIndex="2" GridPane.rowSpan="4">
+               <AnchorPane prefWidth="200.0" GridPane.columnIndex="3" GridPane.rowIndex="2" GridPane.rowSpan="4">
                    <TitledPane animated="false" expanded="false" prefHeight="97.0" prefWidth="219.0" text="Advanced">
                        <AnchorPane layoutY="-20" prefHeight="64.0" prefWidth="217.0" style="-fx-padding: 6">
                            <GridPane layoutX="26.0" prefWidth="200.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="-3.0">
@@ -102,6 +91,13 @@
                        </AnchorPane>
                    </TitledPane>
                </AnchorPane>
+                    <Label text="Downloader port" GridPane.rowIndex="5">
+                        <tooltip>
+                     <QuickTooltip text="Port on which the downloader's proxy server will run" />
+                  </tooltip>
+                    </Label>
+                    <DefaultIntField fx:id="portLocal" defaultVal="25565" prefHeight="53.0" prefWidth="336.0" text="default" GridPane.columnIndex="1" GridPane.rowIndex="5" />
+                     <Label fx:id="portVerifyLabel" prefHeight="17.0" prefWidth="90.0" styleClass="label-err" textAlignment="CENTER" GridPane.columnIndex="3" GridPane.rowIndex="5" />
                 </GridPane>
             </AnchorPane>
         </Tab>
@@ -177,7 +173,8 @@
             <fx:include fx:id="realms" source="RealmsTab.fxml" />
         </Tab>
         <Tab fx:id="errTab" text="Error log">
-            <TextArea fx:id="errOutput" prefHeight="174.0" prefWidth="600.0" />
+            <TextArea fx:id="errOutput" prefHeight="189.0" prefWidth="620.0" />
         </Tab>
     </TabPane>
+    <Button fx:id="saveButton" layoutX="505.0" layoutY="224.0" mnemonicParsing="false" onAction="#saveSettings" prefHeight="27.0" prefWidth="101.0" text="Start" />
 </AnchorPane>

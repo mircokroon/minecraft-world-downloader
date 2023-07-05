@@ -89,19 +89,8 @@ public class AuthTabController {
     }
 
     public void checkButtonPressed(ActionEvent actionEvent) {
-        try {
-            AuthenticationMethod method = Config.getAuthMethod();
-            AuthDetails details = AuthDetailsManager.loadAuthDetails();
+        AuthDetailsManager.validateAuthStatus(this::setStatusText, this::setStatusError);
 
-            boolean isValid = details.isValid();
-            if (isValid) {
-                setStatusText("Valid session found! \n\nUsername: " + details.getUsername());
-            } else {
-                setStatusError(method.getErrorMessage());
-            }
-        } catch (IOException e) {
-            setStatusError("Exception occurred: " + e.getMessage());
-        }
         clearAuthenticationStatus();
     }
 

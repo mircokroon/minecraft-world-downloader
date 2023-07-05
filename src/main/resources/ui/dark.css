@@ -103,7 +103,8 @@
      -fx-font-weight: bold;
 }
  .field-nonempty:empty {
-     -fx-background-color: #ffbaba;
+     -fx-background-color: #fbcece;
+     -fx-prompt-text-fill: #828282;
 }
 
 .titled-pane > .title {

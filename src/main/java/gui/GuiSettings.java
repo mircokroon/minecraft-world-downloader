@@ -37,7 +37,6 @@ import util.PathUtils;
 
 public class GuiSettings {
     public TextField server;
-    public DefaultIntField portRemote;
     public DefaultIntField portLocal;
 
     public TextField worldOutputDir;
@@ -52,13 +51,12 @@ public class GuiSettings {
     public Tab errTab;
     public TabPane tabPane;
     public TextArea errOutput;
-    public Label authDetailsVerifyLabel;
-    public Tooltip authTooltip;
     public CheckBox disableWorldGen;
     public Label portVerifyLabel;
     public Slider extendedDistance;
     public IntField extendedDistanceText;
     public Hyperlink openWorldDir;
+    public Hyperlink verifyAuthLink;
     public CheckBox renderOtherPlayers;
     public CheckBox enableInfoMessages;
     public Tab realmsTab;
@@ -66,6 +64,7 @@ public class GuiSettings {
     public RealmsTabController realmsController;
     public AuthTabController authController;
     public CheckBox enableDrawExtendedChunks;
+
     Config config;
     private boolean portInUse;
 
@@ -82,7 +81,6 @@ public class GuiSettings {
 
         // connection tab
         server.setText(config.server);
-        portRemote.setText("" + config.portRemote);
         portLocal.setText("" + config.portLocal);
 
         // output tab
@@ -115,10 +113,8 @@ public class GuiSettings {
                 }
             });
         }
-        disableWhenRunning(Arrays.asList(server, portRemote, portLocal, centerX, centerZ, worldOutputDir));
+        disableWhenRunning(Arrays.asList(server, portLocal, centerX, centerZ, worldOutputDir));
 
-        authTooltip = new Tooltip("");
-        GuiManager.bindTooltip(authDetailsVerifyLabel, authTooltip);
         GuiManager.bindTooltip(portVerifyLabel, new Tooltip("Is the downloader already running?"));
 
         openWorldDir.setOnAction(e -> attemptQuiet(() -> {
@@ -131,16 +127,17 @@ public class GuiSettings {
             }
         }));
 
-//        accessToken.textProperty().addListener((ov, oldV, newV) -> {
-//            // trim invalid characters, remove accessToken at front in case they copied the entire line
-//            accessToken.setText(newV.trim()
-//                    .replaceAll("[^A-Za-z0-9\\-_.]*", "")
-//                    .replaceFirst("accessToken", ""));
-//        });
+        verifyAuthLink.setOnAction(e -> tabPane.getSelectionModel().select(authTab));
 
         handleDataValidation();
         handleErrorTab();
         handleResizing();
+
+        validateAuthentication();
+    }
+
+    private void validateAuthentication() {
+
     }
 
     private void handleDataValidation() {
@@ -279,7 +276,6 @@ public class GuiSettings {
     private void save() {
         // connection tab
         config.server = server.getText();
-        config.portRemote = Math.abs(portRemote.getAsInt());
         config.portLocal = Math.abs(portLocal.getAsInt());
 
         // output tab
@@ -310,22 +306,11 @@ public class GuiSettings {
         }
     }
 
-    public void setSelectedIp(String address) throws URISyntaxException, MalformedURLException {
-        // address needs to start with a scheme, so we just prefix https
-        URI uri = new URI("https://" + address);
-
-        String host = uri.getHost();
-        int port = uri.getPort();
-
-        // if the port is the default, maybe it is not actually reported(?), so just in case...
-        if (port < 0) { port = 25565; }
-
-        if (host == null) {
-            throw new MalformedURLException("No host present in " + address);
-        }
-
-        this.portRemote.setValue(port);
-        this.server.setText(host);
+    /**
+     * Set the IP address given by the realms tab
+     */
+    public void setSelectedIp(String address) {
+        this.server.setText(address);
 
         tabPane.getSelectionModel().selectFirst();
         this.saveButton.requestFocus();
