@@ -4,6 +4,7 @@ import config.Config;
 
 import gui.GuiManager;
 import java.io.IOException;
+import java.util.function.Consumer;
 
 /**
  * Class to handle retrieving authentication details from either user input, or the relevant launcher files.
@@ -42,6 +43,22 @@ public abstract class AuthDetailsManager {
             case MICROSOFT -> retrieveDetailsFromMicrosoft();
             case MANUAL -> Config.getManualAuthDetails();
         };
+    }
+
+    public static void validateAuthStatus(Consumer<String> onSuccess, Consumer<String> onError) {
+        try {
+            AuthDetails details = loadAuthDetails();
+
+            boolean isValid = details.isValid();
+            if (isValid) {
+                onSuccess.accept("Valid session found! \n\nUsername: " + details.getUsername());
+            } else {
+                AuthenticationMethod method = Config.getAuthMethod();
+                onError.accept(method.getErrorMessage());
+            }
+        } catch (IOException e) {
+            onError.accept("Exception occurred: " + e.getMessage());
+        }
     }
 
     public AuthDetails getAuthDetails() throws IOException {

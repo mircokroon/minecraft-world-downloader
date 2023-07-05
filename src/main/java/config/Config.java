@@ -205,7 +205,7 @@ public class Config {
         isStarted = true;
 
         versionHandler = ProtocolVersionHandler.getInstance();
-        connectionDetails = new ConnectionDetails(server, portRemote, portLocal, !disableSrvLookup);
+        connectionDetails = new ConnectionDetails(server, portLocal, !disableSrvLookup);
 
         if (!disableGui) {
             GuiManager.loadSceneMap();
@@ -353,10 +353,6 @@ public class Config {
     @Option(name = "--username", aliases = "-u",
             usage = "Your Minecraft username.")
     public transient String username;
-
-    @Option(name = "--port", aliases = "-p",
-            usage = "The port on which the remote server runs.")
-    public int portRemote = 25565;
 
     @Option(name = "--local-port", aliases = "-l",
             usage = "The port on which the world downloader's server will run.")
