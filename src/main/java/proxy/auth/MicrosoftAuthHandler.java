@@ -58,19 +58,19 @@ public class MicrosoftAuthHandler {
 
     private void refresh() {
         LocalDateTime now = LocalDateTime.now();
-        if (microsoftAccessToken == null || microsoftExpiration.isAfter(now)) {
+        if (microsoftAccessToken == null || microsoftExpiration.isBefore(now)) {
             acquireMicrosoftToken();
         }
 
-        if (xboxLiveToken == null || xboxLiveExpiration.isAfter(now)) {
+        if (xboxLiveToken == null || xboxLiveExpiration.isBefore(now)) {
             acquireXboxLiveToken();
         }
 
-        if (xboxSecurityToken == null || xboxSecurityExpiration.isAfter(now)) {
+        if (xboxSecurityToken == null || xboxSecurityExpiration.isBefore(now)) {
             acquireXboxSecurityToken();
         }
 
-        if (minecraftAccessToken == null || minecraftAccessExpiration.isAfter(now)) {
+        if (minecraftAccessToken == null || minecraftAccessExpiration.isBefore(now)) {
             acquireMinecraftAccessToken();
         }
     }
@@ -108,6 +108,11 @@ public class MicrosoftAuthHandler {
 
         int expiresIn = res.getBody().getObject().getInt("expires_in");
         this.microsoftExpiration = LocalDateTime.now().plusSeconds(expiresIn);
+
+        // invalidate others
+        xboxLiveExpiration = LocalDateTime.MIN;
+        xboxSecurityExpiration = LocalDateTime.MIN;
+        minecraftAccessExpiration = LocalDateTime.MIN;
     }
 
     private void acquireXboxLiveToken() {
@@ -129,6 +134,10 @@ public class MicrosoftAuthHandler {
             .getJSONObject(0)
             .getString("uhs");
         this.xboxLiveExpiration = LocalDateTime.parse(jso.getString("NotAfter").split("\\.")[0]);
+
+        // invalidate others
+        xboxSecurityExpiration = LocalDateTime.MIN;
+        minecraftAccessExpiration = LocalDateTime.MIN;
     }
 
     private void acquireXboxSecurityToken() {
@@ -146,6 +155,9 @@ public class MicrosoftAuthHandler {
         JSONObject jso = res.getBody().getObject();
         this.xboxSecurityToken = jso.getString("Token");
         this.xboxSecurityExpiration = LocalDateTime.parse(jso.getString("NotAfter").split("\\.")[0]);
+
+        // invalidate others
+        minecraftAccessExpiration = LocalDateTime.MIN;
     }
 
     private void acquireMinecraftAccessToken() {
