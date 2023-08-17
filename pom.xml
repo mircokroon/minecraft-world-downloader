@@ -98,54 +98,8 @@
                 <version>0.0.5</version>
             </plugin>
 
-            <plugin>
-                <groupId>com.akathist.maven.plugins.launch4j</groupId>
-                <artifactId>launch4j-maven-plugin</artifactId>
-                <version>2.1.2</version>
-                <executions>
-                    <execution>
-                        <id>l4j-gui</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>launch4j</goal>
-                        </goals>
-                        <configuration>
-                            <headerType>gui</headerType>
-                            <outfile>target/world-downloader.exe</outfile>
-                            <jar>target/world-downloader.jar</jar>
-                            <errTitle>Error</errTitle>
-                            <classPath>
-                                <mainClass>Launcher</mainClass>
-                            </classPath>
-                            <icon>src/main/resources/ui/icon/icon.ico</icon>
-                            <jre>
-                                <!--
-                                    Include a few possible paths for the correct Java Runtime, including Minecraft's
-                                    own Java runtime.
-                                  -->
-                                <path>%JAVA_HOME%;%PATH%;C:\Program Files (x86)\Minecraft Launcher\runtime\jre-x64\bin;C:\Program Files (x86)\Minecraft Launcher\runtime\java-runtime-alpha\windows-x64\java-runtime-alpha\bin</path>
-                                <minVersion>${java.version}</minVersion>
-                                <initialHeapSize>256</initialHeapSize>
-                                <maxHeapSize>2048</maxHeapSize>
-                            </jre>
-                            <versionInfo>
-                                <fileVersion>${project.version}</fileVersion>
-                                <txtFileVersion>${project.version}</txtFileVersion>
-                                <fileDescription>Minecraft world downloader</fileDescription>
-                                <productVersion>${project.version}</productVersion>
-                                <copyright>!</copyright>
-                                <txtProductVersion>${project.version}</txtProductVersion>
-                                <productName>Minecraft world downloader</productName>
-                                <internalName>Minecraft world downloader</internalName>
-                                <originalFilename>world-downloader.exe</originalFilename>
-                            </versionInfo>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
-
 
     <dependencies>
         <dependency>
