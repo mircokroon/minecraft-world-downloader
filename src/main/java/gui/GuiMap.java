@@ -10,6 +10,8 @@ import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.dimension.Dimension;
 import game.data.entity.PlayerEntity;
+import gui.markers.PlayerMarker;
+import java.util.Arrays;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -24,6 +26,7 @@ import javafx.scene.image.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.FillRule;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
@@ -32,6 +35,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.IntBuffer;
 import java.util.Collection;
+import javafx.scene.transform.Rotate;
+import javafx.scene.transform.Translate;
 
 /**
  * Controller for the map scene. Contains a canvas for chunks which is redrawn only when required, and one for entities
@@ -75,6 +80,8 @@ public class GuiMap {
     private Bounds bounds;
 
     private ZoomBehaviour zoomBehaviour;
+
+    private PlayerMarker playerMarker = new PlayerMarker();
 
     @FXML
     void initialize() {
@@ -391,22 +398,17 @@ public class GuiMap {
         double playerX = ((playerPos.getX() - bounds.getMinX()) / blocksPerPixel);
         double playerZ = ((playerPos.getZ() - bounds.getMinZ()) / blocksPerPixel);
 
-        // direction pointer
-        double yaw = Math.toRadians(this.playerRotation + 45);
-        double pointerX = (playerX + (3)*Math.cos(yaw) - (3)*Math.sin(yaw));
-        double pointerZ = (playerZ + (3)*Math.sin(yaw) + (3)*Math.cos(yaw));
+        playerMarker.transform(playerX, playerZ, this.playerRotation, .7);
 
+        // marker
+        graphics.setFillRule(FillRule.NON_ZERO);
         graphics.setFill(Color.WHITE);
-        graphics.setStroke(Color.BLACK);
-        graphics.strokeOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
-        graphics.strokeOval((int) pointerX - 2, (int) pointerZ - 2, 4, 4);
-        graphics.fillOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
-        graphics.fillOval((int) pointerX - 2, (int) pointerZ - 2, 4, 4);
+        graphics.fillPolygon(playerMarker.getPointsX(), playerMarker.getPointsY(), playerMarker.count());
+        graphics.setStroke(Color.color(.1f, .1f, .1f));
+        graphics.strokePolygon(playerMarker.getPointsX(), playerMarker.getPointsY(), playerMarker.count());
 
         // indicator circle
-        graphics.setFill(Color.TRANSPARENT);
         graphics.setStroke(Color.RED);
-
         graphics.strokeOval((int) playerX - 16, (int) playerZ - 16, 32, 32);
     }
 
