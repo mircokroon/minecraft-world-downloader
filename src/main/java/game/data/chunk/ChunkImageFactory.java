@@ -7,10 +7,13 @@ import game.data.chunk.palette.blending.IBlendEquation;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
+import gui.ImageMode;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -22,8 +25,9 @@ import org.apache.commons.lang3.mutable.MutableBoolean;
  */
 public class ChunkImageFactory {
     private final List<CoordinateDim2D> registeredCallbacks = new ArrayList<>(2);
-    private final Runnable requestImage = this::requestImage;;
-    private BiConsumer<Image, Boolean> onImageDone;
+    private final Runnable requestImage = this::requestImage;
+    ;
+    private BiConsumer<Map<ImageMode, Image>, Boolean> onImageDone;
     private Runnable onSaved;
 
     private final Chunk c;
@@ -53,7 +57,7 @@ public class ChunkImageFactory {
     /**
      * Set handler for when the image has been created.
      */
-    public void onComplete(BiConsumer<Image, Boolean> onComplete) {
+    public void onComplete(BiConsumer<Map<ImageMode, Image>, Boolean> onComplete) {
         this.onImageDone = onComplete;
     }
 
@@ -84,6 +88,7 @@ public class ChunkImageFactory {
 
     /**
      * Compares the blocks south and north, use the gradient to get a multiplier for the colour.
+     *
      * @return a colour multiplier to adjust the color value by. If they elevations are the same it will be 1.0, if the
      * northern block is above the current its 0.8, otherwise its 1.2.
      */
@@ -127,12 +132,79 @@ public class ChunkImageFactory {
             registeredCallbacks.clear();
         }
 
-        createImage();
+        generateImages();
     }
-    /**
-     * Generate and return the overview image for this chunk.
-     */
-    private void createImage() {
+
+    private List<Cave> findCaves(int x, int z) {
+        int surface = heightAt(x, z);
+        surface = Math.min(60, surface);
+
+        List<Cave> caves = new ArrayList<>();
+
+        int base = c.getMinBlockSection() * Chunk.SECTION_HEIGHT;
+        BlockState state = null;
+
+        Cave cave = null;
+        boolean inCave = false;
+        for (int y = base; y < surface; y++) {
+            BlockState curState = c.getBlockStateAt(x, y, z);
+
+            boolean isEmpty = curState == null || curState.getColor() == SimpleColor.BLACK;
+            if (inCave && isEmpty) {
+                cave.addDepth();
+            } else if (inCave) {
+                inCave = false;
+            } else if (isEmpty && state != null) {
+                cave = new Cave(y, state);
+                caves.add(cave);
+                inCave = true;
+            }
+            state = curState;
+        }
+
+        return caves;
+    }
+
+    private SimpleColor getColorCave(int x, int z) {
+        List<Cave> caves = findCaves(x, z);
+
+        if (caves.isEmpty()) {
+            return new SimpleColor(0);
+        }
+
+        SimpleColor c = caves.get(0).getColor();
+
+        for (int i = 1; i < caves.size(); i++) {
+            SimpleColor next = caves.get(i).getColor();
+
+            c = c.blendWith(next, 1.0 / (i + 1));
+        }
+
+        return c;
+    }
+
+    private SimpleColor getColorSurface(int x, int z) {
+        int y = heightAt(x, z);
+        BlockState blockState = c.getBlockStateAt(x, y, z);
+
+        if (blockState == null) {
+            return new SimpleColor(0);
+        }
+
+        SimpleColor color = shadeTransparent(blockState, x, y, z);
+
+        color = color.shaderMultiply(getColorShader(x, y, z));
+
+        // mark new chunks in a red-ish outline
+        if (c.isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
+            color = color.highlight();
+        }
+
+        return color;
+    }
+
+
+    private Image createImage(boolean isSurface) {
         WritableImage i = new WritableImage(Chunk.SECTION_WIDTH, Chunk.SECTION_WIDTH);
         int[] output = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
         WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
@@ -144,40 +216,38 @@ public class ChunkImageFactory {
         try {
             for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
                 for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
-                    int y = heightAt(x, z);
-                    BlockState blockState = c.getBlockStateAt(x, y, z);
 
-                    SimpleColor color;
-                    if (blockState == null) {
-                        output[x + Chunk.SECTION_WIDTH * z] = new SimpleColor(0).toARGB();
-                        continue;
-                    } else {
-                        color = shadeTransparent(blockState, x, y, z);
-                    }
-
-                    color = color.shaderMultiply(getColorShader(x, y, z));
-
-                    // mark new chunks in a red-ish outline
-                    if (c.isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
-                        color = color.highlight();
-                    }
+                    SimpleColor color = isSurface ? getColorSurface(x, z) : getColorCave(x, z);
 
                     output[x + Chunk.SECTION_WIDTH * z] = color.toARGB();
                 }
             }
             i.getPixelWriter().setPixels(
-                    0, 0,
-                    Chunk.SECTION_WIDTH, Chunk.SECTION_WIDTH,
-                    format, output, 0, Chunk.SECTION_WIDTH
+                0, 0,
+                Chunk.SECTION_WIDTH, Chunk.SECTION_WIDTH,
+                format, output, 0, Chunk.SECTION_WIDTH
             );
         } catch (Exception ex) {
             System.out.println("Unable to draw picture for chunk at " + c.location);
             ex.printStackTrace();
             clearAdjacentChunks();
         }
+        return i;
+    }
 
+
+
+
+    /**
+     * Generate and return the overview image for this chunk.
+     */
+    private void generateImages() {
         if (this.onImageDone != null) {
-            this.onImageDone.accept(i, c.isSaved());
+            Map<ImageMode, Image> map = Map.of(
+                ImageMode.NORMAL, createImage(true),
+                ImageMode.CAVES, createImage(false)
+            );
+            this.onImageDone.accept(map, c.isSaved());
         }
         clearAdjacentChunks();
     }
@@ -286,7 +356,7 @@ public class ChunkImageFactory {
     public void updateHeight(Coordinate3D coords) {
         if (coords.getY() >= heightAt(coords.getX(), coords.getZ())) {
             recomputeHeight(coords.getX(), coords.getZ());
-            createImage();
+            generateImages();
         }
     }
 
@@ -302,7 +372,7 @@ public class ChunkImageFactory {
             }
         }
         if (hasChanged) {
-            createImage();
+            generateImages();
         }
     }
 
@@ -319,5 +389,73 @@ public class ChunkImageFactory {
         return "ChunkImageFactory{" +
             "c=" + c.location +
             '}';
+    }
+}
+
+
+final class Cave {
+    int y;
+    int depth;
+    BlockState block;
+
+    Cave(int y, BlockState block) {
+        this.y = y;
+        this.block = block;
+        this.depth = 1;
+    }
+
+    public void addDepth() {
+        depth += 1;
+    }
+
+    public int y() { return y; }
+
+    public int depth() { return depth; }
+
+    public BlockState block() { return block; }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) { return true; }
+        if (obj == null || obj.getClass() != this.getClass()) { return false; }
+        var that = (Cave) obj;
+        return this.y == that.y &&
+            this.depth == that.depth &&
+            Objects.equals(this.block, that.block);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(y, depth, block);
+    }
+
+    @Override
+    public String toString() {
+        return "Cave[" +
+            "y=" + y + ", " +
+            "depth=" + depth + ", " +
+            "block=" + block + ']';
+    }
+
+    public SimpleColor getColor() {
+        double brightness = 230 * (0.05 + (Math.log(depth) / Math.log(80)) * 0.9);
+        SimpleColor caveDepth = new SimpleColor(10, brightness/2, brightness)
+            .blendWith(new SimpleColor(brightness, 10, 10), map(-80, 100, y));
+
+        SimpleColor blockCol = block.getColor();
+        return caveDepth.blendWith(blockCol, .85);
+    }
+
+    private double map(double min, double max, double val) {
+        if (val < min) { return 0; }
+        if (val > max) { return 1; }
+        return (val - min) / (max - min);
+    }
+
+
+    private double getRatio(double min, double max, double val) {
+        if (val > max) { return 1.0; }
+        if ( val < min) { return 0.0; }
+        return (val - min) / (max - min);
     }
 }

@@ -19,12 +19,16 @@ public class SimpleColor {
         this.b = full & 0xFF;
     }
 
+    public SimpleColor(double shade) {
+        this(0xFF * shade, 0xFF * shade, 0xFF * shade);
+    }
+
     private SimpleColor(int r, int g, int b) {
         this.r = r;
         this.g = g;
         this.b = b;
     }
-    private SimpleColor(double r, double g, double b) {
+    public SimpleColor(double r, double g, double b) {
         this.r = r;
         this.g = g;
         this.b = b;

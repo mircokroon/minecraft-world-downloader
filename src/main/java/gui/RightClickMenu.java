@@ -144,6 +144,15 @@ public class RightClickMenu extends ContextMenu {
         menu.add(construct("Print chunk events", e -> {
             Chunk.printEventLog(handler.getCursorCoordinates().globalToChunk().addDimension(Dimension.OVERWORLD));
         }));
+
+        menu.add(construct("Set to SURFACE mode", e -> {
+            RegionImageHandler.imageMode = ImageMode.NORMAL;
+        }));
+
+        menu.add(construct("Set to CAVE mode", e -> {
+            RegionImageHandler.imageMode = ImageMode.CAVES;
+        }));
+
     }
 
     private MenuItem construct(String name, HandleError handler) {

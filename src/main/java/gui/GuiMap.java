@@ -314,7 +314,7 @@ public class GuiMap {
         }
 
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
-        imageFactory.onComplete((image, isSaved) -> regionHandler.drawChunk(coord, image, isSaved));
+        imageFactory.onComplete((imageMap, isSaved) -> regionHandler.drawChunk(coord, imageMap, isSaved));
         imageFactory.onSaved(() -> regionHandler.markChunkSaved(coord));
         imageFactory.requestImage();
     }
@@ -398,7 +398,7 @@ public class GuiMap {
         double playerX = ((playerPos.getX() - bounds.getMinX()) / blocksPerPixel);
         double playerZ = ((playerPos.getZ() - bounds.getMinZ()) / blocksPerPixel);
 
-        playerMarker.transform(playerX, playerZ, this.playerRotation, .7);
+        playerMarker.transform(playerX, playerZ, this.playerRotation, 0.7);
 
         // marker
         graphics.setFillRule(FillRule.NON_ZERO);
