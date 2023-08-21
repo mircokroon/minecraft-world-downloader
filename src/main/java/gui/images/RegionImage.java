@@ -1,9 +1,10 @@
-package gui;
+package gui.images;
 
 import config.Config;
 import game.data.chunk.Chunk;
 import game.data.coordinates.Coordinate2D;
 import game.data.region.Region;
+import gui.ChunkImageState;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;

@@ -1,4 +1,4 @@
-package gui;
+package gui.images;
 
 public enum ImageMode {
     NORMAL(""), CAVES("caves");
@@ -8,6 +8,12 @@ public enum ImageMode {
         this.path = path;
     }
 
+    public ImageMode other() {
+        if (this == NORMAL) {
+            return CAVES;
+        }
+        return NORMAL;
+    }
 
     public String path() { return path; }
 }

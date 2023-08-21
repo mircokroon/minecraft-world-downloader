@@ -4,21 +4,16 @@ import game.data.WorldManager;
 import game.data.chunk.palette.BlockState;
 import game.data.chunk.palette.SimpleColor;
 import game.data.chunk.palette.blending.IBlendEquation;
-import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
-import game.data.dimension.Dimension;
-import gui.ImageMode;
+import gui.images.ImageMode;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.WritablePixelFormat;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 
 /**
  * Handles creating images from a Chunk.
@@ -34,8 +29,6 @@ public class ChunkImageFactory {
     private Chunk south;
     private Chunk north;
 
-    private int[] heightMap;
-
     private boolean drawnBefore = false;
 
     public ChunkImageFactory(Chunk c) {
@@ -50,7 +43,6 @@ public class ChunkImageFactory {
      * leaks. Initialise should be called immediately after assignment.
      */
     public void initialise() {
-        computeHeightMap();
         WorldManager.getInstance().chunkLoadedCallback(c);
     }
 
@@ -82,21 +74,17 @@ public class ChunkImageFactory {
         }
     }
 
-    public int heightAt(int x, int z) {
-        return heightMap[z << 4 | x];
-    }
-
     /**
      * Compares the blocks south and north, use the gradient to get a multiplier for the colour.
      *
      * @return a colour multiplier to adjust the color value by. If they elevations are the same it will be 1.0, if the
      * northern block is above the current its 0.8, otherwise its 1.2.
      */
-    private double getColorShader(int x, int y, int z) {
-        int yNorth = getOtherHeight(x, z, 0, -1, north);
+    private double getColorShader(int x, int y, int z, boolean ignoreBedrock) {
+        int yNorth = getOtherHeight(x, z, 0, -1, north, ignoreBedrock);
         if (yNorth < 0) { yNorth = y; }
 
-        int ySouth = getOtherHeight(x, z, 15, 1, south);
+        int ySouth = getOtherHeight(x, z, 15, 1, south, ignoreBedrock);
         if (ySouth < 0) { ySouth = y; }
 
         if (ySouth < yNorth) {
@@ -111,15 +99,15 @@ public class ChunkImageFactory {
      * Get the height of a neighbouring block. If the block is not on this chunk, either load it or register a callback
      * for when it becomes available.
      */
-    private int getOtherHeight(int x, int z, int zLimit, int offsetZ, Chunk other) {
+    private int getOtherHeight(int x, int z, int zLimit, int offsetZ, Chunk other, boolean ignoredBedrock) {
         if (z != zLimit) {
-            return heightAt(x, z + offsetZ);
+            return heightAt(x, z + offsetZ, ignoredBedrock);
         }
 
         if (other == null) {
             return -1;
         } else {
-            return other.getChunkImageFactory().heightAt(x, 15 - zLimit);
+            return other.getChunkHeightHandler().heightAt(x, 15 - zLimit, ignoredBedrock);
         }
     }
 
@@ -135,38 +123,8 @@ public class ChunkImageFactory {
         generateImages();
     }
 
-    private List<Cave> findCaves(int x, int z) {
-        int surface = heightAt(x, z);
-        surface = Math.min(60, surface);
-
-        List<Cave> caves = new ArrayList<>();
-
-        int base = c.getMinBlockSection() * Chunk.SECTION_HEIGHT;
-        BlockState state = null;
-
-        Cave cave = null;
-        boolean inCave = false;
-        for (int y = base; y < surface; y++) {
-            BlockState curState = c.getBlockStateAt(x, y, z);
-
-            boolean isEmpty = curState == null || curState.getColor() == SimpleColor.BLACK;
-            if (inCave && isEmpty) {
-                cave.addDepth();
-            } else if (inCave) {
-                inCave = false;
-            } else if (isEmpty && state != null) {
-                cave = new Cave(y, state);
-                caves.add(cave);
-                inCave = true;
-            }
-            state = curState;
-        }
-
-        return caves;
-    }
-
     private SimpleColor getColorCave(int x, int z) {
-        List<Cave> caves = findCaves(x, z);
+        List<Cave> caves = c.getChunkHeightHandler().getCaves(x, z);
 
         if (caves.isEmpty()) {
             return new SimpleColor(0);
@@ -183,8 +141,8 @@ public class ChunkImageFactory {
         return c;
     }
 
-    private SimpleColor getColorSurface(int x, int z) {
-        int y = heightAt(x, z);
+    private SimpleColor getColorSurface(int x, int z, boolean useIgnoredBedrock) {
+        int y = heightAt(x, z, useIgnoredBedrock);
         BlockState blockState = c.getBlockStateAt(x, y, z);
 
         if (blockState == null) {
@@ -193,7 +151,7 @@ public class ChunkImageFactory {
 
         SimpleColor color = shadeTransparent(blockState, x, y, z);
 
-        color = color.shaderMultiply(getColorShader(x, y, z));
+        color = color.shaderMultiply(getColorShader(x, y, z, useIgnoredBedrock));
 
         // mark new chunks in a red-ish outline
         if (c.isNewChunk() && ((x == 0 || x == 15) || (z == 0 || z == 15))) {
@@ -213,11 +171,12 @@ public class ChunkImageFactory {
         setupAdjacentChunks();
         drawnBefore = true;
 
+        boolean isNether = c.getDimension().isNether();
         try {
             for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
                 for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
 
-                    SimpleColor color = isSurface ? getColorSurface(x, z) : getColorCave(x, z);
+                    SimpleColor color = isSurface ? getColorSurface(x, z, false) : isNether ? getColorSurface(x, z, true) : getColorCave(x, z);
 
                     output[x + Chunk.SECTION_WIDTH * z] = color.toARGB();
                 }
@@ -241,7 +200,7 @@ public class ChunkImageFactory {
     /**
      * Generate and return the overview image for this chunk.
      */
-    private void generateImages() {
+    void generateImages() {
         if (this.onImageDone != null) {
             Map<ImageMode, Image> map = Map.of(
                 ImageMode.NORMAL, createImage(true),
@@ -304,84 +263,8 @@ public class ChunkImageFactory {
         return color;
     }
 
-    private void computeHeightMap() {
-        if (this.heightMap != null) {
-            return;
-        }
-
-        this.heightMap = new int[Chunk.SECTION_WIDTH * Chunk.SECTION_WIDTH];
-        for (int x = 0; x < Chunk.SECTION_WIDTH; x++) {
-            for (int z = 0; z < Chunk.SECTION_WIDTH; z++) {
-                heightMap[z << 4 | x] = computeHeight(x, z);
-            }
-        }
-    }
-
-    /**
-     * Computes the height at a given location. When we are in the nether, we want to try and make it clear where there
-     * is an opening, and where there is not. For this we skip the first two chunks sections (these will be mostly solid
-     * anyway, but may contain misleading caves). We then only count blocks after we've found some air space.
-     */
-    private int computeHeight(int x, int z) {
-        // if we're in the Nether, we want to find an air block before we start counting blocks.
-        boolean isNether = c.location.getDimension().equals(Dimension.NETHER);
-        int topSection = isNether ? 5 : c.getMaxBlockSection();
-
-        MutableBoolean foundAir = new MutableBoolean(!isNether);
-
-        for (int sectionY = topSection; sectionY >= c.getMinBlockSection(); sectionY--) {
-            ChunkSection cs = c.getChunkSection(sectionY);
-            if (cs == null) {
-                foundAir.setTrue();
-                continue;
-            }
-
-            int height = cs.computeHeight(x, z, foundAir);
-
-            if (height < 0) { continue; }
-
-            // if we're in the nether we can't find
-            if (isNether && sectionY == topSection && height == 15) {
-                return 127;
-            }
-            return (sectionY * Chunk.SECTION_HEIGHT) + height;
-        }
-        return isNether ? 127 : 0;
-    }
-
-    /**
-     * We need to update the image only if the updated block was either the top layer, or above the top layer.
-     * Technically this does not take transparent blocks into account, but that's fine.
-     */
-    public void updateHeight(Coordinate3D coords) {
-        if (coords.getY() >= heightAt(coords.getX(), coords.getZ())) {
-            recomputeHeight(coords.getX(), coords.getZ());
-            generateImages();
-        }
-    }
-
-    /**
-     * Recompute the heights in the given coordinate collection. We keep track of which heights actually changed, and
-     * only redraw if we have to.
-     */
-    public void recomputeHeights(Collection<Coordinate3D> toUpdate) {
-        boolean hasChanged = false;
-        for (Coordinate3D pos : toUpdate) {
-            if (pos.getY() >= heightAt(pos.getX(), pos.getZ())) {
-                hasChanged |= recomputeHeight(pos.getX(), pos.getZ());
-            }
-        }
-        if (hasChanged) {
-            generateImages();
-        }
-    }
-
-    private boolean recomputeHeight(int x, int z) {
-        int before = heightMap[z << 4 | x];
-        int after = computeHeight(x, z);
-        heightMap[z << 4 | x] = after;
-
-        return before != after;
+    private int heightAt(int x, int z, boolean ignoreBedrock) {
+        return c.getChunkHeightHandler().heightAt(x, z, ignoreBedrock);
     }
 
     @Override
@@ -393,69 +276,3 @@ public class ChunkImageFactory {
 }
 
 
-final class Cave {
-    int y;
-    int depth;
-    BlockState block;
-
-    Cave(int y, BlockState block) {
-        this.y = y;
-        this.block = block;
-        this.depth = 1;
-    }
-
-    public void addDepth() {
-        depth += 1;
-    }
-
-    public int y() { return y; }
-
-    public int depth() { return depth; }
-
-    public BlockState block() { return block; }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) { return true; }
-        if (obj == null || obj.getClass() != this.getClass()) { return false; }
-        var that = (Cave) obj;
-        return this.y == that.y &&
-            this.depth == that.depth &&
-            Objects.equals(this.block, that.block);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(y, depth, block);
-    }
-
-    @Override
-    public String toString() {
-        return "Cave[" +
-            "y=" + y + ", " +
-            "depth=" + depth + ", " +
-            "block=" + block + ']';
-    }
-
-    public SimpleColor getColor() {
-        double brightness = 230 * (0.05 + (Math.log(depth) / Math.log(80)) * 0.9);
-        SimpleColor caveDepth = new SimpleColor(10, brightness/2, brightness)
-            .blendWith(new SimpleColor(brightness, 10, 10), map(-80, 100, y));
-
-        SimpleColor blockCol = block.getColor();
-        return caveDepth.blendWith(blockCol, .85);
-    }
-
-    private double map(double min, double max, double val) {
-        if (val < min) { return 0; }
-        if (val > max) { return 1; }
-        return (val - min) / (max - min);
-    }
-
-
-    private double getRatio(double min, double max, double val) {
-        if (val > max) { return 1.0; }
-        if ( val < min) { return 0.0; }
-        return (val - min) / (max - min);
-    }
-}

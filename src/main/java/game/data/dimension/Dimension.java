@@ -183,6 +183,10 @@ public class Dimension {
         // re-write since we write the dimension information on join otherwise
         attempt(() -> write(PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data")));
     }
+
+    public boolean isNether() {
+        return this == NETHER;
+    }
 }
 
 /**

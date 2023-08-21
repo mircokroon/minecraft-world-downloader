@@ -8,6 +8,8 @@ import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.data.region.McaFile;
+import gui.images.ImageMode;
+import gui.images.RegionImageHandler;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -16,18 +18,29 @@ import javafx.event.EventHandler;
 import javafx.event.EventType;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
-import util.PathUtils;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.nio.file.Path;
 import java.util.List;
 
 public class RightClickMenu extends ContextMenu {
     final static String PROMPT_PAUSE = "Pause chunk saving";
     final static String PROMPT_RESUME = "Resume chunk saving";
 
+    final List<MenuItem> renderModes = List.of(
+        construct("Automatic", e -> setRenderMode(null, e)),
+        construct("Surface", e -> setRenderMode(ImageMode.NORMAL, e)),
+        construct("Caves", e -> setRenderMode(ImageMode.CAVES, e))
+    );
+
+    private void setRenderMode(ImageMode mode, Event e) {
+        renderModes.forEach(el -> el.setDisable(false));
+        MenuItem clicked = (MenuItem) e.getTarget();
+        clicked.setDisable(true);
+
+        RegionImageHandler.setOverrideMode(mode);
+    }
 
     public RightClickMenu(GuiMap handler) {
         List<MenuItem> menu = this.getItems();
@@ -73,6 +86,7 @@ public class RightClickMenu extends ContextMenu {
             new Thread(() -> WorldManager.getInstance().drawExistingRegion(region)).start();
         }));
 
+
         menu.add(construct("Copy coordinates", e -> {
             Coordinate2D coords = handler.getCursorCoordinates();
             String coordsString = String.format("%d ~ %d", coords.getX(), coords.getZ());
@@ -83,6 +97,10 @@ public class RightClickMenu extends ContextMenu {
 
         menu.add(new SeparatorMenuItem());
 
+        ImageMode current = RegionImageHandler.getOverrideMode();
+
+
+        menu.add(new Menu("Render mode", null, renderModes.toArray(new MenuItem[0])));
         menu.add(construct("Settings", e -> GuiManager.loadWindowSettings()));
 
         menu.add(construct("Save & Exit", e -> {
@@ -144,15 +162,12 @@ public class RightClickMenu extends ContextMenu {
         menu.add(construct("Print chunk events", e -> {
             Chunk.printEventLog(handler.getCursorCoordinates().globalToChunk().addDimension(Dimension.OVERWORLD));
         }));
+    }
 
-        menu.add(construct("Set to SURFACE mode", e -> {
-            RegionImageHandler.imageMode = ImageMode.NORMAL;
-        }));
-
-        menu.add(construct("Set to CAVE mode", e -> {
-            RegionImageHandler.imageMode = ImageMode.CAVES;
-        }));
-
+    private MenuItem construct(String name, boolean isDisabled, HandleError handler) {
+        MenuItem item = construct(name, handler);
+        item.setDisable(isDisabled);
+        return item;
     }
 
     private MenuItem construct(String name, HandleError handler) {

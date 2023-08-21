@@ -10,8 +10,8 @@ import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.dimension.Dimension;
 import game.data.entity.PlayerEntity;
+import gui.images.RegionImageHandler;
 import gui.markers.PlayerMarker;
-import java.util.Arrays;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -35,8 +35,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.IntBuffer;
 import java.util.Collection;
-import javafx.scene.transform.Rotate;
-import javafx.scene.transform.Translate;
 
 /**
  * Controller for the map scene. Contains a canvas for chunks which is redrawn only when required, and one for entities
@@ -97,6 +95,10 @@ public class GuiMap {
 
         manager.setPlayerPosListener(this::updatePlayerPos);
         GuiManager.setGraphicsHandler(this);
+
+        GuiManager.getStage().setResizable(true);
+        GuiManager.getStage().setHeight(500);
+        GuiManager.getStage().setWidth(700);
 
         AnimationTimer animationTimer = new AnimationTimer() {
             @Override

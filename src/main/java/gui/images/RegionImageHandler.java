@@ -1,12 +1,15 @@
-package gui;
+package gui.images;
 
 import static util.ExceptionHandling.attempt;
 import static util.ExceptionHandling.attemptQuiet;
 
 import config.Config;
+import game.data.WorldManager;
 import game.data.coordinates.Coordinate2D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
+import gui.Bounds;
+import gui.ChunkImageState;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +34,9 @@ public class RegionImageHandler {
     private boolean isSaving = false;
 
     private final ScheduledExecutorService saveService;
-    public static ImageMode imageMode = ImageMode.NORMAL;
+    private static ImageMode overrideMode;
+    private ImageMode imageMode = ImageMode.NORMAL;
+
 
     public RegionImageHandler() {
         this.regions = new ConcurrentHashMap<>();
@@ -41,6 +46,14 @@ public class RegionImageHandler {
             (r) -> new Thread(r, "Region Image Handler")
         );
         saveService.scheduleWithFixedDelay(this::save, 20, 20, TimeUnit.SECONDS);
+    }
+
+    public static ImageMode getOverrideMode() {
+        return overrideMode;
+    }
+
+    public static void setOverrideMode(ImageMode imageMode) {
+        overrideMode = imageMode;
     }
 
     public void clear() {
@@ -170,7 +183,24 @@ public class RegionImageHandler {
         return Paths.get(Config.getWorldOutputDir(), CACHE_PATH, mode.path(), dim.getPath());
     }
 
+    private void updateRenderMode() {
+        boolean isNether = WorldManager.getInstance().getDimension().isNether();
+
+        if (overrideMode != null) {
+            imageMode = isNether ? overrideMode.other() : overrideMode;
+            return;
+        }
+
+        if (Config.enableCaveRenderMode()) {
+            imageMode = WorldManager.getInstance().isBelowGround() ? ImageMode.CAVES : ImageMode.NORMAL;
+        } else {
+            imageMode = isNether ? ImageMode.CAVES : ImageMode.NORMAL;
+        }
+    }
+
     public void drawAll(Bounds bounds, BiConsumer<Coordinate2D, Image> drawRegion) {
+        updateRenderMode();
+
         regions.forEach((coordinate, images) -> {
             if (bounds.overlaps(coordinate)) {
                 RegionImage image = images.getImage(imageMode);
