@@ -41,7 +41,6 @@ public class RegionImageHandler {
     public RegionImageHandler() {
         this.regions = new ConcurrentHashMap<>();
 
-        // TODO: remove or compress overview images far away to reduce memory usage
         saveService = Executors.newSingleThreadScheduledExecutor(
             (r) -> new Thread(r, "Region Image Handler")
         );

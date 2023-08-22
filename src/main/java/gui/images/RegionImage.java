@@ -146,7 +146,8 @@ public class RegionImage {
 
         WritableImage dst = new WritableImage(targetSize, targetSize);
 
-        // TODO - gotta do on the UI thread, need to write custom implementation for downsampling :(
+        // TODO - cant use canvas without running this on the UI thread, need to write
+        //  custom implementation for downsampling :(
         Platform.runLater(() -> {
             // check AGAIN just to be safe ... this won't be needed after this is rewritten
             if (!saved || System.currentTimeMillis() - lastUpdated < MIN_WAIT_TIME) {
@@ -161,7 +162,14 @@ public class RegionImage {
         try {
             WritableImage im = reloadFromFile(file);
 
-            return new RegionImage(im, file);
+            RegionImage regionImage = new RegionImage(im, file);
+
+            // TODO - clean this up a bit, dont call GC for every single image
+            regionImage.setTargetSize(false, Integer.MAX_VALUE);
+            regionImage.allowResample();
+            System.gc();
+
+            return regionImage;
         } catch (IOException e) {
             return new RegionImage();
         }
