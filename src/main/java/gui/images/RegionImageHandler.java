@@ -46,6 +46,7 @@ public class RegionImageHandler {
             (r) -> new Thread(r, "Region Image Handler")
         );
         saveService.scheduleWithFixedDelay(this::save, 20, 20, TimeUnit.SECONDS);
+        saveService.scheduleWithFixedDelay(this::allowResample, 5, 2, TimeUnit.SECONDS);
     }
 
     public static ImageMode getOverrideMode() {
@@ -103,6 +104,12 @@ public class RegionImageHandler {
         return RegionImages.of(activeDimension, coordinate);
     }
 
+    private void allowResample(Map<Coordinate2D, RegionImages> regions, Dimension activeDimension) {
+        regions.forEach((coordinate, image) -> {
+            attempt(() -> image.allowResample());
+        });
+    }
+
     private void save(Map<Coordinate2D, RegionImages> regions, Dimension dim) {
         // if shutdown is called, wait for saving to complete
         if (isSaving) {
@@ -126,6 +133,10 @@ public class RegionImageHandler {
 
     public void save() {
         save(this.regions, this.activeDimension);
+    }
+
+    public void allowResample() {
+        allowResample(this.regions, this.activeDimension);
     }
 
     private void unload() {
@@ -198,11 +209,14 @@ public class RegionImageHandler {
         }
     }
 
-    public void drawAll(Bounds bounds, BiConsumer<Coordinate2D, Image> drawRegion) {
+    public void drawAll(Bounds bounds, double blocksPerPixel, BiConsumer<Coordinate2D, Image> drawRegion) {
         updateRenderMode();
 
         regions.forEach((coordinate, images) -> {
-            if (bounds.overlaps(coordinate)) {
+            boolean isVisible = bounds.overlaps(coordinate);
+            images.updateSize(isVisible, imageMode, blocksPerPixel);
+
+            if (isVisible) {
                 RegionImage image = images.getImage(imageMode);
                 if (image == null) { return; }
 
@@ -274,6 +288,16 @@ class RegionImages {
             case NORMAL -> normal = RegionImage.of(image.toFile());
             case CAVES -> caves = RegionImage.of(image.toFile());
         };
+    }
+
+    public void updateSize(boolean isVisible, ImageMode mode, double blocksPerPixel) {
+        caves.setTargetSize(isVisible && mode == ImageMode.CAVES, blocksPerPixel);
+        normal.setTargetSize(isVisible && mode == ImageMode.NORMAL, blocksPerPixel);
+    }
+
+    public void allowResample() {
+        caves.allowResample();
+        normal.allowResample();
     }
 }
 

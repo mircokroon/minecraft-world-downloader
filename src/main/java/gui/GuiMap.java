@@ -344,7 +344,7 @@ public class GuiMap {
         graphics.setFill(BACKGROUND_COLOR);
         graphics.fillRect(0, 0, width.get(), height.get());
 
-        regionHandler.drawAll(bounds, this::drawRegion);
+        regionHandler.drawAll(bounds, blocksPerPixel, this::drawRegion);
     }
 
 
