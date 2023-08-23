@@ -1,5 +1,7 @@
 package gui.images;
 
+import static gui.images.RegionImage.NORMAL_PREFIX;
+import static gui.images.RegionImage.SMALL_PREFIX;
 import static util.ExceptionHandling.attempt;
 import static util.ExceptionHandling.attemptQuiet;
 
@@ -14,12 +16,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import org.apache.commons.io.FileUtils;
@@ -33,19 +39,29 @@ public class RegionImageHandler {
     private Dimension activeDimension;
     private boolean isSaving = false;
 
-    private final ScheduledExecutorService saveService;
+    private final ScheduledExecutorService imageHandlerExecutor;
     private static ImageMode overrideMode;
     private ImageMode imageMode = ImageMode.NORMAL;
+
+    ConcurrentLinkedQueue<RegionImages> resizeLater;
 
 
     public RegionImageHandler() {
         this.regions = new ConcurrentHashMap<>();
+        this.resizeLater = new ConcurrentLinkedQueue<>();
 
-        saveService = Executors.newSingleThreadScheduledExecutor(
+        imageHandlerExecutor = Executors.newSingleThreadScheduledExecutor(
             (r) -> new Thread(r, "Region Image Handler")
         );
-        saveService.scheduleWithFixedDelay(this::save, 20, 20, TimeUnit.SECONDS);
-        saveService.scheduleWithFixedDelay(this::allowResample, 5, 2, TimeUnit.SECONDS);
+        imageHandlerExecutor.scheduleWithFixedDelay(this::save, 20, 20, TimeUnit.SECONDS);
+        imageHandlerExecutor.scheduleWithFixedDelay(this::resizeLater, 15, 5, TimeUnit.SECONDS);
+    }
+
+    private void resizeLater() {
+        System.out.println("Running resize later - " + resizeLater.size() + " tasks");
+        while (!resizeLater.isEmpty()) {
+            resizeLater.remove().allowResample();
+        }
     }
 
     public static ImageMode getOverrideMode() {
@@ -67,13 +83,16 @@ public class RegionImageHandler {
         }
 
         Coordinate2D region = coordinate.chunkToRegion();
-
-        RegionImages images = regions.computeIfAbsent(region, (coordinate2D -> loadRegion(coordinate)));
+        RegionImages images = regions.computeIfAbsent(region, (coordinate2D -> loadRegion(region)));
 
         Coordinate2D local = coordinate.toRegionLocal();
 
         imageMap.forEach((mode, image) -> {
-            images.getImage(mode).drawChunk(local, image);
+            boolean shouldResize = images.getImage(mode).drawChunk(local, image);
+
+            if (shouldResize) {
+                imageHandlerExecutor.schedule(() -> images.getImage(mode).allowResample(), 500, TimeUnit.MILLISECONDS);
+            }
         });
 
         setChunkState(images, local, ChunkImageState.isSaved(isSaved));
@@ -112,8 +131,8 @@ public class RegionImageHandler {
     private void save(Map<Coordinate2D, RegionImages> regions, Dimension dim) {
         // if shutdown is called, wait for saving to complete
         if (isSaving) {
-            if (saveService != null) {
-                attempt(() -> saveService.awaitTermination(10, TimeUnit.SECONDS));
+            if (imageHandlerExecutor != null) {
+                attempt(() -> imageHandlerExecutor.awaitTermination(10, TimeUnit.SECONDS));
             }
             return;
         }
@@ -124,7 +143,7 @@ public class RegionImageHandler {
         }
 
         regions.forEach((coordinate, image) -> {
-            attempt(() -> image.save(dim, coordinate));
+            attempt(image::save);
         });
 
         isSaving = false;
@@ -158,7 +177,8 @@ public class RegionImageHandler {
     }
 
     private void load(Map<Coordinate2D, RegionImages> regionMap, ImageMode mode, Path image) {
-        if (!image.toString().toLowerCase().endsWith("png")) {
+        if (!image.toString().toLowerCase().endsWith("png") || image.getFileName().startsWith(
+            SMALL_PREFIX)) {
             return;
         }
 
@@ -168,7 +188,8 @@ public class RegionImageHandler {
         int z = Integer.parseInt(parts[2]);
         Coordinate2D regionCoordinate = new Coordinate2D(x, z);
 
-        regionMap.computeIfAbsent(regionCoordinate, k -> new RegionImages()).set(mode, image);
+        Path p = image.getParent();
+        regionMap.computeIfAbsent(regionCoordinate, k -> new RegionImages(p, regionCoordinate)).set(mode, p);
     }
 
     public void setDimension(Dimension dimension) {
@@ -213,7 +234,13 @@ public class RegionImageHandler {
 
         regions.forEach((coordinate, images) -> {
             boolean isVisible = bounds.overlaps(coordinate);
-            images.updateSize(isVisible, imageMode, blocksPerPixel);
+
+            boolean shouldResize = images.updateSize(isVisible, imageMode, blocksPerPixel);
+            if (isVisible && shouldResize) {
+                imageHandlerExecutor.schedule(images::allowResample, 0, TimeUnit.MILLISECONDS);
+            } else if (shouldResize) {
+                resizeLater.add(images);
+            }
 
             if (isVisible) {
                 RegionImage image = images.getImage(imageMode);
@@ -225,24 +252,43 @@ public class RegionImageHandler {
         });
     }
 
-    public int size() {
-        return regions.size();
+    public String stats() {
+        int size = regions.size() * 2;
+
+        Map<Integer, Integer> counts = new HashMap<>();
+        regions.forEach((k, v) -> {
+            int sizeNormal = v.normal.getSize();;
+            int sizeCave = v.caves.getSize();;
+
+            counts.put(sizeNormal, counts.getOrDefault(sizeNormal, 0) + 1);
+            counts.put(sizeCave, counts.getOrDefault(sizeCave, 0) + 1);
+        });
+
+        String stats = counts.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey))
+            .map(e -> e.getValue() + "x" + e.getKey() + "px")
+            .collect(Collectors.joining(", "));
+
+        return size + " (" + stats + ")";
     }
 
     public void shutdown() {
-        if (saveService != null) {
-            saveService.shutdown();
+        if (imageHandlerExecutor != null) {
+            imageHandlerExecutor.shutdown();
         }
     }
 
     public void resetRegion(Coordinate2D region) {
-        attemptQuiet(() -> FileUtils.delete(RegionImage.getFile(dimensionPath(this.activeDimension, ImageMode.NORMAL), region)));
-        attemptQuiet(() -> FileUtils.delete(RegionImage.getFile(dimensionPath(this.activeDimension, ImageMode.CAVES), region)));
+        attemptQuiet(() -> FileUtils.delete(RegionImage.getFile(dimensionPath(this.activeDimension, ImageMode.NORMAL), NORMAL_PREFIX, region)));
+        attemptQuiet(() -> FileUtils.delete(RegionImage.getFile(dimensionPath(this.activeDimension, ImageMode.CAVES), NORMAL_PREFIX, region)));
+
+        attemptQuiet(() -> FileUtils.delete(RegionImage.getFile(dimensionPath(this.activeDimension, ImageMode.NORMAL), SMALL_PREFIX, region)));
+        attemptQuiet(() -> FileUtils.delete(RegionImage.getFile(dimensionPath(this.activeDimension, ImageMode.CAVES), SMALL_PREFIX, region)));
         regions.remove(region);
     }
 }
 
 class RegionImages {
+    Coordinate2D coordinate;
     RegionImage normal;
     RegionImage caves;
 
@@ -251,14 +297,15 @@ class RegionImages {
         this.caves = caves;
     }
 
-    public RegionImages() {
-        normal = new RegionImage();
-        caves = new RegionImage();
+    public RegionImages(Path p, Coordinate2D coordinate2D) {
+        normal = new RegionImage(p, coordinate2D);
+        caves = new RegionImage(p, coordinate2D);
+        coordinate = coordinate2D;
     }
 
     public static RegionImages of(Dimension dimension, Coordinate2D coordinate) {
-        RegionImage normal = RegionImage.of(RegionImageHandler.dimensionPath(dimension, ImageMode.NORMAL).toFile());
-        RegionImage caves = RegionImage.of(RegionImageHandler.dimensionPath(dimension, ImageMode.CAVES).toFile());
+        RegionImage normal = RegionImage.of(RegionImageHandler.dimensionPath(dimension, ImageMode.NORMAL), coordinate);
+        RegionImage caves = RegionImage.of(RegionImageHandler.dimensionPath(dimension, ImageMode.CAVES), coordinate);
 
         return new RegionImages(normal, caves);
     }
@@ -277,21 +324,23 @@ class RegionImages {
         }
     }
 
-    public void save(Dimension dim, Coordinate2D coordinate) throws IOException {
-        normal.save(RegionImageHandler.dimensionPath(dim, ImageMode.NORMAL), coordinate);
-        caves.save(RegionImageHandler.dimensionPath(dim, ImageMode.CAVES), coordinate);
+    public void save() throws IOException {
+        normal.save();
+        caves.save();
     }
 
     public void set(ImageMode mode, Path image) {
         switch (mode) {
-            case NORMAL -> normal = RegionImage.of(image.toFile());
-            case CAVES -> caves = RegionImage.of(image.toFile());
+            case NORMAL -> normal = RegionImage.of(image, coordinate);
+            case CAVES -> caves = RegionImage.of(image, coordinate);
         };
     }
 
-    public void updateSize(boolean isVisible, ImageMode mode, double blocksPerPixel) {
-        caves.setTargetSize(isVisible && mode == ImageMode.CAVES, blocksPerPixel);
-        normal.setTargetSize(isVisible && mode == ImageMode.NORMAL, blocksPerPixel);
+    public boolean updateSize(boolean isVisible, ImageMode mode, double blocksPerPixel) {
+        boolean shouldResize = caves.setTargetSize(isVisible && mode == ImageMode.CAVES, blocksPerPixel);
+        shouldResize |= normal.setTargetSize(isVisible && mode == ImageMode.NORMAL, blocksPerPixel);
+
+        return shouldResize;
     }
 
     public void allowResample() {

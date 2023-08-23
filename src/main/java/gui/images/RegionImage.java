@@ -5,16 +5,16 @@ import game.data.chunk.Chunk;
 import game.data.coordinates.Coordinate2D;
 import game.data.region.Region;
 import gui.ChunkImageState;
+import java.awt.AlphaComposite;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import javafx.application.Platform;
 import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.SnapshotParameters;
-import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
 import javafx.scene.image.WritablePixelFormat;
@@ -22,9 +22,23 @@ import javafx.scene.paint.Color;
 import javax.imageio.ImageIO;
 
 public class RegionImage {
+    public static final String NORMAL_PREFIX = "";
+    public static final String SMALL_PREFIX = "small_";
+
+    private static final int MIN_SIZE = 16;
     private static final long MIN_WAIT_TIME = 30 * 1000;
     private static final int SIZE = Chunk.SECTION_WIDTH * Region.REGION_SIZE;;
-    private File file;
+
+    // since all resizing happens on the same thread, we can re-use buffered image objects to reduce
+    // memory usage
+    private static final Map<Integer, BufferedImage> TEMP_IMAGES = Map.of(
+        16, new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB),
+        32, new BufferedImage(32, 32, BufferedImage.TYPE_INT_ARGB),
+        64, new BufferedImage(64, 64, BufferedImage.TYPE_INT_ARGB),
+        128, new BufferedImage(128, 128, BufferedImage.TYPE_INT_ARGB),
+        256, new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB),
+        512, new BufferedImage(512, 512, BufferedImage.TYPE_INT_ARGB)
+    );
     long lastUpdated;
 
     ConcurrentLinkedQueue<Runnable> afterUpscale;
@@ -32,27 +46,31 @@ public class RegionImage {
     int currentSize = SIZE;
     int targetSize = SIZE;
 
+    private final Path path;
+    final Coordinate2D coordinates;
+
     WritableImage image;
     WritableImage chunkOverlay;
     byte[] buffer;
 
     boolean saved;
 
-    public RegionImage() {
-        this(new WritableImage(SIZE, SIZE));
+    public RegionImage(Path path, Coordinate2D coords) {
+        this(new WritableImage(MIN_SIZE, MIN_SIZE), path, coords);
+        this.currentSize = MIN_SIZE;
+        this.targetSize = MIN_SIZE;
     }
 
-    private RegionImage(WritableImage image, File file) {
-        this(image);
+    private RegionImage(WritableImage image, Path path, Coordinate2D coords) {
+        this.currentSize = MIN_SIZE;
+        this.targetSize = MIN_SIZE;
+        this.path = path;
 
-        this.file = file;
-    }
-
-    private RegionImage(WritableImage image) {
         this.image = image;
         this.buffer = new byte[16 * 16 * 4];
         this.saved = true;
         this.afterUpscale = new ConcurrentLinkedQueue<>();
+        this.coordinates = coords;
 
         chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
 
@@ -76,31 +94,74 @@ public class RegionImage {
     }
 
     public static RegionImage of(Path directoryPath, Coordinate2D coordinate) {
-        File file = Paths.get(directoryPath.toString(), filename(coordinate)).toFile();
+        try {
+            WritableImage image = loadFromFile(directoryPath, coordinate, MIN_SIZE);
 
-        if (!file.exists()) {
-            return new RegionImage();
+            return new RegionImage(image, directoryPath, coordinate);
+        } catch (IOException e) {
+            return new RegionImage(directoryPath, coordinate);
         }
-
-        return of(file);
     }
 
-    public void setTargetSize(boolean isVisible, double blocksPerPixel) {
+    public boolean setTargetSize(boolean isVisible, double blocksPerPixel) {
+        // don't resize if we recently wrote chunks since it is likely to be written to again
         if (!saved || System.currentTimeMillis() - lastUpdated < MIN_WAIT_TIME) {
-            return;
+            return false;
         }
 
-        if (!isVisible) {
-            targetSize = 16;
-            return;
+        int newTarget = isVisible ? (int) (Math.min(Math.max(SIZE / blocksPerPixel, MIN_SIZE), SIZE)) : MIN_SIZE;
+        if (newTarget != targetSize) {
+            targetSize = newTarget;
+            return true;
         }
-        targetSize = (int) (SIZE / Math.max(Math.min(blocksPerPixel, 32), 1));
+        return false;
     }
 
-    private static WritableImage reloadFromFile(File image) throws IOException {
-        WritableImage im = new WritableImage(SIZE, SIZE);
-        if (image != null && image.exists()) {
-            SwingFXUtils.toFXImage(ImageIO.read(image), im);
+    private static BufferedImage resize(BufferedImage original, int targetSize) {
+        BufferedImage resizedImage = TEMP_IMAGES.get(targetSize);
+
+        Graphics2D graphics2D = resizedImage.createGraphics();
+        graphics2D.setComposite(AlphaComposite.Clear);
+        graphics2D.fillRect(0, 0, targetSize, targetSize);
+
+        graphics2D.setComposite(AlphaComposite.DstAtop);
+        graphics2D.drawImage(original, 0, 0, targetSize, targetSize, null);
+        graphics2D.dispose();
+
+        return resizedImage;
+    }
+
+    private static WritableImage loadFromFile(Path path, Coordinate2D coordinate, int targetSize) throws IOException {
+        File smallFile = getFile(path, SMALL_PREFIX, coordinate);
+        if (targetSize == MIN_SIZE && smallFile.exists()) {
+            return loadSmall(smallFile);
+        } else {
+            if (targetSize == MIN_SIZE) {
+                System.out.println("could not load min image");
+            }
+            return loadFromFile(getFile(path, NORMAL_PREFIX, coordinate), targetSize);
+        }
+    }
+
+    private static WritableImage loadSmall(File file) throws IOException {
+        WritableImage image = new WritableImage(MIN_SIZE, MIN_SIZE);
+        SwingFXUtils.toFXImage(ImageIO.read(file), image);
+
+        return image;
+    }
+
+    private static WritableImage loadFromFile(File file, int targetSize) throws IOException {
+        WritableImage im = new WritableImage(targetSize, targetSize);
+
+        if (file != null && file.exists()) {
+            BufferedImage image = ImageIO.read(file);
+
+            if (targetSize < SIZE) {
+                image = resize(image, targetSize);
+            }
+
+            SwingFXUtils.toFXImage(image, im);
+
         }
 
         return im;
@@ -116,10 +177,10 @@ public class RegionImage {
 
     private void upSample() {
         try {
-            image = reloadFromFile(file);
-            currentSize = SIZE;
+            image = loadFromFile(getFile(path, NORMAL_PREFIX, coordinates), targetSize);
+            currentSize = targetSize;
 
-            while (!afterUpscale.isEmpty()) {
+            while (targetSize == SIZE && !afterUpscale.isEmpty()) {
                 afterUpscale.remove().run();
             }
         } catch (IOException e) {
@@ -137,50 +198,22 @@ public class RegionImage {
             return;
         }
 
-        Canvas c = new Canvas(targetSize, targetSize);
-        c.getGraphicsContext2D().setImageSmoothing(true);
-        c.getGraphicsContext2D().drawImage(image,0, 0, targetSize, targetSize);
+        BufferedImage bufferedImage = TEMP_IMAGES.get(currentSize);
+        SwingFXUtils.fromFXImage(image, bufferedImage);
 
-        SnapshotParameters snapshotParameters = new SnapshotParameters();
-        snapshotParameters.setFill(Color.TRANSPARENT);
+        bufferedImage = resize(bufferedImage, targetSize);
 
-        WritableImage dst = new WritableImage(targetSize, targetSize);
-
-        // TODO - cant use canvas without running this on the UI thread, need to write
-        //  custom implementation for downsampling :(
-        Platform.runLater(() -> {
-            // check AGAIN just to be safe ... this won't be needed after this is rewritten
-            if (!saved || System.currentTimeMillis() - lastUpdated < MIN_WAIT_TIME) {
-                return;
-            }
-            image = c.snapshot(snapshotParameters, dst);
-            currentSize = targetSize;
-        });
-    }
-
-    public static RegionImage of(File file) {
-        try {
-            WritableImage im = reloadFromFile(file);
-
-            RegionImage regionImage = new RegionImage(im, file);
-
-            // TODO - clean this up a bit, dont call GC for every single image
-            regionImage.setTargetSize(false, Integer.MAX_VALUE);
-            regionImage.allowResample();
-            System.gc();
-
-            return regionImage;
-        } catch (IOException e) {
-            return new RegionImage();
-        }
+        image = SwingFXUtils.toFXImage(bufferedImage, null);
+        currentSize = targetSize;
     }
 
     public Image getImage() {
         return image;
     }
 
-    public void drawChunk(Coordinate2D local, Image chunkImage) {
+    public boolean drawChunk(Coordinate2D local, Image chunkImage) {
         lastUpdated = System.currentTimeMillis();
+        saved = false;
 
         if (targetSize < SIZE) {
             targetSize = SIZE;
@@ -193,10 +226,11 @@ public class RegionImage {
             afterUpscale.add(() -> {
                 drawChunkToImage(local, chunkImage);
             });
-            return;
+            return true;
         }
 
         drawChunkToImage(local, chunkImage);
+        return false;
     }
 
     private void drawChunkToImage(Coordinate2D local, Image chunkImage) {
@@ -215,18 +249,23 @@ public class RegionImage {
         }
     }
 
-    public void save(Path p, Coordinate2D coords) throws IOException {
+    public void save() throws IOException {
         if (saved) {
             return;
         }
         saved = true;
 
-        File f = getFile(p, coords);
-        ImageIO.write(SwingFXUtils.fromFXImage(image, null), "png", f);
+        File f = getFile(path, NORMAL_PREFIX, coordinates);
+        BufferedImage img = SwingFXUtils.fromFXImage(image, null);
+        ImageIO.write(img, "png", f);
+
+        img = resize(img, MIN_SIZE);
+        f = getFile(path, SMALL_PREFIX, coordinates);
+        ImageIO.write(img, "png", f);
     }
 
-    public static File getFile(Path p, Coordinate2D coords) {
-        return Path.of(p.toString(), filename(coords)).toFile();
+    public static File getFile(Path p, String prefix, Coordinate2D coords) {
+        return Path.of(p.toString(), prefix + filename(coords)).toFile();
     }
 
     private static String filename(Coordinate2D coords) {
@@ -235,6 +274,10 @@ public class RegionImage {
 
     public Image getChunkOverlay() {
         return chunkOverlay;
+    }
+
+    public int getSize() {
+        return currentSize;
     }
 }
 

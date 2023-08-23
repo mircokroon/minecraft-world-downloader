@@ -143,7 +143,7 @@ public class RightClickMenu extends ContextMenu {
             int entities = WorldManager.getInstance().getEntityRegistry().countActiveEntities();
             int players = WorldManager.getInstance().getEntityRegistry().countActivePlayers();
             int maps = WorldManager.getInstance().getMapRegistry().countActiveMaps();
-            int images = handler.imageCount();
+            String imageStats = handler.imageStats();
 
             System.out.printf("Statistics:" +
                             "\n\tActive regions: %d" +
@@ -154,9 +154,9 @@ public class RightClickMenu extends ContextMenu {
                             "\n\tActive entities: %d" +
                             "\n\tActive players: %d" +
                             "\n\tActive maps: %d" +
-                            "\n\tActive region images: %d" +
+                            "\n\tActive region images: %s" +
                             "\n",
-                    regions, binaryChunks, unpasedChunks, chunks, extendedChunks, entities, players, maps, images);
+                    regions, binaryChunks, unpasedChunks, chunks, extendedChunks, entities, players, maps, imageStats);
         }));
 
         menu.add(construct("Print chunk events", e -> {

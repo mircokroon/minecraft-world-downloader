@@ -5,7 +5,7 @@ import javafx.scene.Node;
 
 public class SnapZooming implements ZoomBehaviour {
     private double blocksPerPixel;
-    private DoubleConsumer onChange;
+    private DoubleConsumer onChange, onTargetChange;
 
     public SnapZooming() {
         this.blocksPerPixel = initialBlocksPerPixel;
@@ -18,6 +18,12 @@ public class SnapZooming implements ZoomBehaviour {
     }
 
     @Override
+    public void onTargetChange(DoubleConsumer onTargetChange) {
+        this.onTargetChange = onTargetChange;
+        onTargetChange.accept(this.blocksPerPixel);
+    }
+
+    @Override
     public void bind(Node targetElement) {
         DoubleConsumer handleZoom = (multiplier) -> {
             blocksPerPixel *= multiplier;
@@ -25,6 +31,7 @@ public class SnapZooming implements ZoomBehaviour {
             if (blocksPerPixel > maxBlocksPerPixel) { blocksPerPixel = maxBlocksPerPixel; }
             else if (blocksPerPixel < minBlocksPerPixel) { blocksPerPixel = minBlocksPerPixel; }
 
+            onTargetChange.accept(blocksPerPixel);
             onChange.accept(blocksPerPixel);
         };
         bind(targetElement, handleZoom);

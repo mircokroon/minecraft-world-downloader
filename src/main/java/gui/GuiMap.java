@@ -54,6 +54,7 @@ public class GuiMap {
     private CoordinateDouble3D playerPos;
     private double playerRotation;
 
+    private double targetBlocksPerPixel;
     private double blocksPerPixel;
     private int gridSize;
 
@@ -115,6 +116,9 @@ public class GuiMap {
         zoomBehaviour.onChange(newBlocksPerPixel -> {
             this.blocksPerPixel = newBlocksPerPixel;
             this.gridSize = (int) Math.round((32 * 16) / newBlocksPerPixel);
+        });
+        zoomBehaviour.onTargetChange(newTarget -> {
+           this.targetBlocksPerPixel = newTarget; 
         });
 
         playerLockButton.setVisible(false);
@@ -344,7 +348,7 @@ public class GuiMap {
         graphics.setFill(BACKGROUND_COLOR);
         graphics.fillRect(0, 0, width.get(), height.get());
 
-        regionHandler.drawAll(bounds, blocksPerPixel, this::drawRegion);
+        regionHandler.drawAll(bounds, targetBlocksPerPixel, this::drawRegion);
     }
 
 
@@ -451,8 +455,8 @@ public class GuiMap {
         }
     }
 
-    public int imageCount() {
-        return regionHandler.size();
+    public String imageStats() {
+        return regionHandler.stats();
     }
 
     public Coordinate2D getCenter() {
