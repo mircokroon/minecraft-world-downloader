@@ -136,9 +136,6 @@ public class RegionImage {
         if (targetSize == MIN_SIZE && smallFile.exists()) {
             return loadSmall(smallFile);
         } else {
-            if (targetSize == MIN_SIZE) {
-                System.out.println("could not load min image");
-            }
             return loadFromFile(getFile(path, NORMAL_PREFIX, coordinate), targetSize);
         }
     }

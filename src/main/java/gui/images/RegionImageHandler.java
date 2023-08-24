@@ -58,7 +58,6 @@ public class RegionImageHandler {
     }
 
     private void resizeLater() {
-        System.out.println("Running resize later - " + resizeLater.size() + " tasks");
         while (!resizeLater.isEmpty()) {
             resizeLater.remove().allowResample();
         }
