@@ -26,6 +26,7 @@ import javafx.scene.image.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.shape.FillRule;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -42,6 +43,7 @@ import java.util.Collection;
 public class GuiMap {
     private static final Color BACKGROUND_COLOR = new Color(.16, .16, .16, 1);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
+    private static final Paint PLAYER_STROKE = Color.color(.1f, .1f, .1f);
 
     public Canvas chunkCanvas;
     public Canvas entityCanvas;
@@ -373,7 +375,7 @@ public class GuiMap {
         graphics.setFillRule(FillRule.NON_ZERO);
         graphics.setFill(Color.WHITE);
         graphics.fillPolygon(playerMarker.getPointsX(), playerMarker.getPointsY(), playerMarker.count());
-        graphics.setStroke(Color.color(.1f, .1f, .1f));
+        graphics.setStroke(PLAYER_STROKE);
         graphics.strokePolygon(playerMarker.getPointsX(), playerMarker.getPointsY(), playerMarker.count());
 
         // indicator circle
