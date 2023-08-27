@@ -104,7 +104,7 @@ public class ChunkImageFactory {
             return heightAt(x, z + offsetZ, ignoredBedrock);
         }
 
-        if (other == null) {
+        if (other == null || other.getChunkHeightHandler() == null) {
             return -1;
         } else {
             return other.getChunkHeightHandler().heightAt(x, 15 - zLimit, ignoredBedrock);

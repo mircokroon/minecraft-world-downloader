@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 import javafx.scene.image.WritableImage;
@@ -41,8 +40,6 @@ public class RegionImage {
     );
     long lastUpdated;
 
-    ConcurrentLinkedQueue<Runnable> afterUpscale;
-
     int currentSize = SIZE;
     int targetSize = SIZE;
 
@@ -69,7 +66,6 @@ public class RegionImage {
         this.image = image;
         this.buffer = new byte[16 * 16 * 4];
         this.saved = true;
-        this.afterUpscale = new ConcurrentLinkedQueue<>();
         this.coordinates = coords;
 
         chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
@@ -176,10 +172,6 @@ public class RegionImage {
         try {
             image = loadFromFile(getFile(path, NORMAL_PREFIX, coordinates), targetSize);
             currentSize = targetSize;
-
-            while (targetSize == SIZE && !afterUpscale.isEmpty()) {
-                afterUpscale.remove().run();
-            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -208,26 +200,17 @@ public class RegionImage {
         return image;
     }
 
-    public boolean drawChunk(Coordinate2D local, Image chunkImage) {
+    public void drawChunk(Coordinate2D local, Image chunkImage) {
         lastUpdated = System.currentTimeMillis();
         saved = false;
 
-        if (targetSize < SIZE) {
-            targetSize = SIZE;
-        }
-
-        if (currentSize < SIZE) {
+        if (targetSize < SIZE || currentSize < SIZE) {
             targetSize = SIZE;
 
-            // will draw image on the imager handler thread if it has to be resized first
-            afterUpscale.add(() -> {
-                drawChunkToImage(local, chunkImage);
-            });
-            return true;
+            upSample();
         }
 
         drawChunkToImage(local, chunkImage);
-        return false;
     }
 
     private void drawChunkToImage(Coordinate2D local, Image chunkImage) {

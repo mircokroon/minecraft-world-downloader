@@ -86,13 +86,12 @@ public class RegionImageHandler {
 
         Coordinate2D local = coordinate.toRegionLocal();
 
-        imageMap.forEach((mode, image) -> {
-            boolean shouldResize = images.getImage(mode).drawChunk(local, image);
+        imageHandlerExecutor.schedule(() -> {
+            imageMap.forEach((mode, image) -> {
+                images.getImage(mode).drawChunk(local, image);
+            });
+        }, 0, TimeUnit.MILLISECONDS);
 
-            if (shouldResize) {
-                imageHandlerExecutor.schedule(() -> images.getImage(mode).allowResample(), 500, TimeUnit.MILLISECONDS);
-            }
-        });
 
         setChunkState(images, local, ChunkImageState.isSaved(isSaved));
     }
