@@ -1,5 +1,7 @@
 package game.data;
 
+import static util.ExceptionHandling.attempt;
+
 import config.Config;
 import config.Option;
 import config.Version;
@@ -38,6 +40,7 @@ public class LevelData {
         this.outputDir = PathUtils.toPath(Config.getWorldOutputDir());
         this.file = Paths.get(outputDir.toString(), "level.dat").toFile();
         this.levelDataModifiers = new ArrayList<>();
+        attempt(this::load);
     }
 
     public void registerModifier(Consumer<Tag> fn) {

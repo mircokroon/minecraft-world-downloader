@@ -63,7 +63,7 @@ public class Chunk_1_16 extends Chunk_1_15 {
 
             updateBlock(blockPos, blockId, true);
         }
-        this.getChunkImageFactory().recomputeHeights(toUpdate);
+        this.getChunkHeightHandler().recomputeHeights(toUpdate);
     }
 
     @Override

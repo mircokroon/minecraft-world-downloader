@@ -10,6 +10,9 @@ import game.data.WorldManager;
 import game.data.chunk.Chunk;
 import game.data.dimension.Dimension;
 import game.data.entity.PlayerEntity;
+import gui.images.RegionImageHandler;
+import gui.markers.MapMarkerHandler;
+import gui.markers.PlayerMarker;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyDoubleProperty;
@@ -24,14 +27,13 @@ import javafx.scene.image.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.FillRule;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.nio.IntBuffer;
 import java.util.Collection;
+import util.PrintUtils;
 
 /**
  * Controller for the map scene. Contains a canvas for chunks which is redrawn only when required, and one for entities
@@ -40,6 +42,7 @@ import java.util.Collection;
 public class GuiMap {
     private static final Color BACKGROUND_COLOR = new Color(.16, .16, .16, 1);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
+    private static final Color PLAYER_STROKE = Color.color(.1f, .1f, .1f);
 
     public Canvas chunkCanvas;
     public Canvas entityCanvas;
@@ -49,19 +52,21 @@ public class GuiMap {
     public Label statusLabel;
 
     private CoordinateDouble3D playerPos;
+    private Coordinate2D cursorPos;
     private double playerRotation;
 
+    private double targetBlocksPerPixel;
     private double blocksPerPixel;
     private int gridSize;
 
     private RegionImageHandler regionHandler;
+    private MapMarkerHandler markerHandler;
     private Collection<PlayerEntity> otherPlayers;
 
     ReadOnlyDoubleProperty width;
     ReadOnlyDoubleProperty height;
 
     private boolean mouseOver = false;
-    private boolean enableModernImageHandling = true;
     private boolean playerHasConnected = false;
     private boolean showErrorPrompt = false;
     private boolean lockedToPlayer = true;
@@ -76,10 +81,13 @@ public class GuiMap {
 
     private ZoomBehaviour zoomBehaviour;
 
+    private final PlayerMarker playerMarker = new PlayerMarker();
+
     @FXML
     void initialize() {
         this.zoomBehaviour = Config.smoothZooming() ? new SmoothZooming() : new SnapZooming();
         this.regionHandler = new RegionImageHandler();
+        this.markerHandler = new MapMarkerHandler();
         this.bounds = new Bounds();
 
         WorldManager manager = WorldManager.getInstance();
@@ -90,6 +98,10 @@ public class GuiMap {
 
         manager.setPlayerPosListener(this::updatePlayerPos);
         GuiManager.setGraphicsHandler(this);
+
+        GuiManager.getStage().setResizable(true);
+        GuiManager.getStage().setHeight(500);
+        GuiManager.getStage().setWidth(700);
 
         AnimationTimer animationTimer = new AnimationTimer() {
             @Override
@@ -107,6 +119,9 @@ public class GuiMap {
             this.blocksPerPixel = newBlocksPerPixel;
             this.gridSize = (int) Math.round((32 * 16) / newBlocksPerPixel);
         });
+        zoomBehaviour.onTargetChange(newTarget -> {
+           this.targetBlocksPerPixel = newTarget; 
+        });
 
         playerLockButton.setVisible(false);
 
@@ -123,7 +138,7 @@ public class GuiMap {
         entityCanvas.setOnMouseEntered(e -> {
             mouseOver = true;
             if (playerHasConnected && !showErrorPrompt) {
-                helpLabel.setText("Right-click to open context menu. Scroll or +/- to zoom. Drag to pan.");
+                helpLabel.setText("Right-click to open context menu. Scroll or +/- to zoom. Drag to pan. Shift-click to measure distance.");
             }
         });
         entityCanvas.setOnMouseMoved(e -> {
@@ -133,18 +148,26 @@ public class GuiMap {
             int worldX = (int) Math.round((bounds.getMinX() + (mouseX * blocksPerPixel)));
             int worldZ = (int) Math.round((bounds.getMinZ() + (mouseY * blocksPerPixel)));
 
-            Coordinate2D coords = new Coordinate2D(worldX, worldZ);
+            cursorPos = new Coordinate2D(worldX, worldZ);
 
-            String label = coords.toString();
+            String label = cursorPos.toString();
+
             if (Config.isInDevMode()) {
-                label += String.format("\t\tchunk: %s", coords.globalToChunk());
-                label += String.format("\t\tregion: %s", coords.globalToRegion());
+                label += String.format("\t\tchunk: %s", cursorPos.globalToChunk());
+                label += String.format("\t\tregion: %s", cursorPos.globalToRegion());
             }
+
+            int distance = markerHandler.getDistance(cursorPos);
+            if (distance > 0) {
+                label += String.format("\t\tDistance: %s blocks", PrintUtils.humanReadable(distance));
+            }
+            
             coordsLabel.setText(label);
         });
         entityCanvas.setOnMouseExited(e -> {
             mouseOver = false;
             coordsLabel.setText("");
+            cursorPos = null;
             if (playerHasConnected && !showErrorPrompt) {
                 helpLabel.setText("");
             }
@@ -178,6 +201,11 @@ public class GuiMap {
             if (!lockedToPlayer) {
                 this.playerLockButton.setVisible(true);
             }
+
+            // if mouse clicked without dragging
+            if (this.initialMouseX == mouseX && initialMouseY == mouseY) {
+                markerHandler.setMarker(null);
+            }
         });
 
         entityCanvas.setOnMouseDragged((e) -> {
@@ -205,8 +233,8 @@ public class GuiMap {
     }
 
     private void setupCanvasProperties() {
-        setSmoothingState(chunkCanvas.getGraphicsContext2D(), false);
-        setSmoothingState(entityCanvas.getGraphicsContext2D(), true);
+        chunkCanvas.getGraphicsContext2D().setImageSmoothing(false);
+        entityCanvas.getGraphicsContext2D().setImageSmoothing(true);
 
         entityCanvas.getGraphicsContext2D().setTextAlign(TextAlignment.CENTER);
         entityCanvas.getGraphicsContext2D().setFont(Font.font(null, FontWeight.BOLD, 14));
@@ -224,71 +252,16 @@ public class GuiMap {
         chunkCanvas.setStyle("-fx-background-color: rgb(51, 151, 51)");
     }
 
-    /**
-     * Draw an image to the given canvas. In Java 9+, this just calls drawImage. In Java 8 drawImage causes super
-     * ugly artifacts due to forced interpolation, so to avoid this we manually draw the image and do nearest neighbour
-     * interpolation.
-     */
-    private void drawImage(GraphicsContext ctx, int drawX, int drawY, Image img) {
-        if (enableModernImageHandling) {
-            ctx.drawImage(img, drawX, drawY, gridSize, gridSize);
-            return;
-        }
-
-        // since this drawing method does not support out of bounds drawing, check for bounds first
-        if (drawX < 0 || drawY < 0 || gridSize < 1) {
-            return;
-        }
-        if (drawX + gridSize > ctx.getCanvas().getWidth() || drawY + gridSize > ctx.getCanvas().getHeight()) {
-            return;
-        }
-
-        // if drawBlack is enabled, we remove transparency by doing a bitwise or with this mask.
-        int colMask = 0;
-
-        double imgSize = img.getWidth();
-
-        // for performance reasons, we read all pixels and write pixels through arrays. We only touch the pixel
-        // reader/writer at the start and end.
-        int imgWidth = (int) imgSize;
-        int[] input = new int[imgWidth * imgWidth];
-        int[] output = new int[gridSize * gridSize];
-
-        WritablePixelFormat<IntBuffer> format = WritablePixelFormat.getIntArgbInstance();
-        img.getPixelReader().getPixels(0, 0, imgWidth, imgWidth, format, input, 0, imgWidth);
-
-
-        // in the loop we use the ratio to calculate where a pixel fom the input image ends up in the output
-        double ratio = imgSize / gridSize;
-        for (int x = 0; x < gridSize; x++) {
-            for (int y = 0; y < gridSize; y++) {
-                int imgX = (int) (x * ratio);
-                int imgY = (int) (y * ratio);
-
-                output[x + y * gridSize] = input[imgX + imgY * imgWidth] | colMask;
-            }
-        }
-
-        ctx.getPixelWriter().setPixels(drawX, drawY, gridSize, gridSize, format, output, 0, gridSize);
-    }
-
-    private void setSmoothingState(GraphicsContext ctx, boolean value) {
-        try {
-            Method m = ctx.getClass().getMethod("setImageSmoothing", boolean.class);
-            m.invoke(ctx, value);
-        } catch (NoSuchMethodError | NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            enableModernImageHandling = false;
-            // if we can't set the image smoothing, we're likely on an older Java version. We will draw it manually
-            // so that we can use Nearest Neighbour interpolation.
-        }
-    }
-
     private void setupContextMenu() {
         ContextMenu menu = new RightClickMenu(this);
         entityCanvas.setOnContextMenuRequested(e -> menu.show(entityCanvas, e.getScreenX(), e.getScreenY()));
         entityCanvas.setOnMouseClicked(e -> {
 			if (e.getButton() == MouseButton.PRIMARY) {
-				menu.hide();
+                if (menu.isShowing()) {
+				    menu.hide();
+                } else if (e.isShiftDown()) {
+                    markerHandler.setMarker(cursorPos);
+                }
 			}
 		});
     }
@@ -307,7 +280,7 @@ public class GuiMap {
         }
 
         ChunkImageFactory imageFactory = chunk.getChunkImageFactory();
-        imageFactory.onComplete((image, isSaved) -> regionHandler.drawChunk(coord, image, isSaved));
+        imageFactory.onComplete((imageMap, isSaved) -> regionHandler.drawChunk(coord, imageMap, isSaved));
         imageFactory.onSaved(() -> regionHandler.markChunkSaved(coord));
         imageFactory.requestImage();
     }
@@ -335,15 +308,37 @@ public class GuiMap {
         graphics.setFill(BACKGROUND_COLOR);
         graphics.fillRect(0, 0, width.get(), height.get());
 
-        regionHandler.drawAll(bounds, this::drawRegion);
+        regionHandler.drawAll(bounds, targetBlocksPerPixel, this::drawRegion);
+
+        drawDebugHighlight(graphics);
     }
 
+    private void drawDebugHighlight(GraphicsContext graphics) {
+        if (!Config.isInDevMode() || cursorPos == null) {
+            return;
+        }
+
+        if (blocksPerPixel > 1) {
+            Coordinate2D activeRegion = cursorPos.globalToRegion();
+            int drawX = (int) Math.round(((32 * 16 * activeRegion.getX()) - bounds.getMinX()) / blocksPerPixel);
+            int drawY = (int) Math.round(((32 * 16 * activeRegion.getZ()) - bounds.getMinZ()) / blocksPerPixel);
+
+            graphics.setFill(Color.rgb(0, 0, 0, .2));
+            graphics.fillRect(drawX, drawY, gridSize, gridSize);
+        } else {
+            Coordinate2D activeChunk = cursorPos.globalToChunk();
+            int drawX = (int) Math.round(((16 * activeChunk.getX()) - bounds.getMinX()) / blocksPerPixel);
+            int drawY = (int) Math.round(((16 * activeChunk.getZ()) - bounds.getMinZ()) / blocksPerPixel);
+
+            graphics.setFill(Color.rgb(0, 0, 0, .2));
+            graphics.fillRect(drawX, drawY, gridSize / 32, gridSize / 32);
+        }
+    }
 
     public void updatePlayerPos(CoordinateDouble3D playerPos, double rot) {
         this.playerPos = playerPos;
         this.playerRotation = rot;
     }
-
 
     private void drawEntities() {
         GraphicsContext graphics = entityCanvas.getGraphicsContext2D();
@@ -354,6 +349,7 @@ public class GuiMap {
                 drawOtherPlayer(graphics, player);
             }
         }
+        markerHandler.draw(bounds, blocksPerPixel, graphics, cursorPos);
         drawPlayer(graphics);
     }
 
@@ -391,22 +387,17 @@ public class GuiMap {
         double playerX = ((playerPos.getX() - bounds.getMinX()) / blocksPerPixel);
         double playerZ = ((playerPos.getZ() - bounds.getMinZ()) / blocksPerPixel);
 
-        // direction pointer
-        double yaw = Math.toRadians(this.playerRotation + 45);
-        double pointerX = (playerX + (3)*Math.cos(yaw) - (3)*Math.sin(yaw));
-        double pointerZ = (playerZ + (3)*Math.sin(yaw) + (3)*Math.cos(yaw));
+        playerMarker.transform(playerX, playerZ, this.playerRotation, 0.7);
 
+        // marker
+        graphics.setFillRule(FillRule.NON_ZERO);
         graphics.setFill(Color.WHITE);
-        graphics.setStroke(Color.BLACK);
-        graphics.strokeOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
-        graphics.strokeOval((int) pointerX - 2, (int) pointerZ - 2, 4, 4);
-        graphics.fillOval((int) playerX - 4, (int) playerZ - 4, 8, 8);
-        graphics.fillOval((int) pointerX - 2, (int) pointerZ - 2, 4, 4);
+        graphics.fillPolygon(playerMarker.getPointsX(), playerMarker.getPointsY(), playerMarker.count());
+        graphics.setStroke(PLAYER_STROKE);
+        graphics.strokePolygon(playerMarker.getPointsX(), playerMarker.getPointsY(), playerMarker.count());
 
         // indicator circle
-        graphics.setFill(Color.TRANSPARENT);
         graphics.setStroke(Color.RED);
-
         graphics.strokeOval((int) playerX - 16, (int) playerZ - 16, 32, 32);
     }
 
@@ -420,7 +411,7 @@ public class GuiMap {
         int drawX = (int) Math.round((globalPos.getX() - bounds.getMinX()) / blocksPerPixel);
         int drawY = (int) Math.round((globalPos.getZ() - bounds.getMinZ()) / blocksPerPixel);
 
-        drawImage(graphics, drawX, drawY, image);
+        graphics.drawImage(image, drawX, drawY, gridSize, gridSize);
     }
 
     public void setDimension(Dimension dimension) {
@@ -447,8 +438,8 @@ public class GuiMap {
         }
     }
 
-    public int imageCount() {
-        return regionHandler.size();
+    public String imageStats() {
+        return regionHandler.stats();
     }
 
     public Coordinate2D getCenter() {

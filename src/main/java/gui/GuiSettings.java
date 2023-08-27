@@ -9,13 +9,11 @@ import gui.components.IntField;
 import gui.components.LongField;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.ServerSocket;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -59,17 +57,22 @@ public class GuiSettings {
     public Hyperlink verifyAuthLink;
     public CheckBox renderOtherPlayers;
     public CheckBox enableInfoMessages;
-    public Tab realmsTab;
+    public Tab generalTab;
     public Tab authTab;
+    public Tab realmsTab;
     public RealmsTabController realmsController;
     public AuthTabController authController;
     public CheckBox enableDrawExtendedChunks;
+    public CheckBox enableCaveRenderMode;
 
     Config config;
     private boolean portInUse;
 
+    Map<Tab, Integer> heights;
+
     public GuiSettings() {
         this.config = GuiManager.getConfig();
+        GuiManager.getStage().setResizable(false);
         GuiManager.registerSettingController(this);
     }
 
@@ -78,6 +81,11 @@ public class GuiSettings {
         if (config.isStarted()) {
             saveButton.setText("Save");
         }
+
+        heights = Map.of(
+            generalTab, 360,
+            realmsTab, 320
+        );
 
         // connection tab
         server.setText(config.server);
@@ -97,6 +105,7 @@ public class GuiSettings {
         markOld.setSelected(config.markOldChunks);
         renderOtherPlayers.setSelected(config.renderOtherPlayers);
         enableInfoMessages.setSelected(!config.disableInfoMessages);
+        enableCaveRenderMode.setSelected(config.enableCaveRenderMode);
         enableDrawExtendedChunks.setSelected(config.drawExtendedChunks);
 
         // realms tab
@@ -110,6 +119,12 @@ public class GuiSettings {
                 }
                 if (newVal == authTab) {
                     authController.opened(this);
+                }
+
+                if (heights.containsKey(newVal)) {
+                    GuiManager.getStage().setHeight(heights.get(newVal));
+                } else {
+                    resetHeight();
                 }
             });
         }
@@ -133,11 +148,11 @@ public class GuiSettings {
         handleErrorTab();
         handleResizing();
 
-        validateAuthentication();
+        resetHeight();
     }
 
-    private void validateAuthentication() {
-
+    private void resetHeight() {
+        GuiManager.getStage().setHeight(290);
     }
 
     private void handleDataValidation() {
@@ -291,6 +306,7 @@ public class GuiSettings {
         config.markOldChunks = markOld.isSelected();
         config.renderOtherPlayers = renderOtherPlayers.isSelected();
         config.disableInfoMessages = !enableInfoMessages.isSelected();
+        config.enableCaveRenderMode = enableCaveRenderMode.isSelected();
         config.drawExtendedChunks = enableDrawExtendedChunks.isSelected();
 
         Config.save();

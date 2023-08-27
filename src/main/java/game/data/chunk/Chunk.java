@@ -13,6 +13,7 @@ import game.data.dimension.Dimension;
 import game.protocol.Protocol;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
@@ -39,6 +40,12 @@ public abstract class Chunk extends ChunkEntities {
     private boolean isNewChunk;
     private boolean saved;
     private ChunkImageFactory imageFactory;
+
+    public ChunkHeightHandler getChunkHeightHandler() {
+        return chunkHeightHandler;
+    }
+
+    private ChunkHeightHandler chunkHeightHandler;
 
     private final int dataVersion;
 
@@ -480,6 +487,8 @@ public abstract class Chunk extends ChunkEntities {
 
     public ChunkImageFactory getChunkImageFactory() {
         if (imageFactory == null) {
+            chunkHeightHandler = new ChunkHeightHandler(this);
+
             // assignment should happen before running initialisation code
             imageFactory = new ChunkImageFactory(this);
             imageFactory.initialise();
@@ -518,7 +527,8 @@ public abstract class Chunk extends ChunkEntities {
         }
 
         if (this.imageFactory != null) {
-            this.imageFactory.updateHeight(coords);
+            this.chunkHeightHandler.updateHeight(coords);
+            this.imageFactory.generateImages();
         }
     }
 
@@ -544,7 +554,10 @@ public abstract class Chunk extends ChunkEntities {
 
             updateBlock(blockPos, blockId, true);
         }
-        this.getChunkImageFactory().recomputeHeights(toUpdate);
+        boolean wasChanged = this.chunkHeightHandler.recomputeHeights(toUpdate);
+        if (wasChanged) {
+            imageFactory.generateImages();
+        }
     }
 
     public void updateLight(DataTypeProvider provider) {

@@ -8,7 +8,7 @@ Windows launcher: [world-downloader-launcher.exe](https://github.com/mircokroon/
 Latest cross-platform jar (command-line support): [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
 
 ### Basic usage
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.exe) the latest release and run it. Enter the server address in the address field and press start.
+[Download](https://github.com/mircokroon/minecraft-world-downloader-launcher/releases/latest/download/world-downloader-launcher.exe) the latest release and run it. Enter the server address in the address field and press start.
 
 <img src="https://i.imgur.com/yH8SH5C.png">
 

@@ -76,7 +76,7 @@ public class WorldManager {
     private boolean writeChunks;
     private boolean isStarted;
     private boolean isPaused;
-    private Set<Dimension> savingDimension;
+    private final Set<Dimension> savingDimension;
 
     private ContainerManager containerManager;
     private CommandBlockManager commandBlockManager;
@@ -85,7 +85,8 @@ public class WorldManager {
     private final RenderDistanceExtender renderDistanceExtender;
 
     private BiConsumer<CoordinateDouble3D, Double> playerPosListener;
-    private CoordinateDouble3D playerPosition;
+    private final CoordinateDouble3D playerPosition;
+    private boolean isBelowGround = false;
     private double playerRotation = 0;
     private Dimension dimension;
     private final EntityRegistry entityRegistry;
@@ -173,6 +174,25 @@ public class WorldManager {
             unloadChunks(regions);
         });
         this.regions = new ConcurrentHashMap<>();
+    }
+
+    private void checkAboveSurface() {
+        Coordinate3D discrete = this.playerPosition.discretize();
+
+        Coordinate3D local = discrete.globalToChunkLocal();
+
+        if (dimension == Dimension.NETHER) {
+            isBelowGround = local.getY() < 128;
+            return;
+        }
+
+        Chunk c = getChunk(discrete.globalToChunk());
+        if (c == null) {
+            return;
+        }
+
+        int height = c.getChunkHeightHandler().heightAt(local.getX(), local.getZ()) - 5;
+        isBelowGround = local.getY() < height;
     }
 
     private void unloadChunks(Map<CoordinateDim2D, Region> regions) {
@@ -398,6 +418,8 @@ public class WorldManager {
     }
 
     private void save(Dimension dimension, Map<CoordinateDim2D, Region> regions) {
+        checkAboveSurface();
+
         if (!writeChunks) {
             return;
         }
@@ -720,6 +742,10 @@ public class WorldManager {
 
     public int countExtendedChunks() {
         return renderDistanceExtender.countLoaded();
+    }
+
+    public boolean isBelowGround() {
+        return isBelowGround;
     }
 }
 

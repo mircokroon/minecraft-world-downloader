@@ -434,6 +434,10 @@ public class Config {
             usage = "Draw extended chunks to map")
     public boolean drawExtendedChunks = false;
 
+    @Option(name = "--enable-cave-mode",
+            usage = "Enable automatically switching to cave render mode when underground.")
+    public boolean enableCaveRenderMode = false;
+
     // not really important enough to have an option for, can change it in config file
     public boolean smoothZooming = true;
 
@@ -499,6 +503,9 @@ public class Config {
 
     public static boolean markOldChunks() {
         return instance.markOldChunks;
+    }
+    public static boolean enableCaveRenderMode() {
+        return instance.enableCaveRenderMode;
     }
 
     public static MicrosoftAuthHandler getMicrosoftAuth() {

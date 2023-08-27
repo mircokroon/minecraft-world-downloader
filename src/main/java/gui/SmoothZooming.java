@@ -6,11 +6,17 @@ import javafx.scene.Node;
 public class SmoothZooming implements ZoomBehaviour {
     private final InterpolatedDouble blocksPerPixel;
 
-    DoubleConsumer onChange;
+    DoubleConsumer onChange, onTargetChange;
 
     public SmoothZooming() {
         this.blocksPerPixel = new InterpolatedDouble(.2e9, 1.0);
         this.onChange = (v) -> {};
+    }
+
+    @Override
+    public void onTargetChange(DoubleConsumer onTargetChange) {
+        this.onTargetChange = onTargetChange;
+        onTargetChange.accept(this.blocksPerPixel.getCurrentValue());
     }
 
     @Override
@@ -26,6 +32,7 @@ public class SmoothZooming implements ZoomBehaviour {
 
             targetVal = Math.max(minBlocksPerPixel, Math.min(targetVal, maxBlocksPerPixel));
 
+            onTargetChange.accept(targetVal);
             blocksPerPixel.setTargetValue(targetVal);
         };
         bind(targetElement, handleZoom);

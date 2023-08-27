@@ -2,9 +2,20 @@ package util;
 
 import config.Config;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
 
 public class PrintUtils {
+    private static final DecimalFormat formatter;
+
+    static {
+        DecimalFormatSymbols symbols = DecimalFormatSymbols.getInstance();
+        symbols.setGroupingSeparator(' ');
+
+        formatter = new DecimalFormat("###,###", symbols);
+    }
+
     public static void devPrint(String out) {
         if (Config.isInDevMode()) {
             System.out.println(out);
@@ -44,4 +55,9 @@ public class PrintUtils {
         }
         return "[" + arr[0] + ", ... (x" + (arr.length - 2) + "), " + arr[arr.length - 1] + "]";
     }
+
+    public static String humanReadable(int number) {
+        return formatter.format(number);
+    }
+
 }

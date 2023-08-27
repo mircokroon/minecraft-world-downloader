@@ -31,4 +31,6 @@ public interface ZoomBehaviour {
             handleZoom.accept(scrollEvent.getDeltaY() > 0 ? zoomOutMultiplier : zoomInMultiplier);
         });
     }
+
+    void onTargetChange(DoubleConsumer onTargetChange);
 }
