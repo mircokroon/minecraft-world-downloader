@@ -11,6 +11,7 @@ import game.data.chunk.Chunk;
 import game.data.dimension.Dimension;
 import game.data.entity.PlayerEntity;
 import gui.images.RegionImageHandler;
+import gui.markers.MapMarkerHandler;
 import gui.markers.PlayerMarker;
 import javafx.animation.AnimationTimer;
 import javafx.application.Platform;
@@ -26,15 +27,13 @@ import javafx.scene.image.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.FillRule;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.TextAlignment;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collection;
+import util.PrintUtils;
 
 /**
  * Controller for the map scene. Contains a canvas for chunks which is redrawn only when required, and one for entities
@@ -43,7 +42,7 @@ import java.util.Collection;
 public class GuiMap {
     private static final Color BACKGROUND_COLOR = new Color(.16, .16, .16, 1);
     private static final Color PLAYER_COLOR = new Color(.6, .95, 1, .7);
-    private static final Paint PLAYER_STROKE = Color.color(.1f, .1f, .1f);
+    private static final Color PLAYER_STROKE = Color.color(.1f, .1f, .1f);
 
     public Canvas chunkCanvas;
     public Canvas entityCanvas;
@@ -61,6 +60,7 @@ public class GuiMap {
     private int gridSize;
 
     private RegionImageHandler regionHandler;
+    private MapMarkerHandler markerHandler;
     private Collection<PlayerEntity> otherPlayers;
 
     ReadOnlyDoubleProperty width;
@@ -87,6 +87,7 @@ public class GuiMap {
     void initialize() {
         this.zoomBehaviour = Config.smoothZooming() ? new SmoothZooming() : new SnapZooming();
         this.regionHandler = new RegionImageHandler();
+        this.markerHandler = new MapMarkerHandler();
         this.bounds = new Bounds();
 
         WorldManager manager = WorldManager.getInstance();
@@ -137,7 +138,7 @@ public class GuiMap {
         entityCanvas.setOnMouseEntered(e -> {
             mouseOver = true;
             if (playerHasConnected && !showErrorPrompt) {
-                helpLabel.setText("Right-click to open context menu. Scroll or +/- to zoom. Drag to pan.");
+                helpLabel.setText("Right-click to open context menu. Scroll or +/- to zoom. Drag to pan. Shift-click to measure distance.");
             }
         });
         entityCanvas.setOnMouseMoved(e -> {
@@ -150,10 +151,17 @@ public class GuiMap {
             cursorPos = new Coordinate2D(worldX, worldZ);
 
             String label = cursorPos.toString();
+
             if (Config.isInDevMode()) {
                 label += String.format("\t\tchunk: %s", cursorPos.globalToChunk());
                 label += String.format("\t\tregion: %s", cursorPos.globalToRegion());
             }
+
+            int distance = markerHandler.getDistance(cursorPos);
+            if (distance > 0) {
+                label += String.format("\t\tDistance: %s blocks", PrintUtils.humanReadable(distance));
+            }
+            
             coordsLabel.setText(label);
         });
         entityCanvas.setOnMouseExited(e -> {
@@ -192,6 +200,11 @@ public class GuiMap {
 
             if (!lockedToPlayer) {
                 this.playerLockButton.setVisible(true);
+            }
+
+            // if mouse clicked without dragging
+            if (this.initialMouseX == mouseX && initialMouseY == mouseY) {
+                markerHandler.setMarker(null);
             }
         });
 
@@ -244,7 +257,11 @@ public class GuiMap {
         entityCanvas.setOnContextMenuRequested(e -> menu.show(entityCanvas, e.getScreenX(), e.getScreenY()));
         entityCanvas.setOnMouseClicked(e -> {
 			if (e.getButton() == MouseButton.PRIMARY) {
-				menu.hide();
+                if (menu.isShowing()) {
+				    menu.hide();
+                } else if (e.isShiftDown()) {
+                    markerHandler.setMarker(cursorPos);
+                }
 			}
 		});
     }
@@ -332,6 +349,7 @@ public class GuiMap {
                 drawOtherPlayer(graphics, player);
             }
         }
+        markerHandler.draw(bounds, blocksPerPixel, graphics, cursorPos);
         drawPlayer(graphics);
     }
 

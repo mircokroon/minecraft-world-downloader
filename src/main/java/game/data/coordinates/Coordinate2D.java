@@ -41,6 +41,13 @@ public class Coordinate2D {
         );
     }
 
+    public int distance(Coordinate2D other) {
+        long diffX = this.x - other.x;
+        long diffZ = this.z - other.z;
+
+        return (int) Math.sqrt(diffX * diffX + diffZ * diffZ);
+    }
+
     public boolean isInRangeChebyshev(Coordinate2D other, int distance) {
         return Math.abs(this.x - other.x) + Math.abs(this.z - other.z) <= distance;
     }
@@ -131,8 +138,8 @@ public class Coordinate2D {
         return new CoordinateDim2D(this, dimension);
     }
 
-    public int blockDistance(Coordinate2D globalToChunk) {
-        return Math.max(Math.abs(this.x - globalToChunk.x), Math.abs(this.z - globalToChunk.z));
+    public int blockDistance(Coordinate2D other) {
+        return Math.max(Math.abs(this.x - other.x), Math.abs(this.z - other.z));
     }
 
     public Coordinate2D divide(int size) {
