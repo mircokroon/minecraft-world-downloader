@@ -436,7 +436,7 @@ public class Config {
 
     @Option(name = "--enable-cave-mode",
             usage = "Enable automatically switching to cave render mode when underground.")
-    public boolean enableCaveRenderMode = true;
+    public boolean enableCaveRenderMode = false;
 
     // not really important enough to have an option for, can change it in config file
     public boolean smoothZooming = true;
