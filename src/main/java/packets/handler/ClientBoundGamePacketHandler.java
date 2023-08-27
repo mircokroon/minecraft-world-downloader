@@ -172,6 +172,12 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             PluginChannelHandler.getInstance().handleCustomPayload(provider);
             return true;
         });
+
+        operations.put("SetChunkCacheRadius", provider -> {
+            int dist = provider.readVarInt();
+
+            return dist > Config.getExtendedRenderDistance();
+        });
     }
 
     public static PacketHandler of(ConnectionManager connectionManager) {
