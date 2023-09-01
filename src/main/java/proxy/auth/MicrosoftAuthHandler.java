@@ -20,7 +20,8 @@ public class MicrosoftAuthHandler {
         "?client_id=" + CLIENT_ID +
         "&response_type=code" +
         "&scope=XboxLive.signin%%20offline_access" +
-        "&redirect_uri=" + REDIRECT_URL;
+        "&redirect_uri=" + REDIRECT_URL +
+        "&prompt=select_account";
 
     public static final String REDIRECT_SUFFIX = REDIRECT_URL + "?code=";
 
