@@ -150,7 +150,9 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
         operations.put("ContainerClose", provider -> {
-            worldManager.getContainerManager().closeWindow(provider.readNext());
+            final byte windowId = provider.readNext();
+            worldManager.getContainerManager().closeWindow(windowId);
+            worldManager.getVillagerManager().closeWindow(windowId);
             return true;
         });
 
