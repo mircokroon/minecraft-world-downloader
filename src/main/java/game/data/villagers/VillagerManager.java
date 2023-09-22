@@ -44,7 +44,15 @@ public class VillagerManager {
         List<VillagerTrade> trades = new ArrayList<>();
 
         provider.readVarInt(); // Window ID
-        byte numberOfTrades = provider.readNext();
+
+        int numberOfTrades;
+
+        if (Config.versionReporter().isAtLeast(Version.V1_19)) {
+            numberOfTrades = provider.readVarInt();
+        } else {
+            numberOfTrades = provider.readNext();
+        }
+
         for (byte i = 0; i < numberOfTrades; i++) {
             Slot firstItem = provider.readSlot();
             Slot receivedItem = provider.readSlot();
