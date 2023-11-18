@@ -51,7 +51,9 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
         });
 
         operations.put("ContainerClose", provider -> {
-            WorldManager.getInstance().getContainerManager().closeWindow(provider.readNext());
+            final byte windowId = provider.readNext();
+            WorldManager.getInstance().getContainerManager().closeWindow(windowId);
+            WorldManager.getInstance().getVillagerManager().closeWindow(windowId);
             return true;
         });
 

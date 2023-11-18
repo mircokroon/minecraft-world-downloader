@@ -5,16 +5,25 @@ import config.Version;
 import game.data.entity.EntityRegistry;
 import game.data.entity.IMovableEntity;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import game.data.WorldManager;
 import game.data.container.Slot;
-import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.entity.specific.Villager;
 import packets.DataTypeProvider;
+import packets.UUID;
+import packets.builder.Chat;
+import packets.builder.MessageTarget;
+import packets.builder.PacketBuilder;
 
 public class VillagerManager {
+
+    private final Map<Integer, VillagerData> knownTrades = new HashMap<>();
+    private final Map<UUID, VillagerData> storedVillager = new HashMap<>();
+
     private Villager lastInteractedWith;
     private CoordinateDim3D lastInteractedLocation;
 
@@ -29,10 +38,7 @@ public class VillagerManager {
         int interactionType = provider.readVarInt();
         if (interactionType == InteractionType.INTERACT_AT.index) {
             lastInteractedWith = (Villager) entity;
-            float x = provider.readFloat();
-            float y = provider.readFloat();
-            float z = provider.readFloat();
-            lastInteractedLocation = new Coordinate3D(x, y, z).addDimension3D(WorldManager.getInstance().getDimension());
+            lastInteractedLocation = lastInteractedWith.getCoordinate3D().addDimension3D(WorldManager.getInstance().getDimension());
         }
     }
     
@@ -43,8 +49,16 @@ public class VillagerManager {
 
         List<VillagerTrade> trades = new ArrayList<>();
 
-        provider.readVarInt(); // Window ID
-        byte numberOfTrades = provider.readNext();
+        int windowId = provider.readVarInt(); // Window ID
+
+        int numberOfTrades;
+
+        if (Config.versionReporter().isAtLeast(Version.V1_19)) {
+            numberOfTrades = provider.readVarInt();
+        } else {
+            numberOfTrades = provider.readNext();
+        }
+
         for (byte i = 0; i < numberOfTrades; i++) {
             Slot firstItem = provider.readSlot();
             Slot receivedItem = provider.readSlot();
@@ -73,6 +87,33 @@ public class VillagerManager {
         provider.readBoolean(); // Can restock
 
         lastInteractedWith.updateTrades(trades, villagerLevel, villagerExp, lastInteractedLocation);
+        knownTrades.put(windowId, new VillagerData(trades, villagerLevel, villagerExp, lastInteractedLocation));
+    }
+
+    public void closeWindow(int windowId) {
+        if (!knownTrades.containsKey(windowId)) {
+            return;
+        }
+        final VillagerData villagerData = knownTrades.remove(windowId);
+        storedVillager.put(lastInteractedWith.getUUID(), villagerData);
+
+        if (Config.sendInfoMessages()) {
+            if (villagerData.trades().size() > 0) {
+                String message = "Stored villager trade at " + lastInteractedLocation + ", with " + villagerData.trades.size() + " trade(s)";
+                Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+            } else {
+                Chat message = new Chat("No villager trade at " + lastInteractedLocation);
+                message.setColor("red");
+                Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
+            }
+        }
+    }
+
+    public void loadPreviousTradeAt(Villager villager) {
+        if (storedVillager.containsKey(villager.getUUID())){
+            VillagerData data = storedVillager.get(villager.getUUID());
+            villager.updateTrades(data.trades(), data.villagerLevel(), data.villagerExp(), data.lastLocation());
+        }
     }
 
     private enum InteractionType {
@@ -83,6 +124,12 @@ public class VillagerManager {
         InteractionType(int type) {
             this.index = type;
         }
+    }
+
+    private record VillagerData(List<VillagerTrade> trades,
+                                int villagerLevel,
+                                int villagerExp,
+                                CoordinateDim3D lastLocation) {
     }
 
 }

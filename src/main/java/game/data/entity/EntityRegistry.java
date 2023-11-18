@@ -73,6 +73,7 @@ public class EntityRegistry {
             });
             
             if (ent instanceof Villager villager) {
+                WorldManager.getInstance().getVillagerManager().loadPreviousTradeAt(villager);
                 villager.registerOnTradeUpdate((pos) -> markUnsaved(pos.globalToDimChunk()));
             }
         }));

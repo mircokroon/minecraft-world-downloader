@@ -4,12 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim3D;
 import game.data.entity.MobEntity;
 import game.data.entity.metadata.MetaData_1_19_3;
 import game.data.registries.RegistryManager;
 import game.data.villagers.VillagerTrade;
 import packets.DataTypeProvider;
+import packets.UUID;
 import se.llbit.nbt.ByteTag;
 import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.FloatTag;
@@ -97,6 +99,14 @@ public class Villager extends MobEntity {
         root.add("Offers", offers);
 
         root.add("Xp", new IntTag(villagerExp));
+    }
+
+    public UUID getUUID() {
+        return this.uuid;
+    }
+
+    public Coordinate3D getCoordinate3D() {
+        return new Coordinate3D(x, y, z);
     }
 
     private class VillagerMetaData extends MetaData_1_19_3 {
