@@ -12,8 +12,6 @@ import game.data.coordinates.CoordinateDim2D;
 import game.data.dimension.Dimension;
 import game.protocol.Protocol;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.*;
@@ -131,7 +129,7 @@ public abstract class Chunk extends ChunkEntities {
 
 
     /**
-     * Read a chunk column. Largely based on: https://wiki.vg/Protocol
+     * Read a chunk column. Largely based on: <a href="https://wiki.vg/Protocol">https://wiki.vg/Protocol</a>
      */
     public void readChunkColumn(boolean full, BitSet mask, DataTypeProvider dataProvider) {
         // Loop through section Y values, starting from the lowest section that has blocks inside it. Compute the index
@@ -507,7 +505,7 @@ public abstract class Chunk extends ChunkEntities {
     public void updateBlock(Coordinate3D coords, int blockStateId, boolean suppressUpdate) {
         raiseEvent("update block");
 
-        int sectionY = coords.getY() / SECTION_HEIGHT;
+        int sectionY = (int) Math.floor((double) coords.getY() / SECTION_HEIGHT);
 
         // if there's no section, we create an empty one
         if (getChunkSection(sectionY) == null) {
@@ -535,8 +533,8 @@ public abstract class Chunk extends ChunkEntities {
     /**
      * Update a number of blocks. toUpdate keeps track of which blocks have changed so that we can only redraw the
      * chunk if that's actually needed.
-     * @param pos
-     * @param provider
+     * @param pos chunk selection
+     * @param provider network input
      */
     public void updateBlocks(Coordinate3D pos, DataTypeProvider provider) {
         int count = provider.readVarInt();
