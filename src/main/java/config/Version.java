@@ -12,6 +12,7 @@ public enum Version {
     V1_19(759, 3105),
     V1_19_3(761, 3218),
     V1_20(763, 3463),
+    V1_20_2(764, 3578),
     ANY(0, 0);
 
     public final int dataVersion;
