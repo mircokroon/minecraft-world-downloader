@@ -430,6 +430,7 @@
 				"0x6b": "TeleportEntity"
 			},
 			"serverBound": {
+				"0x0b": "ConfigurationAcknowledged",
 				"0x0c": "ContainerClose",
 				"0x12": "Interact",
 				"0x16": "MovePlayerPos",
