@@ -199,6 +199,7 @@ public class PacketBuilder {
 
     /**
      * Writes an NBT tag. We need to wrap this in a NamedTag, as the named tag is not written itself.
+     * TODO: update on 1.20.2
      */
     public void writeNbt(SpecificTag nbt) {
         try {

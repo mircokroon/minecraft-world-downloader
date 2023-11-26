@@ -63,14 +63,18 @@ public class DimensionCodec {
         this.biomes = new HashMap<>();
     }
 
-    public static DimensionCodec fromNbt(String[] dimensionNames, SpecificTag tag) {
+    public static DimensionCodec fromNbt(SpecificTag tag) {
         DimensionCodec codec = new DimensionCodec();
 
-        codec.readDimensions(dimensionNames);
         codec.readDimensionTypes(tag.get("minecraft:dimension_type").asCompound().get("value").asList());
         codec.readBiomes(tag.get("minecraft:worldgen/biome").asCompound().get("value").asList());
 
         return codec;
+    }
+
+    public DimensionCodec setDimensionNames(String[] dimensionNames) {
+        this.readDimensions(dimensionNames);
+        return this;
     }
 
     public Collection<Dimension> getDimensions() {
