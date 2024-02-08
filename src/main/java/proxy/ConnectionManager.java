@@ -3,6 +3,7 @@ package proxy;
 import config.Config;
 import game.NetworkMode;
 import game.data.WorldManager;
+import game.protocol.ConfigurationProtocol;
 import game.protocol.HandshakeProtocol;
 import game.protocol.LoginProtocol;
 import game.protocol.StatusProtocol;
@@ -47,6 +48,11 @@ public class ConnectionManager {
                 PacketHandler.setProtocol(new HandshakeProtocol());
                 serverBoundDataReader.setPacketHandler(new ServerBoundHandshakePacketHandler(this));
                 clientBoundDataReader.setPacketHandler(new ClientBoundHandshakePacketHandler(this));
+                break;
+            case CONFIGURATION:
+                PacketHandler.setProtocol(new ConfigurationProtocol());
+                serverBoundDataReader.setPacketHandler(new ServerBoundConfigurationPacketHandler(this));
+                clientBoundDataReader.setPacketHandler(ClientBoundConfigurationPacketHandler.of(this));
                 break;
         }
     }

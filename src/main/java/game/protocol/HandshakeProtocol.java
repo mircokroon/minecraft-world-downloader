@@ -4,12 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HandshakeProtocol extends Protocol {
-    private String version;
-    private Map<Integer, String> clientBound;
-    private Map<Integer, String> serverBound;
+    private final Map<Integer, String> clientBound;
+    private final Map<Integer, String> serverBound;
 
     public HandshakeProtocol() {
-        version = "LOGIN";
         clientBound = new HashMap<>();
         serverBound = new HashMap<>();
 

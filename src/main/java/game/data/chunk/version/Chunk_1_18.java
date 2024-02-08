@@ -133,7 +133,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
         }
     }
 
-    private void findBlockEntities(ChunkSection section, int sectionY) {
+    protected void findBlockEntities(ChunkSection section, int sectionY) {
         BlockEntityRegistry blockEntities = RegistryManager.getInstance().getBlockEntityRegistry();
         GlobalPalette globalPalette = GlobalPaletteProvider.getGlobalPalette(getDataVersion());
 
@@ -151,7 +151,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
         }
     }
 
-    private boolean containsBlockEntities(Palette p) {
+    protected boolean containsBlockEntities(Palette p) {
         BlockEntityRegistry blockEntities = RegistryManager.getInstance().getBlockEntityRegistry();
         for (SpecificTag tag : p.toNbt()) {
             if (blockEntities.isBlockEntity(tag.get("Name").stringValue())) {

@@ -13,12 +13,7 @@ import game.data.dimension.Dimension;
 import game.data.entity.EntityRegistry;
 import game.data.entity.MobEntity;
 import game.data.entity.ObjectEntity;
-import packets.handler.version.ClientBoundGamePacketHandler_1_14;
-import packets.handler.version.ClientBoundGamePacketHandler_1_15;
-import packets.handler.version.ClientBoundGamePacketHandler_1_16;
-import packets.handler.version.ClientBoundGamePacketHandler_1_17;
-import packets.handler.version.ClientBoundGamePacketHandler_1_18;
-import packets.handler.version.ClientBoundGamePacketHandler_1_19;
+import packets.handler.version.*;
 import packets.handler.plugins.PluginChannelHandler;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
@@ -184,6 +179,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
     public static PacketHandler of(ConnectionManager connectionManager) {
         return Config.versionReporter().select(PacketHandler.class,
+                Option.of(Version.V1_20_2, () -> new ClientBoundGamePacketHandler_1_20_2(connectionManager)),
                 Option.of(Version.V1_19, () -> new ClientBoundGamePacketHandler_1_19(connectionManager)),
                 Option.of(Version.V1_18, () -> new ClientBoundGamePacketHandler_1_18(connectionManager)),
                 Option.of(Version.V1_17, () -> new ClientBoundGamePacketHandler_1_17(connectionManager)),

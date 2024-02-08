@@ -4,7 +4,7 @@ import com.google.gson.*;
 import game.data.chunk.palette.StateProvider;
 import se.llbit.nbt.*;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,6 +16,7 @@ import java.util.Map;
  */
 public class DimensionCodec {
     public static final Gson GSON;
+
     static {
         /*
          * To convert the properties to JSON, we need to register adapters so that GSON knows how to turn our NBT object
@@ -56,6 +57,7 @@ public class DimensionCodec {
     private final Map<Integer, DimensionType> dimensionTypesByHash;
     private final Map<String, DimensionType> dimensionTypesByName;
     private final Map<String, Biome> biomes;
+
     private DimensionCodec() {
         this.dimensions = new HashMap<>();
         this.dimensionTypesByHash = new HashMap<>();
@@ -63,14 +65,18 @@ public class DimensionCodec {
         this.biomes = new HashMap<>();
     }
 
-    public static DimensionCodec fromNbt(String[] dimensionNames, SpecificTag tag) {
+    public static DimensionCodec fromNbt(SpecificTag tag) {
         DimensionCodec codec = new DimensionCodec();
 
-        codec.readDimensions(dimensionNames);
         codec.readDimensionTypes(tag.get("minecraft:dimension_type").asCompound().get("value").asList());
         codec.readBiomes(tag.get("minecraft:worldgen/biome").asCompound().get("value").asList());
 
         return codec;
+    }
+
+    public DimensionCodec setDimensionNames(String[] dimensionNames) {
+        this.readDimensions(dimensionNames);
+        return this;
     }
 
     public Collection<Dimension> getDimensions() {
@@ -99,7 +105,7 @@ public class DimensionCodec {
             String[] parts = identifier.split(":");
             String namespace = parts[0];
             String name = parts[1];
-            
+
             DimensionType type = new DimensionType(namespace, name, d);
             this.dimensionTypesByHash.put(type.getSignature(), type);
             this.dimensionTypesByName.put(type.getName(), type);

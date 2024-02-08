@@ -35,7 +35,7 @@ public class ClientBoundGamePacketHandler_1_19 extends ClientBoundGamePacketHand
             String[] dimensionNames = provider.readStringArray(numDimensions);
 
             SpecificTag dimensionCodec = provider.readNbtTag();
-            WorldManager.getInstance().setDimensionCodec(DimensionCodec.fromNbt(dimensionNames, dimensionCodec));
+            WorldManager.getInstance().setDimensionCodec(DimensionCodec.fromNbt(dimensionCodec).setDimensionNames(dimensionNames));
 
             String dimensionType = provider.readString();
             // current active dimension
