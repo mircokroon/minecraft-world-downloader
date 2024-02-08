@@ -405,8 +405,6 @@
 			"dataVersion": 3578,
 			"clientBound": {
 				"0x01": "AddEntity",
-				"0x05": "RegistryData",
-				"0x3c": "UpdatePlayerInfo",
 				"0x07": "BlockEntityData",
 				"0x09": "BlockUpdate",
 				"0x12": "ContainerClose",
@@ -420,6 +418,7 @@
 				"0x2c": "MoveEntityPos",
 				"0x2d": "MoveEntityPosRot",
 				"0x31": "OpenScreen",
+				"0x3c": "UpdatePlayerInfo",
 				"0x40": "RemoveEntities",
 				"0x43": "Respawn",
 				"0x45": "SectionBlocksUpdate",
@@ -440,6 +439,47 @@
 				"0x2c": "SetCommandBlock",
 				"0x34": "UseItemOn",
 				"0x35": "UseItem"
+			}
+		},
+		"765": {
+			"version": "1.20.3",
+			"dataVersion": 3698,
+			"clientBound": {
+				"0x01": "AddEntity",
+				"0x07": "BlockEntityData",
+				"0x09": "BlockUpdate",
+				"0x12": "ContainerClose",
+				"0x13": "ContainerSetContent",
+				"0x1f": "ForgetLevelChunk",
+				"0x25": "LevelChunkWithLight",
+				"0x28": "LightUpdate",
+				"0x29": "Login",
+				"0x2a": "MapItemData",
+				"0x2b": "TradeList",
+				"0x2c": "MoveEntityPos",
+				"0x2d": "MoveEntityPosRot",
+				"0x31": "OpenScreen",
+				"0x3c": "UpdatePlayerInfo",
+				"0x40": "RemoveEntities",
+				"0x45": "Respawn",
+				"0x47": "SectionBlocksUpdate",
+				"0x53": "SetChunkCacheRadius",
+				"0x56": "SetEntityData",
+				"0x59": "SetEquipment",
+				"0x69": "SystemChat",
+				"0x6d": "TeleportEntity"
+			},
+			"serverBound": {
+				"0x0b": "ConfigurationAcknowledged",
+				"0x0c": "ContainerClose",
+				"0x12": "Interact",
+				"0x16": "MovePlayerPos",
+				"0x18": "MovePlayerPosRot",
+				"0x19": "MovePlayerRot",
+				"0x1b": "MoveVehicle",
+				"0x2d": "SetCommandBlock",
+				"0x35": "UseItemOn",
+				"0x36": "UseItem"
 			}
 		}
 	}

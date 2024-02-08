@@ -28,6 +28,8 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
 
         PacketOperator updatePlayerRotation = provider -> {
             double yaw = provider.readFloat() % 360;
+            provider.readFloat(); // pitch
+            provider.readBoolean(); // on ground
             WorldManager.getInstance().setPlayerRotation(yaw);
             return true;
         };

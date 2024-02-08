@@ -21,7 +21,6 @@ public class ClientBoundGamePacketHandler_1_20_2 extends ClientBoundGamePacketHa
         super(connectionManager);
 
         Protocol protocol = Config.versionReporter().getProtocol();
-        WorldManager worldManager = WorldManager.getInstance();
         EntityRegistry entityRegistry = WorldManager.getInstance().getEntityRegistry();
 
         Map<String, PacketOperator> operators = getOperators();
@@ -66,24 +65,6 @@ public class ClientBoundGamePacketHandler_1_20_2 extends ClientBoundGamePacketHa
 
         operators.put("UpdatePlayerInfo", provider -> {
             entityRegistry.updatePlayerAction(provider);
-            return true;
-        });
-
-        operators.put("RegistryData", provider -> {
-            try {
-                SpecificTag dimensionCodec = provider.readNbtTag();
-                if (!(dimensionCodec instanceof CompoundTag)) {
-                    return true;
-                }
-                for (var nbt : ((CompoundTag) dimensionCodec)) {
-                    if (nbt.name.equals("minecraft:dimension_type")) {
-                        worldManager.setDimensionCodec(DimensionCodec.fromNbt(dimensionCodec));
-                        break;
-                    }
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
             return true;
         });
     }
