@@ -52,7 +52,7 @@ public class ConnectionManager {
             case CONFIGURATION:
                 PacketHandler.setProtocol(new ConfigurationProtocol());
                 serverBoundDataReader.setPacketHandler(new ServerBoundConfigurationPacketHandler(this));
-                clientBoundDataReader.setPacketHandler(new ClientBoundConfigurationPacketHandler(this));
+                clientBoundDataReader.setPacketHandler(ClientBoundConfigurationPacketHandler.of(this));
                 break;
         }
     }

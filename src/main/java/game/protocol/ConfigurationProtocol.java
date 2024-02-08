@@ -1,5 +1,8 @@
 package game.protocol;
 
+import config.Config;
+import config.Version;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +14,13 @@ public class ConfigurationProtocol extends Protocol {
         clientBound = new HashMap<>();
         serverBound = new HashMap<>();
 
-        serverBound.put(0x03, "FinishConfiguration");
+        if (Config.versionReporter().isAtLeast(Version.V1_20_2)) {
+            serverBound.put(0x02, "FinishConfiguration");
+
+            clientBound.put(0x05, "RegistryData");
+        } else {
+            serverBound.put(0x03, "FinishConfiguration");
+        }
     }
 
     @Override

@@ -4,7 +4,7 @@ import com.google.gson.*;
 import game.data.chunk.palette.StateProvider;
 import se.llbit.nbt.*;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,6 +16,7 @@ import java.util.Map;
  */
 public class DimensionCodec {
     public static final Gson GSON;
+
     static {
         /*
          * To convert the properties to JSON, we need to register adapters so that GSON knows how to turn our NBT object
@@ -56,6 +57,7 @@ public class DimensionCodec {
     private final Map<Integer, DimensionType> dimensionTypesByHash;
     private final Map<String, DimensionType> dimensionTypesByName;
     private final Map<String, Biome> biomes;
+
     private DimensionCodec() {
         this.dimensions = new HashMap<>();
         this.dimensionTypesByHash = new HashMap<>();
@@ -103,7 +105,7 @@ public class DimensionCodec {
             String[] parts = identifier.split(":");
             String namespace = parts[0];
             String name = parts[1];
-            
+
             DimensionType type = new DimensionType(namespace, name, d);
             this.dimensionTypesByHash.put(type.getSignature(), type);
             this.dimensionTypesByName.put(type.getName(), type);

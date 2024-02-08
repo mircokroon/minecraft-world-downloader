@@ -6,8 +6,8 @@ import packets.DataProvider;
 import packets.DataTypeProvider;
 import proxy.ConnectionManager;
 
-import java.util.Map;
 import javax.naming.SizeLimitExceededException;
+import java.util.Map;
 
 /**
  * Family of classes to handle incoming packets and perform appropriate actions based on the packet type and contents.
@@ -34,6 +34,7 @@ public abstract class PacketHandler {
     /**
      * Build the given packet, will generate a type provider to parse the contents of the packages to real values. Will
      * determine if the packet is to be forwarded using its return value.
+     *
      * @param size the size of the packet to build
      * @return true if the packet should be forwarded, otherwise false.
      */
@@ -58,6 +59,7 @@ public abstract class PacketHandler {
     }
 
     public abstract Map<String, PacketOperator> getOperators();
+
     public abstract boolean isClientBound();
 
     public void setReader(DataProvider reader) {
