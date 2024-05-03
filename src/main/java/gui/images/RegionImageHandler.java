@@ -82,7 +82,9 @@ public class RegionImageHandler {
         }
 
         Coordinate2D region = coordinate.chunkToRegion();
-        RegionImages images = regions.computeIfAbsent(region, (coordinate2D -> loadRegion(region)));
+        RegionImages images = regions.computeIfAbsent(region,
+            coordinate2D -> RegionImages.loadRegion(activeDimension, region)
+        );
 
         Coordinate2D local = coordinate.toRegionLocal();
 
@@ -116,16 +118,6 @@ public class RegionImageHandler {
         setChunkState(coordinate, ChunkImageState.SAVED);
     }
 
-    private RegionImages loadRegion(Coordinate2D coordinate) {
-        return RegionImages.of(activeDimension, coordinate);
-    }
-
-    private void allowResample(Map<Coordinate2D, RegionImages> regions, Dimension activeDimension) {
-        regions.forEach((coordinate, image) -> {
-            attempt(() -> image.allowResample());
-        });
-    }
-
     private void save(Map<Coordinate2D, RegionImages> regions, Dimension dim) {
         // if shutdown is called, wait for saving to complete
         if (isSaving) {
@@ -151,10 +143,6 @@ public class RegionImageHandler {
         save(this.regions, this.activeDimension);
     }
 
-    public void allowResample() {
-        allowResample(this.regions, this.activeDimension);
-    }
-
     private void unload() {
         this.regions = new ConcurrentHashMap<>();
     }
@@ -162,21 +150,17 @@ public class RegionImageHandler {
     /**
      * Searches for all region files in a directory to load them in.
      */
-    private void load() {
-        Map<Coordinate2D, RegionImages> regionMap = regions;
-
+    private void loadFromFile() {
         new Thread(() -> attemptQuiet(() -> {
-            for (ImageMode mode : ImageMode.values()) {
-                Files.walk(dimensionPath(this.activeDimension, mode), 1)
-                    .limit(3200)
-                    .forEach(image -> attempt(() -> load(regionMap, mode, image)));
-            }
+            // walk one of the modes, check for the others if we find one
+            Files.walk(dimensionPath(this.activeDimension, ImageMode.NORMAL), 1)
+                .limit(3200)
+                .forEach(image -> attempt(() -> loadFromFile(regions, this.activeDimension, image)));
         })).start();
     }
 
-    private void load(Map<Coordinate2D, RegionImages> regionMap, ImageMode mode, Path image) {
-        if (!image.toString().toLowerCase().endsWith("png") || image.getFileName().startsWith(
-            SMALL_PREFIX)) {
+    private static void loadFromFile(Map<Coordinate2D, RegionImages> regions, Dimension dim, Path image) {
+        if (!image.toString().toLowerCase().endsWith("png") || image.getFileName().startsWith(SMALL_PREFIX)) {
             return;
         }
 
@@ -186,8 +170,7 @@ public class RegionImageHandler {
         int z = Integer.parseInt(parts[2]);
         Coordinate2D regionCoordinate = new Coordinate2D(x, z);
 
-        Path p = image.getParent();
-        regionMap.computeIfAbsent(regionCoordinate, k -> new RegionImages(p, regionCoordinate)).set(mode, p);
+        regions.computeIfAbsent(regionCoordinate, coord -> RegionImages.loadRegion(dim, coord));
     }
 
     public void setDimension(Dimension dimension) {
@@ -201,7 +184,7 @@ public class RegionImageHandler {
         }
 
         this.activeDimension = dimension;
-        load();
+        loadFromFile();
     }
 
     static Path dimensionPath(Dimension dim) {
@@ -286,26 +269,19 @@ public class RegionImageHandler {
 }
 
 class RegionImages {
-    Coordinate2D coordinate;
-    RegionImage normal;
-    RegionImage caves;
+    final RegionImage normal;
+    final RegionImage caves;
 
-    public RegionImages(RegionImage normal, RegionImage caves) {
+    public RegionImages(Coordinate2D coordinate, RegionImage normal, RegionImage caves) {
         this.normal = normal;
         this.caves = caves;
     }
 
-    public RegionImages(Path p, Coordinate2D coordinate2D) {
-        normal = new RegionImage(p, coordinate2D);
-        caves = new RegionImage(p, coordinate2D);
-        coordinate = coordinate2D;
-    }
-
-    public static RegionImages of(Dimension dimension, Coordinate2D coordinate) {
+    public static RegionImages loadRegion(Dimension dimension, Coordinate2D coordinate) {
         RegionImage normal = RegionImage.of(RegionImageHandler.dimensionPath(dimension, ImageMode.NORMAL), coordinate);
         RegionImage caves = RegionImage.of(RegionImageHandler.dimensionPath(dimension, ImageMode.CAVES), coordinate);
 
-        return new RegionImages(normal, caves);
+        return new RegionImages(coordinate, normal, caves);
     }
 
     public RegionImage getImage(ImageMode mode) {
@@ -325,13 +301,6 @@ class RegionImages {
     public void save() throws IOException {
         normal.save();
         caves.save();
-    }
-
-    public void set(ImageMode mode, Path image) {
-        switch (mode) {
-            case NORMAL -> normal = RegionImage.of(image, coordinate);
-            case CAVES -> caves = RegionImage.of(image, coordinate);
-        };
     }
 
     public boolean updateSize(boolean isVisible, ImageMode mode, double blocksPerPixel) {

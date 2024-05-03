@@ -59,6 +59,7 @@ public class RegionImage {
     }
 
     private RegionImage(WritableImage image, Path path, Coordinate2D coords) {
+        this.coordinates = coords;
         this.currentSize = MIN_SIZE;
         this.targetSize = MIN_SIZE;
         this.path = path;
@@ -66,7 +67,6 @@ public class RegionImage {
         this.image = image;
         this.buffer = new byte[16 * 16 * 4];
         this.saved = true;
-        this.coordinates = coords;
 
         chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
 
