@@ -154,7 +154,7 @@ public class RegionImageHandler {
         new Thread(() -> attemptQuiet(() -> {
             // walk one of the modes, check for the others if we find one
             Files.walk(dimensionPath(this.activeDimension, ImageMode.NORMAL), 1)
-                .limit(3200)
+                .limit(32000)
                 .forEach(image -> attempt(() -> loadFromFile(regions, this.activeDimension, image)));
         })).start();
     }
