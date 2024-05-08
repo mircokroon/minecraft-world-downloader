@@ -473,4 +473,8 @@ public class GuiMap {
     public void setChunkState(Coordinate2D coords, ChunkImageState state) {
         regionHandler.setChunkState(coords, state);
     }
+
+    public Bounds getBounds() {
+        return bounds;
+    }
 }

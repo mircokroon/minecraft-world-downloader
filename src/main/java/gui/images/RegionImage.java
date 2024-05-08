@@ -59,6 +59,7 @@ public class RegionImage {
     }
 
     private RegionImage(WritableImage image, Path path, Coordinate2D coords) {
+        this.coordinates = coords;
         this.currentSize = MIN_SIZE;
         this.targetSize = MIN_SIZE;
         this.path = path;
@@ -66,7 +67,6 @@ public class RegionImage {
         this.image = image;
         this.buffer = new byte[16 * 16 * 4];
         this.saved = true;
-        this.coordinates = coords;
 
         chunkOverlay = new WritableImage(Region.REGION_SIZE, Region.REGION_SIZE);
 
@@ -94,7 +94,7 @@ public class RegionImage {
             WritableImage image = loadFromFile(directoryPath, coordinate, MIN_SIZE);
 
             return new RegionImage(image, directoryPath, coordinate);
-        } catch (IOException e) {
+        } catch (Exception e) {
             return new RegionImage(directoryPath, coordinate);
         }
     }
@@ -201,8 +201,8 @@ public class RegionImage {
     }
 
     public void drawChunk(Coordinate2D local, Image chunkImage) {
-        lastUpdated = System.currentTimeMillis();
-        saved = false;
+        this.lastUpdated = System.currentTimeMillis();
+        this.saved = false;
 
         if (targetSize < SIZE || currentSize < SIZE) {
             targetSize = SIZE;
@@ -233,7 +233,6 @@ public class RegionImage {
         if (saved) {
             return;
         }
-        saved = true;
 
         File f = getFile(path, NORMAL_PREFIX, coordinates);
         BufferedImage img = SwingFXUtils.fromFXImage(image, null);
@@ -242,6 +241,8 @@ public class RegionImage {
         img = resize(img, MIN_SIZE);
         f = getFile(path, SMALL_PREFIX, coordinates);
         ImageIO.write(img, "png", f);
+
+        saved = true;
     }
 
     public static File getFile(Path p, String prefix, Coordinate2D coords) {
