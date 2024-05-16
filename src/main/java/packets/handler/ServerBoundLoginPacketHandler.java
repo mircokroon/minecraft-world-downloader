@@ -2,6 +2,9 @@ package packets.handler;
 
 import static util.PrintUtils.devPrint;
 
+import config.Config;
+import config.Version;
+import game.NetworkMode;
 import java.util.HashMap;
 import java.util.Map;
 import proxy.ConnectionManager;
@@ -11,7 +14,7 @@ public class ServerBoundLoginPacketHandler extends PacketHandler {
     public ServerBoundLoginPacketHandler(ConnectionManager connectionManager) {
         super(connectionManager);
 
-        operations.put("login_start", provider -> {
+        operations.put("Hello", provider -> {
             String username = provider.readString();
 
             devPrint("Login by: " + username);
@@ -20,13 +23,22 @@ public class ServerBoundLoginPacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("encryption_response", provider -> {
+        operations.put("Key", provider -> {
             int sharedSecretLength = provider.readVarInt();
             byte[] sharedSecret = provider.readByteArray(sharedSecretLength);
             byte[] nonce = provider.readByteArray(provider.readVarInt());
             getConnectionManager().getEncryptionManager().setClientEncryptionConfirmation(sharedSecret, nonce);
 
             return false;
+        });
+
+        operations.put("LoginAcknowledged", provider -> {
+            if (Config.versionReporter().isAtLeast(Version.V1_20_2)) {
+                getConnectionManager().setMode(NetworkMode.CONFIGURATION);
+            } else {
+                getConnectionManager().setMode(NetworkMode.GAME);
+            }
+            return true;
         });
     }
 

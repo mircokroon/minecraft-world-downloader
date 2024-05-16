@@ -1,10 +1,16 @@
 package packets.builder;
 
 import config.Config;
+import config.Option;
 import config.Version;
 import game.protocol.Protocol;
+import java.util.Arrays;
 import packets.DataTypeProvider;
 import packets.UUID;
+import packets.handler.ClientBoundConfigurationPacketHandler;
+import packets.handler.PacketHandler;
+import packets.handler.version.ClientBoundConfigurationPacketHandler_1_20_2;
+import packets.handler.version.ClientBoundConfigurationPacketHandler_1_20_6;
 import packets.lib.ByteQueue;
 import proxy.CompressionManager;
 import se.llbit.nbt.NamedTag;
@@ -48,16 +54,30 @@ public class PacketBuilder {
     public static PacketBuilder constructClientMessage(String message, MessageTarget target) {
         return constructClientMessage(new Chat(message), target);
     }
+
     /**
      * Construct a message packet for the client.
      */
     public static PacketBuilder constructClientMessage(Chat message, MessageTarget target) {
         Protocol protocol = Config.versionReporter().getProtocol();
-        String packetName = Config.versionReporter().isAtLeast(Version.V1_19) ? "SystemChat" : "Chat";
+        String packetName = Config.versionReporter().select(String.class,
+            Option.of(Version.V1_20_6, () -> "SetActionBarText"),
+            Option.of(Version.V1_19, () -> "SystemChat"),
+            Option.of(Version.ANY, () -> "Chat")
+        );
+
         PacketBuilder builder = new PacketBuilder(protocol.clientBound(packetName));
 
-        builder.writeString(message.toJson());
-        builder.writeByte(target.getIdentifier());
+        if (Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+            builder.writeNbtDirect(message.toNbt());
+        } else {
+            builder.writeString(message.toJson());
+        }
+
+        // 1.20.6 has separate packet for action bar text, so dont need to give identifier anymore
+        if (!Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+            builder.writeByte(target.getIdentifier());
+        }
 
         // uuid is only included from 1.16, from 1.19 player chat is a different packet
         if (Config.versionReporter().isAtLeast(Version.V1_16) && !Config.versionReporter().isAtLeast(Version.V1_19)) {
@@ -199,11 +219,25 @@ public class PacketBuilder {
 
     /**
      * Writes an NBT tag. We need to wrap this in a NamedTag, as the named tag is not written itself.
-     * TODO: update on 1.20.2
      */
     public void writeNbt(SpecificTag nbt) {
         try {
             new NamedTag("", nbt).write(new DataOutputStream(new OutputStream() {
+                @Override
+                public void write(int b) {
+                    bytes.insert((byte) b);
+                }
+            }));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // write NBT without wrapping it in a NamedTag
+    public void writeNbtDirect(SpecificTag nbt) {
+        try {
+            writeByte((byte) nbt.tagType());
+            nbt.write(new DataOutputStream(new OutputStream() {
                 @Override
                 public void write(int b) {
                     bytes.insert((byte) b);

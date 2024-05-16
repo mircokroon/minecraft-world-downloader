@@ -3,14 +3,11 @@ package packets.handler.version;
 import config.Config;
 import game.data.WorldManager;
 import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
 import game.data.entity.EntityRegistry;
 import game.protocol.Protocol;
 import packets.builder.PacketBuilder;
 import packets.handler.PacketOperator;
 import proxy.ConnectionManager;
-import se.llbit.nbt.CompoundTag;
-import se.llbit.nbt.SpecificTag;
 
 import java.util.Map;
 
@@ -32,7 +29,7 @@ public class ClientBoundGamePacketHandler_1_20_2 extends ClientBoundGamePacketHa
             // handle dimension codec
             int numDimensions = provider.readVarInt();
             String[] dimensionNames = provider.readStringArray(numDimensions);
-            WorldManager.getInstance().getDimensionCodec().setDimensionNames(dimensionNames);
+            WorldManager.getInstance().getDimensionRegistry().setDimensionNames(dimensionNames);
 
             replacement.writeVarInt(numDimensions);
             replacement.writeStringArray(dimensionNames);
@@ -51,6 +48,7 @@ public class ClientBoundGamePacketHandler_1_20_2 extends ClientBoundGamePacketHa
             Dimension dimension = Dimension.fromString(dimensionName);
             dimension.setType(dimensionType);
             WorldManager.getInstance().setDimension(dimension);
+            WorldManager.getInstance().setDimensionType(WorldManager.getInstance().getDimensionRegistry().getDimensionType(dimensionType));
 
             replacement.writeString(dimensionType);
             replacement.writeString(dimensionName);
@@ -63,7 +61,7 @@ public class ClientBoundGamePacketHandler_1_20_2 extends ClientBoundGamePacketHa
             return false;
         });
 
-        operators.put("UpdatePlayerInfo", provider -> {
+        operators.put("PlayerInfoUpdate", provider -> {
             entityRegistry.updatePlayerAction(provider);
             return true;
         });

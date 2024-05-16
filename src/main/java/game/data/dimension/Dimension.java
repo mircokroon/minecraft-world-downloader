@@ -66,10 +66,10 @@ public class Dimension {
             case "minecraft:the_nether": return NETHER;
             case "minecraft:overworld": return OVERWORLD;
             default: {
-                DimensionCodec codec = WorldManager.getInstance().getDimensionCodec();
-                if (codec == null) { return OVERWORLD; }
+                DimensionRegistry registry = WorldManager.getInstance().getDimensionRegistry();
+                if (registry == null) { return OVERWORLD; }
 
-                Dimension dim = codec.getDimension(readString);
+                Dimension dim = registry.getDimension(readString);
                 if (dim == null) { return OVERWORLD; }
 
                 return dim;
@@ -127,7 +127,7 @@ public class Dimension {
         }
 
         int hash = dimensionNbt.hashCode();
-        DimensionType type = WorldManager.getInstance().getDimensionCodec().getDimensionType(hash);
+        DimensionType type = WorldManager.getInstance().getDimensionRegistry().getDimensionType(hash);
         if (type != null) {
             this.type = type.getName();
 
@@ -168,8 +168,7 @@ public class Dimension {
      * implementation).
      */
     public void setType(String dimensionType) {
-        DimensionType type =
-            WorldManager.getInstance().getDimensionCodec().getDimensionType(dimensionType);
+        DimensionType type = WorldManager.getInstance().getDimensionRegistry().getDimensionType(dimensionType);
 
         if (type == null) {
             return;

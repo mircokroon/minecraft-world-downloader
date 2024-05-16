@@ -7,9 +7,9 @@ import game.data.coordinates.CoordinateDim2D;
 import game.data.WorldManager;
 import game.data.chunk.palette.BlockColors;
 import game.data.dimension.Biome;
-import game.data.dimension.BiomeProvider;
+import game.data.dimension.BiomeRegistry;
 import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
+import game.data.dimension.DimensionRegistry;
 import game.data.registries.RegistryManager;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,13 +43,13 @@ class ChunkTest extends PacketBuilderAndParserTest {
         when(mock.getChunkFactory()).thenReturn(new ChunkFactory());
 
         Chunk_1_17.setWorldHeight(-63, 384);
-        DimensionCodec codecMock = mock(DimensionCodec.class);
+        DimensionRegistry codecMock = mock(DimensionRegistry.class);
         Map<String, Biome> biomeMap = new HashMap<>();
         biomeMap.put("minecraft:badlands", new Biome(0));
         biomeMap.put("minecraft:forest", new Biome(1));
         biomeMap.put("minecraft:river", new Biome(2));
-        when(codecMock.getBiomeProvider()).thenReturn(new BiomeProvider(biomeMap));
-        when(mock.getDimensionCodec()).thenReturn(codecMock);
+        when(codecMock.getBiomeRegistry()).thenReturn(new BiomeRegistry(biomeMap));
+        when(mock.getDimensionRegistry()).thenReturn(codecMock);
 
         RegistryManager registryManager = mock(RegistryManager.class);
         when(registryManager.getBlockEntityRegistry()).thenReturn(new BlockEntityRegistry());

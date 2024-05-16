@@ -2,6 +2,8 @@ package game.data;
 
 import static util.ExceptionHandling.attempt;
 
+import game.data.chunk.version.Chunk_1_17;
+import game.data.dimension.DimensionType;
 import gui.ChunkImageState;
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +43,7 @@ import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.coordinates.CoordinateDouble3D;
 import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
+import game.data.dimension.DimensionRegistry;
 import game.data.entity.EntityNames;
 import game.data.entity.EntityRegistry;
 import game.data.maps.MapRegistry;
@@ -53,7 +55,6 @@ import gui.GuiManager;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import proxy.PacketInjector;
-import se.llbit.nbt.CompoundTag;
 import se.llbit.nbt.Tag;
 import util.PathUtils;
 
@@ -81,7 +82,7 @@ public class WorldManager {
     private ContainerManager containerManager;
     private CommandBlockManager commandBlockManager;
     private VillagerManager villagerManager;
-    private DimensionCodec dimensionCodec;
+    private DimensionRegistry dimensionCodec;
     private final RenderDistanceExtender renderDistanceExtender;
 
     private BiConsumer<CoordinateDouble3D, Double> playerPosListener;
@@ -89,6 +90,7 @@ public class WorldManager {
     private boolean isBelowGround = false;
     private double playerRotation = 0;
     private Dimension dimension;
+    private DimensionType dimensionType;
     private final EntityRegistry entityRegistry;
     private final ChunkFactory chunkFactory;
 
@@ -158,6 +160,11 @@ public class WorldManager {
         this.renderDistanceExtender.reset();
 
         GuiManager.setDimension(this.dimension);
+    }
+
+    public void setDimensionType(DimensionType dimensionType) {
+        this.dimensionType = dimensionType;
+        Chunk_1_17.setWorldHeight(dimensionType.getDimensionMinHeight(), dimensionType.getDimensionMaxHeight());
     }
 
     private void saveAndUnloadChunks() {
@@ -381,20 +388,23 @@ public class WorldManager {
         regions.get(c.getLocation().chunkToDimRegion()).touch();
     }
 
-    public DimensionCodec getDimensionCodec() {
+    public DimensionRegistry getDimensionRegistry() {
+        if (dimensionCodec == null) {
+            this.dimensionCodec = DimensionRegistry.empty();
+        }
         return dimensionCodec;
     }
 
     /**
-     * Set the dimension codec, used to store information about the dimensions that this server supports.
+     * Set the dimension registry, used to store information about the dimensions that this server supports.
      */
-    public void setDimensionCodec(DimensionCodec codec) {
-        dimensionCodec = codec;
+    public void setDimensionRegistry(DimensionRegistry registry) {
+        dimensionCodec = registry;
 
         // We can immediately try to write the dimension data to the proper directory.
         try {
             Path p = PathUtils.toPath(Config.getWorldOutputDir(), "datapacks", "downloaded", "data");
-            if (codec.write(p)) {
+            if (registry.write(p)) {
 
                 // we need to copy that pack.mcmeta file from so that Minecraft will recognise the datapack
                 Path packMeta = PathUtils.toPath(p.getParent().toString(), "pack.mcmeta");

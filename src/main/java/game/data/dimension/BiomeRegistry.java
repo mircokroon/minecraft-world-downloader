@@ -1,25 +1,31 @@
 package game.data.dimension;
 
 import game.data.chunk.palette.State;
-import game.data.chunk.palette.StateProvider;
+import game.data.chunk.palette.Registry;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import se.llbit.nbt.SpecificTag;
 import se.llbit.nbt.StringTag;
 
-public class BiomeProvider implements StateProvider {
+public class BiomeRegistry implements Registry {
     private final Map<Integer, BiomeIdentifier> biomesFromId;
     private final Map<BiomeIdentifier, Integer> biomeIdsFromIdentifier;
 
-    public BiomeProvider(Map<String, Biome> biomes) {
-        biomesFromId = new HashMap<>();
-        biomeIdsFromIdentifier = new HashMap<>();
+    public BiomeRegistry(Map<String, Biome> biomes) {
+        this();
 
-        biomes.forEach((name, biome) -> {
-            biomesFromId.put(biome.id, new BiomeIdentifier(name));
-            biomeIdsFromIdentifier.put(new BiomeIdentifier(name), biome.id);
-        });
+        biomes.forEach(this::addBiome);
+    }
+
+    public void addBiome(String name, Biome biome) {
+        biomesFromId.put(biome.id, new BiomeIdentifier(name));
+        biomeIdsFromIdentifier.put(new BiomeIdentifier(name), biome.id);
+    }
+
+    public BiomeRegistry() {
+       this.biomesFromId = new HashMap<>();
+       this.biomeIdsFromIdentifier = new HashMap<>();
     }
 
     @Override
@@ -40,6 +46,11 @@ public class BiomeProvider implements StateProvider {
     @Override
     public State getDefaultState() {
         return biomesFromId.get(0);
+    }
+
+    @Override
+    public String toString() {
+        return "BiomeRegistry{" + biomesFromId + '}';
     }
 }
 

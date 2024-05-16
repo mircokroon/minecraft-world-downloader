@@ -11,21 +11,21 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import se.llbit.nbt.CompoundTag;
 
 /**
- * This class manages the global palettes. It can hold not only a palette for the current game version, but also for
+ * This class manages the block registries. It can hold not only a palette for the current game version, but also for
  * different versions when these are needed to load previously saved chunks.
  */
 public final class GlobalPaletteProvider {
     private GlobalPaletteProvider() { }
 
-    private static HashMap<Integer, GlobalPalette> palettes = new HashMap<>();
+    private static HashMap<Integer, BlockRegistry> palettes = new HashMap<>();
     private static Queue<BlockState> uninitialised;
 
     /**
-     * Retrieves a global palette based on the data version number. If the palette is not already known, it will be
+     * Retrieves a block registry based on the data version number. If the palette is not already known, it will be
      * created through requestPalette.
      */
-    public static GlobalPalette getGlobalPalette(int dataVersion) {
-        GlobalPalette palette = palettes.get(dataVersion);
+    public static BlockRegistry getGlobalPalette(int dataVersion) {
+        BlockRegistry palette = palettes.get(dataVersion);
 
         if (palette == null) {
             return requestPalette(dataVersion);
@@ -36,7 +36,7 @@ public final class GlobalPaletteProvider {
     /**
      * If no data version is specified, the current game version is used instead.
      */
-    public static GlobalPalette getGlobalPalette() {
+    public static BlockRegistry getGlobalPalette() {
         return getGlobalPalette(Config.getDataVersion());
     }
 
@@ -45,10 +45,10 @@ public final class GlobalPaletteProvider {
      * version handler has this value for us. The registry loader will load it either from a previously generated
      * report, or it will download the relevant Minecraft version and generate it.
      */
-    private static GlobalPalette requestPalette(int dataVersion) {
+    private static BlockRegistry requestPalette(int dataVersion) {
         Protocol version = ProtocolVersionHandler.getInstance().getProtocolByDataVersion(dataVersion);
         try {
-            GlobalPalette p = RegistryLoader.forVersion(version.getVersion()).generateGlobalPalette();
+            BlockRegistry p = RegistryLoader.forVersion(version.getVersion()).generateGlobalPalette();
             palettes.put(dataVersion, p);
 
             if (uninitialised != null) {
@@ -64,7 +64,7 @@ public final class GlobalPaletteProvider {
     }
 
     public static void registerBlock(String name, int id) {
-        GlobalPalette palette = palettes.get(Config.getDataVersion());
+        BlockRegistry palette = palettes.get(Config.getDataVersion());
 
         BlockState state = new BlockState(name, id, new CompoundTag());
 

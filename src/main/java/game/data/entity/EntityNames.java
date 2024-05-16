@@ -49,7 +49,7 @@ public class EntityNames {
     }
 
     /**
-     * Get a block state from a given index. Used to convert packet palettes to the global palette.
+     * Get a block state from a given index. Used to convert packet palettes to the block registry.
      */
     public String getName(int key) {
         return entities.getOrDefault(key, null);

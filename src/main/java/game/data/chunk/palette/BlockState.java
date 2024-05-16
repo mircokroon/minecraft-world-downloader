@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A block state in the global palette (1.13+).
+ * A block state in the block registry (1.13+).
  */
 public class BlockState implements State {
     private static final Map<String, IBlendEquation> transparency;
@@ -48,7 +48,7 @@ public class BlockState implements State {
         return properties.get(name).stringValue();
     }
 
-    CompoundTag getProperties() {
+    public CompoundTag getProperties() {
         return properties;
     }
 
@@ -118,7 +118,7 @@ public class BlockState implements State {
         return "BlockState{" +
             "name='" + name + '\'' +
             ", id=" + id +
-//            ", properties=" + properties +
+            ", properties=" + properties.toString().replaceAll("[\\s\\n\\r\\t]", " ") +
             '}';
     }
 }

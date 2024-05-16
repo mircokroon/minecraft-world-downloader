@@ -10,13 +10,14 @@ import static packets.builder.NetworkType.VARINT;
 import config.Config;
 import game.data.WorldManager;
 import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
+import game.data.dimension.DimensionRegistry;
 import game.protocol.Protocol;
 import java.util.Map;
 import packets.builder.PacketBuilder;
 import packets.handler.PacketOperator;
 import proxy.ConnectionManager;
 import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.Tag;
 
 public class ClientBoundGamePacketHandler_1_19 extends ClientBoundGamePacketHandler_1_18 {
     public ClientBoundGamePacketHandler_1_19(ConnectionManager connectionManager) {
@@ -34,8 +35,11 @@ public class ClientBoundGamePacketHandler_1_19 extends ClientBoundGamePacketHand
             int numDimensions = provider.readVarInt();
             String[] dimensionNames = provider.readStringArray(numDimensions);
 
-            SpecificTag dimensionCodec = provider.readNbtTag();
-            WorldManager.getInstance().setDimensionCodec(DimensionCodec.fromNbt(dimensionCodec).setDimensionNames(dimensionNames));
+            SpecificTag nbt = provider.readNbtTag();
+            DimensionRegistry registry = DimensionRegistry.fromNbt(nbt);
+            registry.setDimensionNames(dimensionNames);
+
+            WorldManager.getInstance().setDimensionRegistry(registry);
 
             String dimensionType = provider.readString();
             // current active dimension
@@ -46,7 +50,7 @@ public class ClientBoundGamePacketHandler_1_19 extends ClientBoundGamePacketHand
 
             replacement.writeVarInt(numDimensions);
             replacement.writeStringArray(dimensionNames);
-            replacement.writeNbt(dimensionCodec);
+            replacement.writeNbt(nbt);
             replacement.writeString(dimensionType);
             replacement.writeString(worldName);
 

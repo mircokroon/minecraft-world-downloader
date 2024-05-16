@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import game.data.chunk.ChunkSection;
+import java.util.stream.Stream;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilder;
 import se.llbit.nbt.ListTag;
@@ -17,26 +18,29 @@ import se.llbit.nbt.SpecificTag;
 public class Palette {
     private int bitsPerBlock;
     private int[] palette;
-    StateProvider stateProvider;
+    Registry registry;
     PaletteType type = PaletteType.BLOCKS;
 
     protected Palette() {
         // palette needs initializing
         this.palette = new int[1];
-        this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
+        this.registry = GlobalPaletteProvider.getGlobalPalette();
+        if (this.registry == null) {
+            System.out.println("No state provider available: GlobalPaletteProvider.getGlobalPalette()");
+        }
     }
 
     private Palette(int bitsPerBlock, int[] palette) {
         this.bitsPerBlock = bitsPerBlock;
         this.palette = palette;
-        this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
+        this.registry = GlobalPaletteProvider.getGlobalPalette();
         synchronizeBitsPerBlock();
     }
 
     Palette(int[] arr) {
         this.palette = arr;
         this.bitsPerBlock = computeBitsPerBlock(Math.max(0, arr.length - 1));
-        this.stateProvider = GlobalPaletteProvider.getGlobalPalette();
+        this.registry = GlobalPaletteProvider.getGlobalPalette();
     }
 
     public static Palette biomes(int dataVersion, ListTag palette) {
@@ -47,7 +51,7 @@ public class Palette {
     }
 
     public void biomePalette() {
-        this.stateProvider = WorldManager.getInstance().getDimensionCodec().getBiomeProvider();
+        this.registry = WorldManager.getInstance().getDimensionRegistry().getBiomeRegistry();
         this.type = PaletteType.BIOMES;
     }
 
@@ -84,14 +88,14 @@ public class Palette {
         if (isBiomePalette) {
             this.biomePalette();
         } else {
-            this.stateProvider = GlobalPaletteProvider.getGlobalPalette(dataVersion);
+            this.registry = GlobalPaletteProvider.getGlobalPalette(dataVersion);
         }
 
         this.palette = new int[nbt.size()];
         this.bitsPerBlock = computeBitsPerBlock(nbt.size() - 1);
 
         for (int i = 0; i < nbt.size(); i++) {
-            int bs = this.stateProvider.getStateId((SpecificTag) nbt.get(i));
+            int bs = this.registry.getStateId((SpecificTag) nbt.get(i));
 
             this.palette[i] = bs;
         }
@@ -165,18 +169,18 @@ public class Palette {
     }
 
     /**
-     * Create an NBT version of this palette using the global palette.
+     * Create an NBT version of this palette using the block registry.
      */
     public List<SpecificTag> toNbt() {
         List<SpecificTag> tags = new ArrayList<>();
 
-        if (stateProvider == null) {
-            throw new UnsupportedOperationException("Cannot create palette NBT without a global palette.");
+        if (registry == null) {
+            throw new UnsupportedOperationException("Cannot create palette NBT without a block registry.");
         }
 
         for (int i : palette) {
-            State state = stateProvider.getState(i);
-            if (state == null) { state = stateProvider.getDefaultState(); }
+            State state = registry.getState(i);
+            if (state == null) { state = registry.getDefaultState(); }
 
             tags.add(state.toNbt());
 
@@ -255,6 +259,10 @@ public class Palette {
 
     public int size() {
         return palette.length;
+    }
+
+    public Stream<State> values() {
+        return Arrays.stream(palette).mapToObj(el -> registry.getState(el));
     }
 }
 

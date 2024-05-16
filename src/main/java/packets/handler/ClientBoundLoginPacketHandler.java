@@ -3,6 +3,7 @@ package packets.handler;
 import config.Config;
 import config.Option;
 import config.Version;
+import config.VersionReporter;
 import game.NetworkMode;
 import proxy.ConnectionManager;
 
@@ -14,20 +15,26 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
     public ClientBoundLoginPacketHandler(ConnectionManager connectionManager) {
         super(connectionManager);
 
-        operations.put("disconnect", provider -> {
+        operations.put("LoginDisconnect", provider -> {
             String reason = provider.readString();
             System.out.println("Disconnect: " + reason);
             return true;
         });
-        operations.put("encryption_request", provider -> {
+        operations.put("Hello", provider -> {
             String serverId = provider.readString();
             byte[] pubKey = provider.readByteArray(provider.readVarInt());
             byte[] nonce = provider.readByteArray(provider.readVarInt());
 
-            getConnectionManager().getEncryptionManager().setServerEncryptionRequest(pubKey, nonce, serverId);
+            if (Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+                boolean shouldAuthenticate = provider.readBoolean();
+                getConnectionManager().getEncryptionManager().setServerEncryptionRequest(pubKey, nonce, serverId, shouldAuthenticate);
+            } else {
+                getConnectionManager().getEncryptionManager().setServerEncryptionRequest(pubKey, nonce, serverId);
+            }
+
             return false;
         });
-        operations.put("login_success", provider -> {
+        operations.put("GameProfile", provider -> {
             String uuid = Config.versionReporter().select(String.class,
                     Option.of(Version.V1_16, () -> provider.readUUID().toString()),
                     Option.of(Version.ANY, provider::readString)
@@ -36,14 +43,9 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
             String username = provider.readString();
             System.out.println("Login success: " + username + " logged in with uuid " + uuid);
 
-            if (Config.versionReporter().isAtLeast(Version.V1_20_2)) {
-                getConnectionManager().setMode(NetworkMode.CONFIGURATION);
-            } else {
-                getConnectionManager().setMode(NetworkMode.GAME);
-            }
             return true;
         });
-        operations.put("set_compression", provider -> {
+        operations.put("LoginCompression", provider -> {
             int limit = provider.readVarInt();
             getConnectionManager().getCompressionManager().enableCompression(limit);
             return true;

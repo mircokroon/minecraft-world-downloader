@@ -5,9 +5,8 @@ import config.Version;
 import game.data.WorldManager;
 import game.data.coordinates.Coordinate3D;
 import game.data.dimension.Dimension;
-import game.data.dimension.DimensionCodec;
+import game.data.dimension.DimensionRegistry;
 import game.protocol.Protocol;
-import game.protocol.ProtocolVersionHandler;
 import packets.builder.PacketBuilder;
 import packets.handler.PacketOperator;
 import proxy.ConnectionManager;
@@ -34,7 +33,10 @@ public class ClientBoundGamePacketHandler_1_16 extends ClientBoundGamePacketHand
             String[] dimensionNames = provider.readStringArray(numDimensions);
 
             SpecificTag dimensionCodec = provider.readNbtTag();
-            WorldManager.getInstance().setDimensionCodec(DimensionCodec.fromNbt(dimensionCodec).setDimensionNames(dimensionNames));
+
+            DimensionRegistry registry = DimensionRegistry.fromNbt(dimensionCodec);
+            registry.setDimensionNames(dimensionNames);
+            WorldManager.getInstance().setDimensionRegistry(registry);
 
             SpecificTag dimensionNbt = provider.readNbtTag();
 

@@ -4,7 +4,7 @@ import config.Config;
 import game.data.chunk.BlockEntityRegistry;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.BlockState;
-import game.data.chunk.palette.GlobalPalette;
+import game.data.chunk.palette.BlockRegistry;
 import game.data.chunk.palette.GlobalPaletteProvider;
 import game.data.chunk.palette.Palette;
 import game.data.chunk.palette.PaletteType;
@@ -135,7 +135,7 @@ public class Chunk_1_18 extends Chunk_1_17 {
 
     protected void findBlockEntities(ChunkSection section, int sectionY) {
         BlockEntityRegistry blockEntities = RegistryManager.getInstance().getBlockEntityRegistry();
-        GlobalPalette globalPalette = GlobalPaletteProvider.getGlobalPalette(getDataVersion());
+        BlockRegistry globalPalette = GlobalPaletteProvider.getGlobalPalette(getDataVersion());
 
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {

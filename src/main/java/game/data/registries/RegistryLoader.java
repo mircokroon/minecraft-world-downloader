@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +20,7 @@ import org.apache.commons.io.FileUtils;
 import config.Config;
 import game.UnsupportedMinecraftVersionException;
 import game.data.chunk.BlockEntityRegistry;
-import game.data.chunk.palette.GlobalPalette;
+import game.data.chunk.palette.BlockRegistry;
 import game.data.container.ItemRegistry;
 import game.data.container.MenuRegistry;
 import game.data.entity.EntityNames;
@@ -130,13 +131,14 @@ public class RegistryLoader {
         System.out.println("Starting output of Minecraft server.jar:");
 
         ProcessBuilder pb;
+        String javaRuntime = Paths.get(System.getProperty("java.home"), "bin", "java").toString();
         if (Config.versionReporter().isAtLeast(Version.V1_18)) {
             pb = new ProcessBuilder(
-                    "java", "-DbundlerMainClass=net.minecraft.data.Main", "-jar", "server.jar", "--reports"
+                javaRuntime, "-DbundlerMainClass=net.minecraft.data.Main", "-jar", "server.jar", "--reports"
             );
         } else {
             pb = new ProcessBuilder(
-                    "java", "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
+                javaRuntime, "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
             );
         }
 
@@ -200,11 +202,11 @@ public class RegistryLoader {
         }
     }
 
-    public GlobalPalette generateGlobalPalette() throws IOException {
+    public BlockRegistry generateGlobalPalette() throws IOException {
         if (versionSupportsBlockGenerator()) {
-            return new GlobalPalette(new FileInputStream(blocksPath.toFile()));
+            return new BlockRegistry(new FileInputStream(blocksPath.toFile()));
         } else {
-            return new GlobalPalette("1.12.2");
+            return new BlockRegistry("1.12.2");
         }
     }
 

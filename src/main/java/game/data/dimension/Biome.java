@@ -50,6 +50,17 @@ public class Biome {
         Files.createDirectories(p.getParent());
         Files.write(p, Collections.singleton(properties.json()));
     }
+
+    @Override
+    public String toString() {
+        return "Biome{" +
+            "namespace='" + namespace + '\'' +
+            ", path='" + path + '\'' +
+            ", name='" + name + '\'' +
+            ", id=" + id +
+            ", properties=" + properties +
+            '}';
+    }
 }
 
 /**
@@ -82,6 +93,10 @@ class BiomeProperties {
     BiomeProperties(CompoundTag tag) {
         properties = new HashMap<>(defaultProperties);
 
+        if (tag == null) {
+            return;
+        }
+
         for (NamedTag el : tag) {
             properties.put(el.name, el.tag);
         }
@@ -91,6 +106,6 @@ class BiomeProperties {
      * Datapack stores this as a JSON file.
      */
     public String json() {
-        return DimensionCodec.GSON.toJson(this.properties);
+        return DimensionRegistry.GSON.toJson(this.properties);
     }
 }
