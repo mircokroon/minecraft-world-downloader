@@ -89,7 +89,7 @@ public class AuthTabController {
     }
 
     public void checkButtonPressed(ActionEvent actionEvent) {
-        AuthDetailsManager.validateAuthStatus(this::setStatusText, this::setStatusError);
+        AuthDetailsManager.validateAuthStatus(username -> setStatusText("Valid session found! \n\nUsername: " + username), this::setStatusError);
 
         clearAuthenticationStatus();
     }

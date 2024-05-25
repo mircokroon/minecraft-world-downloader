@@ -138,3 +138,7 @@
     -fx-font-size: 1.0em;
 }
 
+.link-subtle {
+    -fx-text-fill: #bbb;
+    -fx-underline: true;
+}

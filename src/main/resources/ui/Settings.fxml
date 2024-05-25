@@ -11,8 +11,8 @@
                 <GridPane layoutX="19.0" layoutY="35.0" prefHeight="108.0" prefWidth="574.0">
                     <columnConstraints>
                         <ColumnConstraints maxWidth="121.0" minWidth="19.0" prefWidth="121.0" />
-                        <ColumnConstraints maxWidth="345.0" minWidth="159.0" prefWidth="235.0" />
-                        <ColumnConstraints maxWidth="136.0" minWidth="10.0" prefWidth="101.0" />
+                        <ColumnConstraints maxWidth="345.0" minWidth="159.0" prefWidth="170.0" />
+                        <ColumnConstraints maxWidth="136.0" minWidth="10.0" prefWidth="151.0" />
                         <ColumnConstraints maxWidth="170.0" minWidth="105.0" prefWidth="105.0" />
                     </columnConstraints>
                     <rowConstraints>
@@ -20,14 +20,17 @@
                         <RowConstraints minHeight="10.0" prefHeight="32.0" />
                         <RowConstraints minHeight="10.0" prefHeight="32.0" />
                     </rowConstraints>
-                    <TextField fx:id="server" prefHeight="25.0" prefWidth="93.0" styleClass="field-nonempty" GridPane.columnIndex="1" GridPane.columnSpan="2" />
+                    <TextField fx:id="server" prefHeight="25.0" prefWidth="93.0" styleClass="field-nonempty" GridPane.columnIndex="1" GridPane.columnSpan="2"/>
                     <Label text="Server address" GridPane.columnSpan="2">
                         <tooltip>
                             <QuickTooltip text="Server address. E.g. 'example.com' or '192.168.0.1:25565'" />
                         </tooltip>
                     </Label>
-                    <Hyperlink fx:id="verifyAuthLink" text="Verify authentication" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                    <Label text="Authentication" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <Button layoutY="15.0" mnemonicParsing="false" onAction="#msAuthPressed" prefHeight="27.0" prefWidth="160.0" text="Microsoft login" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                    <Label fx:id="authResult" GridPane.columnIndex="2" GridPane.columnSpan="2" GridPane.rowIndex="2"/>
                 </GridPane>
+                <Hyperlink fx:id="projectSupportLink" styleClass="link-subtle" text="Support this project" AnchorPane.bottomAnchor="20.0" AnchorPane.leftAnchor="10.0"/>
             </AnchorPane>
         </Tab>
         <Tab fx:id="generalTab" text="General">

@@ -1,6 +1,7 @@
 package gui;
 
 
+import static util.ExceptionHandling.attempt;
 import static util.ExceptionHandling.attemptQuiet;
 
 import config.Config;
@@ -14,6 +15,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
@@ -31,6 +33,14 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.paint.Paint;
+import org.apache.commons.lang3.SystemUtils;
+import proxy.auth.AuthDetailsManager;
+import proxy.auth.AuthenticationMethod;
+import proxy.auth.MicrosoftAuthHandler;
+import proxy.auth.MicrosoftAuthServer;
 import util.PathUtils;
 
 public class GuiSettings {
@@ -54,7 +64,7 @@ public class GuiSettings {
     public Slider extendedDistance;
     public IntField extendedDistanceText;
     public Hyperlink openWorldDir;
-    public Hyperlink verifyAuthLink;
+    public Hyperlink projectSupportLink;
     public CheckBox renderOtherPlayers;
     public CheckBox enableInfoMessages;
     public Tab generalTab;
@@ -64,6 +74,12 @@ public class GuiSettings {
     public AuthTabController authController;
     public CheckBox enableDrawExtendedChunks;
     public CheckBox enableCaveRenderMode;
+    public Label authResult;
+
+
+
+
+    private MicrosoftAuthServer authServer;
 
     Config config;
     private boolean portInUse;
@@ -142,13 +158,14 @@ public class GuiSettings {
             }
         }));
 
-        verifyAuthLink.setOnAction(e -> tabPane.getSelectionModel().select(authTab));
+        projectSupportLink.setOnAction(actionEvent -> GuiManager.openWebLink("https://github.com/sponsors/mircokroon?frequency=one-time&amount=5"));
 
         handleDataValidation();
         handleErrorTab();
         handleResizing();
 
         resetHeight();
+        validateAuth();
     }
 
     private void resetHeight() {
@@ -330,5 +347,40 @@ public class GuiSettings {
 
         tabPane.getSelectionModel().selectFirst();
         this.saveButton.requestFocus();
+    }
+
+    public void msAuthPressed(ActionEvent actionEvent) {
+        if (!SystemUtils.IS_OS_WINDOWS && !SystemUtils.IS_OS_MAC) {
+            tabPane.getSelectionModel().select(authTab);
+            return;
+        }
+        Config.setAuthMethod(AuthenticationMethod.MICROSOFT);
+        Consumer<String> onStart = shortUrl -> GuiManager.openWebLink(shortUrl);
+
+
+        // server already running
+        if (authServer != null) {
+            onStart.accept(authServer.getShortUrl());
+            return;
+        }
+
+        attempt(() -> {
+            authServer = new MicrosoftAuthServer(onStart, (authCode, usedPort) -> Platform.runLater(() -> {
+                Config.setMicrosoftAuth(MicrosoftAuthHandler.fromCode(authCode, usedPort));
+                authServer = null;
+
+                validateAuth();
+            }));
+        });
+    }
+
+    private void validateAuth() {
+        AuthDetailsManager.validateAuthStatus(username -> {
+            authResult.setText("Username: " + username);
+            authResult.getStyleClass().remove("label-err");
+        }, str -> {
+            authResult.setText("Not logged in");
+            authResult.getStyleClass().add("label-err");
+        });
     }
 }
