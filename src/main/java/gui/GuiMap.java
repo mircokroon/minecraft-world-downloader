@@ -358,6 +358,10 @@ public class GuiMap {
      * If the name of the player is not known it's first requested from the Mojang API.
      */
     private void drawOtherPlayer(GraphicsContext graphics, PlayerEntity player) {
+        if (player.getPosition() == null) {
+            return;
+        }
+
         double playerX = ((player.getPosition().getX() - bounds.getMinX()) / blocksPerPixel);
         double playerZ = ((player.getPosition().getZ() - bounds.getMinZ()) / blocksPerPixel);
         if (mouseOver && isNear(playerX, playerZ)) {

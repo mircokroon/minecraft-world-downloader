@@ -14,9 +14,11 @@ public class ConfigurationProtocol extends Protocol {
         clientBound = new HashMap<>();
         serverBound = new HashMap<>();
 
-        if (Config.versionReporter().isAtLeast(Version.V1_20_2)) {
+        if (Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+            serverBound.put(0x03, "FinishConfiguration");
+            clientBound.put(0x07, "RegistryData");
+        } else if (Config.versionReporter().isAtLeast(Version.V1_20_2)) {
             serverBound.put(0x02, "FinishConfiguration");
-
             clientBound.put(0x05, "RegistryData");
         } else {
             serverBound.put(0x03, "FinishConfiguration");

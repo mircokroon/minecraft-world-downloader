@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.List;
+import se.llbit.nbt.SpecificTag;
+import se.llbit.nbt.StringTag;
 
 /**
  * Chat object, can be sent to the client to display messages.
@@ -33,5 +35,9 @@ public class Chat {
 
     public String toJson() {
         return new Gson().toJson(this);
+    }
+
+    public SpecificTag toNbt() {
+        return new StringTag(text);
     }
 }

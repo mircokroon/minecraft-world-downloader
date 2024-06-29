@@ -146,11 +146,11 @@ class ForgeRegistry {
     }
 
     /**
-     * Add blocks to the global palette
+     * Add blocks to the block registry
      */
     public void registerBlocks() {
         // since blockstates in 1.12.2 have half a byte of data at the end, we need to shift the
-        // blockstates we register to the global palette for the minimap to remain correct(ish)
+        // blockstates we register to the block registry for the minimap to remain correct(ish)
         ids.forEach(pair -> GlobalPaletteProvider.registerBlock(pair.getKey(), pair.getValue() << 4));
     }
 }

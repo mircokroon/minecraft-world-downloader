@@ -51,7 +51,7 @@ public abstract class AuthDetailsManager {
 
             boolean isValid = details.isValid();
             if (isValid) {
-                onSuccess.accept("Valid session found! \n\nUsername: " + details.getUsername());
+                onSuccess.accept(details.getUsername());
             } else {
                 AuthenticationMethod method = Config.getAuthMethod();
                 onError.accept(method.getErrorMessage());

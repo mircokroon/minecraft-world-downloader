@@ -160,7 +160,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
-        operations.put("TradeList", provider -> {
+        operations.put("MerchantOffers", provider -> {
             worldManager.getEntityRegistry().addVillagerTrades(provider);
             return true;
         });
@@ -179,6 +179,7 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
     public static PacketHandler of(ConnectionManager connectionManager) {
         return Config.versionReporter().select(PacketHandler.class,
+                Option.of(Version.V1_20_6, () -> new ClientBoundGamePacketHandler_1_20_6(connectionManager)),
                 Option.of(Version.V1_20_2, () -> new ClientBoundGamePacketHandler_1_20_2(connectionManager)),
                 Option.of(Version.V1_19, () -> new ClientBoundGamePacketHandler_1_19(connectionManager)),
                 Option.of(Version.V1_18, () -> new ClientBoundGamePacketHandler_1_18(connectionManager)),

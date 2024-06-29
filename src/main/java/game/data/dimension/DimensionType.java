@@ -15,6 +15,18 @@ import java.util.Collections;
  * lava flows.
  */
 public class DimensionType {
+    private static final CompoundTag PROPERTIES_OVERWORLD_DEFAULT;
+    private static final CompoundTag PROPERTIES_DEFAULT;
+
+    static {
+        PROPERTIES_OVERWORLD_DEFAULT = new CompoundTag();
+        PROPERTIES_OVERWORLD_DEFAULT.add("min_y", new IntTag(-64));
+        PROPERTIES_OVERWORLD_DEFAULT.add("height", new IntTag(384));
+
+        PROPERTIES_DEFAULT = new CompoundTag();
+        PROPERTIES_DEFAULT.add("min_y", new IntTag(0));
+        PROPERTIES_DEFAULT.add("height", new IntTag(256));
+    }
 
     private final String namespace;
     private final String name;
@@ -22,12 +34,60 @@ public class DimensionType {
     private final int signature;
     private CompoundTag properties;
 
+    // default values
+    private int dimensionMinHeight = 0;
+    private int dimensionMaxHeight = 256;
+
+    // after 1.20.6
+    DimensionType(String namespace, String name, int id, CompoundTag properties) {
+        this.properties = properties;
+        this.index = id;
+        this.namespace = namespace;
+        this.name = name;
+        this.signature = this.properties == null ? 0 : this.properties.hashCode();
+
+        if (properties == null) {
+            setPropertiesFromName();
+        }
+
+        parseHeights();
+    }
+
+    // before 1.20.6
     DimensionType(String namespace, String name, CompoundTag tag) {
         this.properties = (CompoundTag) tag.get("element");
         this.index = ((IntTag) tag.get("id")).value;
         this.namespace = namespace;
         this.name = name;
         this.signature = this.properties.hashCode();
+
+        parseHeights();
+    }
+
+    private void setPropertiesFromName() {
+        if (!this.namespace.equals("minecraft")) { return; }
+
+        if (this.name.equals("overworld")) {
+            this.properties = PROPERTIES_OVERWORLD_DEFAULT;
+        } else {
+            this.properties = PROPERTIES_DEFAULT;
+        }
+    }
+
+    private void parseHeights() {
+        if (this.properties == null) {
+            return;
+        }
+
+        var minTag = this.properties.get("min_y");
+        var heightTag = this.properties.get("height");
+
+        if (minTag.isError() || heightTag.isError()) {
+            return;
+        }
+
+        this.dimensionMinHeight = minTag.intValue();
+        this.dimensionMaxHeight = heightTag.intValue();
     }
 
     public CompoundTag getProperties() {
@@ -50,7 +110,7 @@ public class DimensionType {
         Path destination = PathUtils.toPath(prefix.toString(), namespace, "dimension_type", name + ".json");
         Files.createDirectories(destination.getParent());
 
-        Files.write(destination, Collections.singleton(DimensionCodec.GSON.toJson(properties)));
+        Files.write(destination, Collections.singleton(DimensionRegistry.GSON.toJson(properties)));
     }
 
     /**
@@ -58,5 +118,13 @@ public class DimensionType {
      */
     public String getName() {
         return namespace + ":" + name;
+    }
+
+    public int getDimensionMinHeight() {
+        return dimensionMinHeight;
+    }
+
+    public int getDimensionMaxHeight() {
+        return dimensionMaxHeight;
     }
 }

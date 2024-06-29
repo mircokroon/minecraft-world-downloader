@@ -1,7 +1,7 @@
 package packets.handler.version;
 
 import game.data.WorldManager;
-import game.data.dimension.DimensionCodec;
+import game.data.dimension.DimensionRegistry;
 import packets.handler.ClientBoundConfigurationPacketHandler;
 import packets.handler.PacketOperator;
 import proxy.ConnectionManager;
@@ -18,7 +18,7 @@ public class ClientBoundConfigurationPacketHandler_1_20_2 extends ClientBoundCon
 
         operators.put("RegistryData", provider -> {
             SpecificTag registryData = provider.readNbtTag();
-            worldManager.setDimensionCodec(DimensionCodec.fromNbt(registryData));
+            worldManager.setDimensionRegistry(DimensionRegistry.fromNbt(registryData));
 
             return true;
         });

@@ -2,7 +2,7 @@ package game.data.container;
 
 import com.google.gson.Gson;
 
-import game.data.chunk.palette.GlobalPalette;
+import game.data.chunk.palette.BlockRegistry;
 import game.data.registries.RegistriesJson;
 
 import java.io.FileInputStream;
@@ -16,7 +16,7 @@ public class ItemRegistry {
     private Map<String, Integer> nameToId;
 
     public static ItemRegistry fromJson(String version) {
-        InputStream x = GlobalPalette.class.getClassLoader().getResourceAsStream("items-" + version + ".json");
+        InputStream x = BlockRegistry.class.getClassLoader().getResourceAsStream("items-" + version + ".json");
         if (x == null) {
             return null;
         }

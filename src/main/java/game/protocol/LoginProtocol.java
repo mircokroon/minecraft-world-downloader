@@ -11,14 +11,15 @@ public class LoginProtocol extends Protocol {
         clientBound = new HashMap<>();
         serverBound = new HashMap<>();
 
-        clientBound.put(0x00, "disconnect");
-        clientBound.put(0x01, "encryption_request");
-        clientBound.put(0x02, "login_success");
-        clientBound.put(0x03, "set_compression");
+        clientBound.put(0x00, "LoginDisconnect");
+        clientBound.put(0x01, "Hello");
+        clientBound.put(0x02, "GameProfile");
+        clientBound.put(0x03, "LoginCompression");
 
-        serverBound.put(0x00, "login_start");
-        serverBound.put(0x01, "encryption_response");
-        serverBound.put(0x02, "login_plugin_response");
+        serverBound.put(0x00, "Hello");
+        serverBound.put(0x01, "Key");
+        serverBound.put(0x02, "CustomQueryAnswer");
+        serverBound.put(0x03, "LoginAcknowledged");
     }
 
     @Override

@@ -3,6 +3,7 @@ package proxy;
 import static util.PrintUtils.devPrintFormat;
 
 import config.Config;
+import config.Version;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
@@ -54,6 +55,7 @@ public class EncryptionManager {
     private final ClientAuthenticator clientAuthenticator;
 
     private RSAPublicKey clientProfilePublicKey;
+    private boolean shouldAuthenticate = true; /* >= 1.20.6 */
 
     {
         // generate the keypair for the local server
@@ -74,6 +76,10 @@ public class EncryptionManager {
         return encryptionEnabled;
     }
 
+    public void setServerEncryptionRequest(byte[] encoded, byte[] nonce, String serverId, boolean shouldAuthenticate) {
+        this.shouldAuthenticate = shouldAuthenticate;
+        setServerEncryptionRequest(encoded, nonce, serverId);
+    }
     /**
      * When the server sends the client an encryption request, this method will be called to get the server's given
      * public key and call the replacement request sender.
@@ -135,6 +141,10 @@ public class EncryptionManager {
         builder.writeByteArray(encoded); // pub key
         builder.writeVarInt(nonce.length); // verify token len
         builder.writeByteArray(nonce);  // verify token
+
+        if (Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+            builder.writeBoolean(shouldAuthenticate);
+        }
 
         attempt(() -> streamToClient(builder.build()));
     }
@@ -295,13 +305,15 @@ public class EncryptionManager {
      * future traffic.
      */
     private void sendReplacementEncryptionConfirmation() {
-        // authenticate the client so that the remote server will accept us
-        boolean client = disconnectOnError(() -> clientAuthenticator.makeRequest(generateServerHash()));
-        if (!client) { return; }
+        if (shouldAuthenticate) {
+            // authenticate the client so that the remote server will accept us
+            boolean client = disconnectOnError(() -> clientAuthenticator.makeRequest(generateServerHash()));
+            if (!client) { return; }
 
-        // verify the connecting client connection is who they claim to be
-        boolean server = disconnectOnError(() -> new ServerAuthenticator(username).makeRequest(generateServerHash()));
-        if (!server) { return; }
+            // verify the connecting client connection is who they claim to be
+            boolean server = disconnectOnError(() -> new ServerAuthenticator(username).makeRequest(generateServerHash()));
+            if (!server) { return; }
+        }
 
         // encryption confirmation
         attempt(() -> {

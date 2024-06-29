@@ -7,9 +7,12 @@ import game.data.coordinates.Coordinate3D;
 import game.data.container.Slot;
 import game.data.container.Slot_1_12;
 import game.data.coordinates.CoordinateDouble3D;
+import java.util.Optional;
+import java.util.function.Supplier;
 import packets.version.DataTypeProvider_1_13;
 import packets.version.DataTypeProvider_1_14;
 import packets.version.DataTypeProvider_1_20_2;
+import packets.version.DataTypeProvider_1_20_6;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
@@ -21,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
+import se.llbit.nbt.Tag;
 
 /**
  * Class to provide an interface between the raw byte data and the various data types. Most methods are
@@ -31,6 +35,21 @@ public class DataTypeProvider {
     private byte[] finalFullPacket;
     private int pos;
 
+    public byte[] debug__getFullArray() {
+        return finalFullPacket;
+    }
+    public String debug__readableString() {
+        char[] out = new char[finalFullPacket.length];
+        for (int i = 0; i < finalFullPacket.length; i++) {
+            byte b = finalFullPacket[i];
+            if (b >= 32) {
+                out[i] = (char) b;
+            } else {
+                out[i] = '_';
+            }
+        }
+        return new String(out);
+    }
     public DataTypeProvider(byte[] finalFullPacket) {
         this.finalFullPacket = finalFullPacket;
         this.pos = 0;
@@ -38,6 +57,7 @@ public class DataTypeProvider {
 
     public static DataTypeProvider ofPacket(byte[] finalFullPacket) {
         return Config.versionReporter().select(DataTypeProvider.class,
+                Option.of(Version.V1_20_6, () -> new DataTypeProvider_1_20_6(finalFullPacket)),
                 Option.of(Version.V1_20_2, () -> new DataTypeProvider_1_20_2(finalFullPacket)),
                 Option.of(Version.V1_14, () -> new DataTypeProvider_1_14(finalFullPacket)),
                 Option.of(Version.V1_13, () -> new DataTypeProvider_1_13(finalFullPacket)),
@@ -293,6 +313,30 @@ public class DataTypeProvider {
 
     public DataTypeProvider copy() {
         return new DataTypeProvider(Arrays.copyOf(this.finalFullPacket, this.finalFullPacket.length));
+    }
+
+    public record Registry(String name, List<RegistryEntry> entries) {}
+    public record RegistryEntry(String name, Optional<Tag> nbt) {}
+    public Registry readRegistry() {
+        String name = readString();
+        int numEntries = readVarInt();
+
+        List<RegistryEntry> entries = new ArrayList<>(numEntries);
+        for (int i = 0; i < numEntries; i++) {
+            String identifier = readString();
+
+            Optional<Tag> b = readOptional(this::readNbtTag);
+            entries.add(new RegistryEntry(identifier, b));
+        }
+
+        return new Registry(name, entries);
+    }
+
+    public <T> Optional<T> readOptional(Supplier<T> provider) {
+        if (readBoolean()) {
+            return Optional.of(provider.get());
+        }
+        return Optional.empty();
     }
 
     public int remaining() {

@@ -3,7 +3,6 @@ package game.data;
 import static util.ExceptionHandling.attempt;
 
 import config.Config;
-import config.Option;
 import config.Version;
 import game.data.coordinates.Coordinate3D;
 import game.data.coordinates.CoordinateDouble3D;
@@ -224,7 +223,7 @@ public class LevelData {
                     new NamedTag("biome", new StringTag("minecraft:the_void"))
             )));
 
-            CompoundTag dimensions = new CompoundTag(worldManager.getDimensionCodec().getDimensions().stream().map(dimension -> {
+            CompoundTag dimensions = new CompoundTag(worldManager.getDimensionRegistry().getDimensions().stream().map(dimension -> {
                 CompoundTag dim = new CompoundTag();
                 dim.add("type", new StringTag(dimension.getType()));
                 dim.add("generator", generator);

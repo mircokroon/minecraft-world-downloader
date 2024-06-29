@@ -1,6 +1,6 @@
 package game.data.chunk;
 
-import game.data.chunk.palette.GlobalPalette;
+import game.data.chunk.palette.BlockRegistry;
 import java.util.Arrays;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
@@ -92,7 +92,7 @@ public abstract class ChunkSection {
     }
 
     public int computeHeight(int x, int z, MutableBoolean foundAir) {
-        GlobalPalette globalPalette = GlobalPaletteProvider.getGlobalPalette(getDataVersion());
+        BlockRegistry globalPalette = GlobalPaletteProvider.getGlobalPalette(getDataVersion());
 
         for (int y = 15; y >= 0 ; y--) {
             int blockStateId = getNumericBlockStateAt(x, y, z);

@@ -16,7 +16,7 @@ public class SingleValuePalette extends Palette {
         if (type == PaletteType.BIOMES) {
             this.biomePalette();
         }
-        this.val = this.stateProvider.getStateId(state);
+        this.val = this.registry.getStateId(state);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class SingleValuePalette extends Palette {
 
     @Override
     public List<SpecificTag> toNbt() {
-        return List.of(stateProvider.getState(val).toNbt());
+        return List.of(registry.getState(val).toNbt());
     }
 
     public Palette asNormalPalette() {
