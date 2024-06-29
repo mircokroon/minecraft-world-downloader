@@ -31,10 +31,13 @@ public class ClientBoundGamePacketHandler_1_20_6 extends ClientBoundGamePacketHa
             return true;
         });
 
-        operators.put("SetActionBarText", provider -> {
-            System.out.println(provider.debug__readableString());
-            System.out.println(Arrays.toString(provider.debug__getFullArray()));
-            System.out.println(provider.readNbtTag());
+        operators.put("ContainerSetContent", provider -> {
+            int windowId = provider.readNext();
+
+            int stateId = provider.readVarInt();
+            int count = provider.readVarInt();
+            WorldManager.getInstance().getContainerManager().items(windowId, count, provider);
+
             return true;
         });
 
