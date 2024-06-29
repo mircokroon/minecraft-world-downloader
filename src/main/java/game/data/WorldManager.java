@@ -610,7 +610,6 @@ public class WorldManager {
             }
 
             try {
-                System.out.println("Sending chunk of version " + chunk.getDataVersion() + " (running " + Config.versionReporter().getDataVersion() +  ")");
                 PacketBuilder chunkData = chunk.toPacket();
                 PacketBuilder light = chunk.toLightPacket();
                 if (light != null) {
