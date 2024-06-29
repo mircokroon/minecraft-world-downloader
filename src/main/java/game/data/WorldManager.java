@@ -604,7 +604,13 @@ public class WorldManager {
             // send a packet with the chunk to the client
             Chunk chunk = chunkBinary.toChunk(withDim);
 
+            // skip chunks loaded in an earlier version
+            if (chunk.getDataVersion() != Config.versionReporter().getDataVersion()) {
+                continue;
+            }
+
             try {
+                System.out.println("Sending chunk of version " + chunk.getDataVersion() + " (running " + Config.versionReporter().getDataVersion() +  ")");
                 PacketBuilder chunkData = chunk.toPacket();
                 PacketBuilder light = chunk.toLightPacket();
                 if (light != null) {

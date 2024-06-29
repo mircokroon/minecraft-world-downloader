@@ -141,7 +141,14 @@ public class DimensionRegistry {
     }
 
     public Dimension getDimension(String name) {
-        return dimensions.get(name);
+        var dim = dimensions.get(name);
+
+        if (dim == null) {
+            System.out.println("Warning: Dimension " + name + " not found, using overworld");
+            return Dimension.OVERWORLD;
+        }
+
+        return dim;
     }
 
     /**
