@@ -3,7 +3,6 @@ package packets.handler;
 import config.Config;
 import config.Option;
 import config.Version;
-import config.VersionReporter;
 import game.NetworkMode;
 import proxy.ConnectionManager;
 
@@ -20,6 +19,7 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
             System.out.println("Disconnect: " + reason);
             return true;
         });
+
         operations.put("Hello", provider -> {
             String serverId = provider.readString();
             byte[] pubKey = provider.readByteArray(provider.readVarInt());
@@ -43,6 +43,9 @@ public class ClientBoundLoginPacketHandler extends PacketHandler {
             String username = provider.readString();
             System.out.println("Login success: " + username + " logged in with uuid " + uuid);
 
+            if (!Config.versionReporter().isAtLeast(Version.V1_20_2)) {
+                getConnectionManager().setMode(NetworkMode.GAME);
+            }
             return true;
         });
         operations.put("LoginCompression", provider -> {
