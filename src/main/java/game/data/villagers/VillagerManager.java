@@ -43,6 +43,12 @@ public class VillagerManager {
     }
     
     public void parseAndStoreVillagerTrade(DataTypeProvider provider) {
+        // TODO: villager trades cannot be saved since readSlot is broken in 1.20.2+ due to the
+        //  new item components
+        if (Config.versionReporter().isAtLeast(Version.V1_20_2)) {
+            return;
+        }
+
         if (lastInteractedWith == null) {
             return; // This should be impossible
         }
