@@ -48,6 +48,7 @@ class ChunkTest extends PacketBuilderAndParserTest {
         biomeMap.put("minecraft:badlands", new Biome(0));
         biomeMap.put("minecraft:forest", new Biome(1));
         biomeMap.put("minecraft:river", new Biome(2));
+        biomeMap.put("minecraft:plains", new Biome(3));
         when(codecMock.getBiomeRegistry()).thenReturn(new BiomeRegistry(biomeMap));
         when(mock.getDimensionRegistry()).thenReturn(codecMock);
 
@@ -183,5 +184,10 @@ class ChunkTest extends PacketBuilderAndParserTest {
     @Test
     void chunk_1_19() throws IOException, ClassNotFoundException {
         testFor(Version.V1_19.protocolVersion, "chunkdata_1_19");
+    }
+
+    @Test
+    void chunk_1_21() throws IOException, ClassNotFoundException {
+        testFor(Version.V1_21.protocolVersion, "chunkdata_1_21");
     }
 }

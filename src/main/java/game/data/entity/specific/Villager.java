@@ -71,7 +71,7 @@ public class Villager extends MobEntity {
     }
 
     private void addTradeNbtTags(CompoundTag root) {
-        if (trades == null || trades.size() == 0) {
+        if (trades == null || trades.isEmpty()) {
             return;
         }
 
