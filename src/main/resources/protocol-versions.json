@@ -653,7 +653,8 @@
 				"0x3F": "UseItemOn",
 				"0x40": "UseItem"
 			}
-		},
+		}
 	}
 
 }
+
