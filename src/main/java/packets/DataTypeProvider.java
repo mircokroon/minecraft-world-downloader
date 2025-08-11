@@ -107,6 +107,9 @@ public class DataTypeProvider {
     }
 
     public byte[] readByteArray(int size) {
+        if (pos + size > finalFullPacket.length) {
+            throw new IndexOutOfBoundsException("Not enough bytes to read: requested " + size + ", but only " + (finalFullPacket.length - pos) + " available.");
+        }
         byte[] res = new byte[size];
 
         System.arraycopy(finalFullPacket, pos, res, 0, size);
@@ -351,3 +354,4 @@ public class DataTypeProvider {
                 '}';
     }
 }
+
