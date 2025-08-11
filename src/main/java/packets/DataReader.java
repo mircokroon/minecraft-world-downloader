@@ -155,6 +155,7 @@ public class DataReader {
 
             // if we have enough bytes to parse the packet
             if (!hasBytes(nextPacketSize)) {
+                System.out.println("[DEBUG] Waiting for more bytes. queue size: " + queue.size() + ", needed: " + (nextPacketSize + varIntPacketSize.numBytes()));
                 return;
             }
             // parse the packet (including decompression)
@@ -206,7 +207,7 @@ public class DataReader {
      * @return true if we have sufficient bytes, otherwise false
      */
     private boolean hasBytes(int amount) {
-        return amount <= queue.size();
+        return (amount + varIntPacketSize.numBytes()) <= queue.size();
     }
 
 
@@ -241,3 +242,4 @@ public class DataReader {
         return bytes;
     }
 }
+
