@@ -207,7 +207,8 @@ public class DataReader {
      * @return true if we have sufficient bytes, otherwise false
      */
     private boolean hasBytes(int amount) {
-        return (amount + varIntPacketSize.numBytes()) <= queue.size();
+        return amount <= queue.size();
+        //return (amount + varIntPacketSize.numBytes()) <= queue.size();
     }
 
 
@@ -242,4 +243,5 @@ public class DataReader {
         return bytes;
     }
 }
+
 
