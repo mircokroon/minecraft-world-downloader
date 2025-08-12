@@ -653,10 +653,63 @@
 				"0x3C": "UseItemOn",
 				"0x3D": "UseItem"
 			}
+		}		
+		"770": {
+			"version": "1.21.8",
+			"dataVersion": 4440,
+			"clientBound": {
+				"0x01": "AddEntity",
+				"0x06": "BlockEntityData",
+				"0x08": "BlockUpdate",
+				"0x11": "ContainerClose",
+				"0x12": "ContainerSetContent",
+				"0x21": "ForgetLevelChunk",
+				"0x27": "LevelChunkWithLight",
+				"0x2A": "LightUpdate",
+				"0x2B": "Login",
+				"0x2C": "MapItemData",
+				"0x2D": "MerchantOffers",
+				"0x2E": "MoveEntityPos",
+				"0x2F": "MoveEntityPosRot",
+				"0x34": "OpenScreen",
+				"0x3F": "PlayerInfoUpdate",
+				"0x46": "RemoveEntities",
+				"0x4B": "Respawn",
+				"0x4D": "SectionBlocksUpdate",
+				"0x50": "SetActionBarText",
+				"0x58": "SetChunkCacheRadius",
+				"0x5C": "SetEntityData",
+				"0x5F": "SetEquipment",
+				"0x6F": "StartConfiguration",
+				"0x72": "SystemChat",
+				"0x76": "TeleportEntity"
+			},
+			"serverBound": {
+				"0x0F": "ConfigurationAcknowledged",
+				"0x12": "ContainerClose",
+				"0x19": "Interact",
+				"0x1D": "MovePlayerPos",
+				"0x1E": "MovePlayerPosRot",
+				"0x1F": "MovePlayerRot",
+				"0x21": "MoveVehicle",
+				"0x35": "SetCommandBlock",
+				"0x3F": "UseItemOn",
+				"0x40": "UseItem"
+			}
 		}
+
+
+
+
+
+
+
+
+		
 	}
 
 }
+
 
 
 
