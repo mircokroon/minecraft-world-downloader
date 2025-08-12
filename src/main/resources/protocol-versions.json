@@ -649,13 +649,14 @@
 				"0x1D": "MovePlayerPosRot",
 				"0x1E": "MovePlayerRot",
 				"0x20": "MoveVehicle",
-				"0x32": "SetCommandBlock",
-				"0x3B": "UseItemOn",
-				"0x3A": "UseItem"
+				"0x34": "SetCommandBlock",
+				"0x3C": "UseItemOn",
+				"0x3D": "UseItem"
 			}
 		}
 	}
 
 }
+
 
 
