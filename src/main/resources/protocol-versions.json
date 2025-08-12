@@ -653,7 +653,7 @@
 				"0x3C": "UseItemOn",
 				"0x3D": "UseItem"
 			}
-		}		
+		},		
 		"770": {
 			"version": "1.21.8",
 			"dataVersion": 4440,
@@ -709,6 +709,7 @@
 	}
 
 }
+
 
 
 
