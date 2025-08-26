@@ -13,6 +13,7 @@ import packets.version.DataTypeProvider_1_13;
 import packets.version.DataTypeProvider_1_14;
 import packets.version.DataTypeProvider_1_20_2;
 import packets.version.DataTypeProvider_1_20_6;
+import packets.version.DataTypeProvider_1_21_4;
 import se.llbit.nbt.NamedTag;
 import se.llbit.nbt.SpecificTag;
 
@@ -57,6 +58,7 @@ public class DataTypeProvider {
 
     public static DataTypeProvider ofPacket(byte[] finalFullPacket) {
         return Config.versionReporter().select(DataTypeProvider.class,
+                Option.of(Version.V1_21_4, () -> new DataTypeProvider_1_21_4(finalFullPacket)),
                 Option.of(Version.V1_20_6, () -> new DataTypeProvider_1_20_6(finalFullPacket)),
                 Option.of(Version.V1_20_2, () -> new DataTypeProvider_1_20_2(finalFullPacket)),
                 Option.of(Version.V1_14, () -> new DataTypeProvider_1_14(finalFullPacket)),

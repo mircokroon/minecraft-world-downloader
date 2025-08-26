@@ -3,12 +3,10 @@ A Minecraft world downloader that works as a proxy server between the client and
 
 
 ### Downloads  <a href="https://github.com/mircokroon/minecraft-world-downloader/releases/latest"><img align="right" src="https://img.shields.io/github/downloads/mircokroon/minecraft-world-downloader/total.svg"></a>
-Windows launcher: [world-downloader-launcher.exe](https://github.com/mircokroon/minecraft-world-downloader-launcher/releases/latest/download/world-downloader-launcher.exe)
-
-Latest cross-platform jar (command-line support): [world-downloader.jar](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
+Latest cross-platform jar (command-line support): [world-downloader.jar](https://github.com/Squydy/minecraft-world-downloader/releases/latest/download/world-downloader.jar)
 
 ### Basic usage
-[Download](https://github.com/mircokroon/minecraft-world-downloader-launcher/releases/latest/download/world-downloader-launcher.exe) the latest release and run it. Enter the server address in the address field and press start.
+[Download](https://github.com/Squydy/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the latest release and run it. Enter the server address in the address field and press start.
 
 <img src="https://i.imgur.com/yH8SH5C.png">
 
@@ -28,10 +26,10 @@ If you run into any problems, check the [FAQ](https://github.com/mircokroon/mine
 
 ### Requirements
 - Java 21 or higher
-- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+ // 1.19.3+ // 1.20+ // 1.21+
+- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+ // 1.19.3+ // 1.20+ // 1.21+ (up to 1.21.8)
 
 ### Command-line
-[Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the cross-platform `world-downloader.jar` and run it using the command-line:
+[Download](https://github.com/Squydy/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the cross-platform `world-downloader.jar` and run it using the command-line:
 
 ```
 java -jar world-downloader.jar
