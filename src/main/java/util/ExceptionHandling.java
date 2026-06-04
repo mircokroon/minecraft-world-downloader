@@ -24,6 +24,9 @@ public class ExceptionHandling {
 
 
     public static void attemptQuiet(IExceptionHandler r) {
-        attempt(r, (e) -> {});
+        attempt(r, (e) -> {
+            System.err.println("[attemptQuiet] Suppressed exception: " + e);
+            e.printStackTrace();
+        });
     }
 }

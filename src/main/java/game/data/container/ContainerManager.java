@@ -68,43 +68,47 @@ public class ContainerManager {
         if (!knownWindows.containsKey(windowId)) { return; }
 
         InventoryWindow window = knownWindows.remove(windowId);
+        if (window.getSlotList() == null) { return; }
+
         closeWindow(window);
+
+        // Always confirm — the inventory is remembered and will be written even if the chunk loads later.
+        sendInventorySavedMessage(window);
     }
 
     private void closeWindow(InventoryWindow window) {
         if (window.getSlotList() == null) { return; }
 
         Chunk c = WorldManager.getInstance().getChunk(window.containerLocation.globalToChunk().addDimension(WorldManager.getInstance().getDimension()));
+        BlockState block = (c != null) ? c.getBlockStateAt(window.getContainerLocation().withinChunk()) : null;
 
-        if (c == null) {
-            sendInventoryFailureMessage(window, "Chunk not loaded.");
-            return;
-        }
-
-        BlockState block = c.getBlockStateAt(window.getContainerLocation().withinChunk());
-
-        if (block == null) {
-            sendInventoryFailureMessage(window, "No block found.");
-            return;
-        }
-
-        WorldManager.getInstance().touchChunk(c);
-
-        if (window.getSlotList().size() == 54 && block.hasProperty("type") && block.isDoubleChest()) {
+        // Double chests: split into two halves (each half is stored/applied via the recursive call).
+        if (c != null && block != null && window.getSlotList().size() == 54 && block.hasProperty("type") && block.isDoubleChest()) {
+            WorldManager.getInstance().touchChunk(c);
             addDoubleChestInventory(block, window);
-        } else if (window.getSlotList().size() == 54 && !block.hasProperty("type") && block.isChest()) {
+            return;
+        }
+        if (c != null && block != null && window.getSlotList().size() == 54 && !block.hasProperty("type") && block.isChest()) {
+            WorldManager.getInstance().touchChunk(c);
             handleChest1_12(block, window);
-        } else {
-            c.addInventory(window, true);
-            storedWindows.put(window.containerLocation.addDimension3D(WorldManager.getInstance().getDimension()), window);
+            return;
+        }
+
+        // Always remember the inventory so it survives chunk re-sends / block updates and is (re)applied
+        // whenever this chunk is (re)loaded — even if the chunk isn't loaded right now.
+        storedWindows.put(window.containerLocation.addDimension3D(WorldManager.getInstance().getDimension()), window);
+
+        if (c != null && block != null) {
+            WorldManager.getInstance().touchChunk(c);
+            c.addInventory(window, false);
         }
     }
 
-    private void sendInventoryFailureMessage(InventoryWindow window, String cause) {
+    private void sendInventorySavedMessage(InventoryWindow window) {
         if (Config.sendInfoMessages()) {
-            Chat message = new Chat("Unable to save inventory at " + window.getContainerLocation() + ". " + cause);
-            message.setColor("red");
-
+            Chat message = new Chat("Hui Downloader saved inventory at " + window.getContainerLocation());
+            message.setColor("green");
+            // Show only on the action bar (above the hotbar), not in the chat box.
             Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
     }

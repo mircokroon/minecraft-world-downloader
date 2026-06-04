@@ -77,20 +77,17 @@ public class LevelData {
     private void load(boolean forceInternal) throws IOException {
         Files.createDirectories(outputDir);
 
-        InputStream fileInput;
-        if (!file.exists() || !file.isFile() || forceInternal) {
-            fileInput = LevelData.class.getClassLoader().getResourceAsStream("level.dat");
-        } else {
-            fileInput = new FileInputStream(file);
-        }
-
-        try {
-            // get default level.dat
-            this.root = NbtUtil.read(fileInput);
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            if (!forceInternal) {
-                load(true);
+        try (InputStream fileInput = (!file.exists() || !file.isFile() || forceInternal)
+                ? LevelData.class.getClassLoader().getResourceAsStream("level.dat")
+                : new FileInputStream(file)) {
+            try {
+                // get default level.dat
+                this.root = NbtUtil.read(fileInput);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                if (!forceInternal) {
+                    load(true);
+                }
             }
         }
 
@@ -102,11 +99,13 @@ public class LevelData {
      * file is easier.
      */
     private void loadGeneratorSettings() throws IOException {
-        this.worldGenSettings = NbtUtil
-                .read(LevelData.class.getClassLoader().getResourceAsStream(getGeneratorSettingsName()))
-                .unpack()
-                .get("WorldGenSettings")
-                .asCompound();
+        try (InputStream inputStream = LevelData.class.getClassLoader().getResourceAsStream(getGeneratorSettingsName())) {
+            this.worldGenSettings = NbtUtil
+                    .read(inputStream)
+                    .unpack()
+                    .get("WorldGenSettings")
+                    .asCompound();
+        }
     }
 
     private static String getGeneratorSettingsName() {

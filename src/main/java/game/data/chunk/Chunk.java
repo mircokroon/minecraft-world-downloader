@@ -39,11 +39,14 @@ public abstract class Chunk extends ChunkEntities {
     private boolean saved;
     private ChunkImageFactory imageFactory;
 
-    public ChunkHeightHandler getChunkHeightHandler() {
+    public synchronized ChunkHeightHandler getChunkHeightHandler() {
+        if (chunkHeightHandler == null) {
+            chunkHeightHandler = new ChunkHeightHandler(this);
+        }
         return chunkHeightHandler;
     }
 
-    private ChunkHeightHandler chunkHeightHandler;
+    private volatile ChunkHeightHandler chunkHeightHandler;
 
     private final int dataVersion;
 
@@ -410,7 +413,7 @@ public abstract class Chunk extends ChunkEntities {
      * Mark this as a new chunk if it's sent in parts, which non-vanilla servers will do to send chunks to the client
      * before they are fully generated.
      */
-    void markAsNew() {
+    protected void markAsNew() {
         if (WorldManager.getInstance().markNewChunks()) {
             this.isNewChunk = true;
         }
@@ -485,7 +488,7 @@ public abstract class Chunk extends ChunkEntities {
 
     public ChunkImageFactory getChunkImageFactory() {
         if (imageFactory == null) {
-            chunkHeightHandler = new ChunkHeightHandler(this);
+            getChunkHeightHandler();
 
             // assignment should happen before running initialisation code
             imageFactory = new ChunkImageFactory(this);
@@ -525,7 +528,7 @@ public abstract class Chunk extends ChunkEntities {
         }
 
         if (this.imageFactory != null) {
-            this.chunkHeightHandler.updateHeight(coords);
+            getChunkHeightHandler().updateHeight(coords);
             this.imageFactory.generateImages();
         }
     }
@@ -552,8 +555,8 @@ public abstract class Chunk extends ChunkEntities {
 
             updateBlock(blockPos, blockId, true);
         }
-        boolean wasChanged = this.chunkHeightHandler.recomputeHeights(toUpdate);
-        if (wasChanged) {
+        boolean wasChanged = getChunkHeightHandler().recomputeHeights(toUpdate);
+        if (wasChanged && imageFactory != null) {
             imageFactory.generateImages();
         }
     }

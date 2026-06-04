@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.application.Platform;
@@ -72,10 +71,13 @@ public class Config {
         try {
             File file = configPath.toFile();
             if (file.exists() && file.isFile()) {
-                Config config = new GsonBuilder()
-                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                    .create()
-                    .fromJson(new JsonReader(new FileReader(file)), Config.class);
+                Config config;
+                try (FileReader reader = new FileReader(file); JsonReader jsonReader = new JsonReader(reader)) {
+                    config = new GsonBuilder()
+                        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                        .create()
+                        .fromJson(jsonReader, Config.class);
+                }
 
                 return Objects.requireNonNullElseGet(config, () -> new Config());
             }
@@ -122,6 +124,7 @@ public class Config {
     public static void setProtocolVersion(int protocolVersion) {
         instance.protocolVersion = protocolVersion;
         instance.versionReporter = new VersionReporter(protocolVersion);
+        instance.dataVersion = instance.versionReporter.getDataVersion();
 
         try {
             WorldManager.getInstance().loadLevelData();
@@ -230,7 +233,7 @@ public class Config {
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .setPrettyPrinting().create().toJson(this);
             Files.createDirectories(configPath.getParent());
-            Files.write(configPath, Collections.singleton(contents));
+            Files.writeString(configPath, contents);
         } catch (Exception ex) {
             ex.printStackTrace();
         }

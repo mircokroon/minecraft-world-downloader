@@ -266,8 +266,15 @@ public class DataTypeProvider {
     public List<Slot> readSlots(int count) {
         List<Slot> slots = new ArrayList<>(count);
 
-        while (count-- > 0) {
-            slots.add(readSlot());
+        try {
+            while (count-- > 0) {
+                slots.add(readSlot());
+            }
+        } catch (RuntimeException ex) {
+            // An item carried a data component we can't read yet (1.20.6+), or the slot format was
+            // unexpected. Keep what we captured and stop — the packet is still forwarded to the client
+            // unchanged, so this only affects what gets saved.
+            System.out.println("Skipping remaining container slots: " + ex.getMessage());
         }
 
         return slots;

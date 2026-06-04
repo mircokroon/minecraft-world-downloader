@@ -100,6 +100,16 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        // 1.8 only: several full chunk columns sent in a single packet
+        operations.put("LevelChunkBulk", provider -> {
+            try {
+                worldManager.getChunkFactory().addBulkChunks(provider);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return true;
+        });
+
         operations.put("LightUpdate", provider -> {
             worldManager.updateLight(provider);
 

@@ -14,6 +14,7 @@ import util.PathUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -186,9 +187,10 @@ public class McaFile {
      * For details on the MCA file format: https://minecraft.gamepedia.com/Region_file_format
      */
     private HashMap<Integer, ChunkBinary> readFile(File mca) throws IOException {
-        FileInputStream inputStream = new FileInputStream(mca);
-        byte[] bytes = IOUtils.toByteArray(inputStream);
-        inputStream.close();
+        byte[] bytes;
+        try (InputStream inputStream = new FileInputStream(mca)) {
+            bytes = IOUtils.toByteArray(inputStream);
+        }
 
         // ensure that the data is not empty
         if (bytes.length == 0) {

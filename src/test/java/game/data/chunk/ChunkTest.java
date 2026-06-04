@@ -16,6 +16,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import packets.DataTypeProvider;
 import packets.builder.PacketBuilderAndParserTest;
+import packets.version.DataTypeProvider_1_14;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,6 +27,27 @@ import static org.mockito.Mockito.*;
 class ChunkTest extends PacketBuilderAndParserTest {
     @Override
     public void afterEach() {
+    }
+
+    /**
+     * The base {@link PacketBuilderAndParserTest#getParser()} is hardcoded to the 1.14 (named-NBT)
+     * reader. Network NBT became nameless in 1.20.2, so for those versions the chunk round-trip parser
+     * has to be version-aware - otherwise it would still read named NBT and mask the very bug this test
+     * should catch. Older versions keep the legacy reader. Used only by the chunk tests below, which set
+     * the protocol version; the inherited primitive tests keep using the base parser.
+     */
+    private DataTypeProvider getVersionedParser() {
+        var built = builder.build();
+        byte[] arr = new byte[built.size()];
+        built.copyTo(arr);
+
+        parser = Config.versionReporter().isAtLeast(Version.V1_20_2)
+                ? DataTypeProvider.ofPacket(arr)
+                : new DataTypeProvider_1_14(arr);
+
+        assertThat(parser.readVarInt()).isGreaterThan(0); // packet length
+        parser.readVarInt(); // packet id
+        return parser;
     }
 
     CoordinateDim2D pos = new CoordinateDim2D(0, 0, Dimension.OVERWORLD);
@@ -68,7 +90,7 @@ class ChunkTest extends PacketBuilderAndParserTest {
 
         builder = c.toPacket();
 
-        DataTypeProvider parser = getParser();
+        DataTypeProvider parser = getVersionedParser();
         CoordinateDim2D coords = new CoordinateDim2D(parser.readInt(), parser.readInt(), pos.getDimension());
         UnparsedChunk up = new UnparsedChunk(coords);
         up.provider = parser;
@@ -100,14 +122,14 @@ class ChunkTest extends PacketBuilderAndParserTest {
         Chunk c = cb.toChunk(pos);
 
         builder = c.toPacket();
-        DataTypeProvider parser = getParser();
+        DataTypeProvider parser = getVersionedParser();
 
         CoordinateDim2D coords = new CoordinateDim2D(parser.readInt(), parser.readInt(), pos.getDimension());
         UnparsedChunk up = new UnparsedChunk(coords);
         up.provider = parser;
 
         builder = c.toLightPacket();
-        DataTypeProvider lightParser = getParser();
+        DataTypeProvider lightParser = getVersionedParser();
 
         Chunk parsed = ChunkFactory.parseChunk(up, mock);
         assertThat(lightParser.readVarInt()).isEqualTo(0);
@@ -158,7 +180,7 @@ class ChunkTest extends PacketBuilderAndParserTest {
         block[0] = 24;
 
         builder = src.toLightPacket();
-        DataTypeProvider provider = getParser();
+        DataTypeProvider provider = getVersionedParser();
         int x = provider.readVarInt();
         int z = provider.readVarInt();
 

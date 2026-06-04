@@ -123,9 +123,10 @@ public class RightClickMenu extends ContextMenu {
             ChunkBinary cb = new McaFile(region).getChunkBinary(chunk);
 
             String filename = "chunkdata.bin";
-            FileOutputStream f = new FileOutputStream(filename);
-            ObjectOutputStream o = new ObjectOutputStream(f);
-            o.writeObject(cb);
+            try (FileOutputStream f = new FileOutputStream(filename);
+                 ObjectOutputStream o = new ObjectOutputStream(f)) {
+                o.writeObject(cb);
+            }
 
             System.out.println("Written chunk " + chunk + " to " + filename);
         }));

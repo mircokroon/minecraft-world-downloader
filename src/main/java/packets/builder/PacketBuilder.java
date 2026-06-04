@@ -60,28 +60,42 @@ public class PacketBuilder {
      */
     public static PacketBuilder constructClientMessage(Chat message, MessageTarget target) {
         Protocol protocol = Config.versionReporter().getProtocol();
-        String packetName = Config.versionReporter().select(String.class,
-            Option.of(Version.V1_20_6, () -> "SetActionBarText"),
-            Option.of(Version.V1_19, () -> "SystemChat"),
-            Option.of(Version.ANY, () -> "Chat")
-        );
+        boolean actionBar = target == MessageTarget.GAMEINFO;
+
+        // Pick the packet based on the target: the action bar has its own packet from 1.20.6; everything
+        // else (chat/system text) uses SystemChat from 1.19, or the legacy Chat packet before that.
+        // (Previously this always used SetActionBarText on 1.20.6+, so chat-targeted messages could only
+        // ever flash in the action bar.)
+        String packetName;
+        if (actionBar && Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+            packetName = "SetActionBarText";
+        } else if (Config.versionReporter().isAtLeast(Version.V1_19)) {
+            packetName = "SystemChat";
+        } else {
+            packetName = "Chat";
+        }
 
         PacketBuilder builder = new PacketBuilder(protocol.clientBound(packetName));
 
-        if (Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+        // From 1.20.3 the content is a (nameless) NBT text component instead of a JSON string; this applies
+        // to both SystemChat (1.20.3-1.20.5) and SetActionBarText (1.20.6+).
+        if (Config.versionReporter().isAtLeast(Version.V1_20_4)) {
             builder.writeNbtDirect(message.toNbt());
         } else {
             builder.writeString(message.toJson());
         }
 
-        // 1.20.6 has separate packet for action bar text, so dont need to give identifier anymore
-        if (!Config.versionReporter().isAtLeast(Version.V1_20_6)) {
+        if (packetName.equals("SystemChat")) {
+            // overlay flag: true => action bar, false => chat box. Must be a real boolean (0/1) — the old
+            // code wrote the raw target id (e.g. 2 for GAMEINFO), which is an invalid boolean and could make
+            // the client drop the message.
+            builder.writeBoolean(actionBar);
+        } else if (packetName.equals("Chat")) {
             builder.writeByte(target.getIdentifier());
-        }
-
-        // uuid is only included from 1.16, from 1.19 player chat is a different packet
-        if (Config.versionReporter().isAtLeast(Version.V1_16) && !Config.versionReporter().isAtLeast(Version.V1_19)) {
-            builder.writeUUID(new UUID(0L, 0L));
+            // uuid is included from 1.16 (pre-1.19 player chat)
+            if (Config.versionReporter().isAtLeast(Version.V1_16)) {
+                builder.writeUUID(new UUID(0L, 0L));
+            }
         }
         return builder;
     }

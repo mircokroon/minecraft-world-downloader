@@ -1,0 +1,66 @@
+name: Desktop manager release
+
+# Builds the WinUI 3 manager app (self-contained, unpackaged) and packages it
+# with NSIS. On a version tag the installer is attached to a GitHub release.
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - 'desktop-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Resolve version
+        id: ver
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}" -replace '^(desktop-)?v',''
+          if ([string]::IsNullOrWhiteSpace($v) -or $v -notmatch '^\d') { $v = "1.0.0" }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Publish (self-contained, win-x64)
+        shell: pwsh
+        run: >
+          dotnet publish desktop/WorldDownloaderManager.csproj
+          -c Release -r win-x64 --self-contained true
+          -o "${{ github.workspace }}\publish"
+
+      - name: Install NSIS
+        shell: pwsh
+        run: choco install nsis -y --no-progress
+
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $exe = "${env:ProgramFiles(x86)}\NSIS\makensis.exe"
+          if (-not (Test-Path $exe)) { $exe = "$env:ProgramFiles\NSIS\makensis.exe" }
+          & $exe `
+            "/DAPP_VERSION=${{ steps.ver.outputs.version }}" `
+            "/DSRC_DIR=${{ github.workspace }}\publish" `
+            "/DOUT_FILE=${{ github.workspace }}\WorldDownloaderManager-Setup.exe" `
+            "installer\installer.nsi"
+          if ($LASTEXITCODE -ne 0) { throw "makensis failed with exit code $LASTEXITCODE" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: WorldDownloaderManager-Setup
+          path: WorldDownloaderManager-Setup.exe
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: WorldDownloaderManager-Setup.exe

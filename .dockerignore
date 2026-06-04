@@ -1,0 +1,26 @@
+# Build output / caches
+target/
+.tmp_proto/
+cache/
+abc/
+logs/
+
+# Local downloaded worlds / runtime data
+data/
+world/
+*.mca
+
+# VCS / IDE
+.git/
+.github/
+.idea/
+*.iml
+.vscode/
+
+# The separate launcher repo (large, not needed for the image)
+minecraft-world-downloader-launcher/
+
+# Misc
+*.log
+*.txt
+!web/requirements.txt

@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 import game.data.registries.RegistriesJson;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,7 +16,7 @@ public class BlockEntityRegistry {
     private final Map<Integer, String> blockEntities;
     private Set<String> entityNames;
 
-    public static BlockEntityRegistry fromRegistry(FileInputStream input) {
+    public static BlockEntityRegistry fromRegistry(InputStream input) {
         if (input == null) { return new BlockEntityRegistry(); }
 
         RegistriesJson map = new Gson().fromJson(new InputStreamReader(input), RegistriesJson.class);
