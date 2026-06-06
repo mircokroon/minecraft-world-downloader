@@ -14,7 +14,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Consumer;
 import javafx.application.Platform;
@@ -37,6 +36,7 @@ public class Config {
     private static Path configPath;
 
     private static PacketInjector injector;
+    private static PacketInjector serverBoundInjector;
     private static Config instance;
 
     // fields marked transient so they are not written to JSON file
@@ -72,10 +72,13 @@ public class Config {
         try {
             File file = configPath.toFile();
             if (file.exists() && file.isFile()) {
-                Config config = new GsonBuilder()
-                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                    .create()
-                    .fromJson(new JsonReader(new FileReader(file)), Config.class);
+                Config config;
+                try (FileReader reader = new FileReader(file); JsonReader jsonReader = new JsonReader(reader)) {
+                    config = new GsonBuilder()
+                        .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                        .create()
+                        .fromJson(jsonReader, Config.class);
+                }
 
                 return Objects.requireNonNullElseGet(config, () -> new Config());
             }
@@ -122,6 +125,7 @@ public class Config {
     public static void setProtocolVersion(int protocolVersion) {
         instance.protocolVersion = protocolVersion;
         instance.versionReporter = new VersionReporter(protocolVersion);
+        instance.dataVersion = instance.versionReporter.getDataVersion();
 
         try {
             WorldManager.getInstance().loadLevelData();
@@ -230,7 +234,7 @@ public class Config {
                 .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
                 .setPrettyPrinting().create().toJson(this);
             Files.createDirectories(configPath.getParent());
-            Files.write(configPath, Collections.singleton(contents));
+            Files.writeString(configPath, contents);
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -336,6 +340,18 @@ public class Config {
         return injector;
     }
 
+    /**
+     * Serverbound packet injector: lets the proxy originate packets toward the SERVER
+     * (used by the auto-open-containers feature).
+     */
+    public static void registerServerBoundInjector(PacketInjector injector) {
+        Config.serverBoundInjector = injector;
+    }
+
+    public static PacketInjector getServerBoundInjector() {
+        return serverBoundInjector;
+    }
+
 
     @Option(name = "--help", aliases = {"-h", "help", "-help", "--h"},
             usage = "Show this help message.")
@@ -393,6 +409,25 @@ public class Config {
     @Option(name = "--disable-chunk-saving",
             usage = "Disable writing chunks to disk, mostly for debugging purposes.")
     public  boolean disableWriteChunks = false;
+
+    @Option(name = "--auto-open-containers",
+            usage = "EXPERIMENTAL: automatically open nearby containers (within reach, one at a time, "
+                    + "rate-limited) to record their contents as you move. May trip server anti-cheat.")
+    public boolean autoOpenContainers = false;
+
+    @Option(name = "--auto-open-delay",
+            usage = "Minimum milliseconds between auto-opened containers (default 700). Higher = safer.")
+    public int autoOpenDelayMs = 700;
+
+    @Option(name = "--auto-open-reach",
+            usage = "Max distance (blocks) to a container for auto-open; keep at/below survival reach (default 4.0).")
+    public double autoOpenReach = 4.0;
+
+    @Option(name = "--auto-open-gamemodes",
+            usage = "Which gamemodes the auto-open sweep runs in: 'all' (default, any mode incl. survival), "
+                    + "or a comma list of survival,creative,adventure,spectator. A restricted list only "
+                    + "activates once that gamemode is observed (e.g. after switching into spectator).")
+    public String autoOpenGamemodes = "all";
 
     @Option(name = "--disable-world-gen",
             usage = "Set world type to a superflat void to prevent new chunks from being added.")
@@ -467,6 +502,34 @@ public class Config {
     }
 
     public static boolean renderOtherPlayers() { return instance.renderOtherPlayers; }
+
+    public static boolean autoOpenContainers() { return instance.autoOpenContainers; }
+
+    public static int autoOpenDelayMs() { return Math.max(50, instance.autoOpenDelayMs); }
+
+    public static double autoOpenReach() { return instance.autoOpenReach; }
+
+    /**
+     * Allowed gamemodes for the auto-open sweep, or null for "all gamemodes" (no gate).
+     * Names map to ids: survival=0, creative=1, adventure=2, spectator=3.
+     */
+    public static java.util.Set<Integer> autoOpenGamemodes() {
+        String v = instance.autoOpenGamemodes;
+        if (v == null || v.isBlank() || v.equalsIgnoreCase("all")) {
+            return null;
+        }
+        java.util.Set<Integer> set = new java.util.HashSet<>();
+        for (String part : v.split(",")) {
+            switch (part.trim().toLowerCase()) {
+                case "survival": case "0": set.add(0); break;
+                case "creative": case "1": set.add(1); break;
+                case "adventure": case "2": set.add(2); break;
+                case "spectator": case "3": set.add(3); break;
+                default: break;
+            }
+        }
+        return set.isEmpty() ? null : set;
+    }
 
     public static VersionReporter versionReporter() {
         return instance.versionReporter;

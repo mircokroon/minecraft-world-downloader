@@ -59,7 +59,10 @@ public class ProxyServer extends Thread {
             AtomicReference<Socket> client = new AtomicReference<>();
             AtomicReference<Socket> server = new AtomicReference<>();
 
-            attempt(() -> {
+            // Catch Throwable (not just Exception): an Error thrown while handling a packet would
+            // otherwise unwind run() and silently kill the proxy thread, after which no packets are
+            // forwarded and the client times out with no log. Catching here keeps the accept loop alive.
+            try {
                 // Wait for a connection on the local port
                 client.set(ss.get().accept());
 
@@ -80,19 +83,16 @@ public class ProxyServer extends Thread {
                 // start client listener thread
                 Thread clientListener = new Thread(() -> {
                     connectionManager.setMode(NetworkMode.HANDSHAKE);
-                    attempt(() -> {
+                    try {
                         int bytesRead;
                         while ((bytesRead = streamFromClient.read(request)) != -1) {
                             onServerBoundPacket.pushData(request, bytesRead);
                         }
-                    }, (ex) -> {
-                        Throwable cause = ex.getCause();
-                        if (cause != null) {
-                            cause.printStackTrace();
-                        }
+                    } catch (Throwable ex) {
+                        ex.printStackTrace();
                         System.out.println("Server probably disconnected. Waiting for new connection...");
                         connectionManager.reset();
-                    });
+                    }
                     // the client closed the connection to us, so close our connection to the server.
                     attempt(streamToServer::close);
                 }, "Proxy Client Listener");
@@ -100,26 +100,25 @@ public class ProxyServer extends Thread {
                 clientListener.setPriority(10);
 
                 // listen to messages from server
-                attempt(() -> {
+                try {
                     int bytesRead;
                     while ((bytesRead = streamFromServer.read(reply)) != -1) {
                         onClientBoundPacket.pushData(reply, bytesRead);
                     }
-                }, (ex) -> {
-                    Throwable cause = ex.getCause();
-                    if (cause != null) {
-                        cause.printStackTrace();
-                    }
+                } catch (Throwable ex) {
+                    ex.printStackTrace();
                     System.out.println("Client probably disconnected. Waiting for new connection...");
                     connectionManager.reset();
-                });
+                }
 
                 // The server closed its connection to us, so we close our connection to our client.
                 streamToClient.close();
-            }, (ex) -> {
+            } catch (Throwable ex) {
+                ex.printStackTrace();
+                connectionManager.reset();
                 if (server.get() != null) { attempt(server.get()::close); }
                 if (client.get() != null) { attempt(client.get()::close); }
-            });
+            }
         }
     }
 }

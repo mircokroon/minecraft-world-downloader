@@ -39,6 +39,7 @@ import proxy.auth.ServerAuthenticator;
 public class EncryptionManager {
     private static final String ENCRYPTION_TYPE = "AES/CFB8/NoPadding";
     private final PacketInjector packetInjector;
+    private final PacketInjector serverBoundInjector;
     private boolean encryptionEnabled = false;
     private String serverId;
     private RSAPublicKey serverRealPublicKey;
@@ -69,6 +70,7 @@ public class EncryptionManager {
     public EncryptionManager(CompressionManager compressionManager) {
         this.compressionManager = compressionManager;
         this.packetInjector = new PacketInjector(compressionManager);
+        this.serverBoundInjector = new PacketInjector(compressionManager);
         this.clientAuthenticator = new ClientAuthenticator();
     }
 
@@ -353,6 +355,15 @@ public class EncryptionManager {
     public void streamToServer(ByteQueue bytes) throws IOException {
         // System.out.println("Writing bytes to server: " + bytes.size() + " :: " + bytes);
         streamTo(streamToServer, bytes, this::serverBoundEncrypt);
+
+        // Drain any proxy-originated serverbound packets (e.g. auto-open container interactions).
+        // Draining here keeps ALL writes to the server stream on the single client->server thread,
+        // avoiding interleaving with concurrent writes. At most a few per real packet.
+        int limit = 10;
+        while (serverBoundInjector.hasNext() && limit > 0) {
+            limit--;
+            streamTo(streamToServer, serverBoundInjector.getNext(), this::serverBoundEncrypt);
+        }
     }
 
     /**
@@ -415,6 +426,7 @@ public class EncryptionManager {
     public void reset() {
         encryptionEnabled = false;
         this.packetInjector.clear();
+        this.serverBoundInjector.clear();
         clientAuthenticator.reset();
     }
 
@@ -503,6 +515,10 @@ public class EncryptionManager {
 
     public PacketInjector getPacketInjector() {
         return packetInjector;
+    }
+
+    public PacketInjector getServerBoundInjector() {
+        return serverBoundInjector;
     }
 }
 

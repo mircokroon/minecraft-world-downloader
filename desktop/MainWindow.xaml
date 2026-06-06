@@ -1,0 +1,286 @@
+<Window x:Class="WorldDownloaderManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="World Downloader Manager" Height="940" Width="860"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" Background="#0F1419">
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="Bg" Color="#0F1419" />
+        <SolidColorBrush x:Key="Surface" Color="#1A2029" />
+        <SolidColorBrush x:Key="Surface2" Color="#222A35" />
+        <SolidColorBrush x:Key="Outline" Color="#313B49" />
+        <SolidColorBrush x:Key="Text" Color="#E9EEF5" />
+        <SolidColorBrush x:Key="Muted" Color="#93A1B5" />
+        <SolidColorBrush x:Key="Accent" Color="#3DDC84" />
+        <SolidColorBrush x:Key="Danger" Color="#FF5C57" />
+
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource Surface}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Outline}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="12" />
+            <Setter Property="Padding" Value="18" />
+        </Style>
+
+        <Style x:Key="H" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Text}" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style x:Key="Lbl" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="2,0,0,4" />
+        </Style>
+        <Style x:Key="Desc" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Muted}" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="Margin" Value="2,4,0,0" />
+        </Style>
+
+        <Style x:Key="Tb" TargetType="TextBox">
+            <Setter Property="Foreground" Value="{StaticResource Text}" />
+            <Setter Property="CaretBrush" Value="{StaticResource Text}" />
+            <Setter Property="Background" Value="{StaticResource Bg}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Outline}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Pb" TargetType="PasswordBox">
+            <Setter Property="Foreground" Value="{StaticResource Text}" />
+            <Setter Property="CaretBrush" Value="{StaticResource Text}" />
+            <Setter Property="Background" Value="{StaticResource Bg}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Outline}" />
+            <Setter Property="BorderThickness" Value="1.5" />
+            <Setter Property="Padding" Value="10,8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="PasswordBox">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Btn" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource Text}" />
+            <Setter Property="Background" Value="{StaticResource Surface2}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Outline}" />
+            <Setter Property="Padding" Value="16,9" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1" CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.88" /></Trigger>
+                            <Trigger Property="IsPressed" Value="True"><Setter TargetName="b" Property="Opacity" Value="0.72" /></Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="b" Property="Opacity" Value="0.4" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="AccentBtn" TargetType="Button" BasedOn="{StaticResource Btn}">
+            <Setter Property="Background" Value="{StaticResource Accent}" />
+            <Setter Property="Foreground" Value="#052213" />
+            <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+        </Style>
+        <Style x:Key="DangerBtn" TargetType="Button" BasedOn="{StaticResource Btn}">
+            <Setter Property="Background" Value="{StaticResource Danger}" />
+            <Setter Property="Foreground" Value="#2A0605" />
+            <Setter Property="BorderBrush" Value="{StaticResource Danger}" />
+        </Style>
+
+        <!-- pill toggle built from a CheckBox -->
+        <Style x:Key="Toggle" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="track" Width="44" Height="24" CornerRadius="12"
+                                Background="{StaticResource Surface2}" BorderBrush="{StaticResource Outline}" BorderThickness="2">
+                            <Ellipse x:Name="thumb" Width="14" Height="14" HorizontalAlignment="Left"
+                                     Margin="3,0,0,0" Fill="{StaticResource Muted}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="track" Property="Background" Value="#2A3D32" />
+                                <Setter TargetName="track" Property="BorderBrush" Value="{StaticResource Accent}" />
+                                <Setter TargetName="thumb" Property="Fill" Value="{StaticResource Accent}" />
+                                <Setter TargetName="thumb" Property="HorizontalAlignment" Value="Right" />
+                                <Setter TargetName="thumb" Property="Margin" Value="0,0,3,0" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="26" MaxWidth="780" HorizontalAlignment="Stretch">
+
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,16">
+                <TextBlock Text="&#x26CF;" FontSize="32" VerticalAlignment="Center" Margin="0,0,12,0" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="World Downloader" Foreground="{StaticResource Text}" FontSize="22" FontWeight="Bold" />
+                    <TextBlock Text="Set up and run the web console in Docker" Foreground="{StaticResource Muted}" FontSize="13" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Status -->
+            <Border x:Name="StatusBorder" CornerRadius="10" Padding="14,11" Margin="0,0,0,16"
+                    Background="#1B2733" BorderBrush="{StaticResource Outline}" BorderThickness="1">
+                <TextBlock x:Name="StatusText" Foreground="{StaticResource Text}" FontSize="13" TextWrapping="Wrap"
+                           Text="Checking Docker…" />
+            </Border>
+
+            <!-- Data folder -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource H}" Text="Data folder" />
+                    <Grid Margin="0,6,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="FolderBox" Style="{StaticResource Tb}" IsReadOnly="True"
+                                 ToolTip="The folder on your PC where everything is kept. It is mapped into the container as /data." />
+                        <Button x:Name="BrowseBtn" Grid.Column="1" Style="{StaticResource Btn}" Content="Browse…"
+                                Margin="8,0,0,0" Click="Browse_Click"
+                                ToolTip="Pick the folder where downloaded worlds and data should be saved." />
+                    </Grid>
+                    <TextBlock Style="{StaticResource Desc}"
+                               Text="Where downloaded worlds, the block/registry cache, your Minecraft account session and the console's saved settings are stored. Pick a folder with plenty of free space — a large world can be several GB." />
+                </StackPanel>
+            </Border>
+
+            <!-- Configuration -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource H}" Text="Configuration" Margin="0,0,0,10" />
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,8,0">
+                            <TextBlock Style="{StaticResource Lbl}" Text="Web console port" />
+                            <TextBox x:Name="WebPortBox" Style="{StaticResource Tb}" Text="8080"
+                                     ToolTip="The port the management website listens on." />
+                            <TextBlock Style="{StaticResource Desc}"
+                                       Text="The console is served here — open http://localhost:&lt;this port&gt; in your browser." />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                            <TextBlock Style="{StaticResource Lbl}" Text="Minecraft proxy port" />
+                            <TextBox x:Name="ProxyPortBox" Style="{StaticResource Tb}" Text="25565"
+                                     ToolTip="The port the downloader's proxy listens on." />
+                            <TextBlock Style="{StaticResource Desc}"
+                                       Text="In Minecraft, connect to localhost:&lt;this port&gt; instead of the real server to download." />
+                        </StackPanel>
+                    </Grid>
+
+                    <StackPanel Margin="0,14,0,0">
+                        <TextBlock Style="{StaticResource Lbl}" Text="Docker image" />
+                        <TextBox x:Name="ImageBox" Style="{StaticResource Tb}"
+                                 ToolTip="The container image to run." />
+                        <TextBlock Style="{StaticResource Desc}"
+                                   Text="The Docker image that gets run. Leave the default unless you build/host your own; use “Update image” to fetch the newest version." />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,16,0,0">
+                        <CheckBox x:Name="LoginCheck" Style="{StaticResource Toggle}" VerticalAlignment="Center"
+                                  Checked="Login_Changed" Unchecked="Login_Changed"
+                                  ToolTip="Protect the console with a username and password." />
+                        <TextBlock Text="Require a login to open the console" Foreground="{StaticResource Text}"
+                                   FontSize="13" VerticalAlignment="Center" Margin="12,0,0,0" />
+                    </StackPanel>
+                    <TextBlock Style="{StaticResource Desc}"
+                               Text="Off by default (fine for your own PC). Turn on to require the username and password below — recommended if the console is reachable from your network." />
+
+                    <Grid x:Name="LoginPanel" Margin="0,12,0,0" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,8,0">
+                            <TextBlock Style="{StaticResource Lbl}" Text="Console username" />
+                            <TextBox x:Name="UserBox" Style="{StaticResource Tb}" ToolTip="Username asked for when opening the console." />
+                            <TextBlock Style="{StaticResource Desc}" Text="The username you’ll type to open the console." />
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                            <TextBlock Style="{StaticResource Lbl}" Text="Console password" />
+                            <PasswordBox x:Name="PassBox" Style="{StaticResource Pb}" ToolTip="Password asked for when opening the console." />
+                            <TextBlock Style="{StaticResource Desc}" Text="The password you’ll type to open the console." />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Actions -->
+            <Border Style="{StaticResource Card}" Margin="0,0,0,16">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Button x:Name="StartBtn" Style="{StaticResource AccentBtn}" Content="Start" Click="Start_Click"
+                                ToolTip="Create and start the container with the settings above, then open the console in your browser." />
+                        <Button x:Name="StopBtn" Style="{StaticResource DangerBtn}" Content="Stop" Margin="10,0,0,0" IsEnabled="False" Click="Stop_Click"
+                                ToolTip="Stop and remove the running container. Your saved worlds in the data folder are kept." />
+                        <Button x:Name="OpenBtn" Style="{StaticResource Btn}" Content="Open console" Margin="10,0,0,0" Click="Open_Click"
+                                ToolTip="Open the console website (http://localhost:&lt;web port&gt;) in your default browser." />
+                        <Button x:Name="PullBtn" Style="{StaticResource Btn}" Content="Update image" Margin="10,0,0,0" Click="Pull_Click"
+                                ToolTip="Download the latest version of the Docker image from the registry." />
+                    </StackPanel>
+                    <ProgressBar x:Name="Busy" Height="3" Margin="0,12,0,0" IsIndeterminate="True"
+                                 Visibility="Collapsed" Background="{StaticResource Outline}" Foreground="{StaticResource Accent}" BorderThickness="0" />
+                    <TextBlock Style="{StaticResource Desc}"
+                               Text="Start: launches everything and opens the browser.   Stop: shuts the container down (worlds are kept).   Open console: reopens the website.   Update image: pulls the newest build." />
+                </StackPanel>
+            </Border>
+
+            <!-- Output -->
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Style="{StaticResource H}" Text="Output" />
+                    <TextBlock Style="{StaticResource Desc}" Text="Live output from the Docker commands this app runs." Margin="2,2,0,8" />
+                    <TextBox x:Name="LogText" Style="{StaticResource Tb}" Height="210" IsReadOnly="True"
+                             FontFamily="Consolas" FontSize="12" Foreground="{StaticResource Muted}"
+                             TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" AcceptsReturn="True" />
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in &middot; World Downloader</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-body">
+    <form class="login-card" method="post" action="{{ url_for('login') }}{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}">
+        <span class="logo">⛏️</span>
+        <h1>World Downloader</h1>
+        <p class="subtitle">Management console</p>
+        {% if error %}<div class="alert error">{{ error }}</div>{% endif %}
+        <div class="text-field">
+            <input type="text" name="username" id="u" placeholder=" " autocomplete="username" autofocus required>
+            <label for="u">Username</label>
+        </div>
+        <div class="text-field">
+            <input type="password" name="password" id="p" placeholder=" " autocomplete="current-password" required>
+            <label for="p">Password</label>
+        </div>
+        <button type="submit" class="btn primary"><span class="material-symbols-rounded">login</span> Sign in</button>
+    </form>
+    <script>
+    document.addEventListener('click', (e) => {
+        const b = e.target.closest('.btn'); if (!b) return;
+        const r = document.createElement('span'); r.className = 'ripple';
+        const d = Math.max(b.clientWidth, b.clientHeight), rect = b.getBoundingClientRect();
+        r.style.width = r.style.height = d + 'px';
+        r.style.left = (e.clientX - rect.left - d / 2) + 'px';
+        r.style.top = (e.clientY - rect.top - d / 2) + 'px';
+        b.appendChild(r); setTimeout(() => r.remove(), 600);
+    });
+    </script>
+</body>
+</html>

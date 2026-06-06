@@ -1,0 +1,32 @@
+============ LOCKETTEPRO PROTECTION REPORT ============
+world: C:\Users\cntow\Documents\GitHub\HeapHongShekWorld\world
+containers scanned: 65759   signs scanned: 14917
+LockettePro lock signs ([Private]/[More Users]/[Everyone]): 12
+   next to a CAPTURED container (we have its items):      0
+   next to a saved-but-EMPTY container (locked-out):      5
+   protecting a chest NOT in downloaded chunks yet:       7
+
+-- owners (incl. [More Users] additions) --
+     10  ijd710
+      2  Gaming_Fer_Hours
+      1  ChristmasTreeBag
+      1  salisadick
+      1  voidkiller196
+
+-- CAPTURED protected containers (you already have these) --
+
+-- saved but EMPTY (locked-out: open on server to grab) --
+  [LOCK] sign@( -1948,  96,   911) [More Users] -> chest         @(-1947,96,911) EMPTY     ?
+  [LOCK] sign@( -1947,  96,   912) [Private]    -> chest         @(-1947,96,911) EMPTY     ijd710 +[voidkiller196, Gaming_Fer_Hours]
+  [LOCK] sign@(  -251,  83,   470) [Private]    -> furnace       @(-251,83,471) EMPTY     ijd710
+  [LOCK] sign@(  -224,  68,   546) [Private]    -> trapped_chest @(-224,68,547) EMPTY     ijd710
+  [LOCK] sign@(  -222,  68,   546) [Private]    -> chest         @(-222,68,547) EMPTY     ijd710
+
+-- protected chests NOT downloaded yet (walk near + open them) --
+  [????] sign@( -1395,  91,   -22) [More Users] -> (no container in downloaded data)        ChristmasTreeBag +[Gaming_Fer_Hours, salisadick]
+  [????] sign@( -1394,  91,   -23) [Private]    -> (no container in downloaded data)        ijd710
+  [????] sign@(  -312,  84,   502) [Private]    -> (no container in downloaded data)        ijd710
+  [????] sign@(  -183, 101,   449) [Private]    -> (no container in downloaded data)        ijd710
+  [????] sign@(  -182, 101,   441) [Private]    -> (no container in downloaded data)        ijd710
+  [????] sign@(  -182, 101,   445) [Private]    -> (no container in downloaded data)        ijd710
+  [????] sign@(  -182, 102,   441) [Private]    -> (no container in downloaded data)        ijd710

@@ -1,6 +1,7 @@
 package game.data.chunk.version;
 
 import config.Config;
+import config.Version;
 import game.data.coordinates.CoordinateDim2D;
 import game.data.chunk.ChunkSection;
 import game.data.chunk.palette.Palette;
@@ -69,7 +70,13 @@ public class Chunk_1_14 extends Chunk_1_13 {
 
     @Override
     protected void writeHeightMaps(PacketBuilder packet) {
-        packet.writeNbt(heightMap);
+        // Network NBT lost its (empty) root tag name in 1.20.2. Writing the old named form makes
+        // 1.20.2+ clients fail to decode the chunk packet ("ReportedNbtException: Loading NBT data").
+        if (Config.versionReporter().isAtLeast(Version.V1_20_2)) {
+            packet.writeNbtDirect(heightMap);
+        } else {
+            packet.writeNbt(heightMap);
+        }
     }
 
     @Override

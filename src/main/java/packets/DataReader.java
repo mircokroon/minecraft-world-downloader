@@ -161,7 +161,9 @@ public class DataReader {
             boolean forwardPacket = true;
             try {
                 forwardPacket = getPacketHandler().handle(nextPacketSize);
-            } catch (Exception ex) {
+            } catch (Throwable ex) {
+                // Catch Throwable, not just Exception: an Error in a single packet handler must not
+                // escape and kill the proxy thread. Log it and skip this packet; keep the stream alive.
                 ex.printStackTrace();
             }
 

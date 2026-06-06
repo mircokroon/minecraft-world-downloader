@@ -1,6 +1,7 @@
 package game.data;
 
 import static util.ExceptionHandling.attempt;
+import static util.ExceptionHandling.attemptQuiet;
 
 import game.data.chunk.version.Chunk_1_17;
 import game.data.dimension.DimensionType;
@@ -11,8 +12,10 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -80,6 +83,9 @@ public class WorldManager {
     private final Set<Dimension> savingDimension;
 
     private ContainerManager containerManager;
+    private game.data.container.ContainerAutoOpener containerAutoOpener;
+    /** Player gamemode (0 survival, 1 creative, 2 adventure, 3 spectator); -1 until observed. */
+    private volatile int playerGamemode = -1;
     private CommandBlockManager commandBlockManager;
     private VillagerManager villagerManager;
     private DimensionRegistry dimensionCodec;
@@ -319,6 +325,52 @@ public class WorldManager {
         }
     }
 
+    // Small bounded LRU of region files read back from disk, used to preserve already-saved block-entity
+    // contents when a chunk is revisited in a later session. Bounded so we never hold more than a few
+    // region files in memory. A null value means "checked, no saved file there".
+    private final Map<CoordinateDim2D, McaFile> savedRegionReadCache = Collections.synchronizedMap(
+        new LinkedHashMap<>(8, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<CoordinateDim2D, McaFile> eldest) {
+                return size() > 4;
+            }
+        }
+    );
+
+    /**
+     * Read the NBT of a chunk previously written to disk, if present. Returns null when the chunk has not
+     * been saved yet (or cannot be read). Used to preserve saved block-entity contents (chest inventories,
+     * etc.) when a chunk is revisited in a later session. Region files are cached in a small bounded LRU so
+     * this stays cheap and never holds more than a few region files in memory.
+     */
+    public Tag getSavedChunkNbt(CoordinateDim2D chunkCoordinate) {
+        try {
+            CoordinateDim2D regionCoordinate = chunkCoordinate.chunkToDimRegion();
+
+            McaFile mca;
+            synchronized (savedRegionReadCache) {
+                if (savedRegionReadCache.containsKey(regionCoordinate)) {
+                    mca = savedRegionReadCache.get(regionCoordinate);
+                } else {
+                    mca = McaFile.ofCoords(regionCoordinate);
+                    savedRegionReadCache.put(regionCoordinate, mca); // may be null = "no saved file here"
+                }
+            }
+
+            if (mca == null) {
+                return null;
+            }
+
+            ChunkBinary binary = mca.getChunkBinary(chunkCoordinate);
+            if (binary == null) {
+                return null;
+            }
+            return binary.getNbt().getTag();
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
     /**
      * Get a chunk from the region its in.
      *
@@ -424,7 +476,17 @@ public class WorldManager {
     public void start() {
         ThreadFactory namedThreadFactory = r -> new Thread(r, "World Save Service");
         saveService = Executors.newScheduledThreadPool(1, namedThreadFactory);
-        saveService.scheduleWithFixedDelay(() -> attempt(this::save), INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
+        // Catch Throwable (not just Exception): scheduleWithFixedDelay permanently cancels all future
+        // executions if the task throws anything, which would silently stop periodic saving for the rest
+        // of the session. Swallow-and-log so the saver keeps running every cycle.
+        saveService.scheduleWithFixedDelay(() -> {
+            try {
+                save();
+            } catch (Throwable t) {
+                System.err.println("Periodic save failed; will retry next cycle:");
+                t.printStackTrace();
+            }
+        }, INIT_SAVE_DELAY, SAVE_DELAY, TimeUnit.MILLISECONDS);
     }
 
     private void save(Dimension dimension, Map<CoordinateDim2D, Region> regions) {
@@ -443,28 +505,32 @@ public class WorldManager {
         }
         savingDimension.add(dimension);
 
-        // save level.dat
-        attempt(levelData::save);
-        attempt(mapRegistry::save);
+        try {
+            // save level.dat
+            attempt(levelData::save);
+            attempt(mapRegistry::save);
 
-        if (!regions.isEmpty()) {
-            // convert the values to an array first to prevent blocking any threads
-            Region[] r = regions.values().toArray(new Region[0]);
-            for (Region region : r) {
-                McaFilePair files = region.toFile(getPlayerPosition().globalToChunk());
-                if (files == null) {
-                    continue;
+            if (!regions.isEmpty()) {
+                // convert the values to an array first to prevent blocking any threads
+                Region[] r = regions.values().toArray(new Region[0]);
+                for (Region region : r) {
+                    McaFilePair files = region.toFile(getPlayerPosition().globalToChunk());
+                    if (files == null) {
+                        continue;
+                    }
+
+                    write(files.getRegion());
+                    write(files.getEntities());
                 }
-
-                write(files.getRegion());
-                write(files.getEntities());
             }
+
+            // remove empty regions
+            regions.entrySet().removeIf(el -> el.getValue().isEmpty());
+        } finally {
+            // always release the lock, otherwise a single failed save would permanently block this
+            // dimension from ever saving again ("already being saved").
+            savingDimension.remove(dimension);
         }
-
-        // remove empty regions
-        regions.entrySet().removeIf(el -> el.getValue().isEmpty());
-
-        savingDimension.remove(dimension);
 
         // suggest GC to clear up some memory that may have been freed by saving
         System.gc();
@@ -482,7 +548,8 @@ public class WorldManager {
             return;
         }
 
-        attempt(file::write);
+        // Log any write error (see attemptQuiet) but keep saving other chunk data.
+        attemptQuiet(file::write);
     }
 
     public ContainerManager getContainerManager() {
@@ -490,6 +557,69 @@ public class WorldManager {
             containerManager = new ContainerManager();
         }
         return containerManager;
+    }
+
+    public void setPlayerGamemode(int gamemode) {
+        this.playerGamemode = gamemode;
+    }
+
+    public int getPlayerGamemode() {
+        return playerGamemode;
+    }
+
+    public game.data.container.ContainerAutoOpener getContainerAutoOpener() {
+        if (containerAutoOpener == null) {
+            containerAutoOpener = new game.data.container.ContainerAutoOpener();
+        }
+        return containerAutoOpener;
+    }
+
+    /**
+     * Find the closest openable container (chest, barrel, hopper, dropper, dispenser, shulker box,
+     * furnace, ...) within {@code reach} blocks of {@code player} whose contents have not yet been
+     * captured and that is not excluded. Returns the container's global position, or null if none.
+     * Assumes default centering (--center 0); positions are compared in real (global) coordinates.
+     */
+    public Coordinate3D findOpenableContainerNear(Coordinate3D player, double reach,
+                                                  java.util.function.Predicate<Coordinate3D> exclude) {
+        if (dimension == null || player == null) {
+            return null;
+        }
+        int r = (int) Math.ceil(reach);
+        int cxMin = (player.getX() - r) >> 4, cxMax = (player.getX() + r) >> 4;
+        int czMin = (player.getZ() - r) >> 4, czMax = (player.getZ() + r) >> 4;
+        double bestSq = reach * reach;
+        Coordinate3D best = null;
+        for (int cx = cxMin; cx <= cxMax; cx++) {
+            for (int cz = czMin; cz <= czMax; cz++) {
+                Chunk c = getChunk(new Coordinate2D(cx, cz).addDimension(this.dimension));
+                if (c == null) {
+                    continue;
+                }
+                for (Coordinate3D pos : c.getBlockEntityPositions()) {
+                    if (exclude != null && exclude.test(pos)) {
+                        continue;
+                    }
+                    double dx = pos.getX() + 0.5 - player.getX();
+                    double dy = pos.getY() + 0.5 - player.getY();
+                    double dz = pos.getZ() + 0.5 - player.getZ();
+                    double distSq = dx * dx + dy * dy + dz * dz;
+                    if (distSq > bestSq) {
+                        continue;
+                    }
+                    if (c.hasCapturedItems(pos)) {
+                        continue;
+                    }
+                    BlockState bs = c.getBlockStateAt(pos.withinChunk());
+                    if (bs == null || !game.data.container.ContainerAutoOpener.isOpenable(bs.getName())) {
+                        continue;
+                    }
+                    bestSq = distSq;
+                    best = pos;
+                }
+            }
+        }
+        return best;
     }
     
     public CommandBlockManager getCommandBlockManager() {

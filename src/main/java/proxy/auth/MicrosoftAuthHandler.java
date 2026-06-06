@@ -57,22 +57,31 @@ public class MicrosoftAuthHandler {
         return String.format(REDIRECT_URL, usedPort);
     }
 
+    private boolean expiresSoon(LocalDateTime time) {
+        return time == null
+            || LocalDateTime.MIN.equals(time)
+            || time.isBefore(LocalDateTime.now().plusMinutes(5));
+    }
+
     private void refresh() {
-        LocalDateTime now = LocalDateTime.now();
-        if (microsoftAccessToken == null || microsoftExpiration.isBefore(now)) {
+        if (microsoftAccessToken == null || expiresSoon(microsoftExpiration)) {
             acquireMicrosoftToken();
         }
 
-        if (xboxLiveToken == null || xboxLiveExpiration.isBefore(now)) {
+        if (xboxLiveToken == null || expiresSoon(xboxLiveExpiration)) {
             acquireXboxLiveToken();
         }
 
-        if (xboxSecurityToken == null || xboxSecurityExpiration.isBefore(now)) {
+        if (xboxSecurityToken == null || expiresSoon(xboxSecurityExpiration)) {
             acquireXboxSecurityToken();
         }
 
-        if (minecraftAccessToken == null || minecraftAccessExpiration.isBefore(now)) {
+        if (minecraftAccessToken == null || expiresSoon(minecraftAccessExpiration)) {
             acquireMinecraftAccessToken();
+        }
+
+        if (authDetails == null || !minecraftAccessToken.equals(authDetails.getAccessToken())) {
+            authDetails = AuthDetails.fromAccessToken(this.minecraftAccessToken);
         }
     }
 
@@ -178,10 +187,14 @@ public class MicrosoftAuthHandler {
     }
 
     public AuthDetails getAuthDetails() {
-        if (authDetails == null) {
-            this.refresh();
+        this.refresh();
+
+        if (authDetails == null || minecraftAccessExpiration.isBefore(LocalDateTime.now())) {
+            authDetails = AuthDetails.fromAccessToken(this.minecraftAccessToken);
+        } else if (!this.minecraftAccessToken.equals(authDetails.getAccessToken())) {
             authDetails = AuthDetails.fromAccessToken(this.minecraftAccessToken);
         }
+
         return authDetails;
     }
 

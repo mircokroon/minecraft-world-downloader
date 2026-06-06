@@ -30,12 +30,39 @@ import se.llbit.nbt.Tag;
  * Manage entities and block entities for chunks.
  */
 public abstract class ChunkEntities extends ChunkEvents {
+    // Block-entity NBT fields that hold contents worth keeping across chunk re-sends / block updates
+    // (container items, lectern book, jukebox record, custom name, loot table, etc.).
+    private static final String[] PRESERVED_CONTENT_FIELDS = {
+        "Items", "Item", "Book", "RecordItem", "CustomName", "Lock", "LootTable", "LootTableSeed"
+    };
+
     private final Map<Coordinate3D, SpecificTag> blockEntities;
 
     public ChunkEntities() {
         super();
 
         blockEntities = new HashMap<>();
+    }
+
+    /**
+     * Global positions of all known block entities in this chunk. Returns a snapshot copy so callers
+     * on other threads (e.g. the auto-opener) can iterate without risking a ConcurrentModification.
+     */
+    public java.util.List<Coordinate3D> getBlockEntityPositions() {
+        return new java.util.ArrayList<>(blockEntities.keySet());
+    }
+
+    /**
+     * Whether the block entity at the given global position already has a non-empty Items list
+     * (so the auto-opener can skip containers whose contents were already captured).
+     */
+    public boolean hasCapturedItems(Coordinate3D global) {
+        SpecificTag tag = blockEntities.get(global);
+        if (!(tag instanceof CompoundTag)) {
+            return false;
+        }
+        Tag items = ((CompoundTag) tag).get("Items");
+        return items instanceof ListTag && ((ListTag) items).size() > 0;
     }
 
     /**
@@ -87,7 +114,7 @@ public abstract class ChunkEntities extends ChunkEvents {
 
     private void sendInventoryMessage(InventoryWindow blockEntity) {
         if (Config.sendInfoMessages()) {
-            String message = "Recorded inventory at " + blockEntity.getContainerLocation();
+            String message = "Hui Downloader saved inventory at " + blockEntity.getContainerLocation();
             Config.getPacketInjector().enqueuePacket(PacketBuilder.constructClientMessage(message, MessageTarget.GAMEINFO));
         }
     }
@@ -178,6 +205,19 @@ public abstract class ChunkEntities extends ChunkEvents {
         entity.add("y", new IntTag(offset.getY()));
         entity.add("z", new IntTag(offset.getZ()));
 
+        // Preserve container contents we already recorded. A chunk re-send / block update usually carries
+        // an EMPTY container (servers don't expose contents in chunk data), so without this an inventory
+        // we saved earlier would be overwritten and effectively "unsaved" when the chunk is revisited.
+        // Only fields the incoming entity does not already provide are carried over, so genuine updates win.
+        SpecificTag previous = blockEntities.get(location);
+        if (previous instanceof CompoundTag prev) {
+            for (String field : PRESERVED_CONTENT_FIELDS) {
+                if (entity.get(field).isError() && !prev.get(field).isError()) {
+                    entity.add(field, (SpecificTag) prev.get(field));
+                }
+            }
+        }
+
         blockEntities.put(location, tag);
         WorldManager.getInstance().touchChunk(this);
 
@@ -185,6 +225,53 @@ public abstract class ChunkEntities extends ChunkEvents {
         CoordinateDim3D pos = location.addDimension3D(getDimension());
         WorldManager.getInstance().getContainerManager().loadPreviousInventoriesAt(this, pos);
         WorldManager.getInstance().getCommandBlockManager().loadPreviousCommandBlockAt(this, pos);
+    }
+
+    /**
+     * Pre-populate block entities (and their saved contents) from a copy of this chunk previously written
+     * to disk. When a chunk is revisited — typically in a later session — the server re-sends it with empty
+     * containers; seeding the saved contents first means the live parse (which runs through addBlockEntity,
+     * preserving contents) won't "unsave" inventories we already recorded to disk. Only content-bearing
+     * entities are seeded, to avoid leaving phantom block entities behind.
+     */
+    public void seedBlockEntitiesFromDisk(Tag root) {
+        if (root == null) { return; }
+
+        Tag list = root.get("block_entities");
+        if (list.isError()) {
+            Tag level = root.get("Level");
+            if (!level.isError()) {
+                list = level.asCompound().get("TileEntities");
+            }
+        }
+        if (list.isError()) { return; }
+
+        list.asList().forEach(t -> {
+            if (!(t instanceof CompoundTag be) || !hasPreservedContent(be)) { return; }
+
+            Tag xt = be.get("x");
+            Tag yt = be.get("y");
+            Tag zt = be.get("z");
+            if (xt.isError() || yt.isError() || zt.isError()) { return; }
+
+            // Saved coordinates are offset by the world centre; undo that to recover the true global
+            // coordinate the live parse uses as the block-entity map key.
+            Coordinate3D location = new Coordinate3D(
+                xt.intValue() + Config.getCenterX(),
+                yt.intValue(),
+                zt.intValue() + Config.getCenterZ()
+            );
+            blockEntities.put(location, be);
+        });
+    }
+
+    private static boolean hasPreservedContent(CompoundTag be) {
+        for (String field : PRESERVED_CONTENT_FIELDS) {
+            if (!be.get(field).isError()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

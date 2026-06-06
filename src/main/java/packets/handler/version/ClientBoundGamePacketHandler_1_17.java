@@ -21,5 +21,18 @@ public class ClientBoundGamePacketHandler_1_17 extends ClientBoundGamePacketHand
 
             return true;
         });
+
+        operators.put("ContainerSetSlot", provider -> {
+            int windowId = provider.readNext();
+            int stateId = provider.readVarInt();
+            int slot = provider.readShort();
+            try {
+                WorldManager.getInstance().getContainerManager().setSlot(windowId, slot, provider.readSlot());
+            } catch (RuntimeException ex) {
+                // couldn't parse the item (e.g. an unknown data component); keep forwarding the packet
+            }
+
+            return true;
+        });
     }
 }

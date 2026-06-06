@@ -1,6 +1,6 @@
 package game.data.villagers;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ public class VillagerProfessionRegistry {
 
     private Map<Integer, String> professions;
 
-    public static VillagerProfessionRegistry fromRegistry(FileInputStream input) {
+    public static VillagerProfessionRegistry fromRegistry(InputStream input) {
         if (input == null) {
             return new VillagerProfessionRegistry();
         }

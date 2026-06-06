@@ -5,7 +5,6 @@ import com.google.gson.Gson;
 import game.data.chunk.palette.BlockRegistry;
 import game.data.registries.RegistriesJson;
 
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -24,7 +23,7 @@ public class ItemRegistry {
         return g.fromJson(new InputStreamReader(x), ItemRegistry.class);
     }
 
-    public static ItemRegistry fromRegistry(FileInputStream input) {
+    public static ItemRegistry fromRegistry(InputStream input) {
         if (input == null) { return new ItemRegistry(); }
 
         RegistriesJson map = new Gson().fromJson(new InputStreamReader(input), RegistriesJson.class);

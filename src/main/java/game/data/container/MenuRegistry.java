@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 
 import game.data.registries.RegistriesJson;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,11 +28,12 @@ public class MenuRegistry {
         NUM_SLOTS.put("minecraft:shulker_box", 27);
         NUM_SLOTS.put("minecraft:smoker", 3);
         NUM_SLOTS.put("minecraft:lectern", 1);
+        NUM_SLOTS.put("minecraft:crafter_3x3", 9); // 1.21 crafter (3x3 grid); contents stored under "Items"
     }
 
     private Map<Integer, String> menus;
 
-    public static MenuRegistry fromRegistry(FileInputStream input) {
+    public static MenuRegistry fromRegistry(InputStream input) {
         if (input == null) { return new MenuRegistry(); }
 
         RegistriesJson map = new Gson().fromJson(new InputStreamReader(input), RegistriesJson.class);

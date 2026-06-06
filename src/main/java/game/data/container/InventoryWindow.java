@@ -97,7 +97,18 @@ public class InventoryWindow {
     }
 
     public boolean hasCustomName() {
-        return !windowTitle.startsWith("{\"translate");
+        // Since MC 1.20.3 the OpenScreen window title is sent as a (nameless) NBT text component
+        // rather than a JSON string. readChat()/readString() mangles that into non-JSON bytes; writing
+        // them as the block entity's CustomName makes the vanilla client throw while loading the block
+        // entity and DISCARD it, so the container renders EMPTY in-game (its captured Items are lost).
+        // Only treat the title as a genuine custom name when it is a well-formed JSON text component
+        // (older servers) that is not a default "container.*" translatable name. This never writes a
+        // corrupt CustomName; the trade-off is that custom names from 1.20.3+ servers are not captured
+        // (which previously only ever produced corruption anyway). Proper capture would require reading
+        // the title via readNbtTag() and serializing the component back to JSON.
+        return windowTitle != null
+                && windowTitle.startsWith("{")
+                && !windowTitle.contains("\"translate\"");
     }
 
     @Override

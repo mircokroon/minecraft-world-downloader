@@ -12,7 +12,9 @@ import java.nio.file.Path;
 public class NbtUtil {
 
     public static Tag read(File f) throws IOException {
-        return read(new FileInputStream(f));
+        try (InputStream input = new FileInputStream(f)) {
+            return read(input);
+        }
     }
 
     public static Tag read(InputStream input) throws IOException {

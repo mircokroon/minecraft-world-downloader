@@ -3,6 +3,8 @@ import config.Config;
 import util.PathUtils;
 
 import java.net.URISyntaxException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,9 +13,18 @@ import static util.ExceptionHandling.attemptQuiet;
 
 public class Launcher {
     public static void main(String[] args) throws URISyntaxException {
+        configureErrorOutput();
         fixCwd();
 
         Config.init(args);
+    }
+
+    private static void configureErrorOutput() {
+        if (Boolean.getBoolean("wdl.showErrors")) {
+            return;
+        }
+
+        System.setErr(new PrintStream(OutputStream.nullOutputStream()));
     }
 
     private static void fixCwd() throws URISyntaxException {

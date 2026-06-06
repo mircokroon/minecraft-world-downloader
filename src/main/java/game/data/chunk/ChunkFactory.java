@@ -45,6 +45,9 @@ public class ChunkFactory {
      */
     private static Chunk getVersionedChunk(int dataVersion, CoordinateDim2D chunkPos) {
         return VersionReporter.select(dataVersion, Chunk.class,
+              Option.of(Version.V26_1, () -> new Chunk_26_1(chunkPos, dataVersion)),
+              // 1.21.5-1.21.11 also use the array-format heightmaps handled by Chunk_26_1
+              Option.of(Version.V1_21_5, () -> new Chunk_26_1(chunkPos, dataVersion)),
               Option.of(Version.V1_20, () -> new Chunk_1_20(chunkPos, dataVersion)),
               Option.of(Version.V1_18, () -> new Chunk_1_18(chunkPos, dataVersion)),
               Option.of(Version.V1_17, () -> new Chunk_1_17(chunkPos, dataVersion)),
@@ -52,7 +55,11 @@ public class ChunkFactory {
               Option.of(Version.V1_15, () -> new Chunk_1_15(chunkPos, dataVersion)),
               Option.of(Version.V1_14, () -> new Chunk_1_14(chunkPos, dataVersion)),
               Option.of(Version.V1_13, () -> new Chunk_1_13(chunkPos, dataVersion)),
-              Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos, dataVersion))
+              Option.of(Version.V1_12, () -> new Chunk_1_12(chunkPos, dataVersion)),
+              // 1.9-1.11 use the same paletted pre-flattening format as 1.12
+              Option.of(Version.V1_9, () -> new Chunk_1_12(chunkPos, dataVersion)),
+              // 1.8 uses the older direct block-array format (no palette)
+              Option.of(Version.V1_8, () -> new Chunk_1_8(chunkPos, dataVersion))
         );
     }
 
@@ -98,6 +105,46 @@ public class ChunkFactory {
         }
     }
 
+    /**
+     * Handle a 1.8 Map Chunk Bulk packet, which sends several full chunk columns at once. The header
+     * lists a shared sky-light flag and, per column, the coordinates and section bitmask; the column
+     * data follows concatenated. Each column is parsed by a Chunk_1_8 reading from the shared provider.
+     */
+    public void addBulkChunks(DataTypeProvider provider) {
+        if (WorldManager.getInstance().isPaused()) {
+            return;
+        }
+
+        Runnable r = () -> {
+            boolean skylight = provider.readBoolean();
+            int count = provider.readVarInt();
+
+            int[] xs = new int[count];
+            int[] zs = new int[count];
+            int[] masks = new int[count];
+            for (int i = 0; i < count; i++) {
+                xs[i] = provider.readInt();
+                zs[i] = provider.readInt();
+                masks[i] = provider.readShort() & 0xFFFF;
+            }
+
+            int dataVersion = Config.versionReporter().getDataVersion();
+            for (int i = 0; i < count; i++) {
+                CoordinateDim2D pos = new CoordinateDim2D(xs[i], zs[i], WorldManager.getInstance().getDimension());
+
+                Chunk_1_8 chunk = new Chunk_1_8(pos, dataVersion);
+                WorldManager.getInstance().loadChunk(chunk, true, true);
+                chunk.readBulkColumn(masks[i], skylight, provider);
+            }
+        };
+
+        if (executor != null) {
+            executor.execute(r);
+        } else {
+            r.run();
+        }
+    }
+
     private void parse() {
         for (CoordinateDim2D k : unparsedChunks.keySet()) {
             try {
@@ -107,8 +154,7 @@ public class ChunkFactory {
                     unparsedChunks.remove(k);
                 }
             } catch (Exception ex) {
-                ex.printStackTrace();
-                System.err.println("Chunk could not be parsed!");
+                // Suppress error output to save RAM. Chunk data will still be saved if available.
                 unparsedChunks.remove(k);
             }
         }
@@ -121,6 +167,14 @@ public class ChunkFactory {
         Chunk chunk = worldManager.getChunk(chunkPos);
         if (chunk == null) {
             chunk = getVersionedChunk(chunkPos);
+
+            // Preserve inventories saved in a previous session: seed block entities from the on-disk copy
+            // so the upcoming parse doesn't overwrite saved containers with empty ones.
+            var savedNbt = worldManager.getSavedChunkNbt(chunkPos);
+            if (savedNbt != null) {
+                chunk.seedBlockEntitiesFromDisk(savedNbt);
+            }
+
             worldManager.loadChunk(chunk, true, true);
         }
 

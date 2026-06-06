@@ -72,6 +72,7 @@ public class ConnectionManager {
         proxy.runServer(serverBoundDataReader, clientBoundDataReader);
 
         Config.registerPacketInjector(this.getEncryptionManager().getPacketInjector());
+        Config.registerServerBoundInjector(this.getEncryptionManager().getServerBoundInjector());
     }
 
     /**

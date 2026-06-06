@@ -1,0 +1,343 @@
+================ SAVED ITEM TOTALS ================
+world: C:\Users\cntow\Documents\GitHub\HeapHongShekWorld\world
+filled containers: 237   distinct item types: 89   total items: 51062
+
+ITEM                                    TOTAL   CONTAINERS
+----------------------------------------------------------
+beef                                     6936            8
+firework_rocket                          4469            9
+melon_slice                              3623            5
+wheat_seeds                              3552            4
+emerald                                  3542            6
+sunflower                                3492            4
+cooked_cod                               3492            4
+cobblestone                              3456            2
+cookie                                   2706            6
+bowl                                     1989            2
+cocoa_beans                              1880            3
+name_tag                                 1242           61
+cooked_rabbit                            1210            3
+coal                                      975            4
+sugar_cane                                867            1
+beetroot                                  862            1
+wheat                                     736            1
+paper                                     700            9
+raw_gold                                  613            1
+raw_iron                                  573            1
+cooked_beef                               523            4
+gravel                                    514            1
+compass                                   352           16
+beacon                                    274            2
+structure_void                            212           51
+stick                                     192            1
+tipped_arrow                              169            1
+glass                                     157            2
+oak_planks                                148            2
+dirt                                      124            2
+stone                                     120            2
+potion                                    108            4
+flint                                      97            1
+bread                                      97            4
+cooked_chicken                             91            3
+bedrock                                    90           18
+mushroom_stew                              71            6
+rabbit_stew                                59            3
+diamond_hoe                                52            2
+chicken                                    47            5
+salmon                                     38            4
+carrot                                     37            3
+apple                                      37            3
+nautilus_shell                             37            3
+cooked_salmon                              36            2
+cooked_porkchop                            36            2
+cooked_mutton                              36            2
+baked_potato                               36            2
+water_bucket                               32            2
+glass_bottle                               22            2
+gunpowder                                  22            1
+sand                                       18            1
+dried_kelp                                 18            1
+leather                                    18            1
+sea_lantern                                18            1
+glowstone                                  18            1
+magma_block                                18            1
+red_nether_bricks                          18            1
+nether_wart_block                          18            1
+netherrack                                 18            1
+nether_bricks                              18            1
+gold_ingot                                 13            1
+shulker_box                                11            4
+lime_shulker_box                            9            5
+light_blue_shulker_box                      8            4
+gray_shulker_box                            7            3
+porkchop                                    5            3
+cyan_shulker_box                            5            3
+pink_shulker_box                            5            2
+orange_shulker_box                          4            4
+light_gray_shulker_box                      4            3
+brown_shulker_box                           3            2
+magenta_shulker_box                         3            2
+blue_shulker_box                            3            3
+oak_boat                                    2            2
+pumpkin                                     2            2
+hopper                                      2            2
+white_shulker_box                           2            1
+purple_shulker_box                          2            2
+green_shulker_box                           2            1
+written_book                                1            1
+golden_shovel                               1            1
+dropper                                     1            1
+yellow_shulker_box                          1            1
+red_shulker_box                             1            1
+black_shulker_box                           1            1
+bamboo_chest_raft                           1            1
+egg                                         1            1
+cyan_terracotta                             1            1
+
+================ CONTAINERS BY TYPE ================
+  hopper             163
+  chest              39
+  trapped_chest      13
+  dropper            10
+  dispenser          8
+  campfire           3
+  barrel             1
+
+================ EVERY FILLED CONTAINER ================
+  dropper          ( -2208,  65,    31)  cyan_terracotta x1
+  hopper           ( -2201,  59,   -86)  lime_shulker_box x1
+  hopper           ( -2200,  58,   -23)  mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1
+  hopper           ( -2199,  58,   -23)  mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1
+  hopper           ( -2198,  57,   -23)  mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1
+  hopper           ( -2198,  57,   -19)  carrot x1
+  hopper           ( -2198,  57,   -11)  rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1
+  hopper           ( -2198,  57,    -3)  apple x1
+  hopper           ( -2198,  57,    13)  nautilus_shell x1
+  hopper           ( -2198,  58,   -79)  sunflower x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -75)  emerald x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -67)  bread x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -63)  cooked_cod x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -59)  cooked_salmon x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -55)  cooked_beef x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -51)  cooked_chicken x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -47)  cooked_rabbit x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -43)  cooked_mutton x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -39)  cooked_porkchop x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -35)  cookie x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -31)  melon_slice x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -27)  coal x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -19)  carrot x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,   -15)  baked_potato x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,    -3)  apple x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,     1)  salmon x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,     5)  chicken x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,    13)  nautilus_shell x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,    17)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,    21)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,    25)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2198,  58,    29)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  dropper          ( -2197,  58,   -88)  hopper x1
+  hopper           ( -2197,  71,   -81)  name_tag x1
+  hopper           ( -2197,  72,   -81)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -80)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -79)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -78)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -77)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -76)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -75)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -74)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -73)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -72)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -71)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2197,  72,   -70)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  trapped_chest    ( -2196,  57,   -23)  mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1
+  trapped_chest    ( -2196,  57,   -22)  mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1, mushroom_stew x1
+  trapped_chest    ( -2196,  57,   -11)  rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1
+  trapped_chest    ( -2196,  57,   -10)  rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1, rabbit_stew x1
+  chest            ( -2196,  57,    -7)  potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1
+  chest            ( -2196,  57,    -6)  potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1
+  trapped_chest    ( -2195,  56,     8)  beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64
+  trapped_chest    ( -2195,  56,     9)  beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64
+  chest            ( -2194,  55,   -79)  sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64
+  chest            ( -2194,  55,   -78)  sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64, sunflower x64
+  chest            ( -2194,  55,   -75)  emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64
+  chest            ( -2194,  55,   -74)  emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64, emerald x64
+  chest            ( -2194,  55,   -71)  yellow_shulker_box x1, purple_shulker_box x1, shulker_box x1, magenta_shulker_box x1, gray_shulker_box x1, red_shulker_box x1, light_blue_shulker_box x1, orange_shulker_box x1, light_gray_shulker_box x1, black_shulker_box x1, lime_shulker_box x1, magenta_shulker_box x1, gray_shulker_box x1, light_blue_shulker_box x1, cyan_shulker_box x1, cyan_shulker_box x1, brown_shulker_box x1, green_shulker_box x1, blue_shulker_box x1, pink_shulker_box x1, light_gray_shulker_box x1, light_blue_shulker_box x1, shulker_box x1, green_shulker_box x1, light_blue_shulker_box x1, brown_shulker_box x1, shulker_box x1
+  chest            ( -2194,  55,   -70)  brown_shulker_box x1, cyan_shulker_box x1, gray_shulker_box x1, magenta_shulker_box x1, shulker_box x1, gray_shulker_box x1, blue_shulker_box x1, orange_shulker_box x1, white_shulker_box x1, pink_shulker_box x1, cyan_shulker_box x1, shulker_box x1, light_blue_shulker_box x1, lime_shulker_box x1, shulker_box x1, pink_shulker_box x1, shulker_box x1, shulker_box x1, lime_shulker_box x1, gray_shulker_box x1, pink_shulker_box x1, lime_shulker_box x1, shulker_box x1, gray_shulker_box x1, white_shulker_box x1, lime_shulker_box x1, pink_shulker_box x1
+  chest            ( -2194,  55,   -63)  cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64
+  chest            ( -2194,  55,   -62)  cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64, cooked_cod x64
+  chest            ( -2194,  55,   -31)  melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64
+  chest            ( -2194,  55,   -30)  melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64, melon_slice x64
+  chest            ( -2194,  55,     9)  beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64
+  chest            ( -2194,  55,    10)  beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64, beef x64
+  dispenser        ( -2186,  55,  -104)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  dispenser        ( -2186,  55,  -102)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  dispenser        ( -2186,  55,  -100)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  barrel           ( -2186,  65,   -56)  glass_bottle x4, coal x2, bamboo_chest_raft x1, egg x1, pumpkin x1
+  hopper           ( -2184,  56,   -80)  sunflower x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -76)  emerald x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -72)  paper x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -68)  bread x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -64)  cooked_cod x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -60)  cooked_salmon x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -56)  cooked_beef x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -52)  cooked_chicken x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -48)  cooked_rabbit x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -44)  cooked_mutton x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -40)  cooked_porkchop x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -36)  cookie x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -32)  melon_slice x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -28)  coal x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -24)  paper x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -20)  carrot x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -16)  baked_potato x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,   -12)  paper x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,    -8)  paper x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,    -4)  apple x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,     0)  salmon x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,     4)  chicken x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,     8)  beef x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,    12)  nautilus_shell x18, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,    16)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,    20)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,    24)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2184,  56,    28)  structure_void x1, structure_void x1, structure_void x1, structure_void x1, structure_void x1
+  hopper           ( -2182,  56,   -99)  gunpowder x18, gunpowder x1, gunpowder x1, gunpowder x1, gunpowder x1
+  hopper           ( -2182,  57,   -99)  firework_rocket x64, firework_rocket x53
+  hopper           ( -2181,  57,   -99)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  dispenser        ( -2179,  55,  -104)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  dispenser        ( -2179,  55,  -102)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  dispenser        ( -2179,  55,  -100)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  dispenser        ( -2179,  55,   -98)  firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64, firework_rocket x64
+  hopper           ( -2177,  58,   -77)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -72)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -67)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -62)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -57)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -52)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -47)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -42)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -37)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -32)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -27)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -22)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -17)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,   -12)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,    -7)  compass x18, compass x1, compass x1, compass x1, compass x1
+  hopper           ( -2177,  58,    -2)  compass x18, compass x1, compass x1, compass x1, compass x1
+  chest            ( -2173,  59,   -73)  potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1
+  chest            ( -2172,  59,   -73)  potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1, potion x1
+  dropper          ( -2172,  61,    -4)  hopper x1
+  hopper           ( -2171,  55,   -55)  name_tag x64
+  hopper           ( -2169,  66,     4)  orange_shulker_box x1, light_blue_shulker_box x1
+  dropper          ( -2168,  62,    -4)  paper x64, paper x64, paper x64, paper x64, paper x64, paper x64, paper x64, paper x64, paper x64
+  hopper           ( -2168,  66,     4)  light_blue_shulker_box x1, light_gray_shulker_box x1, light_blue_shulker_box x1, shulker_box x1, lime_shulker_box x1
+  hopper           ( -2167,  64,    -8)  paper x18, paper x1, paper x1, paper x1, paper x1
+  dispenser        ( -2167,  66,     4)  orange_shulker_box x1, lime_shulker_box x1, purple_shulker_box x1, lime_shulker_box x1, cyan_shulker_box x1, blue_shulker_box x1, gray_shulker_box x1, shulker_box x1, light_gray_shulker_box x1
+  hopper           ( -2166,  55,   -75)  melon_slice x64, melon_slice x64, beef x4, chicken x9, melon_slice x3
+  hopper           ( -2166,  55,   -70)  cookie x58, paper x1, cooked_beef x1
+  hopper           ( -2166,  55,   -65)  cooked_chicken x55, bread x1, mushroom_stew x1, mushroom_stew x1
+  hopper           ( -2166,  55,   -60)  bread x56, bread x4
+  hopper           ( -2164,  64,     0)  emerald x18, emerald x1, emerald x1, emerald x1, emerald x1
+  dropper          ( -2164,  65,     0)  emerald x24, emerald x4
+  hopper           ( -2163,  64,    15)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -77)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -74)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -71)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -68)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -65)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -62)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -59)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -56)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -53)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -50)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -47)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -44)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -41)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -38)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -35)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -32)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -29)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2156,  68,   -26)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  dropper          ( -2153,  64,   -88)  dropper x1
+  hopper           ( -2153,  64,   -76)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -73)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -70)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -67)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -64)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -61)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -58)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -55)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -52)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -49)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -46)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -43)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -40)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -37)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -34)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -31)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -28)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           ( -2153,  64,   -25)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  trapped_chest    ( -1957,  84,   893)  name_tag x1, name_tag x1, name_tag x1, name_tag x1, name_tag x1, name_tag x1, pumpkin x1, gold_ingot x13, paper x26, paper x1
+  dropper          (  -335,  48,   465)  written_book x1, tipped_arrow x64, tipped_arrow x64, tipped_arrow x41, name_tag x1
+  dropper          (  -288,   6,   590)  golden_shovel x1
+  hopper           (  -288,  31,   591)  name_tag x1
+  hopper           (  -288,  32,   591)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  dropper          (  -274,  93,   577)  paper x2
+  trapped_chest    (  -272,  94,   503)  wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64
+  trapped_chest    (  -271,  94,   503)  wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64, wheat_seeds x64
+  chest            (  -269,  94,   503)  diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1
+  hopper           (  -268,  76,   548)  wheat_seeds x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -268,  77,   515)  name_tag x1
+  hopper           (  -268,  78,   515)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  chest            (  -268,  94,   503)  diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1, diamond_hoe x1
+  hopper           (  -267,  76,   548)  bedrock x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -266,  76,   548)  stone x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -265,  76,   548)  sand x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  chest            (  -265,  95,   551)  wheat_seeds x17, wheat_seeds x64, wheat_seeds x61, wheat_seeds x64
+  hopper           (  -264,  76,   548)  dirt x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -263,  76,   548)  oak_planks x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -262,  76,   548)  glass_bottle x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  chest            (  -262,  94,   567)  cocoa_beans x55, cocoa_beans x64
+  hopper           (  -259,  76,   548)  dried_kelp x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -258,  76,   548)  leather x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -257,  76,   548)  glass x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -256,  76,   548)  beacon x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  dropper          (  -255,  69,   411)  cookie x54, cookie x51, cookie x57, cookie x53, cookie x46, cookie x54, cookie x50, cookie x55, cookie x62
+  hopper           (  -255,  76,   548)  sea_lantern x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -254,  76,   548)  glowstone x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -253,  76,   548)  magma_block x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -252,  76,   548)  red_nether_bricks x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -251,  76,   548)  nether_wart_block x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -250,  76,   548)  netherrack x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  hopper           (  -249,  76,   548)  nether_bricks x18, bedrock x1, bedrock x1, bedrock x1, bedrock x1
+  chest            (  -235,  68,   539)  cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64
+  chest            (  -234,  68,   539)  cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64, cobblestone x64
+  chest            (  -234,  68,   547)  bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x18
+  trapped_chest    (  -233,  68,   547)  oak_boat x1
+  trapped_chest    (  -232,  68,   547)  coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, coal x64, oak_boat x1, coal x64, coal x41
+  chest            (  -230,  68,   547)  raw_gold x64, raw_gold x64, raw_gold x64, raw_gold x64, raw_gold x64, raw_gold x64, raw_gold x64, raw_gold x64, raw_gold x38, raw_gold x63
+  trapped_chest    (  -228,  68,   547)  raw_iron x64, raw_iron x64, raw_iron x64, raw_iron x64, raw_iron x64, raw_iron x64, raw_iron x64, raw_iron x64, raw_iron x61
+  chest            (  -226,  68,   547)  stick x64, stick x64, stick x64
+  chest            (  -224,  80,   532)  wheat x64, wheat x64, wheat x64, wheat x64, wheat x64, wheat x64, wheat x64, wheat x64, wheat x64, wheat x64, wheat x64, wheat x32
+  chest            (  -222,  68,   539)  water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1
+  chest            (  -222,  80,   532)  cocoa_beans x33
+  chest            (  -221,  68,   539)  water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1, water_bucket x1
+  chest            (  -221,  80,   532)  cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64, cocoa_beans x64
+  chest            (  -218,  80,   532)  sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x64, sugar_cane x35
+  chest            (  -215,  80,   532)  beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x64, beetroot x30
+  trapped_chest    (  -212,  68,   547)  gravel x64, gravel x64, gravel x64, gravel x64, gravel x64, gravel x64, gravel x2, gravel x64, gravel x64
+  chest            (  -212,  80,   532)  cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x64, cooked_rabbit x22
+  chest            (  -210,  68,   547)  flint x64, flint x33
+  chest            (  -209,  80,   532)  cooked_beef x64, cooked_beef x64, cooked_beef x64, cooked_beef x64, cooked_beef x64, cooked_beef x64, cooked_beef x64, cooked_beef x38
+  chest            (  -206,  80,   532)  bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x64, bowl x51
+  hopper           (  -201,  33,   545)  name_tag x1
+  hopper           (  -201,  33,   547)  name_tag x1
+  hopper           (  -201,  34,   545)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  hopper           (  -201,  34,   547)  name_tag x18, name_tag x1, name_tag x1, name_tag x1, name_tag x1
+  chest            (  -165,  89,   519)  oak_planks x64, glass x64, dirt x64, beacon x64, oak_planks x64, oak_planks x2, stone x64, stone x38, dirt x42, glass x64, beacon x64, glass x11, beacon x64, beacon x64
+  campfire         (  -112, 106,   538)  beef x1, porkchop x1, chicken x1, salmon x1
+  campfire         (  -111,  69,   502)  beef x1, porkchop x1, chicken x1, salmon x1
+  chest            (   115,  17,   645)  cookie x2, cookie x14, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64
+  chest            (   115,  17,   646)  cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x64, cookie x2, cookie x64, cookie x64, cookie x64, cookie x64
+  campfire         (   243,  67,   732)  porkchop x1, porkchop x1, porkchop x1

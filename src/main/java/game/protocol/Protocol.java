@@ -9,20 +9,34 @@ public class Protocol {
     private HashMap<Integer, String> clientBound;
     private HashMap<Integer, String> serverBound;
     private Map<String, Integer> clientBoundInverse;
+    private Map<String, Integer> serverBoundInverse;
 
     public Protocol() { }
 
     void generateInverse() {
-        if (clientBound == null) {
-            return;
+        if (clientBound != null) {
+            clientBoundInverse = new HashMap<>();
+            for (Map.Entry<Integer, String> entry : clientBound.entrySet()) {
+                clientBoundInverse.put(entry.getValue(), entry.getKey());
+            }
         }
-        clientBoundInverse = new HashMap<>();
-        for (Map.Entry<Integer, String> entry : clientBound.entrySet()) {
-            clientBoundInverse.put(entry.getValue(), entry.getKey());
+        if (serverBound != null) {
+            serverBoundInverse = new HashMap<>();
+            for (Map.Entry<Integer, String> entry : serverBound.entrySet()) {
+                serverBoundInverse.put(entry.getValue(), entry.getKey());
+            }
         }
     }
     public int clientBound(String packet) {
         return clientBoundInverse.get(packet);
+    }
+
+    /** Forward lookup (name -> id) for serverbound packets; -1 if unknown for this version. */
+    public int serverBound(String packet) {
+        if (serverBoundInverse == null) {
+            return -1;
+        }
+        return serverBoundInverse.getOrDefault(packet, -1);
     }
 
     protected String clientBound(int packet) {

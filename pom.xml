@@ -6,7 +6,7 @@
 
     <groupId>mircokroon.minecraft-world-downloader</groupId>
     <artifactId>minecraft-world-downloader</artifactId>
-    <version>1.0.0.0</version>
+    <version>2.3</version>
     <packaging>jar</packaging>
     <properties>
         <java.version>21</java.version>
@@ -238,5 +238,12 @@
             <classifier>mac</classifier>
         </dependency>
     </dependencies>
+         <distributionManagement>
+    <repository>
+        <id>github</id>
+        <name>GitHub Packages</name>
+        <url>https://maven.pkg.github.com/CafePromenade/minecraft-world-downloader</url>
+    </repository>
+</distributionManagement>
 </project>
 

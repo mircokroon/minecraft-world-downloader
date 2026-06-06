@@ -22,6 +22,8 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             double z = provider.readDouble();
 
             WorldManager.getInstance().setPlayerPosition(x, y, z);
+            WorldManager.getInstance().getContainerAutoOpener()
+                    .tick(WorldManager.getInstance().getPlayerPosition());
 
             return true;
         };
@@ -69,6 +71,11 @@ public class ServerBoundGamePacketHandler extends PacketHandler {
             provider.readFloat();   // Cursor y
             provider.readFloat();   // Cursor z
             provider.readBoolean(); // If the player's head is inside of a block
+            // MC 1.19+ appends a block-change sequence; remember it so auto-open opens never run ahead
+            // of the real client's sequence.
+            if (Config.versionReporter().isAtLeast(Version.V1_19)) {
+                WorldManager.getInstance().getContainerAutoOpener().setLastSequence(provider.readVarInt());
+            }
 
             WorldManager.getInstance().getContainerManager().lastInteractedWith(coords);
             return true;

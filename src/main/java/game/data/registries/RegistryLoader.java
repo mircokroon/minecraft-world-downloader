@@ -80,7 +80,17 @@ public class RegistryLoader {
      * server jar couldn't yet generate reports at this point.
      */
     private boolean hasExistingReports() {
-        return version.equals("1.12.2") || blocksPath.toFile().exists();
+        return isLegacy() || blocksPath.toFile().exists();
+    }
+
+    /**
+     * Versions before 1.13 predate the server-jar data generators, so their registries are served from the
+     * bundled 1.12.2 reports instead. 1.8-1.12 all share the same numeric (id &lt;&lt; 4 | metadata) block
+     * scheme, so the 1.12.2 block registry is a valid superset for the older versions.
+     */
+    private boolean isLegacy() {
+        return version.startsWith("1.8") || version.startsWith("1.9")
+                || version.startsWith("1.10") || version.startsWith("1.11") || version.startsWith("1.12");
     }
 
     /**
@@ -192,8 +202,11 @@ public class RegistryLoader {
 
     public EntityNames generateEntityNames() throws IOException {
         if (versionSupportsGenerators()) {
-            return EntityNames.fromRegistry(new FileInputStream(registryPath.toFile()));
-        } else if (version.equals("1.12.2")) {
+            try (InputStream inputStream = new FileInputStream(registryPath.toFile())) {
+                return EntityNames.fromRegistry(inputStream);
+            }
+        } else if (isLegacy()) {
+            // 1.8 - 1.12.2 share the bundled 1.12.2 entity names
             return EntityNames.fromJson("1.12.2");
         } else if (version.equals("1.13.2")) {
             return EntityNames.fromJson("1.13.2");
@@ -204,7 +217,9 @@ public class RegistryLoader {
 
     public BlockRegistry generateGlobalPalette() throws IOException {
         if (versionSupportsBlockGenerator()) {
-            return new BlockRegistry(new FileInputStream(blocksPath.toFile()));
+            try (InputStream inputStream = new FileInputStream(blocksPath.toFile())) {
+                return new BlockRegistry(inputStream);
+            }
         } else {
             return new BlockRegistry("1.12.2");
         }
@@ -212,7 +227,9 @@ public class RegistryLoader {
 
     public MenuRegistry generateMenuRegistry() throws IOException {
         if (versionSupportsGenerators()) {
-            return MenuRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+            try (InputStream inputStream = new FileInputStream(registryPath.toFile())) {
+                return MenuRegistry.fromRegistry(inputStream);
+            }
         } else {
             return new MenuRegistry();
         }
@@ -220,9 +237,11 @@ public class RegistryLoader {
 
     public ItemRegistry generateItemRegistry() throws IOException {
         if (versionSupportsGenerators()) {
-            return ItemRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
-        } else if (version.equals("1.12.2")) {
-            return ItemRegistry.fromJson(version);
+            try (InputStream inputStream = new FileInputStream(registryPath.toFile())) {
+                return ItemRegistry.fromRegistry(inputStream);
+            }
+        } else if (isLegacy()) {
+            return ItemRegistry.fromJson("1.12.2");
         } else {
             return new ItemRegistry();
         }
@@ -230,30 +249,36 @@ public class RegistryLoader {
 
     public BlockEntityRegistry generateBlockEntityRegistry() throws IOException {
         if (versionSupportsGenerators()) {
-            return BlockEntityRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+            try (InputStream inputStream = new FileInputStream(registryPath.toFile())) {
+                return BlockEntityRegistry.fromRegistry(inputStream);
+            }
         } else {
             return new BlockEntityRegistry();
         }
     }
 
-    public VillagerProfessionRegistry generateVillagerProfessionRegistry() throws FileNotFoundException {
+    public VillagerProfessionRegistry generateVillagerProfessionRegistry() throws IOException {
         if (versionSupportsGenerators()) {
-            return VillagerProfessionRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+            try (InputStream inputStream = new FileInputStream(registryPath.toFile())) {
+                return VillagerProfessionRegistry.fromRegistry(inputStream);
+            }
         } else {
             return new VillagerProfessionRegistry();
         }
     }
 
-    public VillagerTypeRegistry generateVillagerTypeRegistry() throws FileNotFoundException {
+    public VillagerTypeRegistry generateVillagerTypeRegistry() throws IOException {
         if (versionSupportsGenerators()) {
-            return VillagerTypeRegistry.fromRegistry(new FileInputStream(registryPath.toFile()));
+            try (InputStream inputStream = new FileInputStream(registryPath.toFile())) {
+                return VillagerTypeRegistry.fromRegistry(inputStream);
+            }
         } else {
             return new VillagerTypeRegistry();
         }
     }
 
     public boolean versionSupportsBlockGenerator() {
-        return !version.startsWith("1.12");
+        return !isLegacy();
     }
 
     public boolean versionSupportsGenerators() {

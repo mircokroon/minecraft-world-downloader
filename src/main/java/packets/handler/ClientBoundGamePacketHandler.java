@@ -56,6 +56,18 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
             return true;
         });
 
+        // Track the player's gamemode so the (opt-in) auto-open feature can gate on spectator mode.
+        // The Game Event packet is [unsigned byte event][float value]; event 3 = change game mode,
+        // value = 0 survival / 1 creative / 2 adventure / 3 spectator.
+        operations.put("GameEvent", provider -> {
+            int event = provider.readNext() & 0xFF;
+            float value = provider.readFloat();
+            if (event == 3) {
+                WorldManager.getInstance().setPlayerGamemode((int) value);
+            }
+            return true;
+        });
+
         operations.put("MoveEntityPos", provider -> {
             entityRegistry.updatePositionRelative(provider);
             return true;
@@ -94,6 +106,16 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
         operations.put("LevelChunk", provider -> {
             try {
                 worldManager.getChunkFactory().addChunk(provider);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+            return true;
+        });
+
+        // 1.8 only: several full chunk columns sent in a single packet
+        operations.put("LevelChunkBulk", provider -> {
+            try {
+                worldManager.getChunkFactory().addBulkChunks(provider);
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
@@ -156,6 +178,18 @@ public class ClientBoundGamePacketHandler extends PacketHandler {
 
             int count = provider.readShort();
             worldManager.getContainerManager().items(windowId, count, provider);
+
+            return true;
+        });
+
+        operations.put("ContainerSetSlot", provider -> {
+            int windowId = provider.readNext();
+            int slot = provider.readShort();
+            try {
+                worldManager.getContainerManager().setSlot(windowId, slot, provider.readSlot());
+            } catch (RuntimeException ex) {
+                // couldn't parse the item (e.g. an unknown data component); keep forwarding the packet
+            }
 
             return true;
         });

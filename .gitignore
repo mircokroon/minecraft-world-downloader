@@ -16,3 +16,15 @@ cache/
 *.mca
 
 dependency-reduced-pom.xml
+
+# Docker web console runtime data (worlds, registry cache, auth session, settings)
+# Anchored to the repo root so it doesn't also match the src/main/java/game/data package.
+/data/
+
+# .NET / WinUI desktop build output
+desktop/bin/
+desktop/obj/
+publish/
+*.user
+
+.tmp_build/

@@ -1,6 +1,6 @@
 package game.data.villagers;
 
-import java.io.FileInputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ public class VillagerTypeRegistry {
 
     private Map<Integer, String> types;
 
-    public static VillagerTypeRegistry fromRegistry(FileInputStream input) {
+    public static VillagerTypeRegistry fromRegistry(InputStream input) {
         if (input == null) {
             return new VillagerTypeRegistry();
         }

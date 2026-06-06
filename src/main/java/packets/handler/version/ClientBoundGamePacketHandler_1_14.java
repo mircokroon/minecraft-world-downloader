@@ -49,6 +49,14 @@ public class ClientBoundGamePacketHandler_1_14 extends ClientBoundGamePacketHand
             String windowTitle = provider.readChat();
 
             WorldManager.getInstance().getContainerManager().openWindow(windowId, windowType, windowTitle);
+
+            // If we auto-opened this container, do NOT forward the screen to the player's client:
+            // an open GUI would freeze the player's movement and stall the sweep. The contents are
+            // still captured server-side via ContainerSetContent.
+            if (Config.autoOpenContainers()
+                    && WorldManager.getInstance().getContainerAutoOpener().claimPending()) {
+                return false;
+            }
             return true;
         });
     }
