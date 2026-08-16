@@ -55,7 +55,7 @@ public class MicrosoftAuthServer extends NanoHTTPD {
             return null;
         }
         if (authCodeHandler != null) {
-            String code = session.getQueryParameterString().replaceFirst("code=", "");
+            String code = session.getParms().get("code");
             int port = this.getListeningPort();
 
             authCodeHandler.accept(code, port);

@@ -89,11 +89,13 @@ public class Dimension {
      * Path where the world should be saved to. For custom dimensions it depends on the name and namespace.
      */
     public String getPath() {
-        if (namespace.equals("minecraft")) {
+        // as of 26.1, world storage was reorganised: every dimension (including the vanilla ones, which used to be
+        // special-cased below) now lives under dimensions/<namespace>/<name> instead of the world root/DIM-1/DIM1.
+        if (!Config.versionReporter().isAtLeast(Version.V26_1) && namespace.equals("minecraft")) {
             switch (name) {
                 case "the_nether": return "DIM-1";
                 case "the_end": return "DIM1";
-                case "overworld": return"";
+                case "overworld": return "";
             }
             return name;
         }

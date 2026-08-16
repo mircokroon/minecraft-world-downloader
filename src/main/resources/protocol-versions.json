@@ -567,6 +567,92 @@
 				"0x39": "UseItem",
 				"0x38": "UseItemOn"
 			}
+		},
+		"775": {
+			"version": "26.1",
+			"dataVersion": 4786,
+			"clientBound": {
+				"0x01": "AddEntity",
+				"0x06": "BlockEntityData",
+				"0x08": "BlockUpdate",
+				"0x11": "ContainerClose",
+				"0x12": "ContainerSetContent",
+				"0x25": "ForgetLevelChunk",
+				"0x2D": "LevelChunkWithLight",
+				"0x30": "LightUpdate",
+				"0x31": "Login",
+				"0x33": "MapItemData",
+				"0x34": "MerchantOffers",
+				"0x35": "MoveEntityPos",
+				"0x36": "MoveEntityPosRot",
+				"0x3B": "OpenScreen",
+				"0x46": "PlayerInfoUpdate",
+				"0x4D": "RemoveEntities",
+				"0x52": "Respawn",
+				"0x54": "SectionBlocksUpdate",
+				"0x57": "SetActionBarText",
+				"0x5F": "SetChunkCacheRadius",
+				"0x63": "SetEntityData",
+				"0x66": "SetEquipment",
+				"0x76": "StartConfiguration",
+				"0x79": "SystemChat",
+				"0x7D": "TeleportEntity"
+			},
+			"serverBound": {
+				"0x10": "ConfigurationAcknowledged",
+				"0x13": "ContainerClose",
+				"0x1A": "Interact",
+				"0x1E": "MovePlayerPos",
+				"0x1F": "MovePlayerPosRot",
+				"0x20": "MovePlayerRot",
+				"0x22": "MoveVehicle",
+				"0x36": "SetCommandBlock",
+				"0x43": "UseItem",
+				"0x42": "UseItemOn"
+			}
+		},
+		"776": {
+			"version": "26.2",
+			"dataVersion": 4903,
+			"clientBound": {
+				"0x01": "AddEntity",
+				"0x06": "BlockEntityData",
+				"0x08": "BlockUpdate",
+				"0x11": "ContainerClose",
+				"0x12": "ContainerSetContent",
+				"0x25": "ForgetLevelChunk",
+				"0x2D": "LevelChunkWithLight",
+				"0x30": "LightUpdate",
+				"0x31": "Login",
+				"0x33": "MapItemData",
+				"0x34": "MerchantOffers",
+				"0x35": "MoveEntityPos",
+				"0x36": "MoveEntityPosRot",
+				"0x3B": "OpenScreen",
+				"0x46": "PlayerInfoUpdate",
+				"0x4D": "RemoveEntities",
+				"0x52": "Respawn",
+				"0x54": "SectionBlocksUpdate",
+				"0x57": "SetActionBarText",
+				"0x5F": "SetChunkCacheRadius",
+				"0x63": "SetEntityData",
+				"0x66": "SetEquipment",
+				"0x76": "StartConfiguration",
+				"0x79": "SystemChat",
+				"0x7D": "TeleportEntity"
+			},
+			"serverBound": {
+				"0x10": "ConfigurationAcknowledged",
+				"0x13": "ContainerClose",
+				"0x1A": "Interact",
+				"0x1E": "MovePlayerPos",
+				"0x1F": "MovePlayerPosRot",
+				"0x20": "MovePlayerRot",
+				"0x22": "MoveVehicle",
+				"0x36": "SetCommandBlock",
+				"0x43": "UseItem",
+				"0x42": "UseItemOn"
+			}
 		}
 	}
 }

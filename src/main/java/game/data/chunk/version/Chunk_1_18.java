@@ -62,6 +62,18 @@ public class Chunk_1_18 extends Chunk_1_17 {
             ex.printStackTrace();
         }
 
+        // if the packet layout this version expects doesn't match what was actually sent, we typically won't get an
+        // exception (reads just return whatever garbage bytes happen to be there) -- the surest sign of that is bytes
+        // left unread at the end of the packet. When that happens the chunk we just built is likely garbage/corrupt.
+        if (dataProvider.hasNext()) {
+            System.err.println(
+                "[chunk desync] " + dataProvider.remaining() + " unread byte(s) left over after parsing "
+                    + "LevelChunkWithLight for chunk " + location + " (protocol "
+                    + Config.versionReporter().getProtocol().getVersion() + "). The packet layout this version "
+                    + "expects no longer matches what the server sent, so this chunk is likely corrupt."
+            );
+        }
+
         afterParse();
     }
 

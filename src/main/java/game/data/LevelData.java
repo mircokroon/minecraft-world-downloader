@@ -158,6 +158,14 @@ public class LevelData {
         data.add("RandomSeed", new LongTag(Config.getLevelSeed()));
         data.add("LastPlayed", new LongTag(System.currentTimeMillis()));
 
+        // our bundled level.dat template (originally from 1.12.2) never had this tag, since older versions default
+        // gracefully to vanilla-only when it's missing. Newer versions appear to validate data packs more strictly,
+        // so make sure it's always explicitly present.
+        CompoundTag dataPacks = new CompoundTag();
+        dataPacks.add("Enabled", new ListTag(Tag.TAG_STRING, Collections.singletonList(new StringTag("vanilla"))));
+        dataPacks.add("Disabled", new ListTag(Tag.TAG_STRING, Collections.emptyList()));
+        data.add("DataPacks", dataPacks);
+
         // add the version
         if (Config.getDataVersion() > 0 && Config.getGameVersion() != null) {
             CompoundTag versionTag = new CompoundTag();
@@ -194,7 +202,7 @@ public class LevelData {
             }
             this.worldGenSettings.asCompound().add("seed", seed);
 
-            data.add("WorldGenSettings", this.worldGenSettings);
+            applyWorldGenSettings(this.worldGenSettings);
         } else {
             data.add("generatorVersion", new IntTag(1));
             data.add("generatorName", new StringTag("default"));
@@ -232,7 +240,7 @@ public class LevelData {
             }).collect(Collectors.toList()));
 
 
-            data.add("WorldGenSettings", new CompoundTag(Arrays.asList(
+            applyWorldGenSettings(new CompoundTag(Arrays.asList(
                     new NamedTag("bonus_chest", new ByteTag(0)),
                     new NamedTag("generate_features", new ByteTag(0)),
                     new NamedTag("seed", new LongTag(Config.getLevelSeed())),
@@ -243,6 +251,31 @@ public class LevelData {
             data.add("generatorName", new StringTag("flat"));
             // this is the 1.12.2 superflat format, but it still works in later versions.
             data.add("generatorOptions", new StringTag("3;minecraft:air;127"));
+        }
+    }
+
+    /**
+     * As of 26.1, world gen settings are no longer embedded in level.dat's Data compound - they live in their own
+     * file (data/minecraft/world_gen_settings.dat), using the same root/DataVersion/data wrapping as other saved
+     * data files (see MapRegistry's idcounts.dat). Before that, they're just added straight into level.dat.
+     */
+    private void applyWorldGenSettings(SpecificTag settings) {
+        if (!Config.versionReporter().isAtLeast(Version.V26_1)) {
+            data.add("WorldGenSettings", settings);
+            return;
+        }
+
+        try {
+            Path dataDir = PathUtils.toPath(outputDir.toString(), "data", "minecraft");
+            Files.createDirectories(dataDir);
+
+            CompoundTag root = new CompoundTag();
+            root.add("DataVersion", new IntTag(Config.getDataVersion()));
+            root.add("data", settings);
+
+            NbtUtil.write(new NamedTag("", root), dataDir.resolve("world_gen_settings.dat"));
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
     }
 

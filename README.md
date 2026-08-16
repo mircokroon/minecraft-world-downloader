@@ -22,13 +22,15 @@ If you run into any problems, check the [FAQ](https://github.com/mircokroon/mine
 - Automatically merge into previous downloads or existing worlds
 - Save chests and other inventories by opening them
 - Extend the client's render distance by sending chunks downloaded previously back to the client
+- Supports Minecraft 26.1+'s reorganised world storage (dimensions moved under `dimensions/<namespace>/<name>`, world gen settings moved to their own file) automatically - worlds saved from these versions open normally, no manual fixing needed
 - Overview map of chunks that have been saved:
 
 <img src="https://i.imgur.com/7FIJ6fZ.png" width="80%" title="Example of the GUI showing all the downloaded chunks as white squares, which ones from a previous download greyed out.">
 
 ### Requirements
-- Java 21 or higher
-- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+ // 1.19.3+ // 1.20+ // 1.21+
+- Java 21 or higher to run the downloader itself
+- Minecraft version 1.12.2+ // 1.13.2+ // 1.14.1+ // 1.15.2+ // 1.16.2+ // 1.17+ // 1.18+ // 1.19.3+ // 1.20+ // 1.21+ // 26.1+ // 26.2+
+- To connect to a Minecraft **26.1+** server, you additionally need a **Java 25+** JDK installed somewhere on your system. Minecraft's own server.jar needs it to generate that version's block/item data; the downloader detects and uses it automatically the first time you connect to that version, no configuration needed.
 
 ### Command-line
 [Download](https://github.com/mircokroon/minecraft-world-downloader/releases/latest/download/world-downloader.jar) the cross-platform `world-downloader.jar` and run it using the command-line:

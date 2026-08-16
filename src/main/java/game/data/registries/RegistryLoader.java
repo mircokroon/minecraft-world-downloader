@@ -14,6 +14,10 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.io.FileUtils;
 
@@ -130,15 +134,47 @@ public class RegistryLoader {
         System.out.println("We'll generate some reports now, this may take a minute.");
         System.out.println("Starting output of Minecraft server.jar:");
 
-        ProcessBuilder pb;
         String javaRuntime = Paths.get(System.getProperty("java.home"), "bin", "java").toString();
+        if (runServerDataGenerator(javaRuntime)) {
+            System.out.println("Completed generating reports!");
+            return;
+        }
+
+        // the server.jar for newer Minecraft versions can require a newer Java runtime than the one this
+        // application itself is running on. Look for a newer JDK installed alongside the current one (e.g. in
+        // IntelliJ's ~/.jdks) and retry with that before giving up.
+        String newerJava = findNewerJavaExecutable();
+        if (newerJava == null) {
+            throw new IOException(
+                "Version " + version + "'s server.jar needs a newer Java runtime than the one running this "
+                    + "application (" + javaRuntime + "). Install a newer JDK and try again."
+            );
+        }
+
+        System.out.println("The Java runtime running this application is too old for this version's server.jar.");
+        System.out.println("Retrying with: " + newerJava);
+
+        if (!runServerDataGenerator(newerJava)) {
+            throw new IOException("Could not generate reports for version " + version + " even with " + newerJava + ".");
+        }
+
+        System.out.println("Completed generating reports!");
+    }
+
+    /**
+     * Run the server.jar's report generator with the given java executable.
+     * @return false if it failed because the runtime is too old to load the server.jar, so the caller can retry
+     *         with a newer one.
+     */
+    private boolean runServerDataGenerator(String javaExecutable) throws IOException, InterruptedException {
+        ProcessBuilder pb;
         if (Config.versionReporter().isAtLeast(Version.V1_18)) {
             pb = new ProcessBuilder(
-                javaRuntime, "-DbundlerMainClass=net.minecraft.data.Main", "-jar", "server.jar", "--reports"
+                javaExecutable, "-DbundlerMainClass=net.minecraft.data.Main", "-jar", "server.jar", "--reports"
             );
         } else {
             pb = new ProcessBuilder(
-                javaRuntime, "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
+                javaExecutable, "-cp", "server.jar", "net.minecraft.data.Main", "--reports"
             );
         }
 
@@ -147,23 +183,84 @@ public class RegistryLoader {
 
         // instead of directly forwarding the output, we handle it manually. This way we can indent it and get rid
         // of the annoying teleport command spam.
-        printStream(p.getInputStream());
-        printStream(p.getErrorStream());
+        boolean tooOld = printStream(p.getInputStream());
+        tooOld |= printStream(p.getErrorStream());
 
         p.waitFor();
 
-        System.out.println("Completed generating reports!");
+        return !tooOld;
     }
 
-    private void printStream(InputStream str) throws IOException {
+    /**
+     * Look for a JDK installed next to the one currently running this application (e.g. IntelliJ installs its
+     * managed JDKs side by side in ~/.jdks on every OS) and return the java executable of the newest one found.
+     */
+    private String findNewerJavaExecutable() {
+        Path currentJdk = Paths.get(System.getProperty("java.home"));
+        Path candidateRoot = currentJdk.getParent();
+        if (candidateRoot == null || !Files.isDirectory(candidateRoot)) {
+            return null;
+        }
+
+        boolean isWindows = System.getProperty("os.name", "").toLowerCase().contains("win");
+        String best = null;
+        int bestVersion = -1;
+
+        try (Stream<Path> dirs = Files.list(candidateRoot)) {
+            for (Path dir : (Iterable<Path>) dirs::iterator) {
+                Path javaBin = dir.resolve("bin").resolve(isWindows ? "java.exe" : "java");
+                if (!Files.isRegularFile(javaBin)) {
+                    continue;
+                }
+
+                int version = getJavaMajorVersion(javaBin);
+                if (version > bestVersion) {
+                    bestVersion = version;
+                    best = javaBin.toString();
+                }
+            }
+        } catch (IOException e) {
+            return null;
+        }
+
+        return best;
+    }
+
+    private int getJavaMajorVersion(Path javaBin) {
+        try {
+            Process p = new ProcessBuilder(javaBin.toString(), "-version").redirectErrorStream(true).start();
+            String output;
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                output = reader.lines().collect(Collectors.joining("\n"));
+            }
+            p.waitFor();
+
+            Matcher m = Pattern.compile("version \"(\\d+)(?:\\.(\\d+))?").matcher(output);
+            if (m.find()) {
+                int major = Integer.parseInt(m.group(1));
+                // old "1.8" style version numbers
+                return major == 1 ? Integer.parseInt(m.group(2)) : major;
+            }
+        } catch (IOException | InterruptedException | NumberFormatException e) {
+            // not a usable java executable, ignore it
+        }
+        return -1;
+    }
+
+    private boolean printStream(InputStream str) throws IOException {
+        boolean tooOld = false;
         BufferedReader reader = new BufferedReader(new InputStreamReader(str));
         String line;
         while ((line = reader.readLine()) != null) {
             if (line.contains("Ambiguity between arguments")) {
                 continue;
             }
+            if (line.contains("UnsupportedClassVersionError")) {
+                tooOld = true;
+            }
             System.out.println("\t" + line);
         }
+        return tooOld;
     }
 
     /**
